@@ -4,7 +4,7 @@ export interface Options {
     headers?: HttpHeaders | {
         [header: string]: string | string[];
     };
-    observe: 'body';
+    observe?: 'body';
     context?: HttpContext;
     params?: HttpParams | {
         [param: string]: string | number | boolean | ReadonlyArray<string | number | boolean>;
@@ -31,14 +31,26 @@ export interface RawMaterial {
 }
 
 export interface RawMaterials {
+    data: RawMaterial[];
+    meta: { page: number };
+    /*
     items: RawMaterial[];
     total: number;
     page: number;
     totalPages: number;
+    */
 }
 
-export interface Pagination {
-    //[key:string]: string | number | boolean | ReadonlyArray<string | number | boolean>;
+export interface RawMaterial {
+    name: String;
+    purchased_at: Date;
+    weight: number;
+    created_by: number;
+    updated_by: number;
+}
+
+export interface PaginationParams {
+    [key:string]: string | number | boolean | ReadonlyArray<string | number | boolean>;
     page: number;
     perPage: number;
 }

@@ -10,7 +10,7 @@ const raw_materials = require('../services/raw_materials');
 */
 router.get('/', async function(req, res, next) {
   try {
-    res.json(await raw_materials.getMultiple(req.query.page));
+    res.json(await raw_materials.getMultiple(req.query.page, req.query.perPage));
   } catch (err) {
     console.error(`Error while getting raw materials `, err.message);
     next(err);

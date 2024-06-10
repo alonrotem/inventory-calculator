@@ -12,12 +12,12 @@ async function getSingle(id){
     return data;
 }
 
-async function getMultiple(page = 1){
-  const offset = helper.getOffset(page, config.listPerPage);
+async function getMultiple(page = 1, perPage){
+  const offset = helper.getOffset(page, perPage);
   const rows = await db.query(
     `SELECT  id,  name, purchased_at, weight, created_at, 
 	    updated_at, created_by, updated_by
-    FROM raw_materials LIMIT ${offset},${config.listPerPage}`
+    FROM raw_materials LIMIT ${offset},${perPage}`
   );
   const data = helper.emptyOrRows(rows);
   const meta = {page};

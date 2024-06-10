@@ -1,5 +1,9 @@
 const express = require("express");
+const cors = require("cors");
+
 const app = express();
+app.use(cors());
+
 const port = 3000;
 const rawMaterialsRouter = require("./routes/raw_materials");
 app.use(express.json());
@@ -22,5 +26,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+  console.log(`Inventory server listening at http://localhost:${port}`);
 });
