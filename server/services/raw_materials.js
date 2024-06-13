@@ -17,10 +17,15 @@ async function getMultiple(page = 1, perPage){
   const rows = await db.query(
     `SELECT  id,  name, purchased_at, weight, created_at, 
 	    updated_at, created_by, updated_by
-    FROM raw_materials LIMIT ${offset},${perPage}`
+    FROM raw_materials  ORDER BY updated_at desc LIMIT ${offset},${perPage}`
   );
+  const total = await db.query(
+    `SELECT count(*) as count FROM raw_materials`
+  );
+  const total_records = total[0].count;
+  const total_pages = Math.ceil(total_records / perPage);
   const data = helper.emptyOrRows(rows);
-  const meta = {page};
+  const meta = {page, total_records, total_pages};
 
   return {
     data,

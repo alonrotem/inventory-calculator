@@ -1,0 +1,32 @@
+<!--
+<button class="btn btn-primary" (click)="open()">+ New</button>
+-->
+<app-modal-dialog 
+  #dialog 
+  [showOpenButton]=true 
+  [btnText]="'+ New raw material'">
+  <app-raw-material-dialog #modalContent />
+</app-modal-dialog>
+
+<table class="table table-responsive table-striped table-hover">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Purchased at</th>
+        <th scope="col">Weight</th>
+        <th scope="col">Last update</th>
+        <th scope="col">Last update by</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr  *ngFor="let rawMaterial of this.rawMaterials">
+        <td>{{ rawMaterial.name }}</td>
+        <td>{{ rawMaterial.purchased_at }}</td>
+        <td>{{ rawMaterial.weight }} kg</td>
+        <td>{{ rawMaterial.updated_at }}</td>
+        <td>{{ rawMaterial.updated_by }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <app-paginator #paginator [pages]=4  (onPageChange)="pageChange($event)" />

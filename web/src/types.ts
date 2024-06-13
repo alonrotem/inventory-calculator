@@ -17,34 +17,33 @@ export interface Options {
     } | boolean;
 }
 
+export interface RawMaterials {
+    data: RawMaterial[];
+    meta: { 
+        page: number;
+        total_records: number;
+        total_pages: number;
+    };
+}
+
+    /*
 export interface RawMaterial {
     id: number;
     type: Text;
     weight: number;
     date_of_purchase: Date;
-    /*
+
 -	Type (text autocomplete)
 -	Weight (number kg)
 -	Babies --> Data type: Baby
 -	Date
 */
-}
-
-export interface RawMaterials {
-    data: RawMaterial[];
-    meta: { page: number };
-    /*
-    items: RawMaterial[];
-    total: number;
-    page: number;
-    totalPages: number;
-    */
-}
 
 export interface RawMaterial {
     name: String;
     purchased_at: Date;
     weight: number;
+    updated_at: Date;
     created_by: number;
     updated_by: number;
 }

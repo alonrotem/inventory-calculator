@@ -27,6 +27,9 @@
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
-    "strictTemplates": true
+    "strictTemplates": true,
+    "paths": {
+         "bootstrap/dist/js/bootstrap" : ["./node_modules/types/bootstrap"]
+       }    
   }
 }

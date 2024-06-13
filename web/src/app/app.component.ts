@@ -8,7 +8,7 @@ import { faCoffee } from '@fortawesome/free-solid-svg-icons';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent, FontAwesomeModule],
+  imports: [RouterOutlet, NavbarComponent, FontAwesomeModule ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
   providers: []

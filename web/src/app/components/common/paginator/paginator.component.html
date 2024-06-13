@@ -1,0 +1,17 @@
+<nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center">
+      <li class="page-item" [ngClass]="(current_page == 1) ? 'disabled' : ''" (click)="(current_page == 1)? false : pageClicked((current_page * 1) - 1)">
+        <a class="page-link" href="javascript:void(0)" aria-label="Previous">
+          <span aria-hidden="true">&laquo;</span>
+        </a>
+      </li>
+      <li *ngFor="let item of [].constructor(pages); let value = index" class="page-item">
+        <a class="page-link" href="javascript:void(0)" [ngClass]="(current_page == value + 1) ? 'disabled' : ''" (click)="pageClicked(value + 1)">{{ value + 1 }}</a>
+      </li>
+      <li class="page-item" [ngClass]="(current_page == pages) ? 'disabled' : ''" (click)="(current_page == pages)? false: pageClicked(((current_page * 1) + 1))">
+        <a class="page-link" href="javascript:void(0)" aria-label="Next">
+          <span aria-hidden="true">&raquo;</span>
+        </a>
+      </li>
+    </ul>
+  </nav>

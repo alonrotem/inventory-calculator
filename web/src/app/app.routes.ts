@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './components/home/home.component';
-import { RawMaterialsTableComponent } from './components/common/raw-materials-table/raw-materials-table.component';
+import { RawMaterialsTableComponent } from './components/raw-material/raw-materials-table/raw-materials-table.component';
 
 export const routes: Routes = [
     {

@@ -1,0 +1,16 @@
+<button *ngIf="this.showOpenButton" class="btn btn-primary mt-3 mb-3" (click)="open()">{{ btnText }}</button>
+
+<ng-template #content let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h4 class="modal-title" id="modal-basic-title">Modal Title</h4>
+        <button type="button" class="btn-close" aria-label="Close" (click)="this.onCancel()"></button>
+    </div>
+    <div class="modal-body">
+        <ng-content ></ng-content>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="this.onCancel()">Close</button>
+        <button type="button" class="btn btn-primary" (click)="this.onConfirm()">Save changes</button>
+      </div>
+</ng-template>

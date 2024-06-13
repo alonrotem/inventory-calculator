@@ -1,0 +1,14 @@
+.navbar-logo {
+    width: 473px;
+    height: 95px;
+}
+
+html[data-bs-theme='light'] .navbar-logo {
+    background-image: url("/assets/images/logo.png");
+    background-color: yellow;
+}
+
+html[data-bs-theme='dark'] .navbar-logo {
+    background-image: url("/assets/images/logo-dark.png") !important;
+    background-color: red;
+}

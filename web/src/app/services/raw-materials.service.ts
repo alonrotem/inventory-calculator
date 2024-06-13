@@ -15,5 +15,17 @@ export class RawMaterialsService {
       params,
       responseType: 'json'
     });
-  }
+  };
+
+  addRawMaterial = (url: string, body: any): Observable<any> => {
+    return this.apiService.post(url, body, { });
+  };
+
+  editRawMaterial = (url: string, body: any): Observable<any> => {
+    return this.apiService.put(url, body, { });
+  };
+
+  deleteRawMaterial = (url: string): Observable<any> => {
+    return this.apiService.delete(url, { });
+  };
 }
