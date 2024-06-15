@@ -1,1 +1,16 @@
 /* You can add global styles to this file, and also import other style files */
+[data-bs-theme=light] .navbar-logo {
+    background-image: url("/assets/images/romtech-w-logo-light.png");
+}
+
+
+[data-bs-theme=dark] .navbar-logo {
+    background-image: url("/assets/images/romtech-w-logo-dark.png");
+}
+
+.navbar-logo {
+    width: 300px;
+    height: 56px;
+    background-repeat: no-repeat;
+    background-size: 300px;
+}
