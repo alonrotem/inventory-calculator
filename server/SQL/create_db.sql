@@ -1,17 +1,33 @@
 use inventory;
 drop table if exists raw_materials;
+drop table if exists babies;
 
 CREATE TABLE  IF NOT EXISTS `raw_materials`
 (
   `id`            INT NOT NULL auto_increment ,
   `name`          VARCHAR(255) NOT NULL ,
   `purchased_at`  DATE NOT NULL DEFAULT(CURRENT_DATE),
-  `weight`   	  INT NULL ,
+  `weight`   	    INT NULL ,
   `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
   `updated_at`    DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
   `created_by`	 int null,
   `updated_by`	 int null,
   PRIMARY KEY (`id`)
+);
+
+CREATE TABLE  IF NOT EXISTS `babies`
+(
+  `id`            INT NOT NULL auto_increment ,
+  `raw_material_parent_id` INT NOT NULL,
+  `purchased_at`  DATE NOT NULL DEFAULT(CURRENT_DATE),
+  `length`   	    INT NULL ,
+  `quantity`   	    INT NULL ,
+  `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+  `updated_at`    DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+  `created_by`	 int null,
+  `updated_by`	 int null,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`raw_material_parent_id`) REFERENCES raw_materials(`id`)
 );
 
 insert into raw_materials (`name`, `purchased_at`,  `weight`, `created_by`, `updated_by`)

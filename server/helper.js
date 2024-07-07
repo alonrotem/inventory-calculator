@@ -15,9 +15,20 @@ function getOffset(currentPage = 1, listPerPage) {
     }
     return rows;
   }
+
+  function formatDate(datestr)
+  {
+    const date = new Date(datestr);
+    return date.getFullYear() + "-" +
+      (date.getMonth() + 1) + "-" +
+      date.getDate() + " " +
+      date.getHours() + ":" + date.getMinutes();
+  }
   
   module.exports = {
     getOffset,
     emptyOrSingle,
-    emptyOrRows
+    emptyOrRows,
+    formatDate
   }
+

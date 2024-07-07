@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { Observable } from 'rxjs';
-import { PaginationParams, RawMaterials } from '../../types';
+import { PaginationParams, RawMaterial, RawMaterials } from '../../types';
 
 @Injectable({
   providedIn: 'root'
@@ -9,6 +9,12 @@ import { PaginationParams, RawMaterials } from '../../types';
 export class RawMaterialsService {
 
   constructor(private apiService: ApiService) { }
+
+  getRawMaterial = (url:string): Observable<RawMaterial> => {
+    return this.apiService.get(url, {
+      responseType: 'json'
+    });
+  };
 
   getRawMaterials = (url:string, params: PaginationParams): Observable<RawMaterials> => {
     return this.apiService.get(url, {

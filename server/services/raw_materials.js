@@ -39,7 +39,7 @@ async function create(rawMaterial){
       (name, purchased_at, weight, created_by, updated_by) 
       VALUES 
       ((?), (?), (?), (?), (?))`,
-      [rawMaterial.name, rawMaterial.purchased_at, rawMaterial.weight, rawMaterial.created_by, rawMaterial.created_by]
+      [rawMaterial.name, helper.formatDate(rawMaterial.purchased_at), rawMaterial.weight, rawMaterial.created_by, rawMaterial.created_by]
     );
   
     let message = 'Error in creating raw material';
@@ -57,7 +57,7 @@ async function update(id, raw_material){
       `UPDATE raw_materials 
       SET name=(?), purchased_at=(?), weight=(?), updated_by=(?)
       WHERE id=${id}`,
-      [raw_material.name, raw_material.purchased_at, raw_material.weight, raw_material.updated_by]
+      [raw_material.name, helper.formatDate(raw_material.purchased_at), raw_material.weight, raw_material.updated_by]
     );
     console.log("Updated material ID: " + id + " ("+ raw_material.name +")");
     let message = 'Error in updating raw material';

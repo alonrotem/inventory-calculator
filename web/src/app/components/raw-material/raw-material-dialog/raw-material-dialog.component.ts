@@ -12,6 +12,7 @@ import { RawMaterial } from '../../../../types';
 export class RawMaterialDialogComponent {
 
   public outputObj : RawMaterial = {
+    id: 0,
     name: "",
     purchased_at: new Date(),
     weight: 0,

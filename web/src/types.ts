@@ -40,6 +40,7 @@ export interface RawMaterial {
 */
 
 export interface RawMaterial {
+    id: number;
     name: String;
     purchased_at: Date;
     weight: number;

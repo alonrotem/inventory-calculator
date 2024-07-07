@@ -6,13 +6,15 @@ import { PaginatorComponent } from "../../common/paginator/paginator.component";
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { RawMaterialDialogComponent } from '../raw-material-dialog/raw-material-dialog.component';
+import { QueryParamsHandling } from '@angular/router';
+import { RouterModule } from '@angular/router';
 
 @Component({
     selector: 'app-raw-materials-table',
     standalone: true,
     templateUrl: './raw-materials-table.component.html',
     styleUrl: './raw-materials-table.component.scss',
-    imports: [ NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, RawMaterialDialogComponent ]
+    imports: [ NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, RawMaterialDialogComponent, RouterModule ]
 })
 
 export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
@@ -23,7 +25,7 @@ export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
   rowsPerPage:number = 5;
   rawMaterials: RawMaterial[] = [];
   @ViewChild("paginator") paginator!: PaginatorComponent;
-  @ViewChild("dialog") dialog!: ModalDialogComponent;
+  //@ViewChild("dialog") dialog!: ModalDialogComponent;
   
   getRawMaterials(page: number){
     this.rawMaterialsService.getRawMaterials('http://localhost:3000/raw_materials/', { page: page, perPage:this.rowsPerPage }).subscribe(
@@ -46,10 +48,12 @@ export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
+    /*
     this.dialog.confirm.subscribe((rawMaterial:RawMaterial) => {
       console.log("submitting! " + rawMaterial);
       this.addRawMaterial(rawMaterial);
     });
+    */
   }
 
   addRawMaterial(material:RawMaterial)
@@ -84,9 +88,6 @@ export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
   }
 
   open() {
-    this.dialog.open();
     //this.dialog.open();
-    //const modalRef = this.modalService.open(RawMaterialDialogComponent);
-    //modalRef.componentInstance.name = 'World';
   }
 }
