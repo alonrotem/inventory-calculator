@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { RawMaterialsService } from '../../../services/raw-materials.service';
 import { DatePipe } from '@angular/common';
 import { BabiesTableComponent } from '../../babies/babies-table/babies-table.component';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-raw-material-editor',
@@ -42,7 +43,7 @@ constructor(private rawMaterialsService: RawMaterialsService, private location: 
   }
 
 getRawMaterial(id: number){
-  this.rawMaterialsService.getRawMaterial('http://localhost:3000/raw_materials/' + id).subscribe(
+  this.rawMaterialsService.getRawMaterial(`${environment.serverUrl}/raw_materials/${id}`).subscribe(
   {
     next: (rawMaterial: RawMaterial) => {
       this.outputObj = rawMaterial;
@@ -75,7 +76,7 @@ save()
 
 addRawMaterial(material:RawMaterial)
 {
-  this.rawMaterialsService.addRawMaterial(`http://localhost:3000/raw_materials/`, material).subscribe(
+  this.rawMaterialsService.addRawMaterial(`${environment.serverUrl}/raw_materials/`, material).subscribe(
     {
       next:(data) => { console.log(data);  this.goBack(); },//this.getRawMaterials(this.current_page); },
       error:(error) => { console.log(error); }
@@ -85,7 +86,7 @@ addRawMaterial(material:RawMaterial)
 
 editRawMaterial(id: number, material:RawMaterial)
 {
-  this.rawMaterialsService.editRawMaterial(`http://localhost:3000/raw_materials/${id}`, material).subscribe(
+  this.rawMaterialsService.editRawMaterial(`${environment.serverUrl}/raw_materials/${id}`, material).subscribe(
   {
     next:(data) => { console.log(data); this.goBack(); },//this.getRawMaterials(this.current_page); },
     error:(error) => { console.log(error); }

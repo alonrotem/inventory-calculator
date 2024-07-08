@@ -8,6 +8,7 @@ import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.com
 import { RawMaterialDialogComponent } from '../raw-material-dialog/raw-material-dialog.component';
 import { QueryParamsHandling } from '@angular/router';
 import { RouterModule } from '@angular/router';
+import { environment } from '../../../../environments/environment';
 
 @Component({
     selector: 'app-raw-materials-table',
@@ -28,7 +29,7 @@ export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
   //@ViewChild("dialog") dialog!: ModalDialogComponent;
   
   getRawMaterials(page: number){
-    this.rawMaterialsService.getRawMaterials('http://localhost:3000/raw_materials/', { page: page, perPage:this.rowsPerPage }).subscribe(
+    this.rawMaterialsService.getRawMaterials(`${environment.serverUrl}/raw_materials/`, { page: page, perPage:this.rowsPerPage }).subscribe(
     {
       next: (rawMaterials: RawMaterials) => {
         this.current_page = page;
@@ -58,7 +59,7 @@ export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
 
   addRawMaterial(material:RawMaterial)
   {
-    this.rawMaterialsService.addRawMaterial(`http://localhost:3000/raw_materials/`, material).subscribe(
+    this.rawMaterialsService.addRawMaterial(`${environment.serverUrl}/raw_materials/`, material).subscribe(
       {
         next:(data) => { console.log(data); this.getRawMaterials(this.current_page); },
         error:(error) => { console.log(error); }
@@ -68,7 +69,7 @@ export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
 
   editRawMaterial(id: number, material:RawMaterial)
   {
-    this.rawMaterialsService.editRawMaterial(`http://localhost:3000/raw_materials/${id}`, material).subscribe(
+    this.rawMaterialsService.editRawMaterial(`${environment.serverUrl}/raw_materials/${id}`, material).subscribe(
     {
       next:(data) => { console.log(data); this.getRawMaterials(this.current_page); },
       error:(error) => { console.log(error); }
@@ -76,7 +77,7 @@ export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
   }
 
   deleteRawMaterial(id:number) {
-    this.rawMaterialsService.deleteRawMaterial(`http://localhost:3000/raw_materials/${id}`).subscribe(
+    this.rawMaterialsService.deleteRawMaterial(`${environment.serverUrl}/raw_materials/${id}`).subscribe(
     {
       next:(data) => { console.log(data); this.getRawMaterials(this.current_page); },
       error:(error) => { console.log(error); }
