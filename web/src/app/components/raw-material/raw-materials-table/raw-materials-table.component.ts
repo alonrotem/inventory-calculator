@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { RawMaterialsService } from '../../../services/raw-materials.service';
 import { RawMaterial, RawMaterials } from '../../../../types';
-import { NgFor } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { PaginatorComponent } from "../../common/paginator/paginator.component";
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
@@ -9,13 +9,16 @@ import { RawMaterialDialogComponent } from '../raw-material-dialog/raw-material-
 import { QueryParamsHandling } from '@angular/router';
 import { RouterModule } from '@angular/router';
 import { environment } from '../../../../environments/environment';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { IconDefinition, faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
     selector: 'app-raw-materials-table',
     standalone: true,
     templateUrl: './raw-materials-table.component.html',
     styleUrl: './raw-materials-table.component.scss',
-    imports: [ NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, RawMaterialDialogComponent, RouterModule ]
+    imports: [ NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, RawMaterialDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf ]
 })
 
 export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
@@ -26,12 +29,15 @@ export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
   rowsPerPage:number = 5;
   rawMaterials: RawMaterial[] = [];
   @ViewChild("paginator") paginator!: PaginatorComponent;
+  faArrowsRotate: IconDefinition = faArrowsRotate;
+  loading: boolean = true;
   //@ViewChild("dialog") dialog!: ModalDialogComponent;
   
   getRawMaterials(page: number){
     this.rawMaterialsService.getRawMaterials(`${environment.serverUrl}/raw_materials/`, { page: page, perPage:this.rowsPerPage }).subscribe(
     {
       next: (rawMaterials: RawMaterials) => {
+        this.loading = false;
         this.current_page = page;
         this.rawMaterials = rawMaterials.data;
         this.paginator.pages = rawMaterials.meta.total_pages;

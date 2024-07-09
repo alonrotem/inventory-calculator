@@ -1,0 +1,15 @@
+:host {
+    display: flex;
+    flex-grow: 1;
+    justify-content: center;
+}
+
+#loading_icon {
+    align-self: center;     display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#loading_message {
+    margin-top: 50px;
+}
