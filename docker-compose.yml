@@ -4,21 +4,28 @@ name: romtech
 services:
   web:
     build: ./web/
-    ports:
-      - "4200:4200"
-
+    # no need for ports when the network mdoe is set to "host"
+    #ports:
+    #  - "4200:4200"
     network_mode: "host"
+    restart: always
+    depends_on:
+      - server
 
   server:
     build: ./server/
-    ports:
-      - "3000:3000"
+    #ports:
+    #  - "3000:3000"
     network_mode: "host"
+    restart: always
+    depends_on:
+      - db
 
   db:
     build: ./server/SQL/
-    ports:
-      - "3306:3306"
+    #ports:
+    #  - "3306:3306"
     volumes:
       - ./server/SQL/mysql:/var/lib/mysql
     network_mode: "host"
+    restart: always
