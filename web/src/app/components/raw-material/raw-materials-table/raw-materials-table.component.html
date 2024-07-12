@@ -20,11 +20,18 @@ flex-direction: column;
 align-content: center;
 align-items: center;
 justify-content: center;-->
-  <div><fa-icon [icon]="faArrowsRotate" [spin]="true" size="3x"></fa-icon></div>
-  <div id="loading_message">Loading raw materials...</div>
+  <div style="    height: 100%;
+  /*background-color: lightcoral;*/
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;">
+    <div><fa-icon [icon]="faArrowsRotate" [spin]="true" size="3x"></fa-icon></div>
+    <div id="loading_message">Loading raw materials...</div>
+  </div>
 </div>
 
-<div [hidden]="loading" style="align-self: flex-start; flex: 1 1 auto;">
+<div [hidden]="loading" style=""><!--"align-self: flex-start; flex: 1 1 auto;-->
 <a class="btn btn-primary" routerLink="/inventory/raw/editor">+ New raw material</a> <!--[queryParams]="{ id: 1 }"-->
 
 <table class="table table-responsive table-striped table-hover">
