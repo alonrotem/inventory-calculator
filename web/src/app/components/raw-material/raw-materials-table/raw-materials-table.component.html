@@ -50,13 +50,43 @@ justify-content: center;-->
         routerLink="/inventory/raw/editor" 
         [queryParams]="{ id: rawMaterial.id }" role="button">
         <td>{{ rawMaterial.name }}</td>
-        <td>{{ rawMaterial.purchased_at }}</td>
+        <td>{{ rawMaterial.purchased_at | dateStr }}</td>
         <td>{{ rawMaterial.weight }} kg</td>
-        <td>{{ rawMaterial.updated_at }}</td>
+        <td>{{ rawMaterial.updated_at | dateStr }}</td>
         <td>{{ rawMaterial.updated_by }}</td>
       </tr>
     </tbody>
   </table>
 
   <app-paginator #paginator [pages]=4  (onPageChange)="pageChange($event)" />
+
+
+
+  <!-- SELECT TEST -->
+   <div>
+<!--Using ng-option and for loop-->
+<div>
+<ng-select [(ngModel)]="selectedCar">
+  @for (car of cars; track car.id) {
+      <ng-option [value]="car.id">{{car.name}}</ng-option>
+  }
+</ng-select>
+</div>
+<div style="margin-top:50px;">
+
+  <select class="form-select" aria-label="Default select example">
+    <option selected>Open this select menu</option>
+    <option value="1">One</option>
+    <option value="2">Two</option>
+    <option value="3">Three</option>
+  </select>
+<!--Using items input
+<ng-select [items]="cars" 
+         bindLabel="name" 
+         bindValue="id" 
+         [(ngModel)]="selectedCar">
+</ng-select>
+   </div>
+   -->
+   <!--/SELECT TEST -->
 </div>

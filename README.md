@@ -8,6 +8,16 @@ ng new inventory-calculator
 npm install --save bootstrap
 
 ng generate component home
+
+✅ NEXT TODOS:
+- Add validation to material form
+- Add delete button
+- Add load either weight or units, also for empty item
+- Save procedure to save either weight or units, not both
+- Spread materials editor buttons + add icons
+- Cache countries and currencies
+- Babies
+
 ===========================================================
 
 

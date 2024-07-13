@@ -6,6 +6,9 @@ app.use(cors());
 
 const port = 3000;
 const rawMaterialsRouter = require("./routes/raw_materials");
+const currenciesRouter = require("./routes/currencies");
+const countriessRouter = require("./routes/countries");
+
 app.use(express.json());
 app.use(
   express.urlencoded({
@@ -17,6 +20,9 @@ app.get("/", (req, res) => {
 });
 
 app.use("/raw_materials", rawMaterialsRouter);
+app.use("/currencies", currenciesRouter);
+app.use("/countries", countriessRouter);
+
 /* Error handler middleware */
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;

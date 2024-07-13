@@ -1,20 +1,116 @@
-<div class="form-floating mb-3">
-    <input type="text" class="form-control" id="materialName" placeholder="Gold" [(ngModel)]="outputObj.name">
-    <label for="materialName">Raw material name</label>
-</div>
-<div class="form-floating">
-    <input type="number" id="materialWeight" class="form-control" placeholder="0" [(ngModel)]="outputObj.weight">
-    <label for="materialWeight">Weight in kg</label>
-</div>
-<div class="form-floating">
-    <input type="date" #purchasedAt class="form-control" placeholder="0" [ngModel]="outputObj.purchased_at | date: 'yyyy-MM-dd'">
-    <label for="purchasedAt">Purchased at</label>
-</div>
+<div class="row justify-content-center">
+<div class="col-8">
 
-<div>
-    <app-babies-table />
-</div>
+    <h3>{{ this.title }}</h3>
+
+    <div class="editorForm">
+    <div class="row">
+        <div class="col">
+            <div class="form-floating">
+                <input type="text" class="form-control" id="materialName" placeholder="Gold" [(ngModel)]="outputObj.name">
+                <label for="materialName">Raw material name</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col col-12 col-md-4" style="display: flex; flex-direction: column; justify-content: flex-end;">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="flexRadioDefault" #radioWeight [checked]="outputObj.weight > 0" (click)="focusOnWeight()">
+                <label class="form-check-label" for="radioWeight" (click)="focusOnWeight()">
+                    Weight
+                </label>
+            </div>
+            <div class="form-floating">
+                <input type="number" #materialWeight class="form-control" placeholder="0" [(ngModel)]="outputObj.weight" (focusin)="focusOnWeight()">
+                <label for="materialWeight">Weight in kg</label>
+            </div>            
+        </div>
+        <div class="col col-12 col-md-4" style="display: flex; flex-direction: column; justify-content: flex-end;">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="flexRadioDefault" #radioUnits [checked]="outputObj.units > 0" (click)="focusOnUnits()">
+                <label class="form-check-label" for="radioUnits" (click)="focusOnUnits()">
+                    Units
+                </label>
+            </div>
+            <div class="form-floating">
+                <input type="number" #materialUnits class="form-control" placeholder="0" [(ngModel)]="outputObj.units" (focusin)="focusOnUnits()">
+                <label for="materialUnits">Number of units</label>
+            </div>            
+        </div>
+        <div class="col col-12 col-md-4" style="display: flex; flex-direction: column; justify-content: flex-end;">
+            <div class="form-floating">
+                <input type="number" id="units_per_kg" class="form-control" placeholder="0" [(ngModel)]="outputObj.units_per_kg">
+                <label for="units_per_kg">Units per kg</label>
+            </div>            
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col col-12 col-md-4">
+            <div class="input-group">
+                <ng-select [(ngModel)]="outputObj.currency">
+                    @for (currency of currencies; track currency.code) {
+                        <ng-option [value]="currency.code">{{currency.symbol}}</ng-option>
+                    }
+                  </ng-select>
+            
+                  <div class="form-floating">
+                    <input type="number" id="materialWeight" class="form-control" placeholder="0" [(ngModel)]="outputObj.price">
+                    <label for="materialWeight">Price</label>
+                </div>
+              </div>            
+        </div>
+        <div class="col col-12 col-md-4">
+            <div class="form-floating">
+            <ng-select [(ngModel)]="outputObj.origin_country">
+                @for (country of countries; track country.code) {
+                    <ng-option [value]="country.code">{{country.name}}</ng-option>
+                }
+              </ng-select>
+              <label for="">Origin country</label>
+            </div>
+        </div>
+        <div class="col col-12 col-md-4">
+            <div class="form-floating">
+                <input type="text" class="form-control" id="vendorName" placeholder="Gold" [(ngModel)]="outputObj.vendor_name">
+                <label for="vendorName">Vendor name</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col col-12 col-md-6">
+            <div class="form-floating">
+                <input type="date" #purchasedAt class="form-control" placeholder="0" [ngModel]="outputObj.purchased_at | date: 'yyyy-MM-dd'">
+                <label for="purchasedAt">Purchased at</label>
+            </div>
+        </div>
+        <div class="col col-12 col-md-6" style="display: flex; flex-direction: column; justify-content: center;">
+            Last updated at: {{ (newMaterialMode)? "Not yet!" : outputObj.updated_at | dateStr }}
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col col-12">
+            <div class="form-floating">
+                <input type="text" class="form-control" id="notes" placeholder="Gold" [(ngModel)]="outputObj.notes">
+                <label for="notes">Notes</label>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col col-12">
+            <app-babies-table />
+            </div>
+    </div>
 
 
 <button class="btn btn-primary" (click)="save()">Save</button>
 <button class="btn btn-danger" (click)="goBack()">Cancel</button>
+</div>
+</div>
+</div>

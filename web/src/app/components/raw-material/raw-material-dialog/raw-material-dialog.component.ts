@@ -18,7 +18,15 @@ export class RawMaterialDialogComponent {
     weight: 0,
     updated_at: new Date(),
     created_by: 0,
-    updated_by: 0
+    updated_by: 0,
+    units: 0,
+    units_per_kg: 0,
+    vendor_name: '',
+    origin_country: 'US',
+    price: 0,
+    currency: 'USD',
+    notes: '',
+    created_at: new Date
   }
   //@Output() confirm = new EventEmitter<RawMaterial>();
 

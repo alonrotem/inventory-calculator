@@ -1,0 +1,16 @@
+.transparent_text {
+    color: transparent;
+}
+
+::ng-deep.ng-select-container.ng-has-value {
+    height: calc(3.5rem + calc(var(--bs-border-width)* 2)) !important;
+}
+
+.editorForm div.col {
+    height: calc(3.5rem + calc(var(--bs-border-width)* 2));
+    margin: 15px 0px;
+}
+
+h3 {
+    margin-top: 15px;
+}

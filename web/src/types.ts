@@ -26,24 +26,19 @@ export interface RawMaterials {
     };
 }
 
-    /*
-export interface RawMaterial {
-    id: number;
-    type: Text;
-    weight: number;
-    date_of_purchase: Date;
-
--	Type (text autocomplete)
--	Weight (number kg)
--	Babies --> Data type: Baby
--	Date
-*/
-
 export interface RawMaterial {
     id: number;
     name: String;
     purchased_at: Date;
     weight: number;
+    units: number;
+    units_per_kg: number;
+    vendor_name: string;
+    origin_country: string;
+    price: number;
+    currency: string;
+    notes: string;
+    created_at: Date;
     updated_at: Date;
     created_by: number;
     updated_by: number;
@@ -53,4 +48,17 @@ export interface PaginationParams {
     [key:string]: string | number | boolean | ReadonlyArray<string | number | boolean>;
     page: number;
     perPage: number;
+}
+
+export interface Country {
+    code: string;
+    name: string;
+    order: number;
+}
+
+export interface Currency {
+    code: string;
+    name: string;
+    symbol: string;
+    order: number;
 }

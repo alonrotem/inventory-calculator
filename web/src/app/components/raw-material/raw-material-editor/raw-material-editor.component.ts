@@ -1,18 +1,20 @@
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { Location } from '@angular/common';
-import { RawMaterial } from '../../../../types';
+import { Country, Currency, RawMaterial } from '../../../../types';
 import { RouterModule } from '@angular/router';
 import { RouterLink, RouterOutlet, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { RawMaterialsService } from '../../../services/raw-materials.service';
 import { DatePipe } from '@angular/common';
 import { BabiesTableComponent } from '../../babies/babies-table/babies-table.component';
-import { environment } from '../../../../environments/environment';
+import { InfoService } from '../../../services/info.service';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { DateStrPipe } from '../../../utils/date_pipe';
 
 @Component({
   selector: 'app-raw-material-editor',
   standalone: true,
-  imports: [ RouterModule, RouterLink, RouterOutlet, FormsModule, DatePipe, BabiesTableComponent ],
+  imports: [ RouterModule, RouterLink, RouterOutlet, FormsModule, DatePipe, BabiesTableComponent, NgSelectModule, DateStrPipe ],
   templateUrl: './raw-material-editor.component.html',
   styleUrl: './raw-material-editor.component.scss'
 })
@@ -25,25 +27,68 @@ export class RawMaterialEditorComponent implements OnInit {
     weight: 0,
     updated_at: new Date(),
     created_by: 0,
-    updated_by: 0
+    updated_by: 0,
+    units: 0,
+    units_per_kg: 0,
+    vendor_name: '',
+    origin_country: 'US',
+    price: 0,
+    currency: 'USD',
+    notes: '',
+    created_at: new Date()
   }
 
+  countries: Country[] = [];
+  currencies: Currency[] = [];
+  title: string = "Create Raw Material";
+  newMaterialMode: boolean = true;
+
   @ViewChild("purchasedAt") purchase_date!: ElementRef;
+  @ViewChild("radioWeight") radioWeight!: ElementRef;
+  @ViewChild("radioUnits") radioUnits!: ElementRef;
+  @ViewChild("materialWeight") materialWeight!: ElementRef;
+  @ViewChild("materialUnits") materialUnits!: ElementRef;
   
   
-constructor(private rawMaterialsService: RawMaterialsService, private location: Location, private activatedRoute: ActivatedRoute) { 
+constructor(private rawMaterialsService: RawMaterialsService, private infoService: InfoService, private location: Location, private activatedRoute: ActivatedRoute) { 
   
 }
   ngOnInit(): void {
     if(this.activatedRoute.snapshot.queryParamMap.has('id'))
     {
+      this.title = "Edit Raw Material";
+      this.newMaterialMode = false;
       const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
-      this.getRawMaterial(id);  
+      this.getRawMaterial(id);
     }
+    this.getCountries();
+    this.getCurrencies();
+  }
+
+  getCountries(){
+    this.infoService.getCountries().subscribe({
+      next: (countries: Country[]) => {
+        this.countries = countries;
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    })
+  }
+
+  getCurrencies(){
+    this.infoService.getCurrencies().subscribe({
+      next: (currencies: Currency[]) => {
+        this.currencies = currencies;
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    })
   }
 
 getRawMaterial(id: number){
-  this.rawMaterialsService.getRawMaterial(`${environment.serverUrl}/raw_materials/${id}`).subscribe(
+  this.rawMaterialsService.getRawMaterial(id).subscribe(
   {
     next: (rawMaterial: RawMaterial) => {
       this.outputObj = rawMaterial;
@@ -76,7 +121,7 @@ save()
 
 addRawMaterial(material:RawMaterial)
 {
-  this.rawMaterialsService.addRawMaterial(`${environment.serverUrl}/raw_materials/`, material).subscribe(
+  this.rawMaterialsService.addRawMaterial(material).subscribe(
     {
       next:(data) => { console.log(data);  this.goBack(); },//this.getRawMaterials(this.current_page); },
       error:(error) => { console.log(error); }
@@ -86,12 +131,30 @@ addRawMaterial(material:RawMaterial)
 
 editRawMaterial(id: number, material:RawMaterial)
 {
-  this.rawMaterialsService.editRawMaterial(`${environment.serverUrl}/raw_materials/${id}`, material).subscribe(
+  this.rawMaterialsService.editRawMaterial(material).subscribe(
   {
     next:(data) => { console.log(data); this.goBack(); },//this.getRawMaterials(this.current_page); },
     error:(error) => { console.log(error); }
   });
 }
+
+focusOnWeight(): void {
+  console.log("CLICKED! weight");
+  this.radioWeight.nativeElement.checked = true;
+  this.materialWeight.nativeElement.focus();
+  this.materialUnits.nativeElement.classList.add("transparent_text");
+  this.materialWeight.nativeElement.classList.remove("transparent_text");
+}
+
+focusOnUnits(): void {
+  console.log("CLICKED! unit");
+  this.radioUnits.nativeElement.checked = true;
+  this.materialUnits.nativeElement.focus();
+  this.materialUnits.nativeElement.classList.remove("transparent_text");
+  this.materialWeight.nativeElement.classList.add("transparent_text");
+
+}
+
 
   goBack() {
     this.location.back();

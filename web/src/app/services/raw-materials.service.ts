@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { Observable } from 'rxjs';
 import { PaginationParams, RawMaterial, RawMaterials } from '../../types';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -10,28 +11,28 @@ export class RawMaterialsService {
 
   constructor(private apiService: ApiService) { }
 
-  getRawMaterial = (url:string): Observable<RawMaterial> => {
-    return this.apiService.get(url, {
+  getRawMaterial = (id: number): Observable<RawMaterial> => {
+    return this.apiService.get(`${environment.serverUrl}/raw_materials/${id}`, {
       responseType: 'json'
     });
   };
 
-  getRawMaterials = (url:string, params: PaginationParams): Observable<RawMaterials> => {
-    return this.apiService.get(url, {
+  getRawMaterials = (params: PaginationParams): Observable<RawMaterials> => {
+    return this.apiService.get(`${environment.serverUrl}/raw_materials/`, {
       params,
       responseType: 'json'
     });
   };
 
-  addRawMaterial = (url: string, body: any): Observable<any> => {
-    return this.apiService.post(url, body, { });
+  addRawMaterial = (material: RawMaterial): Observable<any> => {
+    return this.apiService.post(`${environment.serverUrl}/raw_materials/`, material, { });
   };
 
-  editRawMaterial = (url: string, body: any): Observable<any> => {
-    return this.apiService.put(url, body, { });
+  editRawMaterial = (material: RawMaterial): Observable<any> => {
+    return this.apiService.put(`${environment.serverUrl}/raw_materials/${material.id}`, material, { });
   };
 
-  deleteRawMaterial = (url: string): Observable<any> => {
-    return this.apiService.delete(url, { });
+  deleteRawMaterial = (id: number): Observable<any> => {
+    return this.apiService.delete(`${environment.serverUrl}/raw_materials/${id}`, { });
   };
 }
