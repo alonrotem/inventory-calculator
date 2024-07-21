@@ -26,6 +26,15 @@ export interface RawMaterials {
     };
 }
 
+export interface Babies {
+    data: Baby[];
+    meta: { 
+        page: number;
+        total_records: number;
+        total_pages: number;
+    };
+}
+
 export interface RawMaterial {
     id: number;
     name: String;
@@ -38,6 +47,19 @@ export interface RawMaterial {
     price: number;
     currency: string;
     notes: string;
+    created_at: Date;
+    updated_at: Date;
+    created_by: number;
+    updated_by: number;
+}
+
+
+export interface Baby {
+    id: number;
+    raw_material_parent_id: number;
+    raw_material: string;
+    length: number;
+    quantity: number;
     created_at: Date;
     updated_at: Date;
     created_by: number;

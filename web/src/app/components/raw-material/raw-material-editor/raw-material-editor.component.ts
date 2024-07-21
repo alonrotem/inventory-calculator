@@ -20,7 +20,7 @@ import { DateStrPipe } from '../../../utils/date_pipe';
 })
 export class RawMaterialEditorComponent implements OnInit {
 
-  public outputObj : RawMaterial = {
+  public rawMaterialItem : RawMaterial = {
     id: 0,
     name: "",
     purchased_at: new Date(),
@@ -91,7 +91,7 @@ getRawMaterial(id: number){
   this.rawMaterialsService.getRawMaterial(id).subscribe(
   {
     next: (rawMaterial: RawMaterial) => {
-      this.outputObj = rawMaterial;
+      this.rawMaterialItem = rawMaterial;
     },
     error: (error) => {
       console.log(error);
@@ -101,21 +101,21 @@ getRawMaterial(id: number){
 
 save()
 {
-  this.outputObj.purchased_at =  new Date(this.purchase_date.nativeElement.value); //.toISOString()
+  this.rawMaterialItem.purchased_at =  new Date(this.purchase_date.nativeElement.value); //.toISOString()
   //edit
   if(this.activatedRoute.snapshot.queryParamMap.has('id'))
   {
     const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
     console.log("edit: ");
-    console.log(this.outputObj);
-    this.editRawMaterial(id, this.outputObj);
+    console.log(this.rawMaterialItem);
+    this.editRawMaterial(id, this.rawMaterialItem);
   }
   //add
   else
   {
     console.log("add: ");
-    console.log(this.outputObj);
-    this.addRawMaterial(this.outputObj);
+    console.log(this.rawMaterialItem);
+    this.addRawMaterial(this.rawMaterialItem);
   }
 }
 
