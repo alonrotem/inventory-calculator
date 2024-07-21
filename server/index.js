@@ -6,6 +6,7 @@ app.use(cors());
 
 const port = 3000;
 const rawMaterialsRouter = require("./routes/raw_materials");
+const babiesRouter = require("./routes/babies");
 const currenciesRouter = require("./routes/currencies");
 const countriessRouter = require("./routes/countries");
 
@@ -20,6 +21,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/raw_materials", rawMaterialsRouter);
+app.use("/babies", babiesRouter);
 app.use("/currencies", currenciesRouter);
 app.use("/countries", countriessRouter);
 

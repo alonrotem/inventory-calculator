@@ -59,7 +59,6 @@ CREATE TABLE  IF NOT EXISTS `babies`
 (
   `id`            INT NOT NULL auto_increment ,
   `raw_material_parent_id` INT NOT NULL,
-  `purchased_at`  DATE NOT NULL DEFAULT(CURRENT_DATE),
   `length`   	    INT NULL ,
   `quantity`   	    INT NULL ,
   `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
@@ -349,5 +348,18 @@ values
 ('Diamond', '2024-06-08', 14, 	NULL, 	NULL, 	'RU', 'RU',	20, 'EUR', 'This is a test material' ,1, 1),
 ('Plastic', '2024-06-08', NULL, 99, 	10, 	'US', NULL,	50, 'USD', 'This is a test material' ,1, 1),
 ('Bad shit','2024-06-08', NULL, 13, 	NULL, 	'US', NULL,	75, 'EUR', 'This is a test material' ,1, 1);
+
+set @gold_id = (select id from raw_materials where name='Gold' limit 1);
+set @silver_id = (select id from raw_materials where name='Silver' limit 1);
+
+insert into babies (raw_material_parent_id, length, quantity, 
+        created_at, updated_at, created_by, updated_by)
+values
+	(@gold_id, 10, 100, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1),
+	(@gold_id, 25, 200, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1),
+	(@gold_id, 30, 300, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1),
+	(@silver_id, 30, 50, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1),
+	(@silver_id, 17, 3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1),
+	(@silver_id, 30, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1);
 
 select "All done";

@@ -13,11 +13,16 @@ async function getSingle(id){
 }
 
 async function getMultiple(page = 1, perPage){
-  const offset = helper.getOffset(page, perPage);
+  let subset =  '';
+  if(page && perPage)
+  {
+    const offset = helper.getOffset(page, perPage);
+    subset = `LIMIT ${offset},${perPage}`
+  }
   const rows = await db.query(
     `SELECT  id, name, purchased_at, weight, units, units_per_kg, vendor_name, origin_country,
       price, currency, notes, created_at, updated_at, created_by, updated_by
-    FROM raw_materials  ORDER BY updated_at desc LIMIT ${offset},${perPage}`
+    FROM raw_materials  ORDER BY updated_at desc ${subset}`
   );
   const total = await db.query(
     `SELECT count(*) as count FROM raw_materials`
