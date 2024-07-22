@@ -2,6 +2,8 @@
 
 # docker compose down; git pull; docker compose up -d --build
 
+# docker compose down; git pull;  rm -rf ./server/SQL/mysql/; docker compose up -d --build
+
 name: romtech
 
 services:
@@ -26,6 +28,7 @@ services:
 
   db:
     build: ./server/SQL/
+    # command: /bin/bash -c 'mysql -u root -p12345678 < /docker-entrypoint-initdb.d/create_db.sql'
     #ports:
     #  - "3306:3306"
     volumes:

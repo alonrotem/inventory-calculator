@@ -26,7 +26,7 @@ CREATE TABLE  IF NOT EXISTS `currencies`
 (
   `code`  VARCHAR(3) NOT NULL,
   `name`  VARCHAR(64) NOT NULL,
-  `symbol` VARCHAR(3) NULL,
+  `symbol` VARCHAR(3) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci  NULL,
   `order` int default(999),
   PRIMARY KEY (`code`)
 );
@@ -330,8 +330,8 @@ values
 Insert into currencies (`code`, `name`, `symbol`, `order`)
 values
 ('USD', 'US', '$', 10),
-('EUR', 'EURO', '€', 20),
-('RUB', 'Ruble', '₽', 30);
+('EUR', 'EURO', _ucs2 0x20AC, 20),
+('RUB', 'Ruble', _ucs2 0x20BD, 30);
 
 insert into raw_materials (
 	`name`, `purchased_at`,  `weight`, `units`, 

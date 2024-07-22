@@ -11,19 +11,20 @@
 FROM mysql:latest
 
 #RUN apt-install update && apt-install -y mysql-client
-
+ENV MYSQL_USER=youruser
 ENV MYSQL_ROOT_PASSWORD=12345678
 ENV MYSQL_DATABASE=inventory
 
 # This is a version of Fedora with a reduced version of dnf
 RUN microdnf install -y nano
 
+# placing the script in /docker-entrypoint-initdb.d/ should make it run automatially
 COPY *.sql /docker-entrypoint-initdb.d/
 RUN mkdir /db
 COPY . /db
 WORKDIR /db
 
-#CMD /bin/bash -c 'mysql -u root -p12345678 < /docker-entrypoint-initdb.d/create_db.sql'
+# CMD /bin/bash -c 'mysql -u root -p12345678 < /docker-entrypoint-initdb.d/create_db.sql'
 
 
 # /var/lib/mysql
