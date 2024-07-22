@@ -16,7 +16,7 @@ export class DateStrPipe implements PipeTransform {
     {
         d = value;
     }
-    console.log("transform " + value);
+    //console.log("transform " + value);
     return  d.getDate().toString().padStart(2, '0') + 
         "/" + (d.getMonth()+1).toString().padStart(2, '0') + 
         "/" + d.getFullYear() + 

@@ -10,11 +10,13 @@ import { BabiesTableComponent } from '../../babies/babies-table/babies-table.com
 import { InfoService } from '../../../services/info.service';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { DateStrPipe } from '../../../utils/date_pipe';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { faSave, faTrashAlt, faTimesCircle, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-raw-material-editor',
   standalone: true,
-  imports: [ RouterModule, RouterLink, RouterOutlet, FormsModule, DatePipe, BabiesTableComponent, NgSelectModule, DateStrPipe ],
+  imports: [RouterModule, RouterLink, RouterOutlet, FormsModule, DatePipe, BabiesTableComponent, NgSelectModule, DateStrPipe, FaIconComponent ],
   templateUrl: './raw-material-editor.component.html',
   styleUrl: './raw-material-editor.component.scss'
 })
@@ -42,13 +44,16 @@ export class RawMaterialEditorComponent implements OnInit {
   currencies: Currency[] = [];
   title: string = "Create Raw Material";
   newMaterialMode: boolean = true;
+  faSave: IconDefinition = faSave;
+  faTrashAlt:IconDefinition = faTrashAlt;
+  faTimesCircle:IconDefinition = faTimesCircle;
 
   @ViewChild("purchasedAt") purchase_date!: ElementRef;
   @ViewChild("radioWeight") radioWeight!: ElementRef;
   @ViewChild("radioUnits") radioUnits!: ElementRef;
   @ViewChild("materialWeight") materialWeight!: ElementRef;
   @ViewChild("materialUnits") materialUnits!: ElementRef;
-  
+
   
 constructor(private rawMaterialsService: RawMaterialsService, private infoService: InfoService, private location: Location, private activatedRoute: ActivatedRoute) { 
   
@@ -159,4 +164,5 @@ focusOnUnits(): void {
   goBack() {
     this.location.back();
   }
+
 }

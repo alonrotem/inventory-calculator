@@ -12,11 +12,12 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { FormsModule } from '@angular/forms';
 import { BabiesService } from '../../../services/babies.service';
+import { BabyEditorDialogComponent } from "../../babies/baby-editor-dialog/baby-editor-dialog.component";
 
 @Component({
   selector: 'app-babies-table',
   standalone: true,
-  imports: [ NgFor, DateStrPipe, PaginatorComponent, ModalDialogComponent, RawMaterialDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule ],
+  imports: [ NgFor, DateStrPipe, PaginatorComponent, ModalDialogComponent, RawMaterialDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, BabyEditorDialogComponent ],
   templateUrl: './babies-table.component.html',
   styleUrl: './babies-table.component.scss'
 })
@@ -28,6 +29,7 @@ export class BabiesTableComponent implements OnInit, AfterViewInit, AfterViewChe
   babies: Baby[] = [];
   @ViewChild("paginator") paginator!: PaginatorComponent;
   faArrowsRotate: IconDefinition = faArrowsRotate;
+  @ViewChild("baby_editor") babyEditorDialog!: ModalDialogComponent;
 
   constructor(private babiesService: BabiesService) {  }
 
@@ -35,11 +37,22 @@ export class BabiesTableComponent implements OnInit, AfterViewInit, AfterViewChe
     this.babiesService.getBabiesForRawMaterial({  raw_material_id: this.raw_material_id, page: page, perPage:this.rowsPerPage }).subscribe(
     {
       next: (babies: Babies) => {
-        this.loading = false;
-        this.current_page = page;
-        this.babies = babies.data;
-        this.paginator.pages = babies.meta.total_pages;
-        this.paginator.current_page = babies.meta.page;
+        if(babies && babies.data && babies.data.length)
+        {  
+          this.loading = false;
+          this.current_page = page;
+          this.babies = babies.data;
+          this.paginator.pages = babies.meta.total_pages;
+          this.paginator.current_page = babies.meta.page;
+        }
+        else
+        {
+          this.loading = false;
+          this.current_page = 1;
+          this.babies = [];
+          this.paginator.pages = 0;
+          this.paginator.current_page = 0;
+        }
       },
       error: (error) => {
         console.log(error);
@@ -62,5 +75,9 @@ export class BabiesTableComponent implements OnInit, AfterViewInit, AfterViewChe
 
   pageChange (page: number) {
     this.getBabiesForRawMaterial(page);
+  }
+
+  openDialog () {
+    this.babyEditorDialog.open();
   }
 }

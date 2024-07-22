@@ -91,7 +91,6 @@
         </div>
     </div>
 
-
     <div class="row">
         <div class="col col-12">
             <div class="form-floating">
@@ -107,9 +106,18 @@
             </div>
     </div>
 
+    <div class="row">
+        <div class="col-12 buttons-area">
+            <button class="btn btn-success" (click)="save()"><fa-icon [icon]="faSave"></fa-icon> Save Material</button>
+            <button class="btn btn-warning" (click)="goBack()"><fa-icon [icon]="faTimesCircle"></fa-icon> Cancel Chages</button>
+            <button class="btn btn-danger" (click)="goBack()"><fa-icon [icon]="faTrashAlt"></fa-icon> Delete Material</button>    
+        </div>
+    </div>
 
-<button class="btn btn-primary" (click)="save()">Save</button>
-<button class="btn btn-danger" (click)="goBack()">Cancel</button>
 </div>
+
+
+
 </div>
+
 </div>

@@ -1,0 +1,7 @@
+.navbar-icon-container {
+    padding: 
+        var(--bs-nav-link-padding-y)        /*top*/
+        var(--bs-navbar-nav-link-padding-x) /*right*/
+        var(--bs-nav-link-padding-x)        /*bottom*/ 
+        var(--bs-navbar-nav-link-padding-x);/*left*/
+}
