@@ -1,9 +1,9 @@
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
-import { Location } from '@angular/common';
+import { Location, NgIf } from '@angular/common';
 import { Country, Currency, RawMaterial } from '../../../../types';
 import { RouterModule } from '@angular/router';
 import { RouterLink, RouterOutlet, ActivatedRoute } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { Form, FormsModule, NgForm } from '@angular/forms';
 import { RawMaterialsService } from '../../../services/raw-materials.service';
 import { DatePipe } from '@angular/common';
 import { BabiesTableComponent } from '../../babies/babies-table/babies-table.component';
@@ -16,7 +16,7 @@ import { faSave, faTrashAlt, faTimesCircle, IconDefinition } from '@fortawesome/
 @Component({
   selector: 'app-raw-material-editor',
   standalone: true,
-  imports: [RouterModule, RouterLink, RouterOutlet, FormsModule, DatePipe, BabiesTableComponent, NgSelectModule, DateStrPipe, FaIconComponent ],
+  imports: [RouterModule, RouterLink, RouterOutlet, FormsModule, DatePipe, BabiesTableComponent, NgSelectModule, DateStrPipe, FaIconComponent , NgIf],
   templateUrl: './raw-material-editor.component.html',
   styleUrl: './raw-material-editor.component.scss'
 })
@@ -47,19 +47,22 @@ export class RawMaterialEditorComponent implements OnInit {
   faSave: IconDefinition = faSave;
   faTrashAlt:IconDefinition = faTrashAlt;
   faTimesCircle:IconDefinition = faTimesCircle;
+  is_new_material: Boolean = true;
 
-  @ViewChild("purchasedAt") purchase_date!: ElementRef;
-  @ViewChild("radioWeight") radioWeight!: ElementRef;
-  @ViewChild("radioUnits") radioUnits!: ElementRef;
-  @ViewChild("materialWeight") materialWeight!: ElementRef;
-  @ViewChild("materialUnits") materialUnits!: ElementRef;
+  @ViewChild("purchasedAt", { read: ElementRef }) purchase_date!: ElementRef;
+  @ViewChild("radioWeight", { read: ElementRef }) radioWeight!: ElementRef;
+  @ViewChild("radioUnits", { read: ElementRef }) radioUnits!: ElementRef;
+  @ViewChild("materialWeight", { read: ElementRef }) materialWeight!: ElementRef;
+  @ViewChild("materialUnits", { read: ElementRef }) materialUnits!: ElementRef;
+  @ViewChild('raw_material_form') raw_material_form!: NgForm;
 
   
 constructor(private rawMaterialsService: RawMaterialsService, private infoService: InfoService, private location: Location, private activatedRoute: ActivatedRoute) { 
   
 }
   ngOnInit(): void {
-    if(this.activatedRoute.snapshot.queryParamMap.has('id'))
+    this.is_new_material = !this.activatedRoute.snapshot.queryParamMap.has('id');
+    if(!this.is_new_material)
     {
       this.title = "Edit Raw Material";
       this.newMaterialMode = false;
@@ -106,21 +109,25 @@ getRawMaterial(id: number){
 
 save()
 {
-  this.rawMaterialItem.purchased_at =  new Date(this.purchase_date.nativeElement.value); //.toISOString()
-  //edit
-  if(this.activatedRoute.snapshot.queryParamMap.has('id'))
+  this.raw_material_form.form.markAllAsTouched();
+  if(this.raw_material_form.form.valid)
   {
-    const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
-    console.log("edit: ");
-    console.log(this.rawMaterialItem);
-    this.editRawMaterial(id, this.rawMaterialItem);
-  }
-  //add
-  else
-  {
-    console.log("add: ");
-    console.log(this.rawMaterialItem);
-    this.addRawMaterial(this.rawMaterialItem);
+    this.rawMaterialItem.purchased_at =  new Date(this.purchase_date.nativeElement.value); //.toISOString()
+    //edit
+    if(!this.is_new_material)
+    {
+      const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
+      console.log("edit: ");
+      console.log(this.rawMaterialItem);
+      this.editRawMaterial(id, this.rawMaterialItem);
+    }
+    //add
+    else
+    {
+      console.log("add: ");
+      console.log(this.rawMaterialItem);
+      this.addRawMaterial(this.rawMaterialItem);
+    }
   }
 }
 

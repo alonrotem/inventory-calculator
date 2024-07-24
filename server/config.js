@@ -5,7 +5,8 @@ const config = {
       user: "root",
       password: "12345678",
       database: "inventory",
-      connectTimeout: 60000
+      connectTimeout: 60000/*,
+      debug: true*/
     },
     listPerPage: 50,
   };

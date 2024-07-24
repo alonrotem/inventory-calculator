@@ -2,120 +2,149 @@
 <div class="col-8">
 
     <h3>{{ this.title }}</h3>
-
-    <div class="editorForm">
-    <div class="row">
-        <div class="col">
-            <div class="form-floating">
-                <input type="text" class="form-control" id="materialName" placeholder="Gold" [(ngModel)]="rawMaterialItem.name">
-                <label for="materialName">Raw material name</label>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col col-12 col-md-4" style="display: flex; flex-direction: column; justify-content: flex-end;">
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" #radioWeight [checked]="rawMaterialItem.weight > 0" (click)="focusOnWeight()">
-                <label class="form-check-label" for="radioWeight" (click)="focusOnWeight()">
-                    Weight
-                </label>
-            </div>
-            <div class="form-floating">
-                <input type="number" #materialWeight class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.weight" (focusin)="focusOnWeight()">
-                <label for="materialWeight">Weight in kg</label>
-            </div>            
-        </div>
-        <div class="col col-12 col-md-4" style="display: flex; flex-direction: column; justify-content: flex-end;">
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" #radioUnits [checked]="rawMaterialItem.units > 0" (click)="focusOnUnits()">
-                <label class="form-check-label" for="radioUnits" (click)="focusOnUnits()">
-                    Units
-                </label>
-            </div>
-            <div class="form-floating">
-                <input type="number" #materialUnits class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.units" (focusin)="focusOnUnits()">
-                <label for="materialUnits">Number of units</label>
-            </div>            
-        </div>
-        <div class="col col-12 col-md-4" style="display: flex; flex-direction: column; justify-content: flex-end;">
-            <div class="form-floating">
-                <input type="number" id="units_per_kg" class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.units_per_kg">
-                <label for="units_per_kg">Units per kg</label>
-            </div>            
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col col-12 col-md-4">
-            <div class="input-group">
-                <ng-select [(ngModel)]="rawMaterialItem.currency">
-                    @for (currency of currencies; track currency.code) {
-                        <ng-option [value]="currency.code">{{currency.symbol}}</ng-option>
-                    }
-                  </ng-select>
-            
-                  <div class="form-floating">
-                    <input type="number" id="materialWeight" class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.price">
-                    <label for="materialWeight">Price</label>
+    <form novalidate #raw_material_form="ngForm">
+        <div class="editorForm">
+        <div class="row">
+            <div class="col">
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="materialName" #materialName="ngModel" [(ngModel)]="rawMaterialItem.name" name="materialName" required>
+                    <label for="materialName">Raw material name <span class="text-danger">*</span></label>
                 </div>
-              </div>            
-        </div>
-        <div class="col col-12 col-md-4">
-            <div class="form-floating">
-            <ng-select [(ngModel)]="rawMaterialItem.origin_country">
-                @for (country of countries; track country.code) {
-                    <ng-option [value]="country.code">{{country.name}}</ng-option>
-                }
-              </ng-select>
-              <label for="">Origin country</label>
+                <div class="text-danger" *ngIf="materialName.invalid && (materialName.touched || materialName.dirty)" > 
+                    <span *ngIf="materialName.errors?.['required']">Please enter a name for the raw material</span>
+                    <!-- span *ngIf="firstName.errors?.['minlength']">Min 3 Charactors Needed</span --> 
+                </div>            
             </div>
         </div>
-        <div class="col col-12 col-md-4">
-            <div class="form-floating">
-                <input type="text" class="form-control" id="vendorName" placeholder="Gold" [(ngModel)]="rawMaterialItem.vendor_name">
-                <label for="vendorName">Vendor name</label>
+
+        <div class="row">
+            <div class="col col-12 col-md-4" style="display: flex; flex-direction: column; justify-content: flex-end;">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="flexRadioDefault" #radioWeight [checked]="rawMaterialItem.weight > 0 || (rawMaterialItem.weight == 0 && rawMaterialItem.units == 0)" (click)="focusOnWeight()">
+                    <label class="form-check-label" for="radioWeight" (click)="focusOnWeight()">
+                        Weight
+                    </label>
+                </div>
+                <div class="form-floating">
+                    <input type="number" #materialWeight="ngModel" class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.weight" name="weight" (focusin)="focusOnWeight()">
+                    <label for="materialWeight">Weight in kg</label>
+                </div>            
+            </div>
+            <div class="col col-12 col-md-4" style="display: flex; flex-direction: column; justify-content: flex-end;">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="flexRadioDefault" #radioUnits [checked]="rawMaterialItem.units > 0" (click)="focusOnUnits()">
+                    <label class="form-check-label" for="radioUnits" (click)="focusOnUnits()">
+                        Units
+                    </label>
+                </div>
+                <div class="form-floating">
+                    <input type="number" class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.units" (focusin)="focusOnUnits()" name="materialUnits" #materialUnits="ngModel" >
+                    <label for="materialUnits">Number of units</label>
+                </div>            
+            </div>
+            <div class="col col-12 col-md-4" style="display: flex; flex-direction: column; justify-content: flex-end;">
+                <div class="form-floating">
+                    <input type="number" id="units_per_kg" class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.units_per_kg" name="units_per_kg">
+                    <label for="units_per_kg">Units per kg</label>
+                </div>            
             </div>
         </div>
-    </div>
+        <!--
+        validation:
 
-    <div class="row">
-        <div class="col col-12 col-md-6">
-            <div class="form-floating">
-                <input type="date" #purchasedAt class="form-control" placeholder="0" [ngModel]="rawMaterialItem.purchased_at | date: 'yyyy-MM-dd'">
-                <label for="purchasedAt">Purchased at</label>
+        -->
+        <div class="text-danger" *ngIf="
+            (radioUnits.checked && (materialUnits.touched || materialUnits.dirty) && 
+            (materialUnits.value=='' || materialUnits.value <= 0)) 
+            ||
+            (radioWeight.checked && (materialWeight.touched || materialWeight.dirty) && 
+            (materialWeight.value=='' || materialWeight.value <= 0))">
+            Please select weight in kg or number of units, and enter a valid value
+        </div>
+
+        <div class="row">
+            <div class="col col-12 col-md-4">
+                <div class="input-group">
+                    <ng-select [(ngModel)]="rawMaterialItem.currency" name="currency">
+                        @for (currency of currencies; track currency.code) {
+                            <ng-option [value]="currency.code">{{currency.symbol}}</ng-option>
+                        }
+                    </ng-select>
+                
+                    <div class="form-floating">
+                        <input type="number" id="materialWeight" class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.price" name="price">
+                        <label for="materialWeight">Price</label>
+                    </div>
+                </div>            
+            </div>
+            <div class="col col-12 col-md-4">
+                <div class="form-floating">
+                <ng-select [(ngModel)]="rawMaterialItem.origin_country" name="country">
+                    @for (country of countries; track country.code) {
+                        <ng-option [value]="country.code">{{country.name}}</ng-option>
+                    }
+                </ng-select>
+                <label for="">Origin country</label>
+                </div>
+            </div>
+            <div class="col col-12 col-md-4">
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="vendorName" [(ngModel)]="rawMaterialItem.vendor_name" name="vendor_name">
+                    <label for="vendorName">Vendor name</label>
+                </div>
             </div>
         </div>
-        <div class="col col-12 col-md-6" style="display: flex; flex-direction: column; justify-content: center;">
-            Last updated at: {{ (newMaterialMode)? "Not yet!" : rawMaterialItem.updated_at | dateStr }}
-        </div>
-    </div>
 
-    <div class="row">
-        <div class="col col-12">
-            <div class="form-floating">
-                <input type="text" class="form-control" id="notes" placeholder="Gold" [(ngModel)]="rawMaterialItem.notes">
-                <label for="notes">Notes</label>
+        <div class="row">
+            <div class="col col-12 col-md-6">
+                <div class="form-floating">
+                    <input type="date" #purchasedAt class="form-control" placeholder="0" [ngModel]="rawMaterialItem.purchased_at | date: 'yyyy-MM-dd'" name="purchased_at">
+                    <label for="purchasedAt">Purchased at</label>
+                </div>
+            </div>
+            <div class="col col-12 col-md-6" style="display: flex; flex-direction: column; justify-content: center;">
+                Last updated at: {{ (newMaterialMode)? "Not yet!" : rawMaterialItem.updated_at | dateStr }}
             </div>
         </div>
-    </div>
 
-    <div class="row">
-        <div class="col col-12">
-            <app-babies-table [raw_material_id]="this.rawMaterialItem.id" />
+        <div class="row">
+            <div class="col col-12">
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="notes" [(ngModel)]="rawMaterialItem.notes" name="notes">
+                    <label for="notes">Notes</label>
+                </div>
             </div>
-    </div>
-
-    <div class="row">
-        <div class="col-12 buttons-area">
-            <button class="btn btn-success" (click)="save()"><fa-icon [icon]="faSave"></fa-icon> Save Material</button>
-            <button class="btn btn-warning" (click)="goBack()"><fa-icon [icon]="faTimesCircle"></fa-icon> Cancel Chages</button>
-            <button class="btn btn-danger" (click)="goBack()"><fa-icon [icon]="faTrashAlt"></fa-icon> Delete Material</button>    
         </div>
+
+        <div class="row">
+            <div class="col col-12">
+                <app-babies-table [raw_material_id]="this.rawMaterialItem.id" [is_new_material]="this.is_new_material" [show_material_col]="false" />
+                </div>
+        </div>
+
+        <div class="row buttons-area">
+                <div class="col-12 col-md-4">
+                    <button class="btn btn-success" type="submit" (click)="save()"><!--[disabled]="!raw_material_form.form.valid"-->
+                        <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
+                        <div>Save Material</div>
+                    </button>
+                </div>
+                <div class="col-12 col-md-4">
+                    <button class="btn btn-warning" (click)="goBack()">
+                        <div class="btn-icon"><fa-icon [icon]="faTimesCircle"></fa-icon></div>
+                        <div>Cancel Chages</div>
+                    </button>
+                </div>
+                <div class="col-12 col-md-4">
+                    <button class="btn btn-danger" (click)="goBack()">
+                        <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>
+                        <div>Delete Material</div>
+                    </button>
+                </div>
+        </div>
+
     </div>
-
-</div>
-
+</form>
 
 
 </div>

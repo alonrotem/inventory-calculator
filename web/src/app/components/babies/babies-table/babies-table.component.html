@@ -1,5 +1,5 @@
 <app-modal-dialog #baby_editor>
-  <app-baby-editor-dialog></app-baby-editor-dialog>
+  <app-baby-editor-dialog #modalContent></app-baby-editor-dialog>
 </app-modal-dialog>
 
 <div style="display:flex; flex-direction: column; justify-content: center;">
@@ -11,14 +11,14 @@
   </div>
   
   <div [hidden]="loading">
-    <a class="btn btn-primary" (click)="openDialog()">+ Add baby</a>
+    <a class="btn btn-primary" (click)="openDialog(null)">+ Add baby</a>
   </div>
   <div [hidden]="loading || this.babies.length == 0">
-
-  <table class="table table-responsive table-striped table-hover">
+ <div class="table-responsive">
+  <table class="table table-striped table-hover">
       <thead>
         <tr>
-          <th scope="col">Raw Mateial</th>
+          <th scope="col" [hidden]="!this.show_material_col">Raw Mateial</th>
           <th scope="col">Length</th>
           <th scope="col">Number</th>
           <th scope="col">Last update</th>
@@ -29,8 +29,8 @@
         <tr 
           *ngFor="let baby of this.babies" 
           routerLink="/inventory/raw/editor" 
-          role="button">
-          <td>{{ baby.raw_material }}</td>
+          role="button" (click)="openDialog(baby)">
+          <td [hidden]="!this.show_material_col">{{ baby.raw_material }}</td>
           <td>{{ baby.length }} cm</td>
           <td>{{ baby.quantity }}</td>
           <td>{{ baby.updated_at | dateStr }}</td>
@@ -38,10 +38,11 @@
         </tr>
       </tbody>
     </table>
-  <app-paginator #paginator [pages]=4  (onPageChange)="pageChange($event)" [hidden]="this.paginator.pages <= 1" />
+  </div>
+  <!--<app-paginator #paginator [pages]=4  (onPageChange)="pageChange($event)" [hidden]="this.paginator.pages <= 1" />-->
   </div>
 
-  <div [hidden]="loading || this.babies.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1;">
+  <div [hidden]="loading || this.babies.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
     No babies created for this material.<br/>
     Please add some by clicking the + button above.
   </div>

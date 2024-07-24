@@ -84,3 +84,8 @@ export interface Currency {
     symbol: string;
     order: number;
 }
+
+export interface ModalObjectEditor {
+    editedObject: any;
+    beforeClose(): Boolean;
+}

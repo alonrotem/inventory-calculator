@@ -51,7 +51,7 @@ async function create(rawMaterial){
         rawMaterial.weight, 
         rawMaterial.units,
         rawMaterial.units_per_kg,
-        rawMaterial.vendor,
+        rawMaterial.vendor_name,
         rawMaterial.origin_country,
         rawMaterial.price,
         rawMaterial.currency,
@@ -59,7 +59,7 @@ async function create(rawMaterial){
         helper.nowDateStr(),
         helper.nowDateStr(),
         rawMaterial.created_by, 
-        rawMaterial.updated_by,
+        rawMaterial.updated_by
         ]
     );
   

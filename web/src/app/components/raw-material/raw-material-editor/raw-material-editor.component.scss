@@ -15,15 +15,22 @@ h3 {
     margin-top: 15px;
 }
 
-.buttons-area {
-    display: flex; 
-    flex-direction: row; 
-    justify-content: 
-    space-evenly; align-items: 
-    center; margin: 15px 0;
-}
-
 .buttons-area button {
-    width: 165px;
-    padding: 10px 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 19px;
+    margin: 10px 0;
+    width: 100%;
+}
+@media screen and (min-width: 768px) and (max-width: 992px) {
+    .buttons-area button {
+        height: 80px;
+    }
+}
+@media screen and (min-width: 1200px) {
+    .buttons-area button {
+        width: 80%;
+    }
 }
