@@ -9,6 +9,5 @@ async function query(sql, params) {
 }
 
 module.exports = {
-  query,
-  bulk_query
+  query
 }
