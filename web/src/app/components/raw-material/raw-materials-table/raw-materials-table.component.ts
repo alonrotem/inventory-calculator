@@ -1,30 +1,48 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, inject, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { RawMaterialsService } from '../../../services/raw-materials.service';
 import { RawMaterial, RawMaterials } from '../../../../types';
 import { NgFor, NgIf } from '@angular/common';
 import { PaginatorComponent } from "../../common/paginator/paginator.component";
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbToast } from '@ng-bootstrap/ng-bootstrap';
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
-import { RawMaterialDialogComponent } from '../raw-material-dialog/raw-material-dialog.component';
-import { RouterModule } from '@angular/router';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { IconDefinition, faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { FormsModule } from '@angular/forms';
 import { DateStrPipe } from '../../../utils/date_pipe';
+import { ToastComponent } from '../../common/toast/toast.component';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
     selector: 'app-raw-materials-table',
     standalone: true,
     templateUrl: './raw-materials-table.component.html',
     styleUrl: './raw-materials-table.component.scss',
-    imports: [ NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, RawMaterialDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe ]
+    imports: [ NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe, ToastComponent ]
 })
 
 export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
-  constructor(private rawMaterialsService: RawMaterialsService, private modalService: NgbModal) {
-    
+  constructor(private rawMaterialsService: RawMaterialsService, private modalService: NgbModal, private router: Router) {
+    let nav = this.router.getCurrentNavigation();
+    if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {
+      let info = nav.extras.state['info']['textInfo'];
+      let isError = nav.extras.state['info']['isError'];
+      if(isError)
+      {
+        this.toastService.showError(info);
+      }
+      else
+      {
+        this.toastService.showSuccess(info);
+      }
+      
+    }
+    else
+    {
+      //alert("empty");
+    }
   }
   current_page = 1;
   rowsPerPage:number = 5;
@@ -32,16 +50,9 @@ export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
   @ViewChild("paginator") paginator!: PaginatorComponent;
   faArrowsRotate: IconDefinition = faArrowsRotate;
   loading: boolean = true;
-  //@ViewChild("dialog") dialog!: ModalDialogComponent;
   
   selectedCar: number=1;
-
-  cars = [
-      { id: 1, name: 'Volvo' },
-      { id: 2, name: 'Saab' },
-      { id: 3, name: 'Opel' },
-      { id: 4, name: 'Audi' },
-  ];
+  toastService = inject(ToastService);
 
   getRawMaterials(page: number){
     this.rawMaterialsService.getRawMaterials({ page: page, perPage:this.rowsPerPage }).subscribe(
@@ -60,8 +71,14 @@ export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(){
-    this.getRawMaterials(1);
 
+    // Access the state
+
+    //else
+      //alert("blank");
+
+    this.getRawMaterials(1);
+    history.replaceState({}, location.href);
   }
 
   ngAfterViewInit() {
@@ -108,4 +125,8 @@ export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
   open() {
     //this.dialog.open();
   }
+
+  showSuccess(text: string) {
+		this.toastService.showError (text);
+	}
 }

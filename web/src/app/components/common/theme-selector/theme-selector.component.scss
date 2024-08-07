@@ -5,3 +5,35 @@
         var(--bs-nav-link-padding-x)        /*bottom*/ 
         var(--bs-navbar-nav-link-padding-x);/*left*/
 }
+
+.toggle-btn-wrapper {
+    display: inline-block;
+    width: 40px;
+    border-radius: 10px;
+    cursor: pointer;
+    height: 22px;
+  }
+
+  .toggle-btn-wrapper:has(svg[data-icon='moon']) {
+    border: 1px solid white;
+  }
+  
+  .toggle-btn-wrapper:has(svg[data-icon='sun']) {
+    border: 1px solid rgba(0, 0, 0, 0.65);
+  }
+
+  fa-icon:has(svg) {
+    transition: left 170ms ease-in-out;
+    position: relative;
+    top: -2px;
+  }
+
+fa-icon:has(svg[data-icon='sun']) {
+    left: 2px;
+    color: #FDB813;
+}
+
+fa-icon:has(svg[data-icon='moon']) {
+    left: 22px;
+    color: #bbdbf5;
+}

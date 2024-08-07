@@ -1,0 +1,7 @@
+fa-icon:has(svg.fa-border-none) {
+    display: none;
+}
+
+fa-icon:has(svg) {
+    margin-right: 5px;
+}

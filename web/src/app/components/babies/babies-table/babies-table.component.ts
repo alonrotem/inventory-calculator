@@ -1,11 +1,10 @@
-import { AfterViewChecked, AfterViewInit, Component, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, Input, OnChanges, OnInit, Output, ViewChild } from '@angular/core';
 import { PaginatorComponent } from '../../common/paginator/paginator.component';
 import { Babies, Baby } from '../../../../types';
-import { faArrowsRotate, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faArrowsRotate, faTrash, faTrashAlt, faTrashCan, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { DateStrPipe } from "../../../utils/date_pipe";
 import { NgFor, NgIf } from '@angular/common';
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
-import { RawMaterialDialogComponent } from '../../raw-material/raw-material-dialog/raw-material-dialog.component';
 import { RouterModule } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -13,6 +12,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
 import { FormsModule } from '@angular/forms';
 import { BabiesService } from '../../../services/babies.service';
 import { BabyEditorDialogComponent } from "../../babies/baby-editor-dialog/baby-editor-dialog.component";
+import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 
 enum DialogMode {
   Add,
@@ -22,7 +22,7 @@ enum DialogMode {
 @Component({
   selector: 'app-babies-table',
   standalone: true,
-  imports: [ NgFor, DateStrPipe, PaginatorComponent, ModalDialogComponent, RawMaterialDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, BabyEditorDialogComponent ],
+  imports: [ NgFor, DateStrPipe, PaginatorComponent, ModalDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, BabyEditorDialogComponent, ConfirmationDialogComponent, FaIconComponent ],
   templateUrl: './babies-table.component.html',
   styleUrl: './babies-table.component.scss'
 })
@@ -37,15 +37,15 @@ export class BabiesTableComponent implements OnInit, AfterViewInit, AfterViewChe
   loading: boolean = true;
   current_page = 1;
   rowsPerPage:number = 5;
-  babies: Baby[] = [];
+  @Output() babies: Baby[] = [];
   faArrowsRotate: IconDefinition = faArrowsRotate;
   dialogMode: DialogMode = DialogMode.Add;
+  faTrashCan: IconDefinition = faTrashCan;
 
   constructor(private babiesService: BabiesService) {  
   }
 
   getBabiesForRawMaterial(page: number){
-
     this.babiesService.getBabiesForRawMaterial({  raw_material_id: this.raw_material_id, page: page, perPage:this.rowsPerPage }).subscribe(
     {
       next: (babies: Babies) => {
@@ -133,5 +133,14 @@ export class BabiesTableComponent implements OnInit, AfterViewInit, AfterViewChe
       this.babyEditorDialog.dialog_content_component.editedObject = baby;
     }
     this.babyEditorDialog.open();
+  }
+
+  deleteBaby(baby: Baby) {
+    let babyIndex = this.babies.findIndex(b => b.id == baby.id);
+    if(babyIndex >= 0)
+    {
+      //delete this.babies[babyIndex];
+      this.babies.splice(babyIndex, 1);
+    }
   }
 }

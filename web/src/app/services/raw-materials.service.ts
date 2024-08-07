@@ -24,15 +24,16 @@ export class RawMaterialsService {
     });
   };
 
-  addRawMaterial = (material: RawMaterial): Observable<any> => {
+  saveNewRawMaterial = (material: RawMaterial): Observable<any> => {
     return this.apiService.post(`${environment.serverUrl}/raw_materials/`, material, { });
   };
 
-  editRawMaterial = (material: RawMaterial): Observable<any> => {
+  updateRawMaterial = (material: RawMaterial): Observable<any> => {
     return this.apiService.put(`${environment.serverUrl}/raw_materials/${material.id}`, material, { });
   };
 
   deleteRawMaterial = (id: number): Observable<any> => {
+    console.log("deleteRawMaterial");
     return this.apiService.delete(`${environment.serverUrl}/raw_materials/${id}`, { });
   };
 }

@@ -8,6 +8,7 @@ npm install --save bootstrap
 ng generate component home
 
 ✅ NEXT TODOS:
+- https://jsfiddle.net/alrotem/oqpkce0f/
 - Save material - toaster message on saved successfully, then allow to add babies
 - Manage suppliers
 - Add validation to material form

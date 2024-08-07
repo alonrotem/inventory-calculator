@@ -1,4 +1,14 @@
 <!--<button class="btn btn-primary" (click)="toggleTheme()">{{this.name}}</button>-->
+<!--
 <div class="navbar-icon-container">
     <fa-icon  (click)="toggleTheme()" [icon]="icon"></fa-icon>
+</div>
+-->
+<div class="navbar-icon-container">
+<div id="darkbright-switch" class="toggle-btn-wrapper" (click)="toggleTheme()">
+    <div class="tottle-indicator">
+      <!--<i id="darkbright-icon" class="fa-solid fa-moon"></i>-->
+      <fa-icon #indicator [icon]="icon"></fa-icon>
+    </div>
+</div>
 </div>

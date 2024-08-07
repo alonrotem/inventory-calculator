@@ -2,6 +2,10 @@
   <app-baby-editor-dialog #modalContent></app-baby-editor-dialog>
 </app-modal-dialog>
 
+<app-modal-dialog #delete_confirmation>
+  <app-confirmation-dialog #modalContent></app-confirmation-dialog>
+</app-modal-dialog>
+
 <div style="display:flex; flex-direction: column; justify-content: center;">
 <div id="loading_icon" [hidden]="!loading">
     <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
@@ -20,9 +24,10 @@
         <tr>
           <th scope="col" [hidden]="!this.show_material_col">Raw Mateial</th>
           <th scope="col">Length</th>
-          <th scope="col">Number</th>
+          <th scope="col" class="text-center">Quantity</th>
           <th scope="col">Last update</th>
           <th scope="col">Last update by</th>
+          <th scope="col" class="text-center">Remove</th>
         </tr>
       </thead>
       <tbody>
@@ -32,9 +37,10 @@
           role="button" (click)="openDialog(baby)">
           <td [hidden]="!this.show_material_col">{{ baby.raw_material }}</td>
           <td>{{ baby.length }} cm</td>
-          <td>{{ baby.quantity }}</td>
+          <td class="text-center">{{ baby.quantity }}</td>
           <td>{{ baby.updated_at | dateStr }}</td>
           <td>{{ baby.updated_by }}</td>
+          <td class="text-center" (click)="deleteBaby(baby)"><fa-icon class="text-danger" [icon]="faTrashCan"></fa-icon></td>
         </tr>
       </tbody>
     </table>

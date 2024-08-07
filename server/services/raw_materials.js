@@ -1,6 +1,8 @@
 const db = require('./db');
 const helper = require('../helper');
 const config = require('../config');
+const babies = require('./babies');
+const { raw } = require('mysql2');
 
 async function getSingle(id){
     const rows = await db.query(
@@ -39,15 +41,54 @@ async function getMultiple(page = 1, perPage){
 }
 
 async function create(rawMaterial){
+  const result = await db.query(
+    `INSERT INTO raw_materials 
+    (name, purchased_at, weight, units, units_per_kg, vendor_name, origin_country,
+      price, currency, notes, created_at, updated_at, created_by, updated_by) 
+    VALUES 
+    ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?))`,
+    [
+      rawMaterial.name, 
+      helper.formatDate(rawMaterial.purchased_at), 
+      rawMaterial.weight, 
+      rawMaterial.units,
+      rawMaterial.units_per_kg,
+      rawMaterial.vendor_name,
+      rawMaterial.origin_country,
+      rawMaterial.price,
+      rawMaterial.currency,
+      rawMaterial.notes,
+      helper.nowDateStr(),
+      helper.nowDateStr(),
+      rawMaterial.created_by, 
+      rawMaterial.updated_by
+      ]
+  );
+
+  let message = 'Error creating raw material';
+  console.log("New material ID: " + result.insertId + " ("+ rawMaterial.name +")");
+
+  if (result.affectedRows) {
+    message = 'Raw material \'' + rawMaterial.name + '\' created successfully';
+  }
+
+  if(rawMaterial.babies)
+  {
+    await babies.sync_babies_for_raw_material(rawMaterial.babies, result.insertId);
+  }
+  console.log(message);
+  return {message};
+}
+
+async function update(id, rawMaterial){
     const result = await db.query(
-      `INSERT INTO raw_materials 
-      (name, purchased_at, weight, units, units_per_kg, vendor_name, origin_country,
-        price, currency, notes, created_at, updated_at, created_by, updated_by) 
-      VALUES 
-      ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?))`,
+      `UPDATE raw_materials 
+      SET name=(?), purchased_at=(?), weight=(?), units=(?), units_per_kg=(?), vendor_name=(?), origin_country=(?),
+        price=(?), currency=(?), notes=(?), updated_at=(?), updated_by=(?)
+      WHERE id=${id}`,
       [
         rawMaterial.name, 
-        helper.formatDate(rawMaterial.purchased_at), 
+        helper.formatDate(rawMaterial.purchased_at),
         rawMaterial.weight, 
         rawMaterial.units,
         rawMaterial.units_per_kg,
@@ -57,50 +98,19 @@ async function create(rawMaterial){
         rawMaterial.currency,
         rawMaterial.notes,
         helper.nowDateStr(),
-        helper.nowDateStr(),
-        rawMaterial.created_by, 
         rawMaterial.updated_by
-        ]
-    );
-  
-    let message = 'Error in creating raw material';
-    console.log("New material ID: " + result.insertId + " ("+ rawMaterial.name +")");
-  
-    if (result.affectedRows) {
-      message = 'Raw material created successfully';
-    }
-  
-    return {message};
-  }
-
-async function update(id, raw_material){
-    const result = await db.query(
-      `UPDATE raw_materials 
-      SET name=(?), purchased_at=(?), weight=(?), units=(?), units_per_kg=(?), vendor_name=(?), origin_country=(?),
-        price=(?), currency=(?), notes=(?), updated_at=(?), updated_by=(?)
-      WHERE id=${id}`,
-      [
-        raw_material.name, 
-        helper.formatDate(raw_material.purchased_at),
-        raw_material.weight, 
-        raw_material.units,
-        raw_material.units_per_kg,
-        raw_material.vendor_name,
-        raw_material.origin_country,
-        raw_material.price,
-        raw_material.currency,
-        raw_material.notes,
-        helper.nowDateStr(),
-        raw_material.updated_by
       ]
     );
-    console.log("Updated material ID: " + id + " ("+ raw_material.name +")");
+    console.log("Updated material ID: " + id + " ("+ rawMaterial.name +")");
     let message = 'Error in updating raw material';
   
     if (result.affectedRows) {
       message = 'Raw material updated successfully';
     }
-  
+    if(rawMaterial.babies)
+    {
+      await babies.sync_babies_for_raw_material(rawMaterial.babies, id);
+    }
     return {message};
 }
 

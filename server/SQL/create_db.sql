@@ -70,7 +70,7 @@ CREATE TABLE  IF NOT EXISTS `babies`
   `updated_by`	 int null,
   PRIMARY KEY (`id`),
   CONSTRAINT fk_baby_raw_material_parent
-  FOREIGN KEY (`raw_material_parent_id`) REFERENCES raw_materials(`id`)
+  FOREIGN KEY (`raw_material_parent_id`) REFERENCES raw_materials(`id`) ON DELETE CASCADE
 );
 
 # DATA SEED

@@ -10,7 +10,10 @@
     </div>
 
     <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="this.onCancel()">Close</button>
-        <button type="button" class="btn btn-primary" (click)="this.onConfirm()">Save changes</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="this.onCancel()">{{ btnCancelText }}</button>
+        <button type="button" class="btn {{ btnSaveClass }}" (click)="this.onConfirm()">
+            <fa-icon [icon]="btnSaveIcon"></fa-icon>
+            {{ btnSaveText }}
+        </button>
       </div>
 </ng-template>

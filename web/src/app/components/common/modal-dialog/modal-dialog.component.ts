@@ -3,11 +3,13 @@ import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { NgIf } from '@angular/common';
 import { ModalObjectEditor } from '../../../../types';
 import { BabyEditorDialogComponent } from '../../babies/baby-editor-dialog/baby-editor-dialog.component';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { faBorderNone, faTrashAlt, faW, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-modal-dialog',
   standalone: true,
-  imports: [ NgIf ],
+  imports: [ NgIf, FaIconComponent ],
   templateUrl: './modal-dialog.component.html',
   styleUrl: './modal-dialog.component.scss'
 })
@@ -19,6 +21,10 @@ export class ModalDialogComponent {
   @Input() btnText: string = "Open!";
   @Input() showOpenButton: boolean = false;
   @Input() modalTitle: string = "Modal";
+  @Input() btnSaveText: string = "Save changes";
+  @Input() btnCancelText: string = "Close";
+  @Input() btnSaveIcon: IconDefinition = faBorderNone;
+  @Input() btnSaveClass: string = "btn-primary";
 
   @Output() confirm = new EventEmitter<any>();
   @Output() cancel = new EventEmitter<void>();
@@ -31,11 +37,14 @@ export class ModalDialogComponent {
   }
 
   onConfirm() {
-    let okToClose = this.dialog_content_component.beforeClose();
-    if(!okToClose)
+    if(this.dialog_content_component.beforeClose)
     {
-      console.log("Pre closing validation: " + okToClose);
-      return;
+      let okToClose = this.dialog_content_component.beforeClose();
+      if(!okToClose)
+      {
+        console.log("Pre closing validation: " + okToClose);
+        return;
+      }
     }
     //if(this.dialog_content_component.beforeConfirm)
     //{
@@ -45,6 +54,10 @@ export class ModalDialogComponent {
     {
       console.log(this.dialog_content_component.editedObject);
       this.confirm.emit(this.dialog_content_component.editedObject);
+    }
+    else
+    {
+      this.confirm.emit(true);
     }
     this.modalReference.close();
   }

@@ -4,11 +4,13 @@ import { NavbarComponent } from './components/common/navbar/navbar.component';
 import { GlobalsService } from './services/globals.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faCoffee } from '@fortawesome/free-solid-svg-icons';
+import { FooterComponent } from './components/common/footer/footer.component';
+import { ToastComponent } from './components/common/toast/toast.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent, FontAwesomeModule ],
+  imports: [RouterOutlet, NavbarComponent, FontAwesomeModule, FooterComponent, ToastComponent ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
   providers: []

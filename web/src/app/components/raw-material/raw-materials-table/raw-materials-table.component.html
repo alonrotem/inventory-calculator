@@ -1,3 +1,4 @@
+<h1>Raw Materials</h1>
 
 <div id="loading_icon" [hidden]="!loading">
   <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
@@ -7,8 +8,8 @@
 </div>
 
 <div [hidden]="loading">
-  <a class="btn btn-primary" routerLink="/inventory/raw/editor">+ New raw material</a>
-
+  <a id="btnNewRaw" class="btn btn-primary" routerLink="/inventory/raw/editor">+ New raw material</a>
+  <div [hidden]="loading || this.rawMaterials.length == 0">
 <table class="table table-responsive table-striped table-hover">
     <thead>
       <tr>
@@ -34,4 +35,9 @@
   </table>
 
   <app-paginator #paginator [pages]=4  (onPageChange)="pageChange($event)" />
+</div>
 
+  <div [hidden]="loading || this.rawMaterials.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
+    No raw materials added.<br/>
+    Please add some by clicking the + button above.
+  </div>
