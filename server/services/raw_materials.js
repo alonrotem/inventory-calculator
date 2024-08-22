@@ -22,9 +22,11 @@ async function getMultiple(page = 1, perPage){
     subset = `LIMIT ${offset},${perPage}`
   }
   const rows = await db.query(
-    `SELECT  id, name, purchased_at, weight, units, units_per_kg, vendor_name, origin_country,
-      price, currency, notes, created_at, updated_at, created_by, updated_by
-    FROM raw_materials  ORDER BY updated_at desc ${subset}`
+    `SELECT rms.id, rms.name, rms.purchased_at, rms.weight, rms.units, rms.units_per_kg, rms.vendor_name, rms.origin_country,
+      rms.price, rms.currency, rms.notes, ifnull(sum(bb.quantity),0) as babies_quantity, rms.created_at, rms.updated_at, rms.created_by, rms.updated_by
+    FROM raw_materials rms left join babies bb on rms.id=bb.raw_material_parent_id
+    group by rms.id
+    ORDER BY rms.updated_at desc ${subset}`
   );
   const total = await db.query(
     `SELECT count(*) as count FROM raw_materials`
