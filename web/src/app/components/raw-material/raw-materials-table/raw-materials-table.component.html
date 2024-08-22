@@ -15,7 +15,8 @@
       <tr>
         <th scope="col">Name</th>
         <th scope="col">Purchased at</th>
-        <th scope="col">Weight</th>
+        <th scope="col">Quantity</th>
+        <th scope="col">Babies</th>
         <th scope="col">Last update</th>
         <th scope="col">Last update by</th>
       </tr>
@@ -27,7 +28,11 @@
         [queryParams]="{ id: rawMaterial.id }" role="button">
         <td>{{ rawMaterial.name }}</td>
         <td>{{ rawMaterial.purchased_at | dateStr }}</td>
-        <td>{{ rawMaterial.weight }} kg</td>
+        <td>
+          <span *ngIf="(rawMaterial.weight && rawMaterial.weight > 0)">{{ rawMaterial.weight }} kg</span>
+          <span *ngIf="(!rawMaterial.weight)">{{ rawMaterial.units }} unit<span *ngIf="(rawMaterial.units != 1)">s</span></span>
+        </td>
+        <td>{{ rawMaterial.babies_quantity }}</td>
         <td>{{ rawMaterial.updated_at | dateStr }}</td>
         <td>{{ rawMaterial.updated_by }}</td>
       </tr>

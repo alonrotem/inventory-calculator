@@ -51,6 +51,7 @@ export interface RawMaterial {
     updated_at: Date;
     created_by: number;
     updated_by: number;
+    babies_quantity: number;
     babies: Baby[];
 }
 

@@ -39,6 +39,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
     currency: 'USD',
     notes: '',
     created_at: new Date(),
+    babies_quantity: 0,
     babies: []
   }
 
