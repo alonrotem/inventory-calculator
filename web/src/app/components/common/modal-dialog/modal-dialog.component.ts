@@ -34,6 +34,7 @@ export class ModalDialogComponent {
   
   public open() {
     this.modalReference = this.modalService.open(this.content, { centered: true, size: 'm' });
+    this.dialog_content_component.onOpen();
   }
 
   onConfirm() {

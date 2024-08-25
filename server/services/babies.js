@@ -24,15 +24,20 @@ async function getMultiple(page = 1, perPage){
     `select m.name raw_material, b.id, b.raw_material_parent_id, b.length, b.quantity, 
 	    b.created_at, b.updated_at, b.created_by, b.updated_by 
     from babies b inner join raw_materials m  on b.raw_material_parent_id = m.id
-    ORDER BY b.updated_at desc ${subset}`
+    ORDER BY m.name, b.length desc ${subset}`
   );
   const total = await db.query(
     `SELECT count(*) as count FROM babies`
   );
   const total_records = total[0].count;
+
+  const quantity = await db.query(
+    `select sum(quantity) as quantity from babies;`
+  );
+  const sum_quantity = quantity[0]['quantity'];
   const total_pages = Math.ceil(total_records / perPage);
   const data = helper.emptyOrRows(rows);
-  const meta = {page, total_records, total_pages};
+  const meta = {page, total_records, sum_quantity, total_pages};
 
   return {
     data,
@@ -51,16 +56,21 @@ async function getMultipleByRawMaterial(raw_material_id, page = 1, perPage){
       b.created_at, b.updated_at, b.created_by, b.updated_by 
     from babies b inner join raw_materials m on b.raw_material_parent_id = m.id
     where b.raw_material_parent_id=${raw_material_id}
-        ORDER BY b.updated_at desc ${subset}`;
+        ORDER BY b.length desc ${subset}`;
   console.log(q);
   const rows = await db.query(q);
   const total = await db.query(
     `SELECT count(*) as count FROM babies where raw_material_parent_id=${raw_material_id}`
   );
   const total_records = total[0].count;
+  const quantity = await db.query(
+    `select sum(quantity) as quantity from babies where raw_material_parent_id=${raw_material_id}`
+  );
+  const sum_quantity = quantity[0]['quantity'];
+
   const total_pages = Math.ceil(total_records / perPage);
   const data = helper.emptyOrRows(rows);
-  const meta = {page, total_records, total_pages};
+  const meta = {page, total_records, sum_quantity, total_pages};
 
   return {
     data,

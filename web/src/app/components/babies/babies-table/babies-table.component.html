@@ -1,3 +1,8 @@
+
+<h1 *ngIf="bigTitle"><span class="icon-baby"></span> Babies</h1>
+<h3 *ngIf="!bigTitle"><span class="icon-baby"></span> Babies</h3>
+<div class="infotitle">Total: {{ totalquantity | number: '1.0-0' }} {{ totalquantity == 1? 'baby':'babies' }}, in {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'record':'records' }}</div>
+
 <app-modal-dialog #baby_editor>
   <app-baby-editor-dialog #modalContent></app-baby-editor-dialog>
 </app-modal-dialog>
@@ -14,8 +19,8 @@
     </div>
   </div>
   
-  <div [hidden]="loading">
-    <a class="btn btn-primary" (click)="openDialog(null)">+ Add baby</a>
+  <div *ngIf="!readOnly" [hidden]="loading">
+    <a class="btn btn-primary btn-add" (click)="openDialog(null)">+ Add baby</a>
   </div>
   <div [hidden]="loading || this.babies.length == 0">
  <div class="table-responsive">
@@ -27,25 +32,25 @@
           <th scope="col" class="text-center">Quantity</th>
           <th scope="col">Last update</th>
           <th scope="col">Last update by</th>
-          <th scope="col" class="text-center">Remove</th>
+          <th scope="col" class="text-center" *ngIf="!readOnly">Remove</th>
         </tr>
       </thead>
       <tbody>
         <tr 
           *ngFor="let baby of this.babies" 
-          routerLink="/inventory/raw/editor" 
-          role="button" (click)="openDialog(baby)">
-          <td [hidden]="!this.show_material_col">{{ baby.raw_material }}</td>
-          <td>{{ baby.length }} cm</td>
+          
+          role="button" (click)="openDialog(baby)"><!--routerLink="/inventory/raw/editor" -->
+          <td [hidden]="!this.show_material_col"><a [attr.href]="'/inventory/raw/editor?id=' + baby.raw_material_parent_id"><span class="icon-leaf"></span> {{ baby.raw_material }}</a></td>
+          <td>{{ baby.length | number : '1.1-1' }} cm</td>
           <td class="text-center">{{ baby.quantity }}</td>
           <td>{{ baby.updated_at | dateStr }}</td>
           <td>{{ baby.updated_by }}</td>
-          <td class="text-center" (click)="deleteBaby(baby)"><fa-icon class="text-danger" [icon]="faTrashCan"></fa-icon></td>
+          <td *ngIf="!readOnly" class="text-center" (click)="deleteBaby(baby)"><fa-icon class="text-danger" [icon]="faTrashCan"></fa-icon></td>
         </tr>
       </tbody>
     </table>
   </div>
-  <!--<app-paginator #paginator [pages]=4  (onPageChange)="pageChange($event)" [hidden]="this.paginator.pages <= 1" />-->
+  <app-paginator *ngIf="paged" #paginator [pages]=4  (onPageChange)="pageChange($event)" [hidden]="this.paginator.pages <= 1" />
   </div>
 
   <div [hidden]="loading || this.babies.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">

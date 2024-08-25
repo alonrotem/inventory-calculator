@@ -2,8 +2,9 @@
     color: transparent;
 }
 
-::ng-deep.ng-select-container.ng-has-value {
+::ng-deep.ng-select-container {
     height: calc(3.5rem + calc(var(--bs-border-width)* 2)) !important;
+    min-width: 50px;
 }
 
 .editorForm div.col {
@@ -12,7 +13,7 @@
 }
 
 h3 {
-    margin-top: 15px;
+    margin: 25px 0;
 }
 
 .buttons-area button {
@@ -33,4 +34,10 @@ h3 {
     .buttons-area button {
         width: 80%;
     }
+}
+
+.babies-container
+{
+    padding-top: 20px;
+    padding-bottom: 20px;
 }

@@ -32,9 +32,13 @@ async function getMultiple(page = 1, perPage){
     `SELECT count(*) as count FROM raw_materials`
   );
   const total_records = total[0].count;
+  const babies_quantity = await db.query(
+    `select sum(quantity) as quantity from babies;`
+  );
+  const total_babies = babies_quantity[0]['quantity'];  
   const total_pages = Math.ceil(total_records / perPage);
   const data = helper.emptyOrRows(rows);
-  const meta = {page, total_records, total_pages};
+  const meta = {page, total_records, total_babies, total_pages};
 
   return {
     data,

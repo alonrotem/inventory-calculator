@@ -11,7 +11,7 @@ export class BabiesService {
 
   constructor(private apiService: ApiService) { }
 
-  getBabiesForRawMaterial = (params: PaginationParams): Observable<Babies> => {
+  getBabies = (params: PaginationParams): Observable<Babies> => {
     return this.apiService.get(`${environment.serverUrl}/babies`, {
       params,
       responseType: 'json'

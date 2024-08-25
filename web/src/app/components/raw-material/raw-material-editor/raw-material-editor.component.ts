@@ -8,7 +8,7 @@ import { RawMaterialsService } from '../../../services/raw-materials.service';
 import { DatePipe } from '@angular/common';
 import { BabiesTableComponent } from '../../babies/babies-table/babies-table.component';
 import { InfoService } from '../../../services/info.service';
-import { NgSelectModule } from '@ng-select/ng-select';
+import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { DateStrPipe } from '../../../utils/date_pipe';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faSave, faTrashAlt, faTimesCircle, IconDefinition } from '@fortawesome/free-solid-svg-icons';
@@ -52,6 +52,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
   faTimesCircle:IconDefinition = faTimesCircle;
   is_new_material: Boolean = true;
 
+  @ViewChild("materialName", { read: ElementRef }) materialName!: ElementRef;
   @ViewChild("purchasedAt", { read: ElementRef }) purchase_date!: ElementRef;
   @ViewChild("radioWeight", { read: ElementRef }) radioWeight!: ElementRef;
   @ViewChild("radioUnits", { read: ElementRef }) radioUnits!: ElementRef;
@@ -60,6 +61,10 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
   @ViewChild('raw_material_form') raw_material_form!: NgForm;
   @ViewChild('delete_confirmation') delete_confirmation!: ConfirmationDialogComponent;
   @ViewChild('babies_table') babies_table!: BabiesTableComponent;
+  @ViewChild("btn_save", { read: ElementRef }) btn_save!: ElementRef;
+  @ViewChild("price", { read: ElementRef }) price!: ElementRef;
+  @ViewChild("currency") currency!: NgSelectComponent;
+  
   
 constructor(private rawMaterialsService: RawMaterialsService, private infoService: InfoService, private location: Location, private activatedRoute: ActivatedRoute, private router: Router) { 
   
@@ -139,20 +144,24 @@ save()
 
 saveNewRawMaterial(material:RawMaterial)
 {
+  this.btn_save.nativeElement.classList.add("disabled");
+
   this.rawMaterialsService.saveNewRawMaterial(material).subscribe(
     {
-      next:(data) => { console.log(data);  this.gotoMaterialsList(data['message'], false); },//this.getRawMaterials(this.current_page); },
-      error:(error) => { console.log(error); this.gotoMaterialsList(error, true); }
+      next:(data) => { this.btn_save.nativeElement.classList.remove("disabled"); console.log(data);  this.gotoMaterialsList(data['message'], false); },//this.getRawMaterials(this.current_page); },
+      error:(error) => { this.btn_save.nativeElement.classList.remove("disabled"); console.log(error); this.gotoMaterialsList(error, true); }
     }
   );
 }
 
 updateRawMaterial(id: number, material:RawMaterial)
 {
+  this.btn_save.nativeElement.classList.add("disabled");
+
   this.rawMaterialsService.updateRawMaterial(material).subscribe(
   {
-    next:(data) => { console.log(data); this.gotoMaterialsList(data['message'], false); },//this.getRawMaterials(this.current_page); },
-    error:(error) => { console.log(error); this.gotoMaterialsList(error, true); }
+    next:(data) => { this.btn_save.nativeElement.classList.remove("disabled"); console.log(data); this.gotoMaterialsList(data['message'], false); },//this.getRawMaterials(this.current_page); },
+    error:(error) => { this.btn_save.nativeElement.classList.remove("disabled"); console.log(error); this.gotoMaterialsList(error, true); }
   });
 }
 
@@ -189,7 +198,17 @@ focusOnUnits(): void {
   confirm_delete() {
     this.delete_confirmation.open();
   }
+
   ngAfterViewInit() {
+    this.materialName.nativeElement.focus();
+    this.materialName.nativeElement.select();
+    console.log("curr " + this.rawMaterialItem.currency);
+
+      if(this.currency.itemsList){
+        let curr = this.currency.itemsList.findByLabel(this.rawMaterialItem.currency);
+        this.currency.select(curr);
+      }
+
     this.delete_confirmation.confirm.subscribe((value: Boolean) => {
       //alert(this.rawMaterialItem.id);
       console.log("deleting " + this.rawMaterialItem.id);

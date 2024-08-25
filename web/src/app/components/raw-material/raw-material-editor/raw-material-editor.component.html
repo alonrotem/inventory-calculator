@@ -10,7 +10,7 @@
 <div class="row justify-content-center">
 <div class="col-8">
 
-    <h3>{{ this.title }}</h3>
+    <h3><span class="icon-leaf"></span> {{ this.title }}</h3>
     <form novalidate #raw_material_form="ngForm">
         <div class="editorForm">
         <div class="row">
@@ -74,17 +74,20 @@
         <div class="row">
             <div class="col col-12 col-md-4">
                 <div class="input-group">
-                    <ng-select [(ngModel)]="rawMaterialItem.currency" name="currency">
+                    <ng-select [(ngModel)]="rawMaterialItem.currency" name="currency" [clearable]="false" #currency="ngModel">
                         @for (currency of currencies; track currency.code) {
                             <ng-option [value]="currency.code">{{currency.symbol}}</ng-option>
                         }
                     </ng-select>
                 
                     <div class="form-floating">
-                        <input type="number" id="materialWeight" class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.price" name="price">
+                        <input type="number" id="materialWeight" class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.price" name="price" #price="ngModel">
                         <label for="materialWeight">Price</label>
                     </div>
-                </div>            
+                </div>
+                <div class="text-danger" *ngIf="((price.touched || price.dirty) && price.value) && !currency.value">
+                    Please select a currency for the price
+                </div>           
             </div>
             <div class="col col-12 col-md-4">
                 <div class="form-floating">
@@ -126,19 +129,23 @@
         </div>
 
         <div class="row">
-            <div class="col col-12">
+            <div class="col col-12 babies-container">
                 <app-babies-table 
                     #babies_table
                     [raw_material_id]="this.rawMaterialItem.id" 
                     [is_new_material]="this.is_new_material" 
                     [show_material_col]="false"
+                    [loadAll]="false"
+                    [readOnly]="false"
+                    [paged]="false"
+                    [bigTitle]="false"
                 />
                 </div>
         </div>
 
         <div class="row buttons-area">
                 <div class="col-12 d-flex justify-content-center {{ this.is_new_material? 'col-md-6':'col-md-4' }}">
-                    <button class="btn btn-success" type="submit" (click)="save()"><!--[disabled]="!raw_material_form.form.valid"-->
+                    <button #btn_save class="btn btn-success" type="submit" (click)="save()"><!--[disabled]="!raw_material_form.form.valid"-->
                         <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
                         <div>Save Material</div>
                     </button>

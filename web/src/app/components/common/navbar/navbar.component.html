@@ -7,18 +7,26 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="ms-auto navbar-nav mb-2 mb-lg-0">
           <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="/dashboard">Dashboard</a> <!--active-->
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/inventory/raw">Inventory</a>
+            <a class="nav-link" aria-current="page" href="/"  [ngClass]="(currentUrl == '/' || currentUrl == '') ? 'active': ''"><span class="icon-home"></span> Home</a> <!--active-->
           </li>
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              Dropdown
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" [ngClass]="(currentUrl.indexOf('/inventory/') >= 0) ? 'active': ''">
+              Inventory
             </a>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#">Action</a></li>
-              <li><a class="dropdown-item" href="#">Another action</a></li>
+              <li><a class="dropdown-item" href="/inventory/raw" [ngClass]="(currentUrl.indexOf('/inventory/raw') >= 0) ? 'active': ''"><span class="icon-leaf"></span> Raw materials</a></li>
+              <li><a class="dropdown-item" href="/inventory/babies" [ngClass]="(currentUrl.indexOf('/inventory/babies') >= 0) ? 'active': ''"><span class="icon-baby"></span> Babies</a></li>
+            </ul>
+          </li>          
+          
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Templates
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#"><span class="icon-feather-wing"></span> Wings</a>
+              </li>
+              <li><a class="dropdown-item" href="#"><span class="icon-hat"></span> Hats</a></li>
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item" href="#">Something else here</a></li>
             </ul>

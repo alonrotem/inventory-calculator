@@ -7,18 +7,28 @@ npm install --save bootstrap
 
 ng generate component home
 
-⏹️ NEXT TODOS:
-+ Show either units or kg in main raw table
-- Load babies with the raw material, no need for another request <- not possible
-+ Show total # of babies in main raw table - lighter query
-- Opening baby dialog: focus and select-all first field. Clear validation message.
-- Lock/animation buttons while saving/deleting/loading
-- CSS not loading immediately. Maybe add loading page animation
-- New/edit material: focus on first field
-- Manage suppliers
-- Cache countries and currencies
-- Hamburger menu animation
-- CSS loading too late
+NEXT TODOS:     
+❎ 🪶 Show either units or kg in main raw table     
+❎ 🪶 Show total # of babies in main raw table - lighter query     
+❎ 🪶 Opening baby dialog: focus and select-all first field. Clear validation message.     
+❎ 🪶 Lock/animation buttons while saving/deleting/loading     
+❎ 🪶 New/edit material: focus on first field     
+❎ 🐞 Bug: remove the x from the curency selector (and don't allow saving sum without currency)     
+❎ 🐞 Bug: length of baby is stored as int     
+❎ 🐞 Bug: baby length not selected when dropdown     
+❎ 🪶 Sort babies by length desc    
+❎ 🪶 Babies table      
+⏹️ 🪶 Wings      
+⏹️ 🪶 Hats      
+
+Extra features:    
+⏹️ 🪶 Make tables sortable, filterable     
+⏹️ 🪶 Manage suppliers     
+⏹️ 🪶 Cache countries and currencies     
+⏹️ 🪶 Hamburger menu animation     
+⏹️ 🐞 CSS loading too late     
+⏹️ 🪶 CSS not loading immediately. Maybe add loading page animation     
+❌ 🪶 Load babies with the raw material, no need for another request <- not possible     
 
 📚 Pending stories:
 - Authentication

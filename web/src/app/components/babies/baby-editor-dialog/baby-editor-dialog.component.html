@@ -1,17 +1,26 @@
-<form novalidate #baby_editor_form="ngForm">
+<form novalidate #baby_editor_form="ngForm" [formGroup]="babyFormEditor">
     <div class="form-floating">
-        <input type="number" id="materialWeight" class="form-control" placeholder="" [(ngModel)]="editedObject.length" #length="ngModel" name="length" required min="1">
+        <ng-select name="length" #length formControlName="length" [formGroup]="babyFormEditor" [clearable]="false">
+            @for (length of lengths; track length) {
+                <ng-option [value]="length">{{ length }}</ng-option>
+            }
+        </ng-select>
         <label for="materialWeight">Length in cm</label>
     </div>
-    <div class="text-danger" *ngIf="length.invalid && (length.touched || length.dirty) && length.value <= 0" > 
+    <div class="text-danger" *ngIf="
+            (babyFormEditor.get('length')?.touched || 
+             babyFormEditor.get('length')?.dirty || 
+             isSubmitted) && 
+             !babyFormEditor.get('length')?.value"
+        >
         <span>Please enter a valid baby length</span>
-    </div> 
+    </div>
 
     <div class="form-floating mt-3">
-        <input type="number" id="materialWeight" class="form-control" placeholder="0" [(ngModel)]="editedObject.quantity" #quantity="ngModel"  name="quantity"  required min="1">
+        <input type="number" class="form-control" placeholder="0" required min="1" formControlName="quantity" [formGroup]="babyFormEditor" (focus)="$any($event.target).select()">
         <label for="materialWeight">Quantity</label>
     </div>
-    <div class="text-danger" *ngIf="quantity.invalid && (quantity.touched || quantity.dirty) && quantity.value <= 0" > 
+    <div class="text-danger" *ngIf="babyFormEditor.get('quantity')?.invalid && (babyFormEditor.get('quantity')?.touched || babyFormEditor.get('quantity')?.dirty || isSubmitted) && (babyFormEditor.get('quantity') && !babyFormEditor.get('quantity')?.value)" > 
         <span>Please enter a valid babies quantity</span>
     </div> 
 </form>

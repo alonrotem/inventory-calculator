@@ -9,6 +9,7 @@ const rawMaterialsRouter = require("./routes/raw_materials");
 const babiesRouter = require("./routes/babies");
 const currenciesRouter = require("./routes/currencies");
 const countriessRouter = require("./routes/countries");
+const infoRouter = require("./routes/info");
 
 app.use(express.json());
 app.use(
@@ -24,6 +25,7 @@ app.use("/raw_materials", rawMaterialsRouter);
 app.use("/babies", babiesRouter);
 app.use("/currencies", currenciesRouter);
 app.use("/countries", countriessRouter);
+app.use("/info", infoRouter);
 
 /* Error handler middleware */
 app.use((err, req, res, next) => {

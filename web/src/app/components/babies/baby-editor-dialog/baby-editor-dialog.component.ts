@@ -1,18 +1,19 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { Baby, ModalObjectEditor } from '../../../../types';
-import { FormsModule, NgForm } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, FormsModule, NgForm, NgSelectOption, ReactiveFormsModule, RequiredValidator, Validators } from '@angular/forms';
 import { NgIf } from '@angular/common';
+import { NgOptionComponent, NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 
 @Component({
   selector: 'app-baby-editor-dialog',
   standalone: true,
-  imports: [ FormsModule, NgIf ],
+  imports: [ FormsModule, NgIf, NgSelectModule, ReactiveFormsModule ],
   templateUrl: './baby-editor-dialog.component.html',
   styleUrl: './baby-editor-dialog.component.scss'
 })
 export class BabyEditorDialogComponent implements ModalObjectEditor {
 
-  @ViewChild('baby_editor_form') baby_editor_form!: NgForm;
+  @ViewChild("length") length!: NgSelectComponent;
 
   public editedObject: Baby = {
     id: 0,
@@ -26,8 +27,47 @@ export class BabyEditorDialogComponent implements ModalObjectEditor {
     updated_by: 1
   }
 
+  babyFormEditor = this.fb.group({
+    length: [this.editedObject.length, [
+      Validators.required
+    ]],
+    quantity: [this.editedObject.quantity, [
+      Validators.required
+    ]]
+  });
+  isSubmitted : boolean = false;
+
+  constructor(private fb: FormBuilder) {
+  }
+
+  //[ 5.0, 5.5, 6.0, 6.5, ... 13.0 ]
+  lengths = Array.from({ length:17 }, (v, k) => (5.5 + ((k-1)*0.5)).toFixed(1)); 
+
+  onOpen(): any {
+    this.isSubmitted = false;
+    this.babyFormEditor.get("length")?.setValue(this.editedObject.length);
+    this.babyFormEditor.get("quantity")?.setValue(this.editedObject.quantity);
+    this.babyFormEditor.markAsPristine();
+    this.babyFormEditor.markAsUntouched();
+    this.length.searchInput.nativeElement.focus();
+    if(this.length && this.length.itemsList)
+    {  
+      let item = this.length.itemsList.findByLabel(this.editedObject.length.toString());
+      if(item)
+      {
+        this.length.select(item);
+      }
+    }
+  }
+
   beforeClose(): Boolean {
-    this.baby_editor_form.form.markAllAsTouched();
-    return this.baby_editor_form.form.valid;
+    this.isSubmitted = true;
+    if(this.babyFormEditor.invalid)
+    {
+      return false;
+    }
+    this.editedObject.length =  this.babyFormEditor.get('length')!.value ?? 0;
+    this.editedObject.quantity =  this.babyFormEditor.get('quantity')!.value ?? 0;
+    return true;
   }
 }

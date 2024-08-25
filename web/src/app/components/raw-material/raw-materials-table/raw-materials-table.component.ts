@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, inject, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { RawMaterialsService } from '../../../services/raw-materials.service';
 import { RawMaterial, RawMaterials } from '../../../../types';
-import { NgFor, NgIf } from '@angular/common';
+import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { PaginatorComponent } from "../../common/paginator/paginator.component";
 import { NgbModal, NgbToast } from '@ng-bootstrap/ng-bootstrap';
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
@@ -20,7 +20,7 @@ import { ToastService } from '../../../services/toast.service';
     standalone: true,
     templateUrl: './raw-materials-table.component.html',
     styleUrl: './raw-materials-table.component.scss',
-    imports: [ NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe, ToastComponent ]
+    imports: [ NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe, ToastComponent, DecimalPipe ]
 })
 
 export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
@@ -50,7 +50,9 @@ export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
   @ViewChild("paginator") paginator!: PaginatorComponent;
   faArrowsRotate: IconDefinition = faArrowsRotate;
   loading: boolean = true;
-  
+  totalRecords: number = 0;
+  totalbabies: number = 0;
+
   selectedCar: number=1;
   toastService = inject(ToastService);
 
@@ -63,6 +65,8 @@ export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
         this.rawMaterials = rawMaterials.data;
         this.paginator.pages = rawMaterials.meta.total_pages;
         this.paginator.current_page = rawMaterials.meta.page;
+        this.totalRecords = rawMaterials.meta.total_records;
+        this.totalbabies = rawMaterials.meta.total_babies;
       },
       error: (error) => {
         console.log(error);

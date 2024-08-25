@@ -23,6 +23,7 @@ export interface RawMaterials {
         page: number;
         total_records: number;
         total_pages: number;
+        total_babies: number;
     };
 }
 
@@ -31,6 +32,7 @@ export interface Babies {
     meta: { 
         page: number;
         total_records: number;
+        sum_quantity: number;
         total_pages: number;
     };
 }
@@ -89,5 +91,12 @@ export interface Currency {
 
 export interface ModalObjectEditor {
     editedObject: any;
+    onOpen(): any;
     beforeClose(): Boolean;
+}
+
+export interface Stats {
+    raw_material_records: number,
+    total_baby_records: number,
+    total_babies: number
 }
