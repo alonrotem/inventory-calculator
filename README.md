@@ -48,6 +48,23 @@ Extra features:
 ===========================================================
 
 
+Wings, made of babies (each element with possible % of alternate)
+-	Name
+-	Left 1: baby material + size
+-	Left 2
+-	Left 3
+-	…
+-	Top 1
+-	Top 2
+-	Top 3
+-	..
+-	Right 1
+-	Right 2
+-	Right 3
+-	…
+-	Crown 1
+-	Crown 2
+-	Crown 3
 
 
 

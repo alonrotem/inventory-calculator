@@ -1,0 +1,25 @@
+:host {
+    flex-grow: 1;
+    display: flex;
+}
+
+.notfound-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+}
+.icon-fox-hiding, .num4 {
+    font-size: 200px;
+    line-height: 200px;
+}
+
+.four-oh-four-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
