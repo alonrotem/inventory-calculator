@@ -1,0 +1,17 @@
+.length-selector-box {
+    border: 1px solid;
+    display: inline-block;
+    width: 64px;
+    height: 64px;
+    align-content: center;
+    text-align: center;
+    margin: 6px;
+    font-size: 14px;
+    border-radius: 13px;
+    cursor: pointer;
+}
+
+.selected-length {
+    background-color: white;
+    color: black;
+}

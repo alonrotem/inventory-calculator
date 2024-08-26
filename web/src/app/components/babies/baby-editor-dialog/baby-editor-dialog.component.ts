@@ -13,7 +13,7 @@ import { NgOptionComponent, NgSelectComponent, NgSelectModule } from '@ng-select
 })
 export class BabyEditorDialogComponent implements ModalObjectEditor {
 
-  @ViewChild("length") length!: NgSelectComponent;
+  //@ViewChild("length") length!: NgSelectComponent;
 
   public editedObject: Baby = {
     id: 0,
@@ -28,9 +28,10 @@ export class BabyEditorDialogComponent implements ModalObjectEditor {
   }
 
   babyFormEditor = this.fb.group({
+    /*
     length: [this.editedObject.length, [
       Validators.required
-    ]],
+    ]],*/
     quantity: [this.editedObject.quantity, [
       Validators.required
     ]]
@@ -41,14 +42,16 @@ export class BabyEditorDialogComponent implements ModalObjectEditor {
   }
 
   //[ 5.0, 5.5, 6.0, 6.5, ... 13.0 ]
-  lengths = Array.from({ length:17 }, (v, k) => (5.5 + ((k-1)*0.5)).toFixed(1)); 
+  lengths = Array.from({ length:17 }, (v, k) => (5.5 + ((k-1)*0.5)).toFixed(1));
+  console = console;
 
   onOpen(): any {
     this.isSubmitted = false;
-    this.babyFormEditor.get("length")?.setValue(this.editedObject.length);
+    //this.babyFormEditor.get("length")?.setValue(this.editedObject.length);
     this.babyFormEditor.get("quantity")?.setValue(this.editedObject.quantity);
     this.babyFormEditor.markAsPristine();
     this.babyFormEditor.markAsUntouched();
+    /*
     this.length.searchInput.nativeElement.focus();
     if(this.length && this.length.itemsList)
     {  
@@ -58,16 +61,30 @@ export class BabyEditorDialogComponent implements ModalObjectEditor {
         this.length.select(item);
       }
     }
+    */
   }
 
   beforeClose(): Boolean {
     this.isSubmitted = true;
-    if(this.babyFormEditor.invalid)
+    this.babyFormEditor.markAsDirty();
+    if(this.babyFormEditor.invalid || (this.lengths.findIndex((item) => item == this.editedObject.length.toFixed(1).toString()) == -1))
     {
       return false;
     }
-    this.editedObject.length =  this.babyFormEditor.get('length')!.value ?? 0;
+    //this.editedObject.length =  this.babyFormEditor.get('length')!.value ?? 0;
     this.editedObject.quantity =  this.babyFormEditor.get('quantity')!.value ?? 0;
     return true;
+  }
+
+  setLength(length:string) {
+    this.editedObject.length = Number(length);
+  }
+
+  isLengthInvalid(){
+    if((this.babyFormEditor.touched || this.babyFormEditor.dirty) && (this.lengths.findIndex((item) => item == this.editedObject.length.toFixed(1).toString()) == -1))
+    {
+      return true;
+    }
+    return false;
   }
 }
