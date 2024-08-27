@@ -25,7 +25,6 @@ export class ApiService {
   }
 
   delete<T>(url: string, options: Options): Observable<T>{
-    console.log("delete : " + this.httpClient.delete);
     return this.httpClient.delete(url, options) as Observable<T>;
   }
 }

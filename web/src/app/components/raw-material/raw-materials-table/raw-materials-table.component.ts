@@ -23,7 +23,7 @@ import { ToastService } from '../../../services/toast.service';
     imports: [ NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe, ToastComponent, DecimalPipe ]
 })
 
-export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
+export class RawMaterialsTableComponent implements OnInit {
   constructor(private rawMaterialsService: RawMaterialsService, private modalService: NgbModal, private router: Router) {
     let nav = this.router.getCurrentNavigation();
     if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {
@@ -75,49 +75,14 @@ export class RawMaterialsTableComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(){
-
-    // Access the state
-
-    //else
-      //alert("blank");
-
     this.getRawMaterials(1);
     history.replaceState({}, location.href);
   }
 
-  ngAfterViewInit() {
-    /*
-    this.dialog.confirm.subscribe((rawMaterial:RawMaterial) => {
-      console.log("submitting! " + rawMaterial);
-      this.addRawMaterial(rawMaterial);
-    });
-    */
-  }
-/*
-  addRawMaterial(material:RawMaterial)
-  {
-    this.rawMaterialsService.addRawMaterial(material).subscribe(
-      {
-        next:(data) => { console.log(data); this.getRawMaterials(this.current_page); },
-        error:(error) => { console.log(error); }
-      }
-    );
-  }
-
-  editRawMaterial(id: number, material:RawMaterial)
-  {
-    this.rawMaterialsService.editRawMaterial(material).subscribe(
-    {
-      next:(data) => { console.log(data); this.getRawMaterials(this.current_page); },
-      error:(error) => { console.log(error); }
-    });
-  }
-    */
-
   deleteRawMaterial(id:number) {
     this.rawMaterialsService.deleteRawMaterial(id).subscribe(
     {
-      next:(data) => { console.log(data); this.getRawMaterials(this.current_page); },
+      next:(data) => { this.getRawMaterials(this.current_page); },
       error:(error) => { console.log(error); }
     });
   }

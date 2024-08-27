@@ -1,19 +1,22 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Baby, ModalObjectEditor } from '../../../../types';
 import { FormBuilder, FormControl, FormGroup, FormsModule, NgForm, NgSelectOption, ReactiveFormsModule, RequiredValidator, Validators } from '@angular/forms';
 import { NgIf } from '@angular/common';
 import { NgOptionComponent, NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
+import { BabiesLengthPickerComponent } from '../babies-length-picker/babies-length-picker.component';
 
 @Component({
   selector: 'app-baby-editor-dialog',
   standalone: true,
-  imports: [ FormsModule, NgIf, NgSelectModule, ReactiveFormsModule ],
+  imports: [ FormsModule, NgIf, NgSelectModule, ReactiveFormsModule, BabiesLengthPickerComponent ],
   templateUrl: './baby-editor-dialog.component.html',
   styleUrl: './baby-editor-dialog.component.scss'
 })
-export class BabyEditorDialogComponent implements ModalObjectEditor {
+export class BabyEditorDialogComponent implements ModalObjectEditor, AfterViewInit {
 
   //@ViewChild("length") length!: NgSelectComponent;
+  @ViewChild("length_picker") length_picker!: BabiesLengthPickerComponent;
+  @ViewChild("quantity", { read: ElementRef }) quantity!: ElementRef;
 
   public editedObject: Baby = {
     id: 0,
@@ -39,6 +42,12 @@ export class BabyEditorDialogComponent implements ModalObjectEditor {
   isSubmitted : boolean = false;
 
   constructor(private fb: FormBuilder) {
+
+  }
+  ngAfterViewInit(): void {
+    this.length_picker.length_picked.subscribe((value: Number) => {
+      this.quantity.nativeElement.focus();
+    });
   }
 
   //[ 5.0, 5.5, 6.0, 6.5, ... 13.0 ]
@@ -48,9 +57,12 @@ export class BabyEditorDialogComponent implements ModalObjectEditor {
   onOpen(): any {
     this.isSubmitted = false;
     //this.babyFormEditor.get("length")?.setValue(this.editedObject.length);
+    this.length_picker.reset();
+    this.length_picker.length = this.editedObject.length;
     this.babyFormEditor.get("quantity")?.setValue(this.editedObject.quantity);
     this.babyFormEditor.markAsPristine();
     this.babyFormEditor.markAsUntouched();
+    this.quantity.nativeElement.focus();
     /*
     this.length.searchInput.nativeElement.focus();
     if(this.length && this.length.itemsList)
@@ -67,24 +79,25 @@ export class BabyEditorDialogComponent implements ModalObjectEditor {
   beforeClose(): Boolean {
     this.isSubmitted = true;
     this.babyFormEditor.markAsDirty();
-    if(this.babyFormEditor.invalid || (this.lengths.findIndex((item) => item == this.editedObject.length.toFixed(1).toString()) == -1))
+    if(this.babyFormEditor.invalid || (this.length_picker.isLengthInvalid()))
     {
       return false;
     }
     //this.editedObject.length =  this.babyFormEditor.get('length')!.value ?? 0;
+    this.editedObject.length = this.length_picker.get_length();
     this.editedObject.quantity =  this.babyFormEditor.get('quantity')!.value ?? 0;
     return true;
   }
-
+/*
   setLength(length:string) {
     this.editedObject.length = Number(length);
   }
 
   isLengthInvalid(){
-    if((this.babyFormEditor.touched || this.babyFormEditor.dirty) && (this.lengths.findIndex((item) => item == this.editedObject.length.toFixed(1).toString()) == -1))
+    if((this.babyFormEditor.touched || this.babyFormEditor.dirty) && (this.length_picker.isLengthInvalid()))
     {
       return true;
     }
     return false;
-  }
+  }*/
 }

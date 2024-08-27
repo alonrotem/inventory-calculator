@@ -33,6 +33,7 @@ export class ModalDialogComponent {
   constructor(private modalService: NgbModal) { }
   
   public open() {
+    console.log("modal-dialog open!")
     this.modalReference = this.modalService.open(this.content, { centered: true, size: 'm' });
     this.dialog_content_component.onOpen();
   }

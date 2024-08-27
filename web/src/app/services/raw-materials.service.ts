@@ -33,7 +33,6 @@ export class RawMaterialsService {
   };
 
   deleteRawMaterial = (id: number): Observable<any> => {
-    console.log("deleteRawMaterial");
     return this.apiService.delete(`${environment.serverUrl}/raw_materials/${id}`, { });
   };
 }

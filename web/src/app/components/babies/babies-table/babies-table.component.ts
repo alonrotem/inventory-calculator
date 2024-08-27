@@ -50,7 +50,6 @@ export class BabiesTableComponent implements OnInit, AfterViewInit, AfterViewChe
 
 
   constructor(private babiesService: BabiesService) {  
-    console.log("constructor");
   }
 
   getBabies(page: number){
@@ -67,7 +66,6 @@ export class BabiesTableComponent implements OnInit, AfterViewInit, AfterViewChe
       params.raw_material_id = this.raw_material_id;
     }
 
-    console.log(params);
     this.babiesService.getBabies(params).subscribe(
     {
       next: (babies: Babies) => {
@@ -116,7 +114,6 @@ export class BabiesTableComponent implements OnInit, AfterViewInit, AfterViewChe
     }
 
     this.babyEditorDialog.confirm.subscribe((baby:Baby) => {
-      console.log("submitting! " + baby);
       if(this.dialogMode == DialogMode.Add)
       {
         let matchingBabyLength = this.babies.find(b => b.length === baby.length);
@@ -154,7 +151,6 @@ export class BabiesTableComponent implements OnInit, AfterViewInit, AfterViewChe
     {
       this.loading = false;
     }
-    console.log("ngAfterViewInit");
   }
 
   openDialog (baby?:Baby | null) {
@@ -182,7 +178,6 @@ export class BabiesTableComponent implements OnInit, AfterViewInit, AfterViewChe
     let babyIndex = this.babies.findIndex(b => b.id == baby.id);
     if(babyIndex >= 0)
     {
-      //delete this.babies[babyIndex];
       this.babies.splice(babyIndex, 1);
     }
     this.recalculateTotalsOnClient();

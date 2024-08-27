@@ -39,7 +39,7 @@
         <tr 
           *ngFor="let baby of this.babies" 
           
-          role="button" (click)="openDialog(baby)"><!--routerLink="/inventory/raw/editor" -->
+          role="button" (click)="openDialog(baby)">
           <td [hidden]="!this.show_material_col"><a [attr.href]="'/inventory/raw/editor?id=' + baby.raw_material_parent_id"><span class="icon-leaf"></span> {{ baby.raw_material }}</a></td>
           <td>{{ baby.length | number : '1.1-1' }} cm</td>
           <td class="text-center">{{ baby.quantity }}</td>

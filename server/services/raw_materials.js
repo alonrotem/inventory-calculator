@@ -111,7 +111,7 @@ async function update(id, rawMaterial){
     let message = 'Error in updating raw material';
   
     if (result.affectedRows) {
-      message = 'Raw material updated successfully';
+      message = 'Raw material \''+rawMaterial.name +'\' updated successfully';
     }
     if(rawMaterial.babies)
     {

@@ -18,6 +18,9 @@ NEXT TODOS:
 ❎ 🐞 Bug: baby length not selected when dropdown     
 ❎ 🪶 Sort babies by length desc    
 ❎ 🪶 Babies table      
+⏹️ 🐞 Bug: New babies don't get aggregated if their length matches (make sure client & server)     
+            check this.babyEditorDialog.confirm.subscribe((baby:Baby) => { on babies table component
+⏹️ 🐞 Bug: Opening a baby record doesn't select the baby    
 ⏹️ 🪶 Wings      
 ⏹️ 🪶 Hats      
 

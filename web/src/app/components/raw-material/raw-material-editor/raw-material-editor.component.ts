@@ -66,9 +66,9 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
   @ViewChild("currency") currency!: NgSelectComponent;
   
   
-constructor(private rawMaterialsService: RawMaterialsService, private infoService: InfoService, private location: Location, private activatedRoute: ActivatedRoute, private router: Router) { 
-  
-}
+  constructor(private rawMaterialsService: RawMaterialsService, private infoService: InfoService, private location: Location, private activatedRoute: ActivatedRoute, private router: Router) { 
+  }
+
   ngOnInit(): void {
     this.is_new_material = !this.activatedRoute.snapshot.queryParamMap.has('id');
     if(!this.is_new_material)
@@ -104,83 +104,82 @@ constructor(private rawMaterialsService: RawMaterialsService, private infoServic
     })
   }
 
-getRawMaterial(id: number){
-  this.rawMaterialsService.getRawMaterial(id).subscribe(
-  {
-    next: (rawMaterial: RawMaterial) => {
-      this.rawMaterialItem = rawMaterial;
-    },
-    error: (error) => {
-      console.log(error);
-    }
-  })
-}
+  getRawMaterial(id: number){
+    this.rawMaterialsService.getRawMaterial(id).subscribe(
+    {
+      next: (rawMaterial: RawMaterial) => {
+        this.rawMaterialItem = rawMaterial;
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    })
+  }
 
-save()
-{
-  console.log(this.babies_table.babies);
-  this.raw_material_form.form.markAllAsTouched();
-  if(this.raw_material_form.form.valid)
+  save()
   {
-    this.rawMaterialItem.babies = this.babies_table.babies;
-    this.rawMaterialItem.purchased_at =  new Date(this.purchase_date.nativeElement.value); //.toISOString()
-    //edit
-    if(!this.is_new_material)
+    this.raw_material_form.form.markAllAsTouched();
+    if((this.raw_material_form.form.valid) && (this.checkUnitsOrWeight() == true))
     {
-      const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
-      console.log("edit: ");
-      console.log(this.rawMaterialItem);
-      this.updateRawMaterial(id, this.rawMaterialItem);
-    }
-    //add
-    else
-    {
-      console.log("add: ");
-      console.log(this.rawMaterialItem);
-      this.saveNewRawMaterial(this.rawMaterialItem);
+      this.rawMaterialItem.babies = this.babies_table.babies;
+      this.rawMaterialItem.purchased_at =  new Date(this.purchase_date.nativeElement.value); //.toISOString()
+      //edit
+      if(!this.is_new_material)
+      {
+        const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
+        this.updateRawMaterial(id, this.rawMaterialItem);
+      }
+      //add
+      else
+      {
+        this.saveNewRawMaterial(this.rawMaterialItem);
+      }
     }
   }
-}
 
-saveNewRawMaterial(material:RawMaterial)
-{
-  this.btn_save.nativeElement.classList.add("disabled");
-
-  this.rawMaterialsService.saveNewRawMaterial(material).subscribe(
-    {
-      next:(data) => { this.btn_save.nativeElement.classList.remove("disabled"); console.log(data);  this.gotoMaterialsList(data['message'], false); },//this.getRawMaterials(this.current_page); },
-      error:(error) => { this.btn_save.nativeElement.classList.remove("disabled"); console.log(error); this.gotoMaterialsList(error, true); }
-    }
-  );
-}
-
-updateRawMaterial(id: number, material:RawMaterial)
-{
-  this.btn_save.nativeElement.classList.add("disabled");
-
-  this.rawMaterialsService.updateRawMaterial(material).subscribe(
+  saveNewRawMaterial(material:RawMaterial)
   {
-    next:(data) => { this.btn_save.nativeElement.classList.remove("disabled"); console.log(data); this.gotoMaterialsList(data['message'], false); },//this.getRawMaterials(this.current_page); },
-    error:(error) => { this.btn_save.nativeElement.classList.remove("disabled"); console.log(error); this.gotoMaterialsList(error, true); }
-  });
-}
+    this.btn_save.nativeElement.classList.add("disabled");
 
-focusOnWeight(): void {
-  console.log("CLICKED! weight");
-  this.radioWeight.nativeElement.checked = true;
-  this.materialWeight.nativeElement.focus();
-  this.materialUnits.nativeElement.classList.add("transparent_text");
-  this.materialWeight.nativeElement.classList.remove("transparent_text");
-}
+    this.rawMaterialsService.saveNewRawMaterial(material).subscribe(
+      {
+        next:(data) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoMaterialsList(data['message'], false); },//this.getRawMaterials(this.current_page); },
+        error:(error) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoMaterialsList(error, true); }
+      }
+    );
+  }
 
-focusOnUnits(): void {
-  console.log("CLICKED! unit");
-  this.radioUnits.nativeElement.checked = true;
-  this.materialUnits.nativeElement.focus();
-  this.materialUnits.nativeElement.classList.remove("transparent_text");
-  this.materialWeight.nativeElement.classList.add("transparent_text");
+  updateRawMaterial(id: number, material:RawMaterial)
+  {
+    this.btn_save.nativeElement.classList.add("disabled");
 
-}
+    this.rawMaterialsService.updateRawMaterial(material).subscribe(
+    {
+      next:(data) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoMaterialsList(data['message'], false); },//this.getRawMaterials(this.current_page); },
+      error:(error) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoMaterialsList(error, true); }
+    });
+  }
+
+  focusOnWeight(): void {
+    this.radioWeight.nativeElement.checked = true;
+    this.materialWeight.nativeElement.focus();
+    this.materialUnits.nativeElement.classList.add("transparent_text");
+    this.materialWeight.nativeElement.classList.remove("transparent_text");
+  }
+
+  focusOnUnits(): void {
+    this.radioUnits.nativeElement.checked = true;
+    this.materialUnits.nativeElement.focus();
+    this.materialUnits.nativeElement.classList.remove("transparent_text");
+    this.materialWeight.nativeElement.classList.add("transparent_text");
+  }
+
+  checkUnitsOrWeight(): boolean {
+    return (
+      ((this.radioUnits.nativeElement.checked) && (this.materialUnits.nativeElement.value)) ||
+      ((this.radioWeight.nativeElement.checked) && (this.materialWeight.nativeElement.value))
+    );
+  }
 
 
   gotoMaterialsList(textInfo: string = '', isError: Boolean = false) {
@@ -202,20 +201,16 @@ focusOnUnits(): void {
   ngAfterViewInit() {
     this.materialName.nativeElement.focus();
     this.materialName.nativeElement.select();
-    console.log("curr " + this.rawMaterialItem.currency);
 
-      if(this.currency.itemsList){
-        let curr = this.currency.itemsList.findByLabel(this.rawMaterialItem.currency);
-        this.currency.select(curr);
-      }
+    if(this.currency.itemsList){
+      let curr = this.currency.itemsList.findByLabel(this.rawMaterialItem.currency);
+      this.currency.select(curr);
+    }
 
     this.delete_confirmation.confirm.subscribe((value: Boolean) => {
-      //alert(this.rawMaterialItem.id);
-      console.log("deleting " + this.rawMaterialItem.id);
       this.rawMaterialsService.deleteRawMaterial(this.rawMaterialItem.id).subscribe(
         {
           next:(data) => {
-            console.log(data);
             this.gotoMaterialsList(data['message'], false);
           }
         });

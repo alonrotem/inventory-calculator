@@ -354,6 +354,7 @@ values
 
 set @gold_id = (select id from raw_materials where name='Gold' limit 1);
 set @silver_id = (select id from raw_materials where name='Silver' limit 1);
+set @wood_id = (select id from raw_materials where name='Wood' limit 1);
 
 insert into babies (raw_material_parent_id, length, quantity, 
         created_at, updated_at, created_by, updated_by)
@@ -363,6 +364,9 @@ values
 	(@gold_id, 10.5, 300, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1),
 	(@silver_id, 12.5, 50, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1),
 	(@silver_id, 9, 3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1),
-	(@silver_id, 14, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1);
+	(@silver_id, 13, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1),
+	(@wood_id, 8, 650, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1),
+	(@wood_id, 9, 510, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1),
+	(@wood_id, 10, 40, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1);
 
 select "All done";
