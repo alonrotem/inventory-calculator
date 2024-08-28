@@ -4,6 +4,7 @@ import { RawMaterialsTableComponent } from './components/raw-material/raw-materi
 import { RawMaterialEditorComponent } from './components/raw-material/raw-material-editor/raw-material-editor.component';
 import { BabiesTableComponent } from './components/babies/babies-table/babies-table.component';
 import { PagenotfoundComponent } from './components/common/pagenotfound/pagenotfound.component';
+import { WingsTableComponent } from './components/wings/wings-table/wings-table.component';
 
 export const routes: Routes = [
     {
@@ -21,6 +22,10 @@ export const routes: Routes = [
     {
         path: 'inventory/babies',
         component: BabiesTableComponent
+    },
+    {
+        path: 'templates/wings',
+        component: WingsTableComponent
     },
     { path: '**', pathMatch: 'full',  
         component: PagenotfoundComponent 

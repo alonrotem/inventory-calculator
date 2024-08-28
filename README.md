@@ -18,9 +18,9 @@ NEXT TODOS:
 ❎ 🐞 Bug: baby length not selected when dropdown     
 ❎ 🪶 Sort babies by length desc    
 ❎ 🪶 Babies table      
-⏹️ 🐞 Bug: New babies don't get aggregated if their length matches (make sure client & server)     
+❎ 🐞 Bug: New babies don't get aggregated if their length matches (make sure client & server)     
             check this.babyEditorDialog.confirm.subscribe((baby:Baby) => { on babies table component
-⏹️ 🐞 Bug: Opening a baby record doesn't select the baby    
+❎ 🐞 Bug: Opening a baby record doesn't select the baby    
 ⏹️ 🪶 Wings      
 ⏹️ 🪶 Hats      
 
@@ -69,14 +69,15 @@ Wings, made of babies (each element with possible % of alternate)
 -	Crown 2
 -	Crown 3
 
-
-
-
-
-
-
-
-
+Wing positions
+                Left
+                Top
+                Right
+                Crown
+Wing Name > Wings
+                Position
+                Material
+                Length
 
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.3.5.

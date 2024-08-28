@@ -70,6 +70,37 @@ export interface Baby {
     updated_by: number;
 }
 
+export interface WingsListItem {
+    id: number;
+    name: string;
+    Left: number;
+    Top: number;
+    Right: number;
+    Crown: number;
+}
+
+export interface WingsList {
+    data: WingsListItem[];
+    meta: { 
+        page: number;
+        total_records: number;
+        total_pages: number;
+    }
+}
+
+export interface Wing {
+    id: number;
+    name: string;
+    babies: WingBaby[];
+}
+
+export interface WingBaby{
+    wing_id: number;
+    position_id: number;
+    length: number;
+    position: string;
+}
+
 export interface PaginationParams {
     [key:string]: string | number | boolean | ReadonlyArray<string | number | boolean>;
     page: number;
@@ -98,5 +129,6 @@ export interface ModalObjectEditor {
 export interface Stats {
     raw_material_records: number,
     total_baby_records: number,
-    total_babies: number
+    total_babies: number,
+    total_wings: number
 }

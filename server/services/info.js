@@ -17,10 +17,16 @@ async function getInfo(){
     );
     const total_babies = babies_quantity[0]['quantity'];  
 
+    const wings_records = await db.query(
+      `select count(*) as wings_recs from wings;`
+    );
+    const total_wings = wings_records[0]['wings_recs'];  
+
   return  {
     raw_material_records,
     total_baby_records,
-    total_babies
+    total_babies,
+    total_wings
   };
 }
 

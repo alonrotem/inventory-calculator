@@ -24,6 +24,7 @@ import { ToastService } from '../../../services/toast.service';
 })
 
 export class RawMaterialsTableComponent implements OnInit {
+  
   constructor(private rawMaterialsService: RawMaterialsService, private modalService: NgbModal, private router: Router) {
     let nav = this.router.getCurrentNavigation();
     if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {

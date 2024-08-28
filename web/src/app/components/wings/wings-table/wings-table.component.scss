@@ -1,0 +1,37 @@
+:host {
+    /*
+    display: flex;
+    flex-grow: 1;
+    justify-content: center;
+    */
+    flex: 1 1 auto;
+    position: relative;
+}
+
+#loading_icon {
+    /* align-self: center; */
+    /* display: flex; */
+    /* flex-direction: column; */
+    /* align-items: center; */
+    /* padding-top: 50%; */
+    /* flex-grow: 1; */
+    /* min-height: 100%; */
+    /*background: yellow;*/
+    /* height: 100%; */
+    width: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+}
+
+#loading_message {
+    margin-top: 30px;
+}
+
+#btnNewRaw {
+    margin: 20px 0px;
+}
+
+h1 {
+    margin-top: 20px;
+}

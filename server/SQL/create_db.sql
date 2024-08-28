@@ -10,10 +10,16 @@ SET @table_name = 'babies', @fk_name = 'fk_baby_raw_material_parent'; SET @sql =
 SET @table_name = 'babies', @fk_name = 'babies_ibfk_1'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 SET @table_name = 'raw_materials', @fk_name = 'fk_raw_material_country'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 SET @table_name = 'raw_materials', @fk_name = 'fk_raw_material_currency'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+SET @table_name = 'wings_babies', @fk_name = 'fk_parent_wing_id'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
 drop table if exists raw_materials;
 drop table if exists babies;
 drop table if exists countries;
 drop table if exists currencies;
+
+drop table if exists wing_positions;
+drop table if exists wings;
+drop table if exists wings_babies;
 
 # CREATE TABLES
 # ---------------
@@ -36,7 +42,7 @@ CREATE TABLE  IF NOT EXISTS `currencies`
 
 CREATE TABLE  IF NOT EXISTS `raw_materials`
 (
-  `id`            	INT NOT NULL auto_increment ,
+  `id`            	INT NOT NULL auto_increment,
   `name`          	VARCHAR(255) NOT NULL ,
   `purchased_at` 	DATE NOT NULL DEFAULT(CURRENT_DATE),
   `weight`   	    float NULL ,
@@ -60,10 +66,10 @@ CREATE TABLE  IF NOT EXISTS `raw_materials`
 
 CREATE TABLE  IF NOT EXISTS `babies`
 (
-  `id`            INT NOT NULL auto_increment ,
+  `id`            INT NOT NULL auto_increment,
   `raw_material_parent_id` INT NOT NULL,
-  `length`   	    float NULL ,
-  `quantity`   	    INT NULL ,
+  `length`   	    float NOT NULL,
+  `quantity`   	    INT NOT NULL,
   `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
   `updated_at`    DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
   `created_by`	 int null,
@@ -71,6 +77,35 @@ CREATE TABLE  IF NOT EXISTS `babies`
   PRIMARY KEY (`id`),
   CONSTRAINT fk_baby_raw_material_parent
   FOREIGN KEY (`raw_material_parent_id`) REFERENCES raw_materials(`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE  IF NOT EXISTS wing_positions (
+	`id` 	INT NOT NULL,
+	`name`	VARCHAR(255) NOT NULL,
+    PRIMARY KEY (`id`)
+);
+
+insert into wing_positions (id, name)
+VALUES 
+	(1, 'Left'),
+    (2, 'Top'),
+    (3, 'Right'),
+    (4, 'Crown');
+
+CREATE TABLE  IF NOT EXISTS wings (
+	`id`    INT NOT NULL auto_increment,
+    `name`	VARCHAR(255) NOT NULL,
+    PRIMARY KEY (`id`)
+);
+
+CREATE TABLE  IF NOT EXISTS wings_babies (
+	`id`            INT NOT NULL auto_increment,
+    `parent_wing_id` INT NOT NULL,
+    `position_id`	INT NOT NULL,
+	`length`   	    float NOT NULL,
+    PRIMARY KEY (`id`),
+    CONSTRAINT fk_parent_wing_id
+    FOREIGN KEY (`parent_wing_id`) REFERENCES wings(`id`) ON DELETE CASCADE
 );
 
 # DATA SEED
@@ -368,5 +403,37 @@ values
 	(@wood_id, 8, 650, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1),
 	(@wood_id, 9, 510, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1),
 	(@wood_id, 10, 40, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1);
+
+
+
+insert into wings (name)
+VALUES 
+	('Wing 1'), ('Wing 2'), ('Wing 3');
+
+set @wing_id_1 = (select id from wings where name='Wing 1' limit 1);
+set @wing_id_2 = (select id from wings where name='Wing 2' limit 1);
+set @wing_id_3 = (select id from wings where name='Wing 3' limit 1);
+
+set @left = (select id from wing_positions where name='Left' limit 1);
+set @top = (select id from wing_positions where name='Top' limit 1);
+set @right = (select id from wing_positions where name='Right' limit 1);
+set @crown = (select id from wing_positions where name='Crown' limit 1);
+
+insert into wings_babies (parent_wing_id, position_id, length)
+VALUES 
+	(@wing_id_1, @left, 10),
+    (@wing_id_1, @left, 8),
+    (@wing_id_1, @left, 5),
+    (@wing_id_1, @left, 5.5),
+    (@wing_id_1, @left, 10.5),
+    (@wing_id_1, @top, 6.5),
+    (@wing_id_1, @top, 7),
+    (@wing_id_1, @top, 8),
+    (@wing_id_1, @top, 9),
+    (@wing_id_1, @right, 6.5),
+	(@wing_id_1, @right, 9),
+    (@wing_id_1, @right, 8),
+    (@wing_id_1, @crown, 8.5),
+	(@wing_id_1, @crown, 9.5);
 
 select "All done";

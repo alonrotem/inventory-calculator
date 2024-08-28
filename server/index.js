@@ -10,6 +10,7 @@ const babiesRouter = require("./routes/babies");
 const currenciesRouter = require("./routes/currencies");
 const countriessRouter = require("./routes/countries");
 const infoRouter = require("./routes/info");
+const wingsRouter = require("./routes/wings");
 
 app.use(express.json());
 app.use(
@@ -26,6 +27,7 @@ app.use("/babies", babiesRouter);
 app.use("/currencies", currenciesRouter);
 app.use("/countries", countriessRouter);
 app.use("/info", infoRouter);
+app.use("/wings", wingsRouter);
 
 /* Error handler middleware */
 app.use((err, req, res, next) => {

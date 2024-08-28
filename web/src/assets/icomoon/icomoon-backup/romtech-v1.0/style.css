@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'romtech';
-  src:  url('fonts/romtech.eot?h11a3g');
-  src:  url('fonts/romtech.eot?h11a3g#iefix') format('embedded-opentype'),
-    url('fonts/romtech.ttf?h11a3g') format('truetype'),
-    url('fonts/romtech.woff?h11a3g') format('woff'),
-    url('fonts/romtech.svg?h11a3g#romtech') format('svg');
+  src:  url('fonts/romtech.eot?s62m9o');
+  src:  url('fonts/romtech.eot?s62m9o#iefix') format('embedded-opentype'),
+    url('fonts/romtech.ttf?s62m9o') format('truetype'),
+    url('fonts/romtech.woff?s62m9o') format('woff'),
+    url('fonts/romtech.svg?s62m9o#romtech') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -45,6 +45,15 @@
 }
 .icon-feather-wing:before {
   content: "\e904";
+}
+.icon-feather-wing-r:before {
+  content: "\eaf2";
+}
+.icon-crown:before {
+  content: "\eaf3";
+}
+.icon-top:before {
+  content: "\eaf4";
 }
 .icon-home:before {
   content: "\e905";
