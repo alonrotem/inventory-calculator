@@ -22,7 +22,7 @@ enum DialogMode {
 @Component({
   selector: 'app-babies-table',
   standalone: true,
-  imports: [ NgFor, DateStrPipe, PaginatorComponent, ModalDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, BabyEditorDialogComponent, ConfirmationDialogComponent, FaIconComponent, DecimalPipe ],
+  imports: [ NgFor, DateStrPipe, PaginatorComponent, ModalDialogComponent, RouterModule, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, BabyEditorDialogComponent, ConfirmationDialogComponent, FaIconComponent, DecimalPipe ],
   templateUrl: './babies-table.component.html',
   styleUrl: './babies-table.component.scss'
 })

@@ -27,6 +27,8 @@ async function getSingle(id){
         const wing_babies = await db.query(
             `select 
                 w.id wing_id,
+                wb.id id,
+                wb.raw_material_name,
                 wb.position_id, wb.length,
                 wp.name position
             from 
@@ -104,6 +106,12 @@ async function create(wing){
   return {message};
 }
 
+async function getWingBabyPositions(){
+  const result = await db.query(`select id, name from wing_positions;`);
+  const data = helper.emptyOrRows(result);
+  return data;
+}
+
 async function update(id, wing){
     const result = await db.query(`UPDATE wings SET name=(?) WHERE id=${id}`, [ wing.name ]);
     console.log("Updated wing ID: " + id + " ("+ wing.name +")");
@@ -114,18 +122,18 @@ async function update(id, wing){
     }
     if(wing.babies)
     {
-      await sync_babies_for_raw_material(wing.babies, id);
+      await sync_babies_for_wing(wing.babies, id);
     }
     return {message};
 }
 
 async function sync_babies_for_wing(babies, wing_id)
 {
-
+    console.dir(babies[0], { depth:10 })
     let message = "";
     //id of babies that should be existing (have IDs)
     let baby_ids_to_keep = babies.filter(baby => baby.id != 0).map(baby => baby.id).join(",");
-
+    console.log("baby_ids_to_keep: " + baby_ids_to_keep);
     if(baby_ids_to_keep.length > 0)
     {
     //remove irrelevant ones
@@ -147,15 +155,19 @@ async function sync_babies_for_wing(babies, wing_id)
             [
               baby.id,
               wing_id,
+              baby.raw_material_name,
               baby.position_id,
-              baby.length            ]
+              baby.length
+            ]
           ).flat(1);
-          let placeholder = Array(babies.length).fill("(" + Array(4).fill("?").join(",") + ")").join(",");
+          console.log("babiesarr");
+          console.log(babies_arr);
+          let placeholder = Array(babies.length).fill("(" + Array(5).fill("?").join(",") + ")").join(",");
           //VALUES (?, ?), (?,?)
       
           const update_result = await db.query(
             `REPLACE INTO wings_babies 
-            (id, parent_wing_id, position_id, length) 
+            (id, parent_wing_id, raw_material_name, position_id, length) 
             VALUES 
             ${placeholder}`,
             babies_arr
@@ -188,5 +200,6 @@ module.exports = {
     getSingle,
     getMultiple,
     update,
-    remove
+    remove,
+    getWingBabyPositions
 }

@@ -4,6 +4,7 @@ import { FormBuilder, FormControl, FormGroup, FormsModule, NgForm, NgSelectOptio
 import { NgIf } from '@angular/common';
 import { NgOptionComponent, NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { BabiesLengthPickerComponent } from '../babies-length-picker/babies-length-picker.component';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-baby-editor-dialog',
@@ -41,11 +42,11 @@ export class BabyEditorDialogComponent implements ModalObjectEditor, AfterViewIn
   });
   isSubmitted : boolean = false;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private toastService: ToastService) {
 
   }
   ngAfterViewInit(): void {
-    this.length_picker.length_picked.subscribe((value: Number) => {
+    this.length_picker.lengthChange.subscribe((value: Number) => {
       this.quantity.nativeElement.focus();
     });
   }
@@ -81,11 +82,13 @@ export class BabyEditorDialogComponent implements ModalObjectEditor, AfterViewIn
     this.babyFormEditor.markAsDirty();
     if(this.babyFormEditor.invalid || (this.length_picker.isLengthInvalid()))
     {
+      this.toastService.showError("Please fill length and quantity!");
       return false;
     }
     //this.editedObject.length =  this.babyFormEditor.get('length')!.value ?? 0;
-    this.editedObject.length = this.length_picker.get_length();
+    //this.editedObject.length = this.length_picker.get_length();
     this.editedObject.quantity =  this.babyFormEditor.get('quantity')!.value ?? 0;
+    this.toastService.showSuccess("Added!");
     return true;
   }
 /*

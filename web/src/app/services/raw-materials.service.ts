@@ -12,7 +12,7 @@ export class RawMaterialsService {
   constructor(private apiService: ApiService) { }
 
   getRawMaterial = (id: number): Observable<RawMaterial> => {
-    return this.apiService.get(`${environment.serverUrl}/raw_materials/${id}`, {
+    return this.apiService.get(`${environment.serverUrl}/raw_materials/single/${id}`, {
       responseType: 'json'
     });
   };
@@ -20,6 +20,12 @@ export class RawMaterialsService {
   getRawMaterials = (params: PaginationParams): Observable<RawMaterials> => {
     return this.apiService.get(`${environment.serverUrl}/raw_materials/`, {
       params,
+      responseType: 'json'
+    });
+  };
+
+  getRawMaterialNames = (): Observable<string[]> => {
+    return this.apiService.get(`${environment.serverUrl}/raw_materials/names/`, {
       responseType: 'json'
     });
   };

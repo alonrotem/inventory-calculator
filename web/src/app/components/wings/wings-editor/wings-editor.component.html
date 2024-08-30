@@ -1,1 +1,101 @@
-<p>wings-editor works!</p>
+<app-confirmation-dialog 
+    #delete_confirmation 
+    modalTitle="Delete confirmation"
+    modalText="Are you sure you want to delete this wing, {{ wing.name }}?"
+    [btnYesIcon]=faTrashAlt
+    btnYesText="Delete"
+    btnYesClass="btn-danger">
+</app-confirmation-dialog>
+
+<div class="row justify-content-center">
+<div class="col-8">
+
+    <h3><span class="icon-feather-wing"></span> {{ this.title }} <span class="icon-feather-wing-r"></span></h3>
+    <form novalidate #wingForm="ngForm">
+        <div class="editorForm">
+        <div class="row">
+            <div class="col">
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="wingName" #wingName="ngModel" [(ngModel)]="wing.name" name="wingName" required>
+                    <label for="wingName">Wing name <span class="text-danger">*</span></label>
+                </div>
+                <div class="text-danger" *ngIf="wingName.invalid && (wingName.touched || wingName.dirty)" > 
+                    <span *ngIf="wingName.errors?.['required']">Please enter a name for the wing</span>
+                    <!-- span *ngIf="firstName.errors?.['minlength']">Min 3 Charactors Needed</span --> 
+                </div>            
+            </div>
+        </div>
+
+        <div class="row wing-babies-container">
+            <div class="col">
+                <h4><span class="icon-feather-wing"></span> Left Babies</h4>
+                <app-wings-babies-table 
+                    [(wingsbabies)]="babiesLeft" 
+                    [position_id]="this.left_id"
+                    [position_name]="'Left'"
+                    [wing_id]="wing_id" />
+            </div>
+        </div>
+
+        <div class="row wing-babies-container">
+            <div class="col">
+                <h4><span class="icon-feather-wing-r"></span> Right Babies</h4>
+                <app-wings-babies-table 
+                    [(wingsbabies)]="babiesRight"
+                    [position_id]="this.right_id"
+                    [position_name]="'Right'" 
+                    [wing_id]="wing_id"/>
+            </div>
+        </div>
+        
+        <div class="row wing-babies-container">
+            <div class="col">
+                <h4><span class="icon-top"></span> Top Babies</h4>
+                <app-wings-babies-table 
+                    [(wingsbabies)]="babiesTop"
+                    [position_id]="this.top_id"
+                    [position_name]="'Top'"
+                    [wing_id]="wing_id"/>
+            </div>
+        </div>
+
+        <div class="row wing-babies-container">
+            <div class="col">
+                <h4><span class="icon-crown"></span> Crown Babies</h4>
+                <app-wings-babies-table
+                    [(wingsbabies)]="babiesCrown"
+                    [position_id]="this.crown_id"
+                    [position_name]="'Crown'"
+                    [wing_id]="wing_id"/>
+            </div>
+        </div>
+
+
+        <div class="row buttons-area">
+                <div class="col-12 d-flex justify-content-center {{ this.is_new_wing? 'col-md-6':'col-md-4' }}">
+                    <button #btn_save class="btn btn-success" type="submit" (click)="save()"><!--[disabled]="!raw_material_form.form.valid"-->
+                        <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
+                        <div>Save Wing</div>
+                    </button>
+                </div>
+                <div class="col-12 d-flex justify-content-center {{ this.is_new_wing? 'col-md-6':'col-md-4' }}">
+                    <button class="btn btn-warning" (click)="gotoWingsList()">
+                        <div class="btn-icon"><fa-icon [icon]="faTimesCircle"></fa-icon></div>
+                        <div>Cancel Chages</div>
+                    </button>
+                </div>
+                <div class="col-12 d-flex justify-content-center col-md-4" *ngIf="!this.is_new_wing">
+                    <button class="btn btn-danger" (click)="confirm_delete()">
+                        <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>
+                        <div>Delete Wing</div>
+                    </button>
+                </div>
+        </div>
+
+    </div>
+</form>
+
+
+</div>
+
+</div>

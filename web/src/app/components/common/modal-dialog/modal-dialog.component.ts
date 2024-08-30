@@ -35,7 +35,9 @@ export class ModalDialogComponent {
   public open() {
     console.log("modal-dialog open!")
     this.modalReference = this.modalService.open(this.content, { centered: true, size: 'm' });
-    this.dialog_content_component.onOpen();
+    if(this.dialog_content_component.onOpen){
+      this.dialog_content_component.onOpen();
+    }
   }
 
   onConfirm() {

@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
-import { Location, NgIf } from '@angular/common';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, ViewChild } from '@angular/core';
+import { Location, NgFor, NgIf } from '@angular/common';
 import { Country, Currency, RawMaterial } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
 import { RouterLink, RouterOutlet, ActivatedRoute } from '@angular/router';
@@ -13,11 +13,18 @@ import { DateStrPipe } from '../../../utils/date_pipe';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faSave, faTrashAlt, faTimesCircle, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmationDialogComponent } from "../../common/confirmation-dialog/confirmation-dialog.component";
+import { AutocompleteLibModule } from 'angular-ng-autocomplete';
+import { ToastService } from '../../../services/toast.service';
+
 
 @Component({
   selector: 'app-raw-material-editor',
   standalone: true,
-  imports: [RouterModule, RouterLink, RouterOutlet, FormsModule, DatePipe, BabiesTableComponent, NgSelectModule, DateStrPipe, FaIconComponent, NgIf, ConfirmationDialogComponent],
+  imports: [ 
+    RouterModule, RouterLink, RouterOutlet, FormsModule, 
+    DatePipe, BabiesTableComponent, NgSelectModule, DateStrPipe, 
+    FaIconComponent, NgIf, ConfirmationDialogComponent, NgFor, AutocompleteLibModule
+  ],
   templateUrl: './raw-material-editor.component.html',
   styleUrl: './raw-material-editor.component.scss'
 })
@@ -51,8 +58,11 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
   faTrashAlt:IconDefinition = faTrashAlt;
   faTimesCircle:IconDefinition = faTimesCircle;
   is_new_material: Boolean = true;
+  raw_material_names: string[] = [];
 
-  @ViewChild("materialName", { read: ElementRef }) materialName!: ElementRef;
+  //@ViewChild("materialName", { read: ElementRef }) materialName!: ElementRef;
+  @ViewChild("materialName", { read: ElementRef }) materialName! :ElementRef;
+  @ViewChild("suggestions", { read: ElementRef }) suggestions!: ElementRef;
   @ViewChild("purchasedAt", { read: ElementRef }) purchase_date!: ElementRef;
   @ViewChild("radioWeight", { read: ElementRef }) radioWeight!: ElementRef;
   @ViewChild("radioUnits", { read: ElementRef }) radioUnits!: ElementRef;
@@ -66,7 +76,12 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
   @ViewChild("currency") currency!: NgSelectComponent;
   
   
-  constructor(private rawMaterialsService: RawMaterialsService, private infoService: InfoService, private location: Location, private activatedRoute: ActivatedRoute, private router: Router) { 
+  constructor(private rawMaterialsService: RawMaterialsService, private infoService: InfoService, private location: Location, private activatedRoute: ActivatedRoute, private router: Router, private toastService: ToastService) { 
+    this.rawMaterialsService.getRawMaterialNames().subscribe({
+      next: (names)=> {
+        this.raw_material_names = names;
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -118,6 +133,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
 
   save()
   {
+    console.log("save");
     this.raw_material_form.form.markAllAsTouched();
     if((this.raw_material_form.form.valid) && (this.checkUnitsOrWeight() == true))
     {
@@ -134,6 +150,12 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
       {
         this.saveNewRawMaterial(this.rawMaterialItem);
       }
+    }
+    else
+    {
+      console.log("this.raw_material_form.form.valid: " + this.raw_material_form.form.valid);
+      console.log("this.checkUnitsOrWeight(): " + (this.checkUnitsOrWeight()== true));
+      this.toastService.showError("Please fill all the mandatory fields before saving!");
     }
   }
 
@@ -176,8 +198,8 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
 
   checkUnitsOrWeight(): boolean {
     return (
-      ((this.radioUnits.nativeElement.checked) && (this.materialUnits.nativeElement.value)) ||
-      ((this.radioWeight.nativeElement.checked) && (this.materialWeight.nativeElement.value))
+      ((this.radioUnits.nativeElement.checked) && (!!this.materialUnits.nativeElement.value)) ||
+      ((this.radioWeight.nativeElement.checked) && (!!this.materialWeight.nativeElement.value))
     );
   }
 
@@ -199,8 +221,38 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.materialName.nativeElement.focus();
-    this.materialName.nativeElement.select();
+    //---------------------------------------------------------------
+    //Hack: focus on the autocomplete input, and hide the suggestions
+    let autoCompleteInput = null;
+    let autoCompleteSuggestionsBox = null;
+    if(this.materialName && this.materialName.nativeElement)
+    {
+      let inputContainer =  this.materialName.nativeElement.getElementsByClassName("input-container");
+      if(inputContainer && inputContainer.length > 0)
+      {
+        let inputsInContainer = inputContainer[0].getElementsByTagName("input");
+        if(inputsInContainer && inputsInContainer.length > 0)
+        {
+          autoCompleteInput = inputsInContainer[0];
+        }
+      }
+    }
+    if(this.suggestions && this.suggestions.nativeElement)
+    {
+      let uls = this.suggestions.nativeElement.getElementsByTagName("ul");
+      if(uls && uls.length)
+      {
+        autoCompleteSuggestionsBox = uls[0];
+      }
+    }
+    setTimeout(() => {
+      if(autoCompleteInput && autoCompleteSuggestionsBox){
+        autoCompleteInput.focus();
+        autoCompleteSuggestionsBox.replaceChildren();
+      }
+    }, 0)
+    //End hack
+    //---------------------------------------------------------------
 
     if(this.currency.itemsList){
       let curr = this.currency.itemsList.findByLabel(this.rawMaterialItem.currency);

@@ -95,10 +95,17 @@ export interface Wing {
 }
 
 export interface WingBaby{
+    id: number;
     wing_id: number;
     position_id: number;
+    raw_material_name: string;
     length: number;
     position: string;
+}
+
+export interface WingPosition {
+    id: number;
+    name: string;
 }
 
 export interface PaginationParams {

@@ -5,6 +5,7 @@ import { RawMaterialEditorComponent } from './components/raw-material/raw-materi
 import { BabiesTableComponent } from './components/babies/babies-table/babies-table.component';
 import { PagenotfoundComponent } from './components/common/pagenotfound/pagenotfound.component';
 import { WingsTableComponent } from './components/wings/wings-table/wings-table.component';
+import { WingsEditorComponent } from './components/wings/wings-editor/wings-editor.component';
 
 export const routes: Routes = [
     {
@@ -26,6 +27,10 @@ export const routes: Routes = [
     {
         path: 'templates/wings',
         component: WingsTableComponent
+    },
+    {
+        path: 'templates/wings/editor',
+        component: WingsEditorComponent
     },
     { path: '**', pathMatch: 'full',  
         component: PagenotfoundComponent 

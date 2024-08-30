@@ -11,8 +11,10 @@
 <div class="col-8">
 
     <h3><span class="icon-leaf"></span> {{ this.title }}</h3>
-    <form novalidate #raw_material_form="ngForm">
+
+    <form novalidate #raw_material_form="ngForm" >
         <div class="editorForm">
+        <!--
         <div class="row">
             <div class="col">
                 <div class="form-floating">
@@ -21,10 +23,45 @@
                 </div>
                 <div class="text-danger" *ngIf="materialName.invalid && (materialName.touched || materialName.dirty)" > 
                     <span *ngIf="materialName.errors?.['required']">Please enter a name for the raw material</span>
-                    <!-- span *ngIf="firstName.errors?.['minlength']">Min 3 Charactors Needed</span --> 
                 </div>            
             </div>
         </div>
+        -->
+
+        <!-- Autocomplete -->
+        <div class="row">
+            <div class="col">
+                <div class="ng-autocomplete">
+                    <ng-autocomplete 
+                      [data]="raw_material_names"
+                      placeholder="Select a material or enter a new one*"
+                      [itemTemplate]="itemTemplate"
+                      [(ngModel)]="rawMaterialItem.name"
+                      [className]="'form-control form-control-plaintext'"
+                      name="materialName"
+                      #materialName="ngModel"
+                      [required]="true">
+                    </ng-autocomplete><!--
+                                          (selected)='selectEvent($event)'
+                      (inputChanged)='onChangeSearch($event)'
+                      (inputFocused)='onFocused($event)'
+                      (inputCleared)='onCleared($event)'
+                    [notFoundTemplate]="notFoundTemplate"-->
+                    
+                    <ng-template #itemTemplate let-item>
+                        <a [innerHTML]="item"></a>
+                    </ng-template>
+                    <!--
+                    <ng-template #notFoundTemplate let-notFound>
+                        <div [innerHTML]="notFound"></div>
+                    </ng-template>-->
+                </div>
+        </div>
+    </div>
+    <div class="text-danger" *ngIf="materialName.invalid && (materialName.touched || materialName.dirty)" > 
+        <span *ngIf="materialName.errors?.['required']">Please enter a name for the raw material</span>
+    </div> 
+    <!--/Autocomplete -->
 
         <div class="row">
             <div class="col col-12 col-md-4" style="display: flex; flex-direction: column; justify-content: flex-end;">

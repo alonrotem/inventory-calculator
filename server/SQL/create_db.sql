@@ -100,6 +100,7 @@ CREATE TABLE  IF NOT EXISTS wings (
 
 CREATE TABLE  IF NOT EXISTS wings_babies (
 	`id`            INT NOT NULL auto_increment,
+    `raw_material_name` VARCHAR(255) NOT NULL,
     `parent_wing_id` INT NOT NULL,
     `position_id`	INT NOT NULL,
 	`length`   	    float NOT NULL,
@@ -419,21 +420,21 @@ set @top = (select id from wing_positions where name='Top' limit 1);
 set @right = (select id from wing_positions where name='Right' limit 1);
 set @crown = (select id from wing_positions where name='Crown' limit 1);
 
-insert into wings_babies (parent_wing_id, position_id, length)
+insert into wings_babies (parent_wing_id, raw_material_name, position_id, length)
 VALUES 
-	(@wing_id_1, @left, 10),
-    (@wing_id_1, @left, 8),
-    (@wing_id_1, @left, 5),
-    (@wing_id_1, @left, 5.5),
-    (@wing_id_1, @left, 10.5),
-    (@wing_id_1, @top, 6.5),
-    (@wing_id_1, @top, 7),
-    (@wing_id_1, @top, 8),
-    (@wing_id_1, @top, 9),
-    (@wing_id_1, @right, 6.5),
-	(@wing_id_1, @right, 9),
-    (@wing_id_1, @right, 8),
-    (@wing_id_1, @crown, 8.5),
-	(@wing_id_1, @crown, 9.5);
+	(@wing_id_1, 'Wood', @left, 10),
+    (@wing_id_1, 'Glass', @left, 8),
+    (@wing_id_1, 'Metal', @left, 5),
+    (@wing_id_1, 'Plaster', @left, 5.5),
+    (@wing_id_1, 'Stone', @left, 10.5),
+    (@wing_id_1, 'Gold', @top, 6.5),
+    (@wing_id_1, 'Silver', @top, 7),
+    (@wing_id_1, 'Wood', @top, 8),
+    (@wing_id_1, 'Glass', @top, 9),
+    (@wing_id_1, 'Metal', @right, 6.5),
+	(@wing_id_1, 'Plaster', @right, 9),
+    (@wing_id_1, 'Stone', @right, 8),
+    (@wing_id_1, 'Stone', @crown, 8.5),
+	(@wing_id_1, 'Wood', @crown, 9.5);
 
 select "All done";

@@ -1,15 +1,17 @@
 <div class="card" style="width: 18rem;">
     <div class="card-body">
-      <h4 class="card-subtitle mb-2 text-muted">Current statistics</h4>
       <div class="stats-container">
         <h5>Invetory</h5>
         <p class="card-text"><span class="icon-leaf"></span> Raw material records: {{ raw_material_records | number: '1.0-0' }}</p>
         <p class="card-text"><span class="icon-baby"></span> Babies: {{ total_babies | number: '1.0-0' }} in {{ total_baby_records | number: '1.0-0' }} {{ (total_baby_records == 1)? 'records' : 'records' }}</p>
+        
         <h5>Templates</h5>
         <p class="card-text"><span class="icon-feather-wing"></span> Wings: {{ total_wings | number: '1.0-0' }}</p>
       </div>
-      <a href="/inventory/raw" class="card-link" title="Go to raw materials management"><span class="icon-leaf"></span></a>
-      <a href="/inventory/babies" class="card-link" title="Go to babies list"><span class="icon-baby"></span></a>
-      <a href="/templates/wings" class="card-link" title="Go to wings management"><span class="icon-feather-wing"></span></a>
+      <div class="shortcuts">
+        <a href="/inventory/raw" class="card-link" title="Go to raw materials management"><span class="icon-leaf"></span></a>
+        <a href="/inventory/babies" class="card-link" title="Go to babies list"><span class="icon-baby"></span></a>
+        <a href="/templates/wings" class="card-link" title="Go to wings management"><span class="icon-feather-wing"></span></a>
+      </div>
     </div>
 </div>

@@ -9,7 +9,7 @@
 </div>
 
 <div [hidden]="loading">
-  <a id="btnNewRaw" class="btn btn-primary" routerLink="/inventory/raw/editor">+ Wing</a>
+  <a id="btnNewRaw" class="btn btn-primary" routerLink="/templates/wings/editor">+ Wing</a>
   <div [hidden]="loading || this.wingsList.length == 0">
 
 <table class="table table-responsive table-striped table-hover">
@@ -22,13 +22,13 @@
     <tbody>
       <tr 
         *ngFor="let wing of this.wingsList" 
-        routerLink="/inventory/raw/editor" 
+        routerLink="/templates/wings/editor" 
         [queryParams]="{ id: wing.id }" role="button">
         <td>{{ wing.name }}</td>
-        <td style="width: 150px;">L <span class="icon-feather-wing"></span> ({{ wing.Left }})</td>
-        <td style="width: 150px;">T <span class="icon-top"></span> ({{ wing.Top }})</td>
-        <td style="width: 150px;">R <span class="icon-feather-wing-r"></span> ({{ wing.Right }})</td>
-        <td style="width: 150px;">C <span class="icon-crown"></span> ({{ wing.Crown }})</td>
+        <td style="width: 150px;"><span class="icon-feather-wing"></span> L ({{ wing.Left }})</td>
+        <td style="width: 150px;"><span class="icon-feather-wing-r"></span> R ({{ wing.Right }})</td>
+        <td style="width: 150px;"><span class="icon-top"></span> T ({{ wing.Top }})</td>
+        <td style="width: 150px;"><span class="icon-crown"></span> C ({{ wing.Crown }})</td>
       </tr>
     </tbody>
   </table>

@@ -24,11 +24,20 @@ curl -i -X GET \
     -H 'Content-type: application/json' \
         http://localhost:3000/raw_materials/10
 */
-router.get('/:id', async function(req, res, next) {
+router.get('/single/:id', async function(req, res, next) {
     try {
       res.json(await raw_materials.getSingle(req.params.id));
     } catch (err) {
       console.error(`Error while getting raw material with ID ${ req.params.id }`, err.message);
+      next(err);
+    }
+  });
+
+  router.get('/names', async function(req, res, next) {
+    try {
+      res.json(await raw_materials.getNames());
+    } catch (err) {
+      console.error(`Error while getting raw material names `, err.message);
       next(err);
     }
   });

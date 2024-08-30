@@ -7,6 +7,7 @@ import { DateStrPipe } from "../../../utils/date_pipe";
 import { Router, RouterModule } from '@angular/router';
 import { DecimalPipe, NgFor } from '@angular/common';
 import { FaIconComponent, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-wings-table',
@@ -27,7 +28,26 @@ export class WingsTableComponent implements OnInit {
   totalbabies: number = 0;
   
 
-  constructor(private wingsService: WingsService) { }
+  constructor(private wingsService: WingsService, private toastService: ToastService, private router: Router) {
+    let nav = this.router.getCurrentNavigation();
+    if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {
+      let info = nav.extras.state['info']['textInfo'];
+      let isError = nav.extras.state['info']['isError'];
+      if(isError)
+      {
+        this.toastService.showError(info);
+      }
+      else
+      {
+        this.toastService.showSuccess(info);
+      }
+      
+    }
+    else
+    {
+      //alert("empty");
+    }
+  }
 
   getWings (page: number){
     this.wingsService.getWings({ page: page, perPage:this.rowsPerPage }).subscribe(
@@ -53,4 +73,8 @@ export class WingsTableComponent implements OnInit {
   pageChange (page: number) {
     this.getWings(page);
   }
+
+  showSuccess(text: string) {
+		this.toastService.showError (text);
+	}
 }

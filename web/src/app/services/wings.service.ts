@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { Observable } from 'rxjs';
-import { PaginationParams, Wing, WingsList,  } from '../../types';
+import { PaginationParams, Wing, WingPosition, WingsList,  } from '../../types';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -24,15 +24,21 @@ export class WingsService {
     });
   };
 
-  saveNewRawMaterial = (wing: Wing): Observable<any> => {
+  getWingPositions = (): Observable<WingPosition[]> => {
+    return this.apiService.get(`${environment.serverUrl}/wings/positions`, {
+      responseType: 'json'
+    });
+  };
+
+  saveNewWing = (wing: Wing): Observable<any> => {
     return this.apiService.post(`${environment.serverUrl}/wings/`, wing, { });
   };
 
-  updateRawMaterial = (wing: Wing): Observable<any> => {
+  updateWing = (wing: Wing): Observable<any> => {
     return this.apiService.put(`${environment.serverUrl}/wings/${wing.id}`, wing, { });
   };
 
-  deleteRawMaterial = (id: number): Observable<any> => {
+  deleteWing = (id: number): Observable<any> => {
     return this.apiService.delete(`${environment.serverUrl}/wings/${id}`, { });
   };
 }

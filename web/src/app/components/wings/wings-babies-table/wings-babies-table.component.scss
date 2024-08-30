@@ -1,48 +1,25 @@
-.transparent_text {
-    color: transparent;
-}
-
-::ng-deep.ng-select-container {
-    height: calc(3.5rem + calc(var(--bs-border-width)* 2)) !important;
-    min-width: 50px;
-}
-
-.editorForm div.col {
-    /*height: calc(3.5rem + calc(var(--bs-border-width)* 2));*/
-    margin: 8px 0px;
-}
-
-h3 {
-    margin: 25px 0;
-}
-
-.buttons-area button {
+.addnew-container {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    flex-wrap: nowrap;
     justify-content: center;
-    padding: 6px 19px;
-    margin: 10px 0;
-    width: 100%;
-}
-@media screen and (min-width: 768px) and (max-width: 992px) {
-    .buttons-area button {
-        height: 80px;
-    }
-}
-@media screen and (min-width: 1200px) {
-    .buttons-area button {
-        width: 80%;
-    }
+    align-items: stretch;
 }
 
-.babies-container
-{
-    padding-top: 20px;
-    padding-bottom: 20px;
+.row-buttons button {
+    width: 120px;
+    margin: 10px 0px;
 }
 
-.ng-autocomplete {
+.formlabel {
+    font-family: var(--bs-body-font-family);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--bs-gray);
+    margin-bottom: 7px;
+}
+
+.autocomplete-container, .ng-autocomplete {
     border: var(--bs-border-width) solid var(--bs-border-color);
     border-radius: var(--bs-border-radius);
 }

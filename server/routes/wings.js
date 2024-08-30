@@ -11,6 +11,15 @@ router.get('/', async function(req, res, next) {
     }
   });
 
+  router.get('/positions', async function(req, res, next) {
+    try {
+      res.json(await wings.getWingBabyPositions());
+    } catch (err) {
+      console.error(`Error while getting raw materials `, err.message);
+      next(err);
+    }
+  });
+
   router.get('/:id', async function(req, res, next) {
     try {
       res.json(await wings.getSingle(req.params.id));
