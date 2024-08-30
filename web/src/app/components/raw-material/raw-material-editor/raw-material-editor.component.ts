@@ -153,8 +153,10 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
     }
     else
     {
+      /*
       console.log("this.raw_material_form.form.valid: " + this.raw_material_form.form.valid);
       console.log("this.checkUnitsOrWeight(): " + (this.checkUnitsOrWeight()== true));
+      */
       this.toastService.showError("Please fill all the mandatory fields before saving!");
     }
   }
@@ -197,9 +199,20 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
   }
 
   checkUnitsOrWeight(): boolean {
-    return (
+    /*
+    console.log("this.radioUnits.nativeElement.checked " + this.radioUnits.nativeElement.checked);
+    console.log("(this.materialUnits.nativeElement.value) " + Number(this.materialUnits.nativeElement.value));
+    console.log("(!!this.materialUnits.nativeElement.value) " + (!!Number(this.materialUnits.nativeElement.value)));
+    console.log("this.radioWeight.nativeElement.checked " + this.radioWeight.nativeElement.checked);
+    console.log("this.materialWeight.nativeElement.checked " + (!!this.materialWeight.nativeElement.value));
+    console.log("Total " + (
       ((this.radioUnits.nativeElement.checked) && (!!this.materialUnits.nativeElement.value)) ||
       ((this.radioWeight.nativeElement.checked) && (!!this.materialWeight.nativeElement.value))
+    ));
+    */
+    return (
+      ((this.radioUnits.nativeElement.checked) && (!!Number(this.materialUnits.nativeElement.value))) ||
+      ((this.radioWeight.nativeElement.checked) && (!!Number(this.materialWeight.nativeElement.value)))
     );
   }
 
