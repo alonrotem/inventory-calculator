@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, ElementRef, OnInit, viewChild, ViewChild } from '@angular/core';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 import { faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
-import { Wing, WingBaby, WingPosition } from '../../../../types';
-import { Form, FormsModule, NgForm } from '@angular/forms';
+import { Wing } from '../../../../types';
+import { FormsModule, NgForm } from '@angular/forms';
 import { WingsService } from '../../../services/wings.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgFor, NgIf } from '@angular/common';
@@ -17,8 +17,8 @@ import { BabiesLengthPickerComponent } from "../../babies/babies-length-picker/b
   standalone: true,
   imports: [ConfirmationDialogComponent, FormsModule, NgIf, NgFor, FaIconComponent, WingsBabiesTableComponent, WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent],
   templateUrl: './wings-editor.component.html',
-  styleUrl: './wings-editor.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './wings-editor.component.scss'/*,
+  changeDetection: ChangeDetectionStrategy.OnPush*/
 })
 export class WingsEditorComponent implements OnInit {
 
@@ -54,6 +54,7 @@ export class WingsEditorComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    console.log("ngOnInit")
     this.is_new_wing = !this.activatedRoute.snapshot.queryParamMap.has('id');
     if(!this.is_new_wing)
     {
@@ -65,9 +66,11 @@ export class WingsEditorComponent implements OnInit {
   }
 
   getWing(id: number){
+    console.log("getWing")
     this.wingsService.getWing(id).subscribe(
     {
       next: (wing: Wing) => {
+        console.log("received wing")
         this.wing = wing;
         let crownBabies = this.wing.babies.filter((b) => b.position.startsWith("C"));
         this.crown_units = crownBabies.length;
