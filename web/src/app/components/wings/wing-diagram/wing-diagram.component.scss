@@ -1,0 +1,23 @@
+.canvas_tooltip {
+  position: absolute;
+  background-color: lightyellow;
+  border: 1px solid black;
+  display: block;
+  z-index: 999;
+  color: black;
+  font-size: 12px;
+  padding: 5px 20px;
+  text-align: center;
+  border-radius: 7px;
+  display:none;
+}
+
+.diagram_canvas {
+  /*border: 1px solid blue; */
+}
+
+.diagram_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

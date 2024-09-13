@@ -50,6 +50,8 @@ Extra features:
 
 ===========================================================
 
+BACKUP:
+mysqldump  -P 3306 -h 127.0.0.1 -u root -p12345678 inventory --opt --skip-dump-date | sed 's$VALUES ($VALUES\n($g' | sed 's$),($),\n($g' > /home/alon/Projects/inventory-calculator/server/SQL/data_exports/data_backup.sql; chmod 666 /home/alon/Projects/inventory-calculator/server/SQL/data_exports/data_backup.sql; git pull; git add .; git commit -m"DB data backup"; git push
 
 Wings, made of babies (each element with possible % of alternate)
 -	Name

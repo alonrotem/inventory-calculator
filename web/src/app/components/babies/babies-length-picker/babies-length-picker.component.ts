@@ -9,19 +9,21 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   styleUrl: './babies-length-picker.component.scss'
 })
 export class BabiesLengthPickerComponent {
+  @Input() title: string ="Pick a baby length:"; 
   @Input() min_length: number = 5;
   @Input() max_length: number = 13;
   @Input() length_step: number = 0.5;
   @Input() units: string = "cm";
   @Input() length: number = -999;
+  @Input() show_invalid_message: boolean = true;
   @Output() lengthChange = new EventEmitter<number>();
   console = console;
 
   lengths = Array.from({ length: (((this.max_length - this.min_length)*(1/this.length_step))+1) }, (v, k) => (this.min_length + this.length_step + ((k-1)*this.length_step)).toFixed(1));
 
   setLength(length: string){
-    this.lengthChange.emit(Number(length));
     this.length = Number(length);
+    this.lengthChange.emit(Number(length));
   }
 
   public reset() {
@@ -30,6 +32,9 @@ export class BabiesLengthPickerComponent {
 
   public isLengthInvalid()
   {
+    if (!this.show_invalid_message)
+      return false;
+    
     return (this.lengths.findIndex((item) => item == this.length.toFixed(1).toString()) == -1);
   }
 

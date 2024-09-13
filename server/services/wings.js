@@ -25,17 +25,9 @@ async function getSingle(id){
     const data = helper.emptyOrSingle(rows);
     if(data != {}) {
         const wing_babies = await db.query(
-            `select 
-                w.id wing_id,
-                wb.id id,
-                wb.raw_material_name,
-                wb.position_id, wb.length,
-                wp.name position
-            from 
-                wings w 
-                    join wings_babies wb on w.id = wb.parent_wing_id
-                    join wing_positions wp on wb.position_id = wp.id
-            where w.id=${id} order by position, length desc;`
+            `select parent_wing_id, position, length from wings_babies 
+              where parent_wing_id=${id}
+              order by position;`
           );
         const babies = helper.emptyOrRows(wing_babies);
         data.babies = babies;
@@ -51,6 +43,17 @@ async function getMultiple(page = 1, perPage){
     subset = `LIMIT ${offset},${perPage}`
   }
   const rows = await db.query(
+    `select w.id, w.name, 
+      (SELECT COUNT(*) FROM wings_babies wb
+              WHERE wb.parent_wing_id = w.id and wb.position like'L%') as 'Left',
+      (SELECT COUNT(*) FROM wings_babies wb
+              WHERE wb.parent_wing_id = w.id and wb.position like'R%') as 'Right',
+      (SELECT COUNT(*) FROM wings_babies wb
+              WHERE wb.parent_wing_id = w.id and wb.position like'T%') as 'Top',
+      (SELECT COUNT(*) FROM wings_babies wb
+              WHERE wb.parent_wing_id = w.id and wb.position like'C%') as 'Crown'
+      from wings w order by w.name ${subset};`
+    /*
     `SELECT 
         w.id AS id,
         w.name AS name,
@@ -73,6 +76,7 @@ async function getMultiple(page = 1, perPage){
     GROUP BY 
         w.id, w.name
         order by name ${subset}`
+    */
   );
   const total = await db.query(
     `SELECT count(*) as count FROM wings`
@@ -105,11 +109,19 @@ async function create(wing){
   console.log(message);
   return {message};
 }
-
+/*
 async function getWingBabyPositions(){
   const result = await db.query(`select id, name from wing_positions;`);
   const data = helper.emptyOrRows(result);
   return data;
+}*/
+
+async function getWingNames(){
+  const result = await db.query(`
+    select distinct name from wings order by name;
+  `);
+  const data = helper.emptyOrRows(result).map(wing => wing.name);
+  return (data);
 }
 
 async function update(id, wing){
@@ -129,6 +141,34 @@ async function update(id, wing){
 
 async function sync_babies_for_wing(babies, wing_id)
 {
+  let message = "";
+  const deletion_result = await db.query(`DELETE FROM wings_babies WHERE parent_wing_id=${ wing_id }`);
+  let babies_arr = babies.map(baby => 
+    [
+      wing_id,
+      baby.position,
+      baby.length
+    ]
+  ).flat(1);
+  let placeholder = Array(babies.length).fill("(" + Array(3).fill("?").join(",") + ")").join(",");
+
+  if(babies.length > 0){
+    const update_result = await db.query(
+      `REPLACE INTO wings_babies 
+      (parent_wing_id, position, length) 
+      VALUES 
+      ${placeholder}`,
+      babies_arr
+    );
+    message +=  update_result.affectedRows + " wing babies added/updated";
+  }
+  else
+  {
+    message += ", no wing babies to add/update";
+  }
+  return {message};
+
+  /*
     console.dir(babies[0], { depth:10 })
     let message = "";
     //id of babies that should be existing (have IDs)
@@ -155,8 +195,7 @@ async function sync_babies_for_wing(babies, wing_id)
             [
               baby.id,
               wing_id,
-              baby.raw_material_name,
-              baby.position_id,
+              baby.position,
               baby.length
             ]
           ).flat(1);
@@ -167,7 +206,7 @@ async function sync_babies_for_wing(babies, wing_id)
       
           const update_result = await db.query(
             `REPLACE INTO wings_babies 
-            (id, parent_wing_id, raw_material_name, position_id, length) 
+            (id, parent_wing_id, position, length) 
             VALUES 
             ${placeholder}`,
             babies_arr
@@ -178,7 +217,7 @@ async function sync_babies_for_wing(babies, wing_id)
         {
           message += ", no wing babies to add/update";
         }
-        return {message};
+        return {message};*/
 }
 
 async function remove(id){
@@ -196,10 +235,11 @@ async function remove(id){
   }
 
 module.exports = {
-    create,
-    getSingle,
-    getMultiple,
-    update,
-    remove,
-    getWingBabyPositions
+  create,
+  getSingle,
+  getMultiple,
+  update,
+  remove,
+  //getWingBabyPositions,
+  getWingNames
 }

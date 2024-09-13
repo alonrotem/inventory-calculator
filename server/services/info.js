@@ -22,11 +22,18 @@ async function getInfo(){
     );
     const total_wings = wings_records[0]['wings_recs'];  
 
+    const hats_records = await db.query(
+      `select count(*) as hat_recs from hats;`
+    );
+    const total_hats = wings_records[0]['hat_recs'];  
+
+
   return  {
     raw_material_records,
     total_baby_records,
     total_babies,
-    total_wings
+    total_wings,
+    total_hats
   };
 }
 

@@ -95,10 +95,8 @@ export interface Wing {
 }
 
 export interface WingBaby{
-    id: number;
+    /*id: number;*/
     wing_id: number;
-    position_id: number;
-    raw_material_name: string;
     length: number;
     position: string;
 }
@@ -106,6 +104,34 @@ export interface WingBaby{
 export interface WingPosition {
     id: number;
     name: string;
+}
+
+export interface HatListItem {
+    id: number;
+    name: string;
+    total_wings: number;
+}
+
+export interface HatsList {
+    data: HatListItem[];
+    meta: { 
+        page: number;
+        total_records: number;
+        total_pages: number;
+    }
+}
+
+export interface Hat {
+    id: number;
+    name: string;
+    wings: HatWing[];
+}
+
+export interface HatWing {
+    id: number;
+    parent_hat_id: number; 
+    wing_name: string; 
+    wing_quantity: number;
 }
 
 export interface PaginationParams {
@@ -139,3 +165,12 @@ export interface Stats {
     total_babies: number,
     total_wings: number
 }
+
+export class Point {
+    x:number;
+    y:number;
+    constructor(x:number, y:number) {
+      this.x = x;
+      this.y = y;
+    }
+  }

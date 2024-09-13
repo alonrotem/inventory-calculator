@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { EventEmitter, Injectable, Output } from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import { LocalStorageService } from './local-storage.service';
 
@@ -9,6 +9,7 @@ import { LocalStorageService } from './local-storage.service';
 export class GlobalsService {
 
   private theme: BehaviorSubject<string>;
+  @Output() themeChanged = new EventEmitter<string>();
 
   constructor(private localStorage: LocalStorageService) {
     let curTheme = this.localStorage.getItem("currentTheme");
@@ -29,5 +30,6 @@ export class GlobalsService {
   seTheme(newValue: string): void {
     this.theme.next(newValue);
     this.localStorage.setItem("currentTheme", newValue);
+    this.themeChanged.emit(newValue);
   }
 }

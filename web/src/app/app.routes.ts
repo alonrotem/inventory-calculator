@@ -6,6 +6,8 @@ import { BabiesTableComponent } from './components/babies/babies-table/babies-ta
 import { PagenotfoundComponent } from './components/common/pagenotfound/pagenotfound.component';
 import { WingsTableComponent } from './components/wings/wings-table/wings-table.component';
 import { WingsEditorComponent } from './components/wings/wings-editor/wings-editor.component';
+import { HatsTableComponent } from './components/hats/hats-table/hats-table.component';
+import { HatsEditorComponent } from './components/hats/hats-editor/hats-editor.component';
 
 export const routes: Routes = [
     {
@@ -31,6 +33,14 @@ export const routes: Routes = [
     {
         path: 'templates/wings/editor',
         component: WingsEditorComponent
+    },
+    {
+        path: 'templates/hats',
+        component: HatsTableComponent
+    },
+    {
+        path: 'templates/hats/editor',
+        component: HatsEditorComponent
     },
     { path: '**', pathMatch: 'full',  
         component: PagenotfoundComponent 

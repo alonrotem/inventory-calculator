@@ -11,6 +11,7 @@ const currenciesRouter = require("./routes/currencies");
 const countriessRouter = require("./routes/countries");
 const infoRouter = require("./routes/info");
 const wingsRouter = require("./routes/wings");
+const hatsRouter = require("./routes/hats");
 
 app.use(express.json());
 app.use(
@@ -19,7 +20,7 @@ app.use(
   })
 );
 app.get("/", (req, res) => {
-  res.json({ message: "Server is up!" });
+  res.json({ message: "Server is up on port "+ port +"!" });
 });
 
 app.use("/raw_materials", rawMaterialsRouter);
@@ -28,6 +29,7 @@ app.use("/currencies", currenciesRouter);
 app.use("/countries", countriessRouter);
 app.use("/info", infoRouter);
 app.use("/wings", wingsRouter);
+app.use("/hats", hatsRouter);
 
 /* Error handler middleware */
 app.use((err, req, res, next) => {

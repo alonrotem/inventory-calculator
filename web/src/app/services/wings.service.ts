@@ -23,13 +23,13 @@ export class WingsService {
       responseType: 'json'
     });
   };
-
+/*
   getWingPositions = (): Observable<WingPosition[]> => {
     return this.apiService.get(`${environment.serverUrl}/wings/positions`, {
       responseType: 'json'
     });
   };
-
+*/
   saveNewWing = (wing: Wing): Observable<any> => {
     return this.apiService.post(`${environment.serverUrl}/wings/`, wing, { });
   };

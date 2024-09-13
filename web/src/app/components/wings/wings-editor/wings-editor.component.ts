@@ -1,20 +1,24 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, viewChild, ViewChild } from '@angular/core';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 import { faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { Wing, WingBaby, WingPosition } from '../../../../types';
 import { Form, FormsModule, NgForm } from '@angular/forms';
 import { WingsService } from '../../../services/wings.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NgIf } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { WingsBabiesTableComponent } from '../wings-babies-table/wings-babies-table.component';
+import { WingDiagramComponent } from '../wing-diagram/wing-diagram.component';
+import { PrefixPipe } from "../wings-babies-table/prefix-pipe";
+import { BabiesLengthPickerComponent } from "../../babies/babies-length-picker/babies-length-picker.component";
 
 @Component({
   selector: 'app-wings-editor',
   standalone: true,
-  imports: [ ConfirmationDialogComponent, FormsModule, NgIf, FaIconComponent, WingsBabiesTableComponent ],
+  imports: [ConfirmationDialogComponent, FormsModule, NgIf, NgFor, FaIconComponent, WingsBabiesTableComponent, WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent],
   templateUrl: './wings-editor.component.html',
-  styleUrl: './wings-editor.component.scss'
+  styleUrl: './wings-editor.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WingsEditorComponent implements OnInit {
 
@@ -24,20 +28,19 @@ export class WingsEditorComponent implements OnInit {
   title: string = "Create Wing";
   is_new_wing: Boolean = true;
 
+  crown_units: number = 0;
+  crown_length: number = 0;
+
+  @ViewChild("diagram") diagram!: WingDiagramComponent;
   @ViewChild("wingName", { read: ElementRef }) wingName!: ElementRef;
   @ViewChild('wingForm') wingForm!: NgForm;
   @ViewChild('delete_confirmation') delete_confirmation!: ConfirmationDialogComponent;
   @ViewChild("btn_save", { read: ElementRef }) btn_save!: ElementRef;
+  @ViewChild("top_picker") top_picker!: BabiesLengthPickerComponent;
 
-  babiesLeft : WingBaby[] = [];
-  babiesRight : WingBaby[] = [];
-  babiesTop : WingBaby[] = [];
-  babiesCrown : WingBaby[] = [];
+  @ViewChild("crown_size", { read: ElementRef }) crown_size!: ElementRef;
+  @ViewChild("crown_picker") crown_picker!: BabiesLengthPickerComponent;
 
-  left_id :number = 0;
-  right_id :number  = 0;
-  top_id  :number = 0;
-  crown_id  :number = 0;
   wing_id: number = 0;
 
   public wing : Wing = {
@@ -45,6 +48,7 @@ export class WingsEditorComponent implements OnInit {
     name: '',
     babies: []
   }
+  crown_babies_options = Array(5).fill(0).map((_, i)=> i+1)
 
   constructor(private wingsService: WingsService, private activatedRoute: ActivatedRoute, private router: Router){
   }
@@ -61,11 +65,15 @@ export class WingsEditorComponent implements OnInit {
   }
 
   getWing(id: number){
+    console.log("Getting...");
     this.wingsService.getWing(id).subscribe(
     {
       next: (wing: Wing) => {
         this.wing = wing;
-        this.setBabies();
+        let crownBabies = this.wing.babies.filter((b) => b.position.startsWith("C"));
+        this.crown_units = crownBabies.length;
+        this.crown_length = (crownBabies.length > 0)? crownBabies[0].length: 0;
+        console.log("GOT IT!");
       },
       error: (error) => {
         console.log(error);
@@ -73,21 +81,48 @@ export class WingsEditorComponent implements OnInit {
     })
   }
 
-  setBabies(){
-    this.wingsService.getWingPositions().subscribe({
-      next: (pos: WingPosition[]) => {
-        this.left_id = pos.find(p => p.name.toLowerCase() == "left")?.id || 0;
-        this.right_id = pos.find(p => p.name.toLowerCase() == "right")?.id || 0;
-        this.top_id  = pos.find(p => p.name.toLowerCase() == "top")?.id || 0;
-        this.crown_id = pos.find(p => p.name.toLowerCase() == "crown")?.id || 0;
+  babyLengths(pos: string){
+    return this.wing.babies.filter((b)=> b.position.startsWith(pos) ).map((b)=> b.length);
+  }
 
-        this.babiesLeft = this.wing.babies.filter(b => b.position_id == this.left_id);
-        this.babiesRight = this.wing.babies.filter(b => b.position_id == this.right_id);
-        this.babiesTop = this.wing.babies.filter(b => b.position_id == this.top_id);
-        this.babiesCrown = this.wing.babies.filter(b => b.position_id == this.crown_id);
-      }
+  //get the length to the picker
+  get_top() :number {
+    let tops = this.wing.babies.filter(b => b.position == "TOP");
+    return (tops.length == 0)? 0: tops[0].length;
+  }
+  //set the length from the picker
+  set_top() {
+    let tops = this.wing.babies.filter(b => b.position == "TOP");
+    let new_length = this.top_picker.get_length();
+    if(tops.length == 0) {
+      this.wing.babies.push({
+        /*id: 0,*/
+        position: "TOP",
+        length: new_length,
+        wing_id: this.wing_id
+      });
+    }
+    else {
+      tops[0].length = new_length;
+    }
+  }
 
-    });
+  //set the crown controls according to the babies objects
+  set_crown(){
+    console.log(this.crown_size.nativeElement);
+    let num_of_crown_items = this.crown_size.nativeElement.value;
+    let new_length = this.crown_picker.get_length(); 
+    this.crown_units = num_of_crown_items;
+    this.crown_length = new_length;
+
+    this.wing.babies = this.wing.babies.filter(b => !b.position.startsWith("C"));
+    for(let i=0; i < num_of_crown_items; i++) {
+      this.wing.babies.push({
+        length: new_length,
+        position: "C" + (i+1),
+        wing_id: this.wing_id
+      })
+    }
   }
 
   save()
@@ -95,7 +130,7 @@ export class WingsEditorComponent implements OnInit {
     this.wingForm.form.markAllAsTouched();
     if(this.wingForm.form.valid)
     {
-      this.wing.babies = this.babiesLeft.concat(this.babiesRight).concat(this.babiesCrown).concat(this.babiesTop);
+      //this.wing.babies = this.babiesLeft.concat(this.babiesRight).concat(this.babiesCrown).concat(this.babiesTop);
 
       //edit
       if(!this.is_new_wing)

@@ -48,7 +48,6 @@ async function getMultiple(page = 1, perPage){
 
 async function getNames(){
   const result = await db.query(`
-    SELECT distinct raw_material_name name FROM inventory.wings_babies union
     Select distinct name from raw_materials order by name;
   `);
   const data = helper.emptyOrRows(result).map(material => material.name);

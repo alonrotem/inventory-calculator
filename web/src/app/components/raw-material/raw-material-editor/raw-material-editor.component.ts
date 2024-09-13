@@ -77,11 +77,13 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
   
   
   constructor(private rawMaterialsService: RawMaterialsService, private infoService: InfoService, private location: Location, private activatedRoute: ActivatedRoute, private router: Router, private toastService: ToastService) { 
+    /*
     this.rawMaterialsService.getRawMaterialNames().subscribe({
       next: (names)=> {
         this.raw_material_names = names;
       }
     });
+    */
   }
 
   ngOnInit(): void {

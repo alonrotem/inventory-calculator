@@ -1,0 +1,458 @@
+<!--
+TODO:
+-----
+* Test with 0 - more babies
++ Top tooltip
+* Colors
+* Tooltip style
+* Scale
++ Font width
+* Canvas size
+* Componentize
+-->
+
+<style>
+    #chart-canvas {
+        border: 1px solid black;
+    }
+    .tooltip {
+      position: absolute;
+      background-color: yellow;
+      border: 1px solid black;
+      display: none;
+    }
+</style>
+
+<canvas id="chart-canvas"></canvas>
+<span id="tooltip" class="tooltip">tooltip</span>
+<img src="base.png">
+
+<script>
+
+  class Point {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+    }
+  }
+
+  //inputs
+  var rights = [5.5, 7, 8, 8.5];
+  var top_length = 10;
+  var lefts = [5, 6, 7, 8, 8.5];
+  var crown = 10.5;
+  var crown_length = 4;
+
+  //defaults
+  var text_margin = 10;
+  var top_angles = 10;
+
+  //vars
+  var 
+    scale = 1, 
+    pan = new Point(-50, 0),
+    thickness = 2, 
+    shapecolor = "green", 
+    cm_px = 15 * scale;
+/*
+LEFT SIDE
+===================
+Left side starts from lefts_start, at 180°, ends at lefts_top at 254°.
+The first element is connected at lefts_bottom.
+The remaining are equally spaced on the line between lefts_bottom and lefts_top.
+
+  _________________________________________ left_top
+  |                                       /
+  |                                      /
+  |                                     /
+  |____________________________________/
+   p3|                                /p4
+     |                               /
+     |                              /
+   p2|_____________________________/p1
+        |                         /
+        |________________________/
+        |                     |   left_bottom
+        |_____________________|
+                               left_start
+  */
+  var
+    lefts_top = new Point(354 * scale + pan.x, 231.5 * scale + pan.y),
+    lefts_bottom = new Point(234 * scale + pan.x, 301.5 * scale + pan.y),
+    lefts_start = new Point (234 * scale + pan.x, 315 * scale + pan.y),
+    lefts_start_angle = 180, 
+    lefts_end_angle = (270 - top_angles);
+
+  //rights
+  var
+    rights_top = new Point(385 * scale + pan.x, 231.5 * scale + pan.y);
+    rights_bottom = new Point(510 * scale + pan.x, 290 * scale + pan.y);
+    rights_start_angle = 270 + top_angles,
+    rights_end_angle = 360;
+
+  var crown_bottom = new Point (510 * scale + pan.x , 326 * scale + pan.y);
+
+  var central_circle_point = new Point(lefts_top.x + ((rights_top.x - lefts_top.x)/2), lefts_bottom.y);
+
+
+
+  // LEFTS
+  //===========
+  // divide the left line to equal segments and find coordinate starting wach
+  //total line length
+  var lefts_line_lengh = line_length(lefts_bottom, lefts_top);
+  //the first baby has a special place on the most left. divide the line by one less part, find segment length
+  var left_line_segment = lefts_line_lengh / (lefts.length - 1);
+  //calculate by how much we need to increment the angle on each segment
+  var left_angle_segment = (lefts_end_angle - lefts_start_angle) / lefts.length; //increment the angle by this, every time
+
+  //initial points - mark the start points of each baby on the left line, equally spaced
+  var segment_points_left_line = [lefts_start, lefts_bottom];
+  //var center_points_lefts = [];
+  var length_text_points_left = [];
+  var text_points_lefts = [];
+  for(var i=1; i < lefts.length; i++) {
+    var next_point = find_point_on_line(lefts_bottom, lefts_top, left_line_segment * i);
+    segment_points_left_line.push(next_point);
+  }
+
+  var path_items = [];
+  //var left_baby_names = [];
+  var curr_angle = lefts_start_angle;
+  
+  //lefts center point for arcs
+  var start_point_line = line_at_angle_from_point(lefts_start, 100, lefts_start_angle);
+  var top_p1 = lefts_top;
+  var end_point_line = line_at_angle_from_point(lefts_top, top_length * cm_px, lefts_end_angle);
+  var x_point = find_intersection_point(lefts_start, start_point_line, lefts_top, end_point_line);
+
+  //build the path shapes
+  for(var i=0; i < lefts.length; i++) {
+
+    let path = new Path2D();
+    //start with the marked point
+    var p1 = new Point(segment_points_left_line[i].x, segment_points_left_line[i].y);
+    //find the point going up straight form the point (p1->p2), at the current angle
+    var p2 = line_at_angle_from_point2(segment_points_left_line[i], lefts[i]*cm_px , curr_angle);
+    //find the next point (p3) by caltuating its angle from the next segment point
+    var p3 = line_at_angle_from_point2(segment_points_left_line[i+1], lefts[i]*cm_px , curr_angle + left_angle_segment);
+    //p4 is just the next point on the segments
+    var p4 = new Point(segment_points_left_line[i+1].x, segment_points_left_line[i+1].y);
+
+    path.moveTo(p1.x, p1.y);
+    path.lineTo(p2.x, p2.y);
+    path.lineTo(p3.x, p3.y);
+    path.lineTo(p4.x, p4.y);
+    path.closePath();
+    
+    curr_angle += left_angle_segment;
+
+    //find the center point of this baby
+    //first the point in the middle of the segment
+    if(i>0)
+      var mid_segment_point = find_point_on_line(segment_points_left_line[i], segment_points_left_line[i+1], left_line_segment/2);
+    else
+      var mid_segment_point = new Point(lefts_start.x, lefts_start.y + ((lefts_bottom.y - lefts_start.y)/2))
+    
+    var mid_shape_point = line_at_angle_from_point(mid_segment_point, ((5 + i) * cm_px)/2, (curr_angle -  (left_angle_segment/2)));
+    var length_text_point = line_at_angle_from_point(mid_segment_point, ((5 + i) * cm_px) + text_margin, (curr_angle -  (left_angle_segment/2)))
+    
+    path_items.push({
+      path: path,
+      title: "L" + (i+1),
+      length: lefts[i],
+      tooltip:  "L" + (i+1) + "<br/>" + lefts[i] + "cm",
+      mid_point: mid_shape_point,
+      length_info_point: length_text_point,
+      show_tooltip: true,
+      show_length: true,
+      show_text: true
+    });
+  }
+  
+  // TOP
+  // ==========
+  var top_p1 = lefts_top;
+  var top_p2 = line_at_angle_from_point(lefts_top, top_length * cm_px, lefts_end_angle);
+  var top_p3 = line_at_angle_from_point(rights_top, top_length * cm_px, rights_start_angle);
+  var top_p4 = rights_top;
+  var top_path = new Path2D();
+  top_path.moveTo(top_p1.x, top_p1.y);
+  top_path.lineTo(top_p2.x, top_p2.y);
+  top_path.lineTo(top_p3.x, top_p3.y);
+  top_path.lineTo(top_p4.x, top_p4.y);
+  top_path.closePath();
+  var top_center_point = line_at_angle_from_point(new Point(top_p1.x + ((top_p4.x-top_p1.x)/2), top_p1.y), ((top_length * cm_px)/2) , 270);
+  var top_measure_point = line_at_angle_from_point(new Point(top_p1.x + ((top_p4.x-top_p1.x)/2), top_p1.y), (top_length * cm_px) + text_margin , 270);
+
+  path_items.push({
+      path: top_path,
+      title: "Top",
+      length: top_length,
+      mid_point: top_center_point,
+      length_info_point: top_measure_point,
+      tooltip:  "Top<br/>" + top_length + "cm",
+      show_tooltip: true,
+      show_length: true,
+      show_text: true
+    });
+
+// RIGHTS
+// ==========
+var rights_line_length = line_length(rights_top, rights_bottom);
+var rights_segment_length = rights_line_length / rights.length;
+var rights_angle_segment = (rights_end_angle - rights_start_angle) / rights.length;
+var cur_right_point = rights_bottom;
+var cur_right_angle = rights_end_angle;
+var rights_paths = [];
+var center_points_right = [];
+var length_text_points_right = [];
+var right_baby_names = [];
+
+for(var i=0; i < rights.length  ; i++) {
+  var path = new Path2D();
+  path.moveTo(cur_right_point.x, cur_right_point.y);
+
+  var next_right_point = find_point_on_line(cur_right_point, rights_top, rights_segment_length);
+  var right_mid_point = find_point_on_line(cur_right_point, rights_top, rights_segment_length/2);
+
+  var right_p1 = line_at_angle_from_point(cur_right_point, rights[i] * cm_px, cur_right_angle);
+  var right_p2 = line_at_angle_from_point(next_right_point, rights[i] * cm_px, cur_right_angle - rights_angle_segment);
+
+  var center_point = line_at_angle_from_point(right_mid_point, ( rights[i] * cm_px)/2, cur_right_angle - (rights_angle_segment/2));
+  var length_text_point = line_at_angle_from_point(right_mid_point, ( rights[i] * cm_px) + text_margin, cur_right_angle - (rights_angle_segment/2));
+
+  path.lineTo(right_p1.x, right_p1.y);
+  path.lineTo(right_p2.x, right_p2.y);
+  path.lineTo(next_right_point.x, next_right_point.y);
+
+  cur_right_point = next_right_point;
+  cur_right_angle -= rights_angle_segment;
+
+  path_items.push({
+    path: path,
+    title: "R" + (i+1),
+    length: rights[i],
+    mid_point: center_point,
+    length_info_point: length_text_point,
+    tooltip:  "R" + (i+1) + "<br/>" + rights[i] + "cm",
+    show_tooltip: true,
+    show_length: true,
+    show_text: true
+  });
+}
+
+// CROWN
+// ========
+  var crown_height = crown_bottom.y - rights_bottom.y;
+  var crown_segment_height = crown_height / crown_length;
+  var crown_part = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+  for(var c=0; c < crown_length; c++) {
+    let crown_path = new Path2D();
+    crown_path.rect(rights_bottom.x, rights_bottom.y + ((crown_length - (c+1)) * crown_segment_height), crown * cm_px,  crown_segment_height);
+    var info_point = (new Point(rights_bottom.x + (crown * cm_px) + text_margin + 5, rights_bottom.y + (crown_segment_height * 2)));
+
+    path_items.push({
+      path: crown_path,
+      tooltip: "crown " + "(" + crown_part[c] + ") " + (c+1) + " x " + crown + " cm",
+      length: crown,
+      mid_point: top_center_point,
+      length_info_point: info_point,
+      show_tooltip: true,
+      show_length: true,
+      show_text: false
+    });    
+  }
+
+
+    /*          top
+           ____
+          /    \ rights
+    lefts/      \
+        /        | crown
+     __|       __|
+     |        /
+     |      /
+     |     /
+     |____/
+    */
+    var wing_base_shape = [
+      new Point(221 * scale + pan.x, 315 * scale + pan.y),
+      new Point(221 * scale + pan.x , 531.5 * scale + pan.y),
+      /*
+      new Point(358.5 * scale + pan.x , 531.5 * scale + pan.y),
+      new Point(358.5 * scale + pan.x , 495 * scale + pan.y),
+      new Point(475 * scale + pan.x , 326 * scale + pan.y),
+      new Point(crown_bottom.x, crown_bottom.y), //bottom of crown
+      new Point(rights_bottom.x, rights_bottom.y), //bottom of righ,
+      new Point(rights_top.x ,rights_top.y),       //top of righ,
+      new Point(lefts_top.x , lefts_top.y),        // top of left,
+      new Point(lefts_bottom.x, lefts_bottom.y),   //bottom of lefts lin,
+      new Point(234 * scale + pan.x , 315 * scale + pan.y),
+      new Point(221 * scale + pan.x , 315 * scale + pan.y),*/
+    ];
+
+var canvas = document.getElementById("chart-canvas");
+var tooltip = document.getElementById("tooltip");
+canvas.width = window.innerWidth - 100; 
+canvas. height = window.innerHeight - 100;
+var ctx = canvas.getContext('2d');
+var cursor = new Point(undefined, undefined);
+
+
+
+document.addEventListener("mousemove", function(e) {
+  const posX = `${e.clientX + 10}px`;
+  const posY = `${e.clientY + 10}px`;
+
+    tooltip.style.top = posY;
+    tooltip.style.left = posX;
+});
+
+canvas.addEventListener("mousemove", (e) => {
+  cursor.x = e.offsetX;
+  cursor.y = e.offsetY;
+  hideTooltip();
+});
+
+canvas.addEventListener ("mouseout", (e) => {
+  cursor.x = undefined;
+  cursor.y = undefined;
+}, false);
+
+function showTooltip(text){
+  tooltip.innerHTML = text;
+  tooltip.style.display = "block";
+}
+function hideTooltip() {
+  tooltip.style.display = "none";
+}
+
+function line_length(p1, p2) {
+  var a = p1.x - p2.x;
+  var b = p1.y - p2.y;
+  return Math.sqrt(a**2 + b**2);
+}
+
+function find_point_on_line(point_from, point_towards, distance){
+  var length = line_length(point_from, point_towards);
+  var distance_ratio = (distance/length);
+  var x_towards = point_from.x - (distance_ratio * (point_from.x - point_towards.x));
+  var y_towards = point_from.y - (distance_ratio * (point_from.y - point_towards.y));
+  return new Point(x_towards, y_towards);
+}
+
+function line_at_angle_from_point(origin_point, distance, angle){
+  var d_x = distance * Math.cos(angle * (Math.PI/180));
+  var d_y = distance * Math.sin(angle * (Math.PI/180));
+  var x2 = origin_point.x + d_x;
+  var y2 = origin_point.y + d_y;
+  return new Point(x2, y2);
+}
+
+function line_at_angle_from_point2(origin_point, distance, angleDegrees) {
+    // Convert the angle from degrees to radians
+    let angleRadians = angleDegrees * (Math.PI / 180);
+
+    // Calculate the new x and y coordinates using trigonometry
+    return new Point 
+      (origin_point.x + distance * Math.cos(angleRadians),
+      origin_point.y + distance * Math.sin(angleRadians));
+}
+
+function find_intersection_point(p1_line_1, p2_line_1, p1_line_2, p2_line_2)
+{
+    var ua, ub, denom = (p2_line_2.y - p1_line_2.y)*(p2_line_1.x - p1_line_1.x ) - (p2_line_2.x - p1_line_2.x)*(p2_line_1.y - p1_line_1.y);
+    if (denom == 0) {
+        return null;
+    }
+    ua = ((p2_line_2.x - p1_line_2.x)*(p1_line_1.y - p1_line_2.y) - (p2_line_2.y - p1_line_2.y)*(p1_line_1.x  - p1_line_2.x))/denom;
+    ub = ((p2_line_1.x - p1_line_1.x )*(p1_line_1.y - p1_line_2.y) - (p2_line_1.y - p1_line_1.y)*(p1_line_1.x  - p1_line_2.x))/denom;
+    return {
+        x: p1_line_1.x  + ua * (p2_line_1.x - p1_line_1.x),
+        y: p1_line_1.y + ua * (p2_line_1.y - p1_line_1.y)
+    };
+}
+
+//https://stackoverflow.com/a/30625508
+function arc_between_points(path, p1, p2, arc_center, counter_clockwise){
+  //ctx.beginPath(); 
+  var
+    diffX = p1.x - arc_center.x,
+    diffY = p1.y - arc_center.y,
+    radius = Math.abs(Math.sqrt(diffX*diffX + diffY*diffY)),
+    startAngle = Math.atan2(diffY, diffX),
+    endAngle   = Math.atan2(p2.y - arc_center.y, p2.x - arc_center.x);
+
+    path.arc(arc_center.x, arc_center.y, radius, startAngle, endAngle, counter_clockwise);
+}
+
+function drawPoint(point, color, size){
+  if(!color){
+    color = 'yellow';
+  }
+  if(!size) {
+    size = 2;
+  }
+  ctx.beginPath();
+  ctx.strokeStyle = color;
+  ctx.arc(point.x, point.y, size, 0, 2 * Math.PI);
+  ctx.stroke();
+}
+
+function drawHat()
+{
+  //main sape wing
+  let wing_path = new Path2D();
+  wing_path.strokeStyle = shapecolor;
+  wing_path.lineWidth = thickness;
+  for(var p=0; p < wing_base_shape.length; p++) {
+    if(baby_i==0){
+      wing_path.moveTo(wing_base_shape[p].x, wing_base_shape[p].y);
+    }
+    else  {
+      wing_path.lineTo(wing_base_shape[p].x, wing_base_shape[p].y);
+    }
+  }
+  wing_path.closePath();
+  ctx.stroke(wing_path);
+  ctx.stroke();
+
+  //draw the babies
+  for (var baby_i=0; baby_i < path_items.length; baby_i++) {
+    ctx.strokeStyle='red';
+    ctx.stroke(path_items[baby_i].path);
+
+    ctx.beginPath();
+    ctx.strokeStyle='green';
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "green";
+    ctx.font = "normal " + (12 * scale) + "px Arial";
+    
+    ctx.fillText(path_items[baby_i].length, path_items[baby_i].length_info_point.x, path_items[baby_i].length_info_point.y);
+    if(path_items[baby_i].show_text)
+      ctx.fillText(path_items[baby_i].title, path_items[baby_i].mid_point.x, path_items[baby_i].mid_point.y);
+
+    if(ctx.isPointInPath(path_items[baby_i].path, cursor.x, cursor.y))
+    {
+      ctx.fillStyle = 'red'; 
+      ctx.fill(path_items[baby_i].path);
+      if(path_items[baby_i].show_tooltip)
+        showTooltip(path_items[baby_i].tooltip);
+    }
+  }
+
+} // draw_hat
+
+function drawWing(){
+	ctx.clearRect(0,0, ctx.canvas.width, ctx.canvas.height);
+  drawHat();
+
+	requestAnimationFrame(drawWing);
+}
+requestAnimationFrame(drawWing);
+
+//temp
+//drawHat();
+</script>

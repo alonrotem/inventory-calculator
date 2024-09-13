@@ -1,4 +1,4 @@
-<div class="picker-title">Pick a baby length:</div>
+<div class="picker-title">{{ this.title }}</div>
 <div>
 @for (current_length of lengths; track current_length) {
     <div (click)="setLength(current_length)" [className]="((this.length.toFixed(1).toString() == current_length)? 'length-selector-box selected-length' :'length-selector-box')">{{ current_length }} {{ this.units }}</div>

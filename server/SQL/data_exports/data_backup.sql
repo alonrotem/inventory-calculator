@@ -25,27 +25,7 @@ INSERT INTO `babies` (`id`, `raw_material_parent_id`, `length`, `quantity`, `cre
 /*!40000 ALTER TABLE `babies` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Dumping data for table `countries`
---
-
-LOCK TABLES `countries` WRITE;
-/*!40000 ALTER TABLE `countries` DISABLE KEYS */;
-INSERT INTO `countries` (`code`, `name`, `order`) VALUES ('AD','Andorra',999),('AE','United Arab Emirates',999),('AF','Afghanistan',999),('AG','Antigua and Barbuda',999),('AI','Anguilla',999),('AL','Albania',999),('AM','Armenia',999),('AO','Angola',999),('AQ','Antarctica',999),('AR','Argentina',999),('AS','American Samoa',999),('AT','Austria',999),('AU','Australia',999),('AW','Aruba',999),('AZ','Azerbaijan',999),('BA','Bosnia and Herzegovina',999),('BB','Barbados',999),('BD','Bangladesh',999),('BE','Belgium',999),('BF','Burkina Faso',999),('BG','Bulgaria',999),('BH','Bahrain',999),('BI','Burundi',999),('BJ','Benin',999),('BL','St. Barthelemy',999),('BM','Bermuda',999),('BN','Brunei Darussalam',999),('BO','Bolivia',999),('BQ','Bonaire',999),('BR','Brazil',999),('BS','Bahamas',999),('BT','Bhutan',999),('BV','Bouvet Island',999),('BW','Botswana',999),('BY','Belarus',999),('BZ','Belize',999),('CA','Canada',999),('CC','Cocos Islands',999),('CD','Congo',999),('CF','Central African Republic',999),('CG','Congo',999),('CH','Switzerland',999),('CI','CÃ´te d\'Ivoire',999),('CK','Cook Islands',999),('CL','Chile',999),('CM','Cameroon',999),('CN','China',999),('CO','Colombia',999),('CR','Costa Rica',999),('CU','Cuba',999),('CV','Cabo Verde',999),('CW','CuraÃ§ao',999),('CX','Christmas Island',999),('CY','Cyprus',999),('CZ','Czechia',999),('DE','Germany',999),('DJ','Djibouti',999),('DK','Denmark',999),('DM','Dominica',999),('DO','Dominican Republic',999),('DZ','Algeria',999),('EC','Ecuador',999),('EE','Estonia',999),('EG','Egypt',999),('EH','Western Sahara',999),('ER','Eritrea',999),('ES','Spain',999),('ET','Ethiopia',999),('FI','Finland',999),('FJ','Fiji',999),('FK','Falkland Islands',999),('FM','Micronesia',999),('FO','Faroe Islands',999),('FR','France',999),('GA','Gabon',999),('GB','United Kingdom',999),('GD','Grenada',999),('GE','Georgia',999),('GF','French Guiana',999),('GG','Guernsey',999),('GH','Ghana',999),('GI','Gibraltar',999),('GL','Greenland',999),('GM','Gambia',999),('GN','Guinea',999),('GP','Guadeloupe',999),('GQ','Equatorial Guinea',999),('GR','Greece',999),('GT','Guatemala',999),('GU','Guam',999),('GW','Guinea-Bissau',999),('GY','Guyana',999),('HK','Hong Kong',999),('HN','Honduras',999),('HR','Croatia',999),('HT','Haiti',999),('HU','Hungary',999),('ID','Indonesia',999),('IE','Ireland',999),('IL','Israel',999),('IM','Isle of Man',999),('IN','India',999),('IO','British Indian Ocean Territory',999),('IQ','Iraq',999),('IR','Iran',999),('IS','Iceland',999),('IT','Italy',999),('JE','Jersey',999),('JM','Jamaica',999),('JO','Jordan',999),('JP','Japan',999),('KE','Kenya',999),('KG','Kyrgyzstan',999),('KH','Cambodia',999),('KI','Kiribati',999),('KM','Comoros',999),('KN','St. Kitts and Nevis',999),('KP','North Korea',999),('KR','South Korea',999),('KW','Kuwait',999),('KY','Cayman Islands',999),('KZ','Kazakhstan',999),('LA','Laos',999),('LB','Lebanon',999),('LC','St. Lucia',999),('LI','Liechtenstein',999),('LK','Sri Lanka',999),('LR','Liberia',999),('LS','Lesotho',999),('LT','Lithuania',999),('LU','Luxembourg',999),('LV','Latvia',999),('LY','Libya',999),('MA','Morocco',999),('MC','Monaco',999),('MD','Moldova',999),('ME','Montenegro',999),('MF','St. Martin',999),('MG','Madagascar',999),('MH','Marshall Islands',999),('MK','Macedonia',999),('ML','Mali',999),('MM','Myanmar',999),('MN','Mongolia',999),('MO','Macao',999),('MP','Northern Mariana Islands',999),('MQ','Martinique',999),('MR','Mauritania',999),('MS','Montserrat',999),('MT','Malta',999),('MU','Mauritius',999),('MV','Maldives',999),('MW','Malawi',999),('MX','Mexico',999),('MY','Malaysia',999),('MZ','Mozambique',999),('NA','Namibia',999),('NC','New Caledonia',999),('NE','Niger',999),('NF','Norfolk Island',999),('NG','Nigeria',999),('NI','Nicaragua',999),('NL','Netherlands',999),('NO','Norway',999),('NP','Nepal',999),('NR','Nauru',999),('NU','Niue',999),('NZ','New Zealand',999),('OM','Oman',999),('PA','Panama',999),('PE','Peru',999),('PF','French Polynesia',999),('PG','Papua New Guinea',999),('PH','Philippines',999),('PK','Pakistan',999),('PL','Poland',999),('PM','St. Pierre and Miquelon',999),('PN','Pitcairn',999),('PR','Puerto Rico',999),('PS','Palestine, State of',999),('PT','Portugal',999),('PW','Palau',999),('PY','Paraguay',999),('QA','Qatar',999),('RE','Reunion',999),('RO','Romania',999),('RS','Serbia',999),('RU','Russia',2),('RW','Rwanda',999),('SA','Saudi Arabia',999),('SB','Solomon Islands',999),('SC','Seychelles',999),('SD','Sudan',999),('SE','Sweden',999),('SG','Singapore',999),('SH','St. Helena',999),('SI','Slovenia',999),('SJ','Svalbard and Jan Mayen',999),('SK','Slovakia',999),('SL','Sierra Leone',999),('SM','San Marino',999),('SN','Senegal',999),('SO','Somalia',999),('SR','Suriname',999),('SS','South Sudan',999),('ST','Sao Tome and Principe',999),('SV','El Salvador',999),('SX','Sint Maarten',999),('SY','Syrian Arab Republic',999),('SZ','Eswatini',999),('TC','Turks and Caicos Islands',999),('TD','Chad',999),('TG','Togo',999),('TH','Thailand',999),('TJ','Tajikistan',999),('TK','Tokelau',999),('TL','Timor-Leste',999),('TM','Turkmenistan',999),('TN','Tunisia',999),('TO','Tonga',999),('TR','Turkey',999),('TT','Trinidad and Tobago',999),('TV','Tuvalu',999),('TW','Taiwan',999),('TZ','Tanzania, United Republic of',999),('UA','Ukraine',999),('UG','Uganda',999),('US','United States',1),('UY','Uruguay',999),('UZ','Uzbekistan',999),('VA','Holy See',999),('VC','St. Vincent and the Grenadines',999),('VE','Venezuela',999),('VG','Virgin Islands (British)',999),('VI','Virgin Islands (US)',999),('VN','Viet Nam',999),('VU','Vanuatu',999),('WF','Wallis and Futuna',999),('WS','Samoa',999),('YE','Yemen',999),('YT','Mayotte',999),('ZA','South Africa',999),('ZM','Zambia',999),('ZW','Zimbabwe',999);
-/*!40000 ALTER TABLE `countries` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Dumping data for table `currencies`
---
-
-LOCK TABLES `currencies` WRITE;
-/*!40000 ALTER TABLE `currencies` DISABLE KEYS */;
-INSERT INTO `currencies` (`code`, `name`, `symbol`, `order`) VALUES ('EUR','EURO','€',20),('RUB','Ruble','₽',30),('USD','US','$',10);
-/*!40000 ALTER TABLE `currencies` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
+-
 -- Dumping data for table `raw_materials`
 --
 
@@ -59,11 +39,6 @@ UNLOCK TABLES;
 -- Dumping data for table `wing_positions`
 --
 
-LOCK TABLES `wing_positions` WRITE;
-/*!40000 ALTER TABLE `wing_positions` DISABLE KEYS */;
-INSERT INTO `wing_positions` (`id`, `name`) VALUES (1,'Left'),(2,'Top'),(3,'Right'),(4,'Crown');
-/*!40000 ALTER TABLE `wing_positions` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Dumping data for table `wings`
