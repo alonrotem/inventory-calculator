@@ -65,7 +65,6 @@ export class WingsEditorComponent implements OnInit {
   }
 
   getWing(id: number){
-    console.log("Getting...");
     this.wingsService.getWing(id).subscribe(
     {
       next: (wing: Wing) => {
@@ -73,7 +72,6 @@ export class WingsEditorComponent implements OnInit {
         let crownBabies = this.wing.babies.filter((b) => b.position.startsWith("C"));
         this.crown_units = crownBabies.length;
         this.crown_length = (crownBabies.length > 0)? crownBabies[0].length: 0;
-        console.log("GOT IT!");
       },
       error: (error) => {
         console.log(error);
