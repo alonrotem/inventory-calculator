@@ -1,5 +1,5 @@
 import { NgIf } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
   selector: 'app-babies-length-picker',
@@ -8,7 +8,10 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   templateUrl: './babies-length-picker.component.html',
   styleUrl: './babies-length-picker.component.scss'
 })
-export class BabiesLengthPickerComponent {
+export class BabiesLengthPickerComponent implements AfterViewInit {
+  ngAfterViewInit(): void {
+    this.lengths = Array.from({ length: (((this.max_length - this.min_length)*(1/this.length_step))+1) }, (v, k) => (this.min_length + this.length_step + ((k-1)*this.length_step)).toFixed(1));
+  }
   @Input() title: string ="Pick a baby length:"; 
   @Input() min_length: number = 5;
   @Input() max_length: number = 13;
@@ -18,8 +21,8 @@ export class BabiesLengthPickerComponent {
   @Input() show_invalid_message: boolean = true;
   @Output() lengthChange = new EventEmitter<number>();
   console = console;
-
-  lengths = Array.from({ length: (((this.max_length - this.min_length)*(1/this.length_step))+1) }, (v, k) => (this.min_length + this.length_step + ((k-1)*this.length_step)).toFixed(1));
+  lengths : string[] = [];
+  
 
   setLength(length: string){
     this.length = Number(length);
