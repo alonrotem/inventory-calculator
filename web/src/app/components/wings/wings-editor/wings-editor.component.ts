@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, OnInit, viewChild, ViewChild } from '@angular/core';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 import { faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
-import { Wing } from '../../../../types';
+import { Wing, WingBaby } from '../../../../types';
 import { FormsModule, NgForm } from '@angular/forms';
 import { WingsService } from '../../../services/wings.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -11,13 +11,15 @@ import { WingsBabiesTableComponent } from '../wings-babies-table/wings-babies-ta
 import { WingDiagramComponent } from '../wing-diagram/wing-diagram.component';
 import { PrefixPipe } from "../wings-babies-table/prefix-pipe";
 import { BabiesLengthPickerComponent } from "../../babies/babies-length-picker/babies-length-picker.component";
+import { BabyLengthModalComponent } from '../baby-length-modal/baby-length-modal.component';
+import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 
 @Component({
   selector: 'app-wings-editor',
   standalone: true,
-  imports: [ConfirmationDialogComponent, FormsModule, NgIf, NgFor, FaIconComponent, WingsBabiesTableComponent, WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent],
+  imports: [ConfirmationDialogComponent, FormsModule, NgIf, NgFor, FaIconComponent, WingsBabiesTableComponent, WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent, BabyLengthModalComponent, ModalDialogComponent],
   templateUrl: './wings-editor.component.html',
-  styleUrl: './wings-editor.component.scss'/*,
+  styleUrl: './wings-editor.component.scss',/*
   changeDetection: ChangeDetectionStrategy.OnPush*/
 })
 export class WingsEditorComponent implements OnInit {
@@ -37,6 +39,8 @@ export class WingsEditorComponent implements OnInit {
   @ViewChild('delete_confirmation') delete_confirmation!: ConfirmationDialogComponent;
   @ViewChild("btn_save", { read: ElementRef }) btn_save!: ElementRef;
   @ViewChild("top_picker") top_picker!: BabiesLengthPickerComponent;
+  @ViewChild("length_editor") length_editor! :ModalDialogComponent;
+  @ViewChild("modalContent") baby_length_modal! :BabyLengthModalComponent;
 
   @ViewChild("crown_size", { read: ElementRef }) crown_size!: ElementRef;
   @ViewChild("crown_picker") crown_picker!: BabiesLengthPickerComponent;
@@ -198,6 +202,43 @@ export class WingsEditorComponent implements OnInit {
         }
       },
     });
+  }
+  
+  diagram_babyClicked(baby_pos: string){
+    let b = this.wing.babies.find((baby) => baby.position.toUpperCase() == baby_pos.toUpperCase());
+    if(b) {
+      this.openLengthModal(b);
+    }
+  }
+
+  openLengthModal(obj: WingBaby){
+    this.length_editor.dialog_content_component.editedObject = obj;
+    this.length_editor.modalTitle = "Edit " + ((obj.position.toUpperCase().startsWith("C"))? "Crown" : obj.position);
+    this.crown_units = this.wing.babies.filter((b) => b.position.startsWith("C")).length;
+    this.baby_length_modal.crown_units = this.crown_units;
+    this.baby_length_modal.crown_babies_options = this.crown_babies_options;
+    this.length_editor.open();
+  }
+
+  length_editor_closed(){
+    this.crown_units =  this.baby_length_modal.crown_units;
+    //debugger;
+    console.log(this.baby_length_modal.crown_units);
+    this.crown_size.nativeElement.value =  this.baby_length_modal.crown_units;
+    this.set_crown();
+  }
+
+  modal_length_Changed(obj: WingBaby){
+      //for crown, don't close immediately, but update the crown length
+      if(obj.position.toUpperCase().startsWith("C")) {
+      this.crown_length = obj.length;
+    }
+    else {
+      this.length_editor.onConfirm();
+    }
+    
+    //"refresh" the array, to detect the change
+    this.wing.babies = this.wing.babies.map(el => Object.assign({}, el));
   }
 }
 

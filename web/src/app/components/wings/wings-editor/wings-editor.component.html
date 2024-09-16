@@ -7,6 +7,10 @@
     btnYesClass="btn-danger">
 </app-confirmation-dialog>
 
+<app-modal-dialog #length_editor (confirm)="length_editor_closed()">
+    <app-baby-length-modal #modalContent (length_changed)="modal_length_Changed($event)" [crown_units]="crown_units" />
+</app-modal-dialog>
+
 <div class="row justify-content-center">
 <div class="col-lg-7 col-md-12">
 
@@ -29,10 +33,11 @@
             <div class="col">
                 <app-wing-diagram
                     #diagram 
-                    [lefts]="this.wing.babies | prefix: 'L' : true"
-                    [rights]="this.wing.babies | prefix: 'R' : true"
-                    [top_length]="this.wing.babies | prefix: 'TOP' : true"
-                    [crown]="this.wing.babies | prefix: 'C' : true"
+                        [lefts]="this.wing.babies | prefix: 'L' : true"
+                        [rights]="this.wing.babies | prefix: 'R' : true"
+                        [top_length]="this.wing.babies | prefix: 'TOP' : true"
+                        [crown]="this.wing.babies | prefix: 'C' : true"
+                        (babyClicked)="this.diagram_babyClicked($event)"
                  />
             </div>
         </div>
@@ -42,6 +47,7 @@
                 <app-wings-babies-table 
                     [(wingsbabies)]="this.wing.babies" 
                     [wingPrefix]="'L'"
+                    (OnBabyClick)="this.openLengthModal($event)"
                     />
             </div>
         </div>
@@ -52,6 +58,7 @@
                 <app-wings-babies-table 
                     [(wingsbabies)]="this.wing.babies" 
                     [wingPrefix]="'R'"
+                    (OnBabyClick)="this.openLengthModal($event)"
                     />
             </div>
         </div>
@@ -70,7 +77,7 @@
         <div class="row wing-babies-container">
             <div class="col">
                 <h4><span class="icon-crown"></span> Crown</h4>
-                <div>
+                <div class="crown-size-wrapper">
                     Select the number of crown babies
                     <select class="crown-size" #crown_size (change)="set_crown()" [value]="crown_units">
                         <option *ngFor="let i of this.crown_babies_options" value={{i}}>{{i}}</option>

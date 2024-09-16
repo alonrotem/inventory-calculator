@@ -1,0 +1,11 @@
+<div class="crown-size-wrapper" [class.d-none]="!this.editedObject.position.toLocaleUpperCase().startsWith('C')">
+    Select the number of crown babies
+    <select class="crown-size" #crown_size [(ngModel)]="this.crown_units">
+        <option *ngFor="let i of this.crown_babies_options" value={{i}} [ngValue]="i">{{i}}</option>
+    </select>
+</div>
+
+<app-babies-length-picker 
+    [length]="this.editedObject.length" 
+    (lengthChange)="lengthClicked($event)"
+    />

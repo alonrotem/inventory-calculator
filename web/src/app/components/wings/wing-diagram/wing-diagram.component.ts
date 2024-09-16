@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, HostListener, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { GlobalsService } from '../../../services/globals.service';
 import { Point } from '../../../../types';
 import { find_intersection_point, find_point_on_line, line_at_angle_from_point, line_at_angle_from_point2, line_length } from './graphics-helper';
@@ -20,6 +20,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
   @Input() crown = [10];
   //@Input() crown_length = 2;//4;
   @Input() scale = 1;
+  @Output() babyClicked = new EventEmitter<string>();
 
   //defaults
   text_margin: number= 10;
@@ -83,6 +84,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
   color: string = "white";
   backcolor: string = "white";
   cursor: Point = new Point(0, 0);
+  onBaby: string = "";
 
   mouseMove(e: any){
     this.cursor.x = e.offsetX;
@@ -90,6 +92,13 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     this.tooltip.nativeElement.style.left = `${e.pageX + 10}px`;
     this.tooltip.nativeElement.style.top = `${e.pageY + 15}px`;
     this.hideTooltip();
+    this.onBaby = "";
+  }
+
+  mouseUp(e: any){
+    if(this.onBaby){
+      this.babyClicked.emit(this.onBaby);
+    }
   }
 
   showTooltip(text: string){
@@ -188,7 +197,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     if(! this.diagram_canvas || ! this.diagram_canvas.nativeElement)
       return;
 
-    console.log("Rebuilding...");
+    //console.log("Rebuilding...");
     this.path_items = [];
     //console.log("REBUILD!");
     //console.log(this.lefts);
@@ -196,7 +205,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     this.buildTop();
     this.buildRights();
     this.buildCrown();
-    console.log("BUILT");
+    //console.log("BUILT");
     //check if the canvas has been initialized yet
 
 
@@ -415,6 +424,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
       );
 
       this.path_items.push({
+        title: "C" + [c+1],
         path: crown_path,
         tooltip: "<strong><span class='icon-crown'></span> Crown " + "(" + crown_part[c] + ") </strong><br/>" + (c+1) + " x " + this.crown[0] + " cm",
         length: this.crown[0],
@@ -452,10 +462,13 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
           this.showTooltip(this.path_items[baby_i].tooltip);
 
         this.ctx.fillStyle = this.backcolor;
+        //console.log("on " + this.path_items[baby_i].title);
+        this.onBaby = this.path_items[baby_i].title;
       }
       else
       {
         this.ctx.fillStyle = this.color;
+        //this.onBaby = "";
       }
       if(this.path_items[baby_i].show_text)
       {

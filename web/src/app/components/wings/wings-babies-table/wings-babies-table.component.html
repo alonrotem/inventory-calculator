@@ -10,7 +10,7 @@
     </thead>
     <tbody>
       <tr 
-        *ngFor="let wingbaby of this.wingsbabies | prefix: this.wingPrefix" role="button"> <!-- -->
+        *ngFor="let wingbaby of this.wingsbabies | prefix: this.wingPrefix; trackBy: trackItem" role="button" (click)="clicked(wingbaby)"> <!-- -->
         <td> {{ wingbaby.position }}</td>
         <td> {{ wingbaby.length.toFixed(1) }} cm</td>
         <td class="text-center" ><fa-icon class="text-danger" [icon]="faTrashAlt" (click)="deleteBaby(wingbaby)" [title]="'Delete ' + wingbaby.position + ' (' + wingbaby.length.toFixed(1) + ' cm)'"></fa-icon></td>

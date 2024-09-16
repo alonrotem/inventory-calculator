@@ -24,6 +24,7 @@ export class WingsBabiesTableComponent {
   @Input() wingsbabies: WingBaby[] = [];
   @Input() wingPrefix : string = '';
   @Output() wingsbabiesChange = new EventEmitter();
+  @Output() OnBabyClick = new EventEmitter();
   @ViewChild("picker") picker :BabiesLengthPickerComponent = new BabiesLengthPickerComponent();
   faSave: IconDefinition = faSave;
   faTrashAlt:IconDefinition = faTrashAlt;
@@ -57,5 +58,17 @@ export class WingsBabiesTableComponent {
         this.wingsbabies[b].position = this.wingPrefix + (pos++);
     }
     this.wingsbabiesChange.emit(this.wingsbabies);
+  }
+
+  clicked(wingbaby :WingBaby) {
+    this.OnBabyClick.emit(wingbaby);
+  }
+
+  wingsByPrefix(){
+    return this.wingsbabies.filter(b=> b.position.startsWith('L'));
+  }
+
+  trackItem (index: number, item: WingBaby) {
+    return item.position;
   }
 }
