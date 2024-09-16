@@ -348,6 +348,7 @@ VALUES
 CREATE TABLE  IF NOT EXISTS wings (
 	`id`    INT NOT NULL auto_increment,
     `name`	VARCHAR(255) NOT NULL,
+    `width`	float,
     PRIMARY KEY (`id`)
 );
 
@@ -423,12 +424,12 @@ VALUES
   (9,4,10,40,'2024-08-30 13:42:00','2024-08-31 18:51:00',1,1),
   (10,1,7,1400,'2024-08-31 12:57:00','2024-08-31 13:04:00',1,1);
 
-INSERT INTO `wings` (`name`) 
+INSERT INTO `wings` (`name`, `width`) 
 VALUES 
-  ('RT100'),
-  ('Wing RT90'),
-  ('Wing 2'),
-  ('Wing 3');
+  ('RT100', 10),
+  ('Wing RT90', 9),
+  ('Wing 2', 5.5),
+  ('Wing 3', 11);
 
 set @wing_id_RT100 = (select id from wings where name='RT100' limit 1);
 set @wing_id_Wing_RT90 = (select id from wings where name='Wing RT90' limit 1);

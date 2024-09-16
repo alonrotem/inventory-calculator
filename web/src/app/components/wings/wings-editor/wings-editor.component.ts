@@ -50,6 +50,7 @@ export class WingsEditorComponent implements OnInit {
   public wing : Wing = {
     id: 0,
     name: '',
+    width: 0,
     babies: []
   }
   crown_babies_options = Array(5).fill(0).map((_, i)=> i+1)
@@ -236,7 +237,7 @@ export class WingsEditorComponent implements OnInit {
     else {
       this.length_editor.onConfirm();
     }
-    
+
     //"refresh" the array, to detect the change
     this.wing.babies = this.wing.babies.map(el => Object.assign({}, el));
   }

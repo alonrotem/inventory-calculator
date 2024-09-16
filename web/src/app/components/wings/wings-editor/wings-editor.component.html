@@ -31,6 +31,18 @@
         </div>
         <div class="row">
             <div class="col">
+                <app-babies-length-picker
+                    #wing_width
+                    [show_invalid_message]="false"
+                    [title]="'Select the width of this wing:'"
+                    [(length)]="wing.width"
+                    [min_length]="5"
+                    [max_length]="11"
+                 />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
                 <app-wing-diagram
                     #diagram 
                         [lefts]="this.wing.babies | prefix: 'L' : true"

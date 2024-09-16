@@ -20,7 +20,7 @@ const { raw } = require('mysql2');
 */
 async function getSingle(id){
     const rows = await db.query(
-      `select id, name from wings where id=${id}`
+      `select id, name, width from wings where id=${id}` //width 5 - 11
     );
     const data = helper.emptyOrSingle(rows);
     if(data != {}) {
@@ -43,7 +43,7 @@ async function getMultiple(page = 1, perPage){
     subset = `LIMIT ${offset},${perPage}`
   }
   const rows = await db.query(
-    `select w.id, w.name, 
+    `select w.id, w.name, w.width,
       (SELECT COUNT(*) FROM wings_babies wb
               WHERE wb.parent_wing_id = w.id and wb.position like'L%') as 'Left',
       (SELECT COUNT(*) FROM wings_babies wb
@@ -93,7 +93,7 @@ async function getMultiple(page = 1, perPage){
 }
 
 async function create(wing){
-  const result = await db.query(`INSERT INTO wings (name)  VALUES ((?))`, [ wing.name ]);
+  const result = await db.query(`INSERT INTO wings (name, width)  VALUES ((?), (?))`, [ wing.name, wing.width ]);
 
   let message = 'Error creating raw material';
   console.log("New wing ID: " + result.insertId + " ("+ wing.name +")");
@@ -125,7 +125,7 @@ async function getWingNames(){
 }
 
 async function update(id, wing){
-    const result = await db.query(`UPDATE wings SET name=(?) WHERE id=${id}`, [ wing.name ]);
+    const result = await db.query(`UPDATE wings SET name=(?), width=(?) WHERE id=${id}`, [ wing.name, wing.width ]);
     console.log("Updated wing ID: " + id + " ("+ wing.name +")");
     let message = 'Error in updating wing';
   

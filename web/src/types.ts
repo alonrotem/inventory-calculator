@@ -72,6 +72,7 @@ export interface Baby {
 
 export interface WingsListItem {
     id: number;
+    width: number;
     name: string;
     Left: number;
     Top: number;
@@ -91,6 +92,7 @@ export interface WingsList {
 export interface Wing {
     id: number;
     name: string;
+    width: number;
     babies: WingBaby[];
 }
 
