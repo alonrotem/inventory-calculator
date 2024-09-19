@@ -24,6 +24,10 @@
     border-radius: var(--bs-border-radius);
 }
 
+.babies-counter {
+    margin-top: 14px;
+}
+
 ::ng-deep .autocomplete-container.active {
     z-index: 9999 !important;
 }

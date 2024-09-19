@@ -22,7 +22,7 @@ export  function line_at_angle_from_point(origin_point: Point, distance: number,
     var y2 = origin_point.y + d_y;
     return new Point(x2, y2);
   }
-  
+  /*
   export function line_at_angle_from_point2(origin_point: Point, distance: number, angleDegrees: number): Point {
       // Convert the angle from degrees to radians
       let angleRadians = angleDegrees * (Math.PI / 180);
@@ -31,7 +31,7 @@ export  function line_at_angle_from_point(origin_point: Point, distance: number,
       return new Point 
         (origin_point.x + distance * Math.cos(angleRadians),
         origin_point.y + distance * Math.sin(angleRadians));
-  }
+  }*/
   
   export function find_intersection_point(p1_line_1: Point, p2_line_1: Point, p1_line_2: Point, p2_line_2: Point): Point | null
   {

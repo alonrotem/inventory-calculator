@@ -49,6 +49,7 @@
                         [rights]="this.wing.babies | prefix: 'R' : true"
                         [top_length]="this.wing.babies | prefix: 'TOP' : true"
                         [crown]="this.wing.babies | prefix: 'C' : true"
+                        [width]="wing.width"
                         (babyClicked)="this.diagram_babyClicked($event)"
                  />
             </div>
@@ -118,19 +119,25 @@
     -->
 
         <div class="row buttons-area">
-                <div class="col-12 d-flex justify-content-center {{ this.is_new_wing? 'col-md-6':'col-md-4' }}">
-                    <button #btn_save class="btn btn-success" type="submit" (click)="save()"><!--[disabled]="!raw_material_form.form.valid"-->
+                <div class="col-12 d-flex justify-content-center {{ this.is_new_wing? 'col-md-4':'col-md-3' }}">
+                    <button #btn_save class="btn btn-success" type="submit" (click)="save()">
                         <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
                         <div>Save Wing</div>
                     </button>
                 </div>
-                <div class="col-12 d-flex justify-content-center {{ this.is_new_wing? 'col-md-6':'col-md-4' }}">
+                <div class="col-12 d-flex justify-content-center {{ this.is_new_wing? 'col-md-4':'col-md-3' }}">
+                    <button #btn_save class="btn btn-primary" type="submit" (click)="save(true)">
+                        <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon> + <span class="icon-hat"></span></div>
+                        <div>Save & Hat!</div>
+                    </button>
+                </div>
+                <div class="col-12 d-flex justify-content-center {{ this.is_new_wing? 'col-md-4':'col-md-3' }}">
                     <button class="btn btn-warning" (click)="gotoWingsList()">
                         <div class="btn-icon"><fa-icon [icon]="faTimesCircle"></fa-icon></div>
                         <div>Cancel Chages</div>
                     </button>
                 </div>
-                <div class="col-12 d-flex justify-content-center col-md-4" *ngIf="!this.is_new_wing">
+                <div class="col-12 d-flex justify-content-center col-md-3" *ngIf="!this.is_new_wing">
                     <button class="btn btn-danger" (click)="confirm_delete()">
                         <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>
                         <div>Delete Wing</div>

@@ -38,6 +38,15 @@ router.get('/', async function(req, res, next) {
     }
   });
 
+  router.get('/names/:name', async function(req, res, next) {
+    try {
+      res.json(await wings.getSingleWingByName(req.params.name));
+    } catch (err) {
+      console.error(`Error while getting wing with name ${ req.params.name }`, err.message);
+      next(err);
+    }
+  });
+
   router.post('/', async function(req, res, next) {
     try {
       res.json(await wings.create(req.body));

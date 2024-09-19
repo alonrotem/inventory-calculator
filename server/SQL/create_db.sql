@@ -503,31 +503,30 @@ VALUES
   (66,'DM3X10',1,4,10),
   (67,'DM10',1,4,10);
 */
+
+
 insert into hats (name)
 VALUES
-	('Hat 1'), ('Hat 2'), ('Hat 3'), ('Hat 4'), ('Hat 5');
+	('RT100 Hat'), ('RT90 Hat'), ('Wing 2 Hat'), ('Hat 4'), ('Hat 5');
 
-set @hat_id_1 = (select id from hats where name='Hat 1' limit 1);
-set @hat_id_2 = (select id from hats where name='Hat 2' limit 1);
-set @hat_id_3 = (select id from hats where name='Hat 3' limit 1);
-set @hat_id_4 = (select id from hats where name='Hat 4' limit 1);
-set @hat_id_5 = (select id from hats where name='Hat 5' limit 1);
+set @rt_100_hat = (select id from hats where name='RT100 Hat' limit 1);
+set @rt_90_hat = (select id from hats where name='RT90 Hat' limit 1);
+set @wing_2_hat = (select id from hats where name='Wing 2 Hat' limit 1);
+set @hat_4 = (select id from hats where name='Hat 4' limit 1);
+set @hat_5 = (select id from hats where name='Hat 5' limit 1);
 
-set @wing_name_1 = (select name from wings where name='Wing 1' limit 1);
-set @wing_name_2 = (select name from wings where name='Wing 2' limit 1);
-set @wing_name_3 = (select name from wings where name='Wing 3' limit 1);
+set @wing_name_rt_100 = (select name from wings where name='RT100' limit 1);
+set @wing_name_rt_90 = (select name from wings where name='Wing RT90' limit 1);
+set @wing_name_wing_2 = (select name from wings where name='Wing 2' limit 1);
+set @wing_name_wing_3 = (select name from wings where name='Wing 3' limit 1);
 set @nonexisting_wing_name = 'Other wing';
 
 insert into hats_wings(parent_hat_id, wing_name, wing_quantity)
 VALUES
-	(@hat_id_1, @wing_name_1, 10),
-	(@hat_id_1, @wing_name_2, 9),
-	(@hat_id_1, @wing_name_3, 4),
-	(@hat_id_2, @wing_name_2, 8),
-	(@hat_id_3, @wing_name_2, 3),
-	(@hat_id_3, @wing_name_3, 6),
-	(@hat_id_4, @wing_name_1, 2),
-	(@hat_id_4, @wing_name_2, 40),
-    (@hat_id_4, @nonexisting_wing_name, 3);
+	(@rt_100_hat, @wing_name_rt_100, 15),
+	(@rt_90_hat, @wing_name_rt_90, 32),
+	(@wing_2_hat, @wing_name_wing_2, 10),
+	(@hat_4, @wing_name_wing_3, 4),
+	(@hat_5, @nonexisting_wing_name, 20);
 
 select "All done";

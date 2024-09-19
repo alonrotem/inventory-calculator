@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, viewChild, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnInit, viewChild, ViewChild } from '@angular/core';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 import { faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { Wing, WingBaby } from '../../../../types';
@@ -13,6 +13,7 @@ import { PrefixPipe } from "../wings-babies-table/prefix-pipe";
 import { BabiesLengthPickerComponent } from "../../babies/babies-length-picker/babies-length-picker.component";
 import { BabyLengthModalComponent } from '../baby-length-modal/baby-length-modal.component';
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-wings-editor',
@@ -22,7 +23,7 @@ import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.com
   styleUrl: './wings-editor.component.scss',/*
   changeDetection: ChangeDetectionStrategy.OnPush*/
 })
-export class WingsEditorComponent implements OnInit {
+export class WingsEditorComponent implements OnInit, AfterViewInit {
 
   faSave: IconDefinition = faSave;
   faTrashAlt:IconDefinition = faTrashAlt;
@@ -55,7 +56,22 @@ export class WingsEditorComponent implements OnInit {
   }
   crown_babies_options = Array(5).fill(0).map((_, i)=> i+1)
 
-  constructor(private wingsService: WingsService, private activatedRoute: ActivatedRoute, private router: Router){
+  constructor(private wingsService: WingsService, private activatedRoute: ActivatedRoute, private router: Router, private toastService: ToastService){
+    let nav = this.router.getCurrentNavigation();
+    if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {
+      let info = nav.extras.state['info']['textInfo'];
+      let isError = nav.extras.state['info']['isError'];
+      let wingName = nav.extras.state['info']['wingName'];
+      if(isError)
+      {
+        this.toastService.showError(info);
+      }
+      else
+      {
+        this.toastService.showSuccess(info);
+      }
+      this.wing.name = wingName;
+    }
   }
 
   ngOnInit(): void {
@@ -96,6 +112,7 @@ export class WingsEditorComponent implements OnInit {
     let tops = this.wing.babies.filter(b => b.position == "TOP");
     return (tops.length == 0)? 0: tops[0].length;
   }
+  
   //set the length from the picker
   set_top() {
     let tops = this.wing.babies.filter(b => b.position == "TOP");
@@ -131,7 +148,7 @@ export class WingsEditorComponent implements OnInit {
     }
   }
 
-  save()
+  save(goToHatEditor: boolean = false)
   {
     this.wingForm.form.markAllAsTouched();
     if(this.wingForm.form.valid)
@@ -142,35 +159,51 @@ export class WingsEditorComponent implements OnInit {
       if(!this.is_new_wing)
       {
         const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
-        this.updateWing(id, this.wing);
+        this.updateWing(id, this.wing, goToHatEditor);
       }
       //add
       else
       {
-        this.saveNewWing(this.wing);
+        this.saveNewWing(this.wing, goToHatEditor);
       }
     }
   }
 
-  saveNewWing(wing:Wing)
+  saveNewWing(wing:Wing, goToHatEditor: boolean)
   {
     this.btn_save.nativeElement.classList.add("disabled");
 
     this.wingsService.saveNewWing(wing).subscribe(
       {
-        next:(data) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoWingsList(data['message'], false); },
+        next:(data) => { 
+          this.btn_save.nativeElement.classList.remove("disabled");
+          if(goToHatEditor){
+            this.gotoHatEditor(data['message'], wing.name ,false)
+          }
+          else {
+            this.gotoWingsList(data['message'], false);
+          }
+        },
         error:(error) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoWingsList(error, true); }
       }
     );
   }
 
-  updateWing(id: number, wing:Wing)
+  updateWing(id: number, wing:Wing, goToHatEditor: boolean)
   {
     this.btn_save.nativeElement.classList.add("disabled");
 
     this.wingsService.updateWing(wing).subscribe(
     {
-      next:(data) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoWingsList(data['message'], false); },//this.getRawMaterials(this.current_page); },
+      next:(data) => { 
+        this.btn_save.nativeElement.classList.remove("disabled"); 
+        if(goToHatEditor){
+          this.gotoHatEditor(data['message'], wing.name ,false)
+        }
+        else {
+          this.gotoWingsList(data['message'], false); 
+        }
+      },
       error:(error) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoWingsList(error, true); }
     });
   }
@@ -194,11 +227,22 @@ export class WingsEditorComponent implements OnInit {
   }
 
   gotoWingsList(textInfo: string = '', isError: Boolean = false) {
-    //this.location.back();
     this.router.navigate(['templates/wings'], {
       state: {
         info: { 
           textInfo: textInfo, 
+          isError: isError 
+        }
+      },
+    });
+  }
+
+  gotoHatEditor(textInfo: string = '', wingName: string="", isError: Boolean = false) {
+    this.router.navigate(['templates/hats/editor'], {
+      state: {
+        info: { 
+          textInfo: textInfo,
+          wingName: wingName,
           isError: isError 
         }
       },

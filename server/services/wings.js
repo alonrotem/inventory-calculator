@@ -3,27 +3,12 @@ const helper = require('../helper');
 const config = require('../config');
 const { raw } = require('mysql2');
 
-/*
-1	Wing 1	4	10.5 Crown
-1	Wing 1	4	9.5	 Crown
-1	Wing 1	4	8.5	 Crown
-1	Wing 1	1	10	 Left
-1	Wing 1	1	8	 Left
-1	Wing 1	1	5	 Left
-1	Wing 1	3	9	 Right
-1	Wing 1	3	8	 Right
-1	Wing 1	3	6.5	 Right
-1	Wing 1	2	9	 Top
-1	Wing 1	2	8	 Top
-1	Wing 1	2	7	 Top
-1	Wing 1	2	6.5	 Top
-*/
 async function getSingle(id){
     const rows = await db.query(
       `select id, name, width from wings where id=${id}` //width 5 - 11
     );
     const data = helper.emptyOrSingle(rows);
-    if(data != {}) {
+    if(!helper.isEmptyObj(data)) {
         const wing_babies = await db.query(
             `select parent_wing_id, position, length from wings_babies 
               where parent_wing_id=${id}
@@ -33,6 +18,24 @@ async function getSingle(id){
         data.babies = babies;
     }
     return data;
+}
+
+async function getSingleWingByName(name){
+  const rows = await db.query(
+    `select id, name, width from wings where name=(?)`, [name]
+  );
+  const data = helper.emptyOrSingle(rows);
+  //console.log(helper.isEmptyObj(data));
+  if(!helper.isEmptyObj(data)) {
+      const wing_babies = await db.query(
+          `select parent_wing_id, position, length from wings_babies 
+            where parent_wing_id=${data['id']}
+            order by position;`
+        );
+      const babies = helper.emptyOrRows(wing_babies);
+      data.babies = babies;
+  }
+  return data;
 }
 
 async function getMultiple(page = 1, perPage){
@@ -237,6 +240,7 @@ async function remove(id){
 module.exports = {
   create,
   getSingle,
+  getSingleWingByName,
   getMultiple,
   update,
   remove,

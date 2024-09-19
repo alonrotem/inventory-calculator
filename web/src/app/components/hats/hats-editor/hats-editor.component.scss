@@ -1,0 +1,81 @@
+.editorForm div.col {
+    /*height: calc(3.5rem + calc(var(--bs-border-width)* 2));*/
+    margin: 8px 0px;
+}
+
+h3 {
+    margin: 25px 0;
+}
+
+.buttons-area button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 19px;
+    margin: 10px 0;
+    width: 100%;
+}
+@media screen and (min-width: 768px) and (max-width: 992px) {
+    .buttons-area button {
+        height: 80px;
+    }
+}
+@media screen and (min-width: 1200px) {
+    .buttons-area button {
+        width: 80%;
+    }
+}
+
+.no-wing-loaded {
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+    text-align: center;
+}
+
+.wing_name {
+    font-weight: 700;
+}
+
+.selector {
+    width: 300px;
+}
+
+.wing_row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.number_selector {
+    text-align: center;
+}
+
+.wings_label {
+    margin-bottom: 12px;
+    margin-top: 12px;
+    font-family: var(--bs-body-font-family);
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--bs-gray);
+}
+
+::ng-deep.ng-select-container, .number_selector {
+    height: calc(3.5rem + calc(var(--bs-border-width)* 2)) !important;
+    min-width: 50px;
+}
+
+::ng-deep.ng-select .ng-select-container .ng-value-container .ng-input>input {
+    position: relative;
+    top: 12px;
+}
+
+.btn_save_special_container {
+    margin: 20px 0px;
+}

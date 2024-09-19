@@ -25,7 +25,7 @@ async function getInfo(){
     const hats_records = await db.query(
       `select count(*) as hat_recs from hats;`
     );
-    const total_hats = wings_records[0]['hat_recs'];  
+    const total_hats = hats_records[0]['hat_recs'];  
 
 
   return  {

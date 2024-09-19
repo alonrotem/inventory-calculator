@@ -16,6 +16,7 @@ export class HomeComponent implements OnInit {
   total_baby_records: number = 0;
   total_babies: number = 0;
   total_wings: number = 0;
+  total_hats: number = 0;
 
   constructor(private infoService: InfoService) {
   }
@@ -27,6 +28,7 @@ export class HomeComponent implements OnInit {
         this.total_baby_records = stats.total_baby_records;
         this.total_babies = stats.total_babies;
         this.total_wings = stats.total_wings;
+        this.total_hats = stats.total_hats;
       },
       error: (error) => {
         console.log(error);

@@ -17,6 +17,12 @@ export class WingsService {
     });
   };
 
+  getWingByName = (name: string): Observable<Wing> => {
+    return this.apiService.get(`${environment.serverUrl}/wings/names/${name}`, {
+      responseType: 'json'
+    });
+  };
+
   getWings = (params: PaginationParams): Observable<WingsList> => {
     return this.apiService.get(`${environment.serverUrl}/wings/`, {
       params,
@@ -29,7 +35,12 @@ export class WingsService {
       responseType: 'json'
     });
   };
-*/
+*/  getWingsNames = (): Observable<string[]> => {
+      return this.apiService.get(`${environment.serverUrl}/wings/names`, {
+        responseType: 'json'
+      });
+    };
+
   saveNewWing = (wing: Wing): Observable<any> => {
     return this.apiService.post(`${environment.serverUrl}/wings/`, wing, { });
   };

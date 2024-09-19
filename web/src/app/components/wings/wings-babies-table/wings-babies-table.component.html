@@ -1,4 +1,4 @@
-<div>{{ this.wingsbabies.length }} babies</div>
+<div class="babies-counter">{{ (this.wingsbabies | prefix: this.wingPrefix).length }} {{ ((this.wingsbabies  | prefix: this.wingPrefix).length == 1)?'baby':'babies' }}</div>
 
 <table class="table table-responsive table-striped table-hover">
     <thead>
@@ -10,10 +10,10 @@
     </thead>
     <tbody>
       <tr 
-        *ngFor="let wingbaby of this.wingsbabies | prefix: this.wingPrefix; trackBy: trackItem" role="button" (click)="clicked(wingbaby)"> <!-- -->
-        <td> {{ wingbaby.position }}</td>
-        <td> {{ wingbaby.length.toFixed(1) }} cm</td>
-        <td class="text-center" ><fa-icon class="text-danger" [icon]="faTrashAlt" (click)="deleteBaby(wingbaby)" [title]="'Delete ' + wingbaby.position + ' (' + wingbaby.length.toFixed(1) + ' cm)'"></fa-icon></td>
+        *ngFor="let wingbaby of this.wingsbabies | prefix: this.wingPrefix; trackBy: trackItem" role="button"> <!-- -->
+        <td (click)="clicked(wingbaby)"> {{ wingbaby.position }}</td>
+        <td (click)="clicked(wingbaby)"> {{ wingbaby.length.toFixed(1) }} cm</td>
+        <td class="text-center" (click)="deleteBaby(wingbaby)"><fa-icon class="text-danger" [icon]="faTrashAlt"  [title]="'Delete ' + wingbaby.position + ' (' + wingbaby.length.toFixed(1) + ' cm)'"></fa-icon></td>
       </tr>
     </tbody>
   </table>

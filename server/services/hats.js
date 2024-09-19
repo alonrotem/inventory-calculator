@@ -6,7 +6,7 @@ const { raw } = require('mysql2');
 async function getSingle(id){
     const rows = await db.query(`select id, name from hats where id=${id}`);
     const data = helper.emptyOrSingle(rows);
-    if(data)
+    if(!helper.isEmptyObj(data))
     {
         const wing_rows = await db.query(`select * from hats_wings where parent_hat_id=${id}`);
         const wings = helper.emptyOrRows(wing_rows);
@@ -25,7 +25,7 @@ async function getMultiple(page = 1, perPage){
   const rows = await db.query(
     `select h.id id, h.name name, sum(hw.wing_quantity) total_wings 
     from hats h left join hats_wings hw on hw.parent_hat_id = h.id 
-    group by h.id order by h.name; ${subset}`
+    group by h.id order by h.name ${subset};`
   );
   const total = await db.query(
     `SELECT count(*) as count FROM hats`
@@ -93,7 +93,7 @@ async function sync_wings_for_hat(wings, hat_id)
     const deletion_result = await db.query(
       `DELETE FROM hats_wings WHERE parent_hat_id=${ hat_id } and id not in (${ wing_ids_to_keep })`
     );
-    message += deletion_result.affectedRows + " + wings removed";
+    message += ((deletion_result.affectedRows == 0)? "No" : deletion_result.affectedRows) + " wings removed";
   }
   else
   {
@@ -113,7 +113,7 @@ async function sync_wings_for_hat(wings, hat_id)
         wing.wing_quantity
       ]
     ).flat(1);
-    let placeholder = Array(babies.length).fill("(" + Array(4).fill("?").join(",") + ")").join(",");
+    let placeholder = Array(wings.length).fill("(" + Array(4).fill("?").join(",") + ")").join(",");
     //VALUES (?, ?), (?,?)
 
     const update_result = await db.query(
@@ -123,13 +123,13 @@ async function sync_wings_for_hat(wings, hat_id)
       ${placeholder}`,
       wings_arr
     );
-    message += ", " + update_result.affectedRows + " hat wings added/updated";
+    message += ", " + update_result.affectedRows + " wing" + ((update_result.affectedRows==1)?"":"s") + " added/updated";
   }
   else
   {
-    message += ", no hat wings to add/update";
+    message += ", no wings to add/update";
   }
-  return {message};
+  return message;
 }
 
 

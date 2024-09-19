@@ -165,7 +165,8 @@ export interface Stats {
     raw_material_records: number,
     total_baby_records: number,
     total_babies: number,
-    total_wings: number
+    total_wings: number,
+    total_hats: number
 }
 
 export class Point {

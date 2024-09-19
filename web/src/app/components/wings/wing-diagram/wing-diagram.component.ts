@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { GlobalsService } from '../../../services/globals.service';
 import { Point } from '../../../../types';
-import { find_intersection_point, find_point_on_line, line_at_angle_from_point, line_at_angle_from_point2, line_length } from './graphics-helper';
+import { find_intersection_point, find_point_on_line, line_at_angle_from_point, line_length } from './graphics-helper';
 
 @Component({
   selector: 'app-wing-diagram',
@@ -19,6 +19,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
   @Input() lefts =[5];//, 7, 8, 8.5, 10];
   @Input() crown = [10];
   //@Input() crown_length = 2;//4;
+  @Input() width = 10;
   @Input() scale = 1;
   @Output() babyClicked = new EventEmitter<string>();
 
@@ -157,6 +158,8 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
   height_of_base_shape = this.rights_top.y - this.base_shape_bottom;
   width_of_base_shape = this.crown_bottom.x - 221 * this.scale + this.pan.x;
 
+  wing_width_caption_point = new Point(0,0);
+
   constructor (private globalService: GlobalsService){
     this.setColors(this.globalService.currentTheme());
     this.globalService.themeChanged.subscribe({
@@ -176,6 +179,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     if(!this.checkArrEquality(changes["rights"]["currentValue"], changes["rights"]["previousValue"])) rebuild = true;
     if(!this.checkArrEquality(changes["top_length"]["currentValue"], changes["top_length"]["previousValue"])) rebuild = true;
     if(!this.checkArrEquality(changes["crown"]["currentValue"], changes["crown"]["previousValue"])) rebuild = true;
+    if((changes["width"]) && (changes["width"]["currentValue"] != changes["width"]["previousValue"])) rebuild = true;
     //if(changes["crown"]["currentValue"] != changes["crown"]["previousValue"])  rebuild = true;
     //if(changes["crown_length"]["currentValue"] != changes["crown_length"]["previousValue"])  rebuild = true;
 
@@ -197,17 +201,12 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     if(! this.diagram_canvas || ! this.diagram_canvas.nativeElement)
       return;
 
-    //console.log("Rebuilding...");
     this.path_items = [];
-    //console.log("REBUILD!");
-    //console.log(this.lefts);
     this.buildLefts();
     this.buildTop();
     this.buildRights();
     this.buildCrown();
-    //console.log("BUILT");
-    //check if the canvas has been initialized yet
-
+    
 
     this.ctx = this.diagram_canvas.nativeElement.getContext('2d');
     let new_height = (this.bottom_right_bondaries.y - this.top_left_bondaries.y);
@@ -217,7 +216,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     this.diagram_canvas.nativeElement.height = new_height + 30;
 
     this.pan.y = (new_height - this.height_of_base_shape) - (810 * this.scale);
-    this.pan.x = (new_width -  this.bottom_right_bondaries.x) + (15 * this.scale);    
+    this.pan.x = (new_width -  this.bottom_right_bondaries.x) + (15 * this.scale);
   }
 
   drawPoint(point: Point, color: string, size: number){
@@ -247,7 +246,23 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     wing_path.closePath();
     this.ctx.strokeStyle = this.color;
     this.ctx.lineWidth = this.thickness;
-    this.ctx.stroke(wing_path);   
+    this.ctx.stroke(wing_path);
+
+    this.buildExtras();
+    if(this.width > 0) {
+      this.ctx.beginPath();
+      this.ctx.textAlign = "center";
+      this.ctx.textBaseline = "middle";
+      this.ctx.fillStyle = this.color;
+      this.ctx.font = "normal " + (12 * this.scale) + "px Arial";    
+      this.ctx.fillText(this.width.toFixed(1) + " cm", this.wing_width_caption_point.x + this.pan.x, this.wing_width_caption_point.y + this.pan.y);
+    }
+  }
+
+  buildExtras(){
+    this.wing_width_caption_point = new Point(
+      ((234 * this.scale) + (((475 * this.scale) - (234 * this.scale))/2)), 
+      (315 * this.scale));
   }
 
   buildLefts(){
@@ -285,9 +300,9 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
       //start with the marked point
       let p1 = this.adjustBoundariesToSize(new Point(segment_points_left_line[i].x, segment_points_left_line[i].y));
       //find the point going up straight form the point (p1->p2), at the current angle
-      let p2 = this.adjustBoundariesToSize(line_at_angle_from_point2(segment_points_left_line[i], this.lefts[i]*this.cm_px , curr_angle));
+      let p2 = this.adjustBoundariesToSize(line_at_angle_from_point(segment_points_left_line[i], this.lefts[i]*this.cm_px , curr_angle));
       //find the next point (p3) by caltuating its angle from the next segment point
-      let p3 = this.adjustBoundariesToSize(line_at_angle_from_point2(segment_points_left_line[i+1], this.lefts[i]*this.cm_px , curr_angle + left_angle_segment));
+      let p3 = this.adjustBoundariesToSize(line_at_angle_from_point(segment_points_left_line[i+1], this.lefts[i]*this.cm_px , curr_angle + left_angle_segment));
       //p4 is just the next point on the segments
       let p4 = this.adjustBoundariesToSize(new Point(segment_points_left_line[i+1].x, segment_points_left_line[i+1].y));
 
