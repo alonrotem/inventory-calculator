@@ -6,14 +6,16 @@
         <th scope="col"></th>
         <th scope="col">Length</th>
         <th scope="col" class="text-center">Remove</th>
+        <th scope="col" style="width:80px; border: 0"></th>
       </tr>
     </thead>
     <tbody>
       <tr 
-        *ngFor="let wingbaby of this.wingsbabies | prefix: this.wingPrefix; trackBy: trackItem" role="button"> <!-- -->
+        *ngFor="let wingbaby of this.wingsbabies | prefix: this.wingPrefix; trackBy: trackItem; index as i" role="button"> <!-- -->
         <td (click)="clicked(wingbaby)"> {{ wingbaby.position }}</td>
         <td (click)="clicked(wingbaby)"> {{ wingbaby.length.toFixed(1) }} cm</td>
-        <td class="text-center" (click)="deleteBaby(wingbaby)"><fa-icon class="text-danger" [icon]="faTrashAlt"  [title]="'Delete ' + wingbaby.position + ' (' + wingbaby.length.toFixed(1) + ' cm)'"></fa-icon></td>
+        <td class="text-center" (click)="deleteBaby(wingbaby)" (mouseover)="show_append($event)" (mouseout)="hide_append($event)"><fa-icon class="text-danger" [icon]="faTrashAlt"  [title]="'Delete ' + wingbaby.position + ' (' + wingbaby.length.toFixed(1) + ' cm)'"></fa-icon></td>
+        <td *ngIf="i < ((this.wingsbabies | prefix: this.wingPrefix).length)" class="expand-balloon" (mouseover)="show_me($event)" (mouseout)="hide_me($event)" (click)="insert_row(i)">+ Insert</td>
       </tr>
     </tbody>
   </table>

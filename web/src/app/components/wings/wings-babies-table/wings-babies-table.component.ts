@@ -71,4 +71,44 @@ export class WingsBabiesTableComponent {
   trackItem (index: number, item: WingBaby) {
     return item.position;
   }
+
+  show_append(e: any){
+    if(e.target.nextElementSibling)
+      e.target.nextElementSibling.classList.add("expand-balloon-visible");
+  }
+
+  hide_append(e: any){
+    if(e.target.nextElementSibling)
+    e.target.nextElementSibling.classList.remove("expand-balloon-visible");
+  }
+
+  show_me(e:any) {
+    e.target.classList.add("expand-balloon-visible");
+  }
+  hide_me(e:any){
+    e.target.classList.remove("expand-balloon-visible");
+  }
+
+  insert_row(index:number){
+    let index_at_pos=0, item_index_with_prefix = 0;
+    for(let i=0, arr_pos_found=false; !arr_pos_found ; i++){
+      if(this.wingsbabies[i].position.toUpperCase().startsWith(this.wingPrefix.toUpperCase()))
+      {
+        index_at_pos= i;
+        item_index_with_prefix++;
+      }
+      if(item_index_with_prefix > index)
+        arr_pos_found = true;
+    }
+    this.wingsbabies.splice(index_at_pos, 0, {
+      wing_id: this.wing_id,
+      length: 0,
+      position: this.wingPrefix.toUpperCase() + "1"
+    });
+    for(let i=0, pos=1; i< this.wingsbabies.length; i++){
+      if(this.wingsbabies[i].position.toUpperCase().startsWith(this.wingPrefix.toUpperCase()))
+        this.wingsbabies[i].position = this.wingPrefix.toUpperCase() + (pos++);
+    }
+    this.wingsbabiesChange.emit(this.wingsbabies);
+  }
 }
