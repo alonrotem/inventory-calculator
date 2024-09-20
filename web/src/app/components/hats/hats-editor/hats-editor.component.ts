@@ -14,12 +14,14 @@ import { NgOption, NgSelectComponent, NgSelectModule } from '@ng-select/ng-selec
 import { WingDiagramComponent } from '../../wings/wing-diagram/wing-diagram.component';
 import { PrefixPipe } from '../../wings/wings-babies-table/prefix-pipe';
 import { ToastService } from '../../../services/toast.service';
+import { RawMaterialsService } from '../../../services/raw-materials.service';
+import { AutocompleteComponent, AutocompleteLibModule } from 'angular-ng-autocomplete';
 
 
 @Component({
   selector: 'app-hats-editor',
   standalone: true,
-  imports: [ ConfirmationDialogComponent, FormsModule, NgIf, FaIconComponent, NgSelectModule, WingDiagramComponent, PrefixPipe ],
+  imports: [ ConfirmationDialogComponent, FormsModule, NgIf, FaIconComponent, NgSelectModule, WingDiagramComponent, PrefixPipe, AutocompleteLibModule ],
   templateUrl: './hats-editor.component.html',
   styleUrl: './hats-editor.component.scss'
 })
@@ -43,7 +45,9 @@ export class HatsEditorComponent  implements OnInit, AfterViewInit{
   public hat : Hat = {
     id: 0,
     name: '',
-    wings: []
+    wings: [],
+    hat_material: '',
+    crown_material: ''
   }
   wing_names : string[] = [];
   blank_wing: Wing = {
@@ -56,8 +60,15 @@ export class HatsEditorComponent  implements OnInit, AfterViewInit{
   wing_exists = false;
   wing_loaded = false;
   active_wing_name :string = "";
+  raw_material_names: string[] = [];
 
-  constructor(private hatsService: HatsService, private wingsService: WingsService, private activatedRoute: ActivatedRoute, private router: Router, private toastService:ToastService){
+  constructor(private hatsService: HatsService, private wingsService: WingsService, private activatedRoute: ActivatedRoute, private router: Router, private toastService:ToastService, private rawMaterialsService: RawMaterialsService){
+    this.rawMaterialsService.getRawMaterialNames().subscribe({
+      next: (names)=> {
+        this.raw_material_names = names;
+      }
+    });
+
     let nav = this.router.getCurrentNavigation();
     if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {
       let info = nav.extras.state['info']['textInfo'];

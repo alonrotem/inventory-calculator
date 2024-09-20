@@ -112,6 +112,8 @@ export interface HatListItem {
     id: number;
     name: string;
     total_wings: number;
+    hat_material: string;
+    crown_material: string;
 }
 
 export interface HatsList {
@@ -126,6 +128,8 @@ export interface HatsList {
 export interface Hat {
     id: number;
     name: string;
+    hat_material: string;
+    crown_material: string;
     wings: HatWing[];
 }
 

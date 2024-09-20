@@ -49,8 +49,63 @@
             </div>
         </div>
 
+        <div class="row materials-picker-container">
+            <div class="col-6">
+                <div class="ng-autocomplete">
+                    <ng-autocomplete 
+                      [data]="raw_material_names"
+                      placeholder="Add hat material"
+                      [itemTemplate]="itemTemplate"
+                      [(ngModel)]="hat.hat_material"
+                      [className]="'form-control form-control-plaintext'"
+                      name="materialName"
+                      #materialName="ngModel">
+                    </ng-autocomplete><!--
+                                          (selected)='selectEvent($event)'
+                      (inputChanged)='onChangeSearch($event)'
+                      (inputFocused)='onFocused($event)'
+                      (inputCleared)='onCleared($event)'
+                    [notFoundTemplate]="notFoundTemplate"-->
+                    
+                    <ng-template #itemTemplate let-item>
+                        <a [innerHTML]="item"></a>
+                    </ng-template>
+                    <!--
+                    <ng-template #notFoundTemplate let-notFound>
+                        <div [innerHTML]="notFound"></div>
+                    </ng-template>-->
+                </div>
+        </div>
+            <div class="col-6">
+                <div class="ng-autocomplete">
+                    <ng-autocomplete 
+                      [data]="raw_material_names"
+                      placeholder="Add crown material"
+                      [itemTemplate]="itemTemplate"
+                      [(ngModel)]="hat.crown_material"
+                      [className]="'form-control form-control-plaintext'"
+                      name="materialName"
+                      #materialName="ngModel">
+                    </ng-autocomplete><!--
+                                          (selected)='selectEvent($event)'
+                      (inputChanged)='onChangeSearch($event)'
+                      (inputFocused)='onFocused($event)'
+                      (inputCleared)='onCleared($event)'
+                    [notFoundTemplate]="notFoundTemplate"-->
+                    
+                    <ng-template #itemTemplate let-item>
+                        <a [innerHTML]="item"></a>
+                    </ng-template>
+                    <!--
+                    <ng-template #notFoundTemplate let-notFound>
+                        <div [innerHTML]="notFound"></div>
+                    </ng-template>-->
+                </div>
+                </div>
+                </div>
+
         <div class="row">
-            <div class="col">
+            <div class="col-12">
                 <div class="no-wing-loaded" *ngIf="!wing_loaded">Choose a wing to preview it</div>
                 <div class="no-wing-loaded" *ngIf="wing_loaded && !wing_exists">
                     <div>No wing exists with name <span class="wing_name">{{ active_wing_name }}</span>.</div>

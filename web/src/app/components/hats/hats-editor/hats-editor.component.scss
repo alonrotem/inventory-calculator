@@ -79,3 +79,50 @@ h3 {
 .btn_save_special_container {
     margin: 20px 0px;
 }
+
+.ng-autocomplete {
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+}
+
+::ng-deep .autocomplete-container.active {
+    z-index: 9999 !important;
+}
+
+::ng-deep .ng-autocomplete {
+    width: auto !important;
+}
+
+::ng-deep .input-container input {
+    color: var(--bs-body-color) !important;
+    background-color: var(--bs-body-bg) !important;
+}
+
+::ng-deep .suggestions-container a {
+    color: var(--bs-body-color) !important;
+    background-color: var(--bs-body-bg) !important;
+}
+
+::ng-deep .suggestions-container a:hover {
+    color: var(--bs-body-bg) !important;
+    background-color: var(--bs-body-color) !important;
+}
+
+::ng-deep .autocomplete-container {
+    box-shadow: none !important;
+    height: auto !important;
+}
+
+::ng-deep .autocomplete-container .input-container .x i {
+    color: var(--bs-body-color) !important;
+}
+
+::ng-deep .autocomplete-container .not-found {
+    color: var(--bs-body-bg) !important;
+    background-color: var(--bs-body-color) !important;    
+}
+
+.materials-picker-container {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}

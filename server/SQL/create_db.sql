@@ -366,6 +366,8 @@ CREATE TABLE  IF NOT EXISTS `hats`
 (
   `id`           INT NOT NULL auto_increment,
   `name` 		VARCHAR(255) NOT NULL,
+  `hat_material` VARCHAR(255) NULL,
+  `crown_material` VARCHAR(255) NULL,
   PRIMARY KEY (`id`)
 );
 
@@ -479,35 +481,14 @@ VALUES
 (@wing_id_Wing_RT90, 'C1', 10),
 (@wing_id_Wing_RT90, 'C2', 10),
 (@wing_id_Wing_RT90, 'C3', 10);
-/*
-set @left = (select id from wing_positions where name='Left' limit 1);
-set @top = (select id from wing_positions where name='Top' limit 1);
-set @right = (select id from wing_positions where name='Right' limit 1);
-set @crown = (select id from wing_positions where name='Crown' limit 1);
-*/
-/*
-INSERT INTO `wings_babies` (`id`, `raw_material_name`, `parent_wing_id`, `position_id`, `length`) 
-VALUES 
-  (13,'Stone',1,4,8.5),
-  (15,'L1',1,1,5.5),
-  (16,'L2',1,1,6),
-  (17,'L3',1,1,7),
-  (18,'L4',1,1,7.5),
-  (19,'L5',1,1,8.5),
-  (34,'R1',1,3,5.5),
-  (35,'R2',1,3,6.5),
-  (36,'R3',1,3,7),
-  (37,'R4',1,3,7.5),
-  (38,'R5',1,3,8.5),
-  (53,'R90',1,2,9),
-  (66,'DM3X10',1,4,10),
-  (67,'DM10',1,4,10);
-*/
 
-
-insert into hats (name)
+insert into hats (name, hat_material, crown_material)
 VALUES
-	('RT100 Hat'), ('RT90 Hat'), ('Wing 2 Hat'), ('Hat 4'), ('Hat 5');
+	('RT100 Hat', 'Sable', 'Sable'),
+    ('RT90 Hat', 'DM', 'SM'),
+    ('Wing 2 Hat', 'BM', 'Canady'),
+    ('Hat 4', 'New material', 'BM'),
+    ('Hat 5', 'DM', 'Gold');
 
 set @rt_100_hat = (select id from hats where name='RT100 Hat' limit 1);
 set @rt_90_hat = (select id from hats where name='RT90 Hat' limit 1);

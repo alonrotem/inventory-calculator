@@ -23,7 +23,7 @@ async function getMultiple(page = 1, perPage){
     subset = `LIMIT ${offset},${perPage}`
   }
   const rows = await db.query(
-    `select h.id id, h.name name, sum(hw.wing_quantity) total_wings 
+    `select h.id id, h.name name, sum(hw.wing_quantity) total_wings, h.hat_material, h.crown_material
     from hats h left join hats_wings hw on hw.parent_hat_id = h.id 
     group by h.id order by h.name ${subset};`
   );

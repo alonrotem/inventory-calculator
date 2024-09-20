@@ -25,7 +25,7 @@
         routerLink="/templates/hats/editor" 
         [queryParams]="{ id: hat.id }" role="button">
         <td>{{ hat.name }}</td>
-        <td>{{ hat.total_wings }}</td>
+        <td>{{ hat.total_wings }} {{ (hat.hat_material!="" || hat.crown_material!="")?"(":"" }}{{ hat.hat_material }}{{(hat.hat_material==""?"":", ")}}{{ hat.crown_material }}{{ (hat.hat_material!="" || hat.crown_material!="")?")":"" }}</td>
         <!--
         <td>{{ wing.width | number: '1.1-1' }} cm</td>
         <td style="width: 150px;"><span class="icon-feather-wing"></span> L ({{ wing.Left }})</td>
