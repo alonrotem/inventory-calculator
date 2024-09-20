@@ -4,7 +4,7 @@ const config = require('../config');
 const { raw } = require('mysql2');
 
 async function getSingle(id){
-    const rows = await db.query(`select id, name from hats where id=${id}`);
+    const rows = await db.query(`select id, name, hat_material, crown_material from hats where id=${id}`);
     const data = helper.emptyOrSingle(rows);
     if(!helper.isEmptyObj(data))
     {
@@ -42,7 +42,7 @@ async function getMultiple(page = 1, perPage){
 }
 
 async function create(hat){
-  const result = await db.query(`INSERT INTO hats (name) VALUES ((?))`,[ hat.name ]);
+  const result = await db.query(`INSERT INTO hats (name, hat_material, crown_material) VALUES ((?),(?),(?))`,[ hat.name, hat.hat_material, hat.crown_material ]);
 
   let message = 'Error creating hats.';
   console.log("New hat ID: " + result.insertId + " ("+ hat.name +")");
@@ -60,7 +60,7 @@ async function create(hat){
 }
 
 async function update(id, hat){
-    const result = await db.query(`UPDATE hats SET name=(?) WHERE id=${id}`, [ hat.name, ]);
+    const result = await db.query(`UPDATE hats SET name=(?), hat_material=(?), crown_material=(?) WHERE id=${id}`, [ hat.name, hat.hat_material, hat.crown_material]);
 
     console.log("Updated hat ID: " + id + " ("+ hat.name +").");
     let message = 'Error in updating hat.';
