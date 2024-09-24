@@ -51,14 +51,18 @@
 
         <div class="row materials-picker-container">
             <div class="col-6">
+                <div class="wings_label"><span class="icon-wall-bricks"></span> Wall material</div>
                 <div class="ng-autocomplete">
                     <ng-autocomplete 
                       [data]="raw_material_names"
-                      placeholder="Add hat material"
+                      placeholder="Add wall material"
                       [itemTemplate]="itemTemplate"
                       [(ngModel)]="hat.hat_material"
                       [className]="'form-control form-control-plaintext'"
                       name="hatmaterialName"
+                      (inputChanged)="wall_material_changed($event)"
+                      (selected)="wall_material_changed($event)"
+                      (inputCleared)="wall_material_cleared()"
                       #hatmaterialName="ngModel">
                     </ng-autocomplete><!--
                                           (selected)='selectEvent($event)'
@@ -77,6 +81,7 @@
                 </div>
         </div>
             <div class="col-6">
+                <div  class="wings_label"><span class="icon-crown"></span> Crown material</div>
                 <div class="ng-autocomplete">
                     <ng-autocomplete 
                       [data]="raw_material_names"

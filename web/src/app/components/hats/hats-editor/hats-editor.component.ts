@@ -39,6 +39,8 @@ export class HatsEditorComponent  implements OnInit, AfterViewInit{
   @ViewChild("wing_name_selector") wing_name_selector! :NgSelectComponent;
   @ViewChild("diagram") diagram! :WingDiagramComponent;
   @ViewChild("numberOfWings", { read: ElementRef }) numberOfWings!: ElementRef;
+  @ViewChild("hatmaterialName") hatmaterialName! :AutocompleteComponent;
+  @ViewChild("crownmaterialName") crownmaterialName! :AutocompleteComponent;
 
   hat_id: number = 0;
 
@@ -283,5 +285,13 @@ export class HatsEditorComponent  implements OnInit, AfterViewInit{
         }
       },
     });
+  }
+
+  wall_material_changed(value:string){
+      this.hat.crown_material = value;
+  }
+
+  wall_material_cleared(){
+      this.hat.crown_material = "";
   }
 }

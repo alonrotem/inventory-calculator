@@ -1,50 +1,59 @@
 {
   "selection": [
     {
-      "order": 510,
+      "order": 12,
+      "name": "wall-bricks",
+      "prevSize": 32
+    },
+    {
+      "order": 11,
       "name": "fox-hiding",
       "prevSize": 32
     },
     {
-      "order": 511,
+      "order": 10,
       "name": "leaf1",
       "prevSize": 32
     },
     {
-      "order": 512,
+      "order": 9,
       "name": "raw",
       "prevSize": 32
     },
     {
-      "order": 513,
+      "order": 8,
       "name": "baby",
       "prevSize": 32
     },
     {
-      "order": 514,
+      "order": 7,
       "name": "logo-light",
       "prevSize": 32
     },
     {
-      "order": 515,
+      "order": 6,
       "name": "hat",
       "prevSize": 32
     },
     {
-      "order": 516,
+      "order": 5,
       "name": "feather-wing",
       "prevSize": 32
     },
     {
-      "order": 517
+      "order": 4,
+      "prevSize": 32,
+      "name": "feather-wing-r"
     },
     {
-      "order": 518,
-      "name": "crown"
+      "order": 3,
+      "name": "crown",
+      "prevSize": 32
     },
     {
-      "order": 519,
-      "name": "top"
+      "order": 2,
+      "name": "top",
+      "prevSize": 32
     }
   ],
   "metadata": {
@@ -56,11 +65,27 @@
     "url": "https://romtech.duckdns.org/",
     "designer": "Alon Rotem",
     "designerURL": "https://alonintheworld.com/",
-    "iconsHash": 1519964287
+    "iconsHash": 678596713
   },
   "height": 1024,
   "prevSize": 32,
   "icons": [
+    {
+      "paths": [
+        "M288 608v-128c0-19.2-12.8-32-32-32h-224c-19.2 0-32 12.8-32 32v128c0 19.2 12.8 32 32 32h224c19.2 0 32-12.8 32-32z",
+        "M992 448h-224c-19.2 0-32 12.8-32 32v128c0 19.2 12.8 32 32 32h224c19.2 0 32-12.8 32-32v-128c0-19.2-12.8-32-32-32z",
+        "M384 448c-19.2 0-32 12.8-32 32v128c0 19.2 12.8 32 32 32h256c19.2 0 32-12.8 32-32v-128c0-19.2-12.8-32-32-32h-256z",
+        "M192 384h256c19.2 0 32-12.8 32-32v-128c0-19.2-12.8-32-32-32h-256c-19.2 0-32 12.8-32 32v128c0 19.2 12.8 32 32 32z",
+        "M576 384h256c19.2 0 32-12.8 32-32v-128c0-19.2-12.8-32-32-32h-256c-19.2 0-32 12.8-32 32v128c0 19.2 12.8 32 32 32z",
+        "M448 704h-256c-19.2 0-32 12.8-32 32v128c0 19.2 12.8 32 32 32h256c19.2 0 32-12.8 32-32v-128c0-19.2-12.8-32-32-32z",
+        "M832 704h-256c-19.2 0-32 12.8-32 32v128c0 19.2 12.8 32 32 32h256c19.2 0 32-12.8 32-32v-128c0-19.2-12.8-32-32-32z"
+      ],
+      "grid": 0,
+      "tags": [
+        "wall-bricks-svgrepo-com"
+      ],
+      "defaultCode": 59648
+    },
     {
       "paths": [
         "M485.935 14.751c-80.345 50.842-113.428 72.038-113.571 72.897 0 1.432 23.631 16.9 25.779 16.9 1.003 0 15.754-8.879 32.797-19.621 61.87-39.098 71.179-44.827 75.332-47.118l4.44-2.291 21.339 13.606c11.887 7.447 28.787 18.045 37.523 23.631l16.040 10.168 11.457-8.45c6.158-4.583 11.601-8.879 12.030-9.596s-4.44-4.869-10.884-9.023c-21.626-14.035-85.93-54.709-87.505-55.282-0.859-0.286-12.030 6.015-24.777 14.178z",
@@ -108,7 +133,7 @@
       "tags": [
         "raw"
       ],
-      "defaultCode": 59648
+      "defaultCode": 59649
     },
     {
       "paths": [
@@ -118,7 +143,7 @@
       "tags": [
         "baby"
       ],
-      "defaultCode": 59649
+      "defaultCode": 59650
     },
     {
       "paths": [
@@ -138,7 +163,7 @@
       "tags": [
         "logo-light"
       ],
-      "defaultCode": 59650
+      "defaultCode": 59651
     },
     {
       "paths": [
@@ -148,7 +173,7 @@
       "tags": [
         "hat"
       ],
-      "defaultCode": 59651
+      "defaultCode": 59652
     },
     {
       "paths": [
@@ -158,7 +183,7 @@
       "tags": [
         "feather-wing-l"
       ],
-      "defaultCode": 59652
+      "defaultCode": 59653
     },
     {
       "paths": [
@@ -167,7 +192,8 @@
       "grid": 0,
       "tags": [
         "feather-wing-r"
-      ]
+      ],
+      "defaultCode": 59654
     },
     {
       "paths": [
@@ -176,7 +202,8 @@
       "grid": 0,
       "tags": [
         "crown"
-      ]
+      ],
+      "defaultCode": 59655
     },
     {
       "paths": [
@@ -185,7 +212,8 @@
       "grid": 0,
       "tags": [
         "top"
-      ]
+      ],
+      "defaultCode": 59656
     }
   ],
   "colorThemes": [],

@@ -66,6 +66,11 @@ h3 {
     color: var(--bs-gray);
 }
 
+.wings_label span {
+    margin-right:7px;
+    font-size: 18px;
+}
+
 ::ng-deep.ng-select-container, .number_selector {
     height: calc(3.5rem + calc(var(--bs-border-width)* 2)) !important;
     min-width: 50px;
