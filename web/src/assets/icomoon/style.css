@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'romtech';
-  src:  url('fonts/romtech.eot?5r3m97');
-  src:  url('fonts/romtech.eot?5r3m97#iefix') format('embedded-opentype'),
-    url('fonts/romtech.ttf?5r3m97') format('truetype'),
-    url('fonts/romtech.woff?5r3m97') format('woff'),
-    url('fonts/romtech.svg?5r3m97#romtech') format('svg');
+  src:  url('fonts/romtech.eot?yiziel');
+  src:  url('fonts/romtech.eot?yiziel#iefix') format('embedded-opentype'),
+    url('fonts/romtech.ttf?yiziel') format('truetype'),
+    url('fonts/romtech.woff?yiziel') format('woff'),
+    url('fonts/romtech.svg?yiziel#romtech') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -25,13 +25,19 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-leaf1:before {
+  content: "\e9a4";
+}
+.icon-leaf:before {
+  content: "\e9a5";
+}
 .icon-wall-bricks:before {
   content: "\e900";
 }
 .icon-fox-hiding:before {
   content: "\eaf1";
 }
-.icon-leaf1:before {
+.icon-leaf11:before {
   content: "\eaf0";
 }
 .icon-raw:before {
