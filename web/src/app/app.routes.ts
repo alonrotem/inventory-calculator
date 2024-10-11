@@ -8,6 +8,9 @@ import { WingsTableComponent } from './components/wings/wings-table/wings-table.
 import { WingsEditorComponent } from './components/wings/wings-editor/wings-editor.component';
 import { HatsTableComponent } from './components/hats/hats-table/hats-table.component';
 import { HatsEditorComponent } from './components/hats/hats-editor/hats-editor.component';
+import { UnsavedChangesGuard } from './guards/unsaved-changes-guard';
+import { CustomersTableComponent } from './components/customers/customers-table/customers-table.component';
+import { CustomerEditorComponent } from './components/customers/customer-editor/customer-editor.component';
 
 export const routes: Routes = [
     {
@@ -20,7 +23,8 @@ export const routes: Routes = [
     },
     {
         path: 'inventory/raw/editor',
-        component: RawMaterialEditorComponent
+        component: RawMaterialEditorComponent,
+        canDeactivate: [UnsavedChangesGuard]
     },
     {
         path: 'inventory/babies',
@@ -32,7 +36,8 @@ export const routes: Routes = [
     },
     {
         path: 'templates/wings/editor',
-        component: WingsEditorComponent
+        component: WingsEditorComponent,
+        canDeactivate: [UnsavedChangesGuard]
     },
     {
         path: 'templates/hats',
@@ -40,9 +45,20 @@ export const routes: Routes = [
     },
     {
         path: 'templates/hats/editor',
-        component: HatsEditorComponent
+        component: HatsEditorComponent,
+        canDeactivate: [UnsavedChangesGuard]
     },
-    { path: '**', pathMatch: 'full',  
+    {
+        path: 'inventory/customers',
+        component: CustomersTableComponent
+    },
+    {
+        path: 'inventory/customer/editor',
+        component: CustomerEditorComponent,
+        canDeactivate: [UnsavedChangesGuard]
+    },
+    { 
+        path: '**', pathMatch: 'full',  
         component: PagenotfoundComponent 
     }
 ];

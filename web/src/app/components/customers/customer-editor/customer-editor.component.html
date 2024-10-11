@@ -1,0 +1,138 @@
+<app-confirmation-dialog 
+    #delete_confirmation 
+    modalTitle="Delete confirmation"
+    modalText="Are you sure you want to delete this customer, {{ customerItem.name }}?"
+    [btnYesIcon]=faTrashAlt
+    btnYesText="Delete"
+    btnYesClass="btn-danger">
+</app-confirmation-dialog>
+
+<app-confirmation-dialog 
+    #navigate_confirmation 
+    modalTitle="Leaving so quickly?"
+    modalText="<strong>Your unsaved changed will be lost!</strong><br/>Are you sure you want to navigate away?"
+    [btnYesIcon]=faArrowLeft
+    btnYesText="Yes"
+    btnYesClass="btn-warning">
+</app-confirmation-dialog>
+
+<div class="row justify-content-center">
+<div class="col-8">
+
+    <h3><span class="icon-address-book"></span> {{ this.title }}</h3>
+
+    <form novalidate #customer_form="ngForm" [id]="'customer_form'">
+        <div class="editorForm">
+        
+        <div class="row">
+            <div class="col-6">
+                <div class="form-floating">
+                    <input type="text" #customerName="ngModel" class="form-control" placeholder="" [(ngModel)]="customerItem.name" name="customer_name" required>
+                    <label for="materialWeight">Customer name</label>
+                </div>
+                <div class="text-danger" *ngIf="customerName.invalid && (customerName.touched || customerName.dirty)" > 
+                    <span *ngIf="customerName.errors?.['required']">Please enter a name for the customer</span>
+                </div> 
+            </div>
+            <div class="col-2">
+                <button class="btn btn-warning upper-button" (click)="gotoCustomersList()" title="Cancel and go back">
+                    <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>
+                </button>
+            </div>
+            <div class="col-2">
+                <button #btn_save class="btn btn-success upper-button" type="submit" (click)="save()" title="Save changes"><!--[disabled]="!raw_material_form.form.valid"-->
+                    <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
+                </button>
+            </div>
+            <div class="col-2" *ngIf="!this.is_new_customer">
+                <button class="btn btn-danger upper-button" (click)="confirm_delete()" title="Delete customer">
+                    <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>
+                </button>
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <div class="form-floating">
+                    <input type="text" #businessName="ngModel" class="form-control" placeholder="" [(ngModel)]="customerItem.business_name" name="businessName">
+                    <label for="businessName">Business name</label>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="form-floating">
+                    <input type="text" #taxId="ngModel" class="form-control" placeholder="" [(ngModel)]="customerItem.tax_id" name="taxId">
+                    <label for="taxId">Tax ID</label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <div class="form-floating">
+                    <input type="email" #email="ngModel" class="form-control" placeholder="" [(ngModel)]="customerItem.email" name="email" email>
+                    <label for="email">Email address</label>
+                </div>
+                <div class="text-danger" *ngIf="email.invalid && (email.touched || email.dirty)" > 
+                    <span *ngIf="email.errors?.['email']">Please enter a valid email address</span>
+                </div>                 
+            </div>
+            <div class="col-6">
+                <div class="form-floating">
+                    <input type="tel" #phone="ngModel" class="form-control" placeholder="" [(ngModel)]="customerItem.phone" name="phone" (input)="phoneChanged($event)">
+                    <label for="phone">Phone number</label>
+                </div>                
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                Last updated at: {{ (newCustomerMode)? "Not yet!" : customerItem.updated_at | dateStr }}
+            </div>
+        </div>
+
+
+
+    </div>
+</form>
+
+
+<div class="row">
+    <div class="col">
+        <h4><fa-icon [icon]="faMoneyCheckDollar" style="margin-right: 10px;"></fa-icon>Material banks</h4>
+
+        <div *ngFor="let customer_bank of customerItem.banks">
+            <app-customer-bank-table 
+            [banks]="customerItem.banks"
+            [babies]="customerItem.babies"
+            [bank_id]="customer_bank.bank_id"
+            />
+        </div>
+
+    </div>
+</div>
+
+<!-- buttons row -->
+<div class="row buttons-area">
+    <div class="col-12 d-flex justify-content-center {{ this.is_new_customer? 'col-md-6':'col-md-4' }}">
+        <button class="btn btn-warning" (click)="gotoCustomersList()">
+            <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>
+            <div>Cancel Chages</div>
+        </button>
+    </div>
+
+        <div class="col-12 d-flex justify-content-center {{ this.is_new_customer? 'col-md-6':'col-md-4' }}">
+            <button #btn_save class="btn btn-success" type="submit" (click)="save()"><!--[disabled]="!raw_material_form.form.valid"-->
+                <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
+                <div>Save Customer</div>
+            </button>
+        </div>
+        <div class="col-12 d-flex justify-content-center col-md-4" *ngIf="!this.is_new_customer">
+            <button class="btn btn-danger" (click)="confirm_delete()">
+                <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>
+                <div>Delete Customer</div>
+            </button>
+        </div>
+</div>
+<!-- buttons row -->
+</div>
+
+</div>

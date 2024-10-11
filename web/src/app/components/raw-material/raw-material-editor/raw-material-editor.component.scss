@@ -6,11 +6,10 @@
     height: calc(3.5rem + calc(var(--bs-border-width)* 2)) !important;
     min-width: 50px;
 }
-
+/*
 .editorForm div.col {
-    /*height: calc(3.5rem + calc(var(--bs-border-width)* 2));*/
     margin: 8px 0px;
-}
+}*/
 
 h3 {
     margin: 25px 0;
@@ -36,10 +35,11 @@ h3 {
     }
 }
 
-.babies-container
+.banks-container
 {
-    padding-top: 20px;
-    padding-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .ng-autocomplete {

@@ -21,24 +21,134 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
   //@Input() crown_length = 2;//4;
   @Input() width = 10;
   @Input() scale = 1;
+  @Input() show_tooltips = true;
+  @Input() highlight_mouseover_baby = true;
+  @Input() show_texts = true;
+  @Input() preset_theme = "";
   @Output() babyClicked = new EventEmitter<string>();
 
+  @ViewChild("diagram_canvas", { read: ElementRef }) diagram_canvas!: ElementRef;
+  @ViewChild("tooltip", { read: ElementRef }) tooltip!: ElementRef;
+
   //defaults
-  text_margin: number= 10;
-  top_angles: number = 10;
-  pan:Point = new Point(0,0);
-  thickness: number = 1;
-  cm_px = 15 * this.scale;
+  text_margin: number = 0;
+  top_angles: number = 0;
+  pan:Point = new Point(0, 0);
+  thickness: number = 0;
+  cm_px: number = 0;
   top_left_bondaries: Point = new Point(2000, 2000);
   bottom_right_bondaries: Point = new Point(-2000, -2000);
 
+  ctx: any;
+  color: string = "";
+  backcolor: string = "";
+  cursor: Point = new Point(0, 0);
+  onBaby: string = "";
+
+  // LEFTS
+  lefts_top:Point = new Point(0,0);
+  lefts_bottom:Point = new Point(0,0);
+  lefts_start:Point = new Point(0,0);
+  lefts_start_angle:number = 0;
+  lefts_end_angle: number = 0;
+  
+  //RIGHT
+  rights_top:Point = new Point(0,0);
+  rights_bottom:Point = new Point(0,0);
+  rights_start_angle:number = 0
+  rights_end_angle:number = 0;
+
+  crown_bottom:Point = new Point(0,0);
+  central_circle_point:Point = new Point(0,0);
+  base_shape_bottom: number = 0;
+  wing_base_shape:Point[] = [];
+  height_of_base_shape:number = 0;
+  width_of_base_shape:number = 0;
+  wing_width_caption_point:Point = new Point(0,0);
+  
+  path_items:any = [];
+  
+  constructor (private globalService: GlobalsService){
+    this.setColors(this.globalService.currentTheme());
+    this.globalService.themeChanged.subscribe({
+      next: (theme: string)=> {
+        this.setColors(theme);
+      }
+    });
+  }
+
+  ngAfterViewInit(): void {
+
+    //console.log("oninit scale: " + this.scale);
+    //defaults
+    this.text_margin = 10;
+    this.top_angles = 10;
+    this.pan = new Point(0,0);
+    this.thickness = 1;
+    this.cm_px = 15 * this.scale;
+    this.top_left_bondaries = new Point(2000, 2000);
+    this.bottom_right_bondaries = new Point(-2000, -2000);
+
+    this.color = "white";
+    this.backcolor = "white";
+    this.cursor = new Point(0, 0);
+    this.onBaby = "";
+
+    // LEFTS
+    this.lefts_top = new Point(354 * this.scale + this.pan.x, 231.5 * this.scale + this.pan.y);
+    this.lefts_bottom = new Point(234 * this.scale + this.pan.x, 301.5 * this.scale + this.pan.y);
+    this.lefts_start = new Point (234 * this.scale + this.pan.x, 315 * this.scale + this.pan.y);
+    this.lefts_start_angle = 180;
+    this.lefts_end_angle = (270 - this.top_angles);
+
+    //RIGHT
+    this.rights_top = new Point(385 * this.scale + this.pan.x, 231.5 * this.scale + this.pan.y);
+    this.rights_bottom = new Point(510 * this.scale + this.pan.x, 290 * this.scale + this.pan.y);
+    this.rights_start_angle = 270 + this.top_angles;
+    this.rights_end_angle = 360;
+
+    this.crown_bottom = new Point (510 * this.scale + this.pan.x , 326 * this.scale + this.pan.y);
+    this.central_circle_point = new Point(this.lefts_top.x + ((this.rights_top.x - this.lefts_top.x)/2), this.lefts_bottom.y);
+    this.base_shape_bottom = 531.5 * this.scale + this.pan.y;
+    
+    this.path_items = [];
+
+        /*    top
+            9____8
+            /    \ rights
+      lefts/      \7
+          /10      | crown
+  1/12 __|    5 ___|6
+      |  11   /
+      |     4/
+      |    |
+      2|____|3
+      */
+    this.wing_base_shape = [
+      this.adjustBoundariesToSize(new Point(221 * this.scale + this.pan.x, 315 * this.scale + this.pan.y)),       //1
+      this.adjustBoundariesToSize(new Point(221 * this.scale + this.pan.x , this.base_shape_bottom)),             //2
+      this.adjustBoundariesToSize(new Point(358.5 * this.scale + this.pan.x , this.base_shape_bottom)),           //3
+      this.adjustBoundariesToSize(new Point(358.5 * this.scale + this.pan.x , 495 * this.scale + this.pan.y)),    //4
+      this.adjustBoundariesToSize(new Point(475 * this.scale + this.pan.x , 326 * this.scale + this.pan.y)),      //5
+      this.adjustBoundariesToSize(new Point(this.crown_bottom.x, this.crown_bottom.y)),                           //6 //bottom of crown
+      this.adjustBoundariesToSize(new Point(this.rights_bottom.x, this.rights_bottom.y)),                         //7 bottom of rights
+      this.adjustBoundariesToSize(new Point(this.rights_top.x ,this.rights_top.y)),                               //8 top of righs
+      this.adjustBoundariesToSize(new Point(this.lefts_top.x , this.lefts_top.y)),                                //9 top of lefts
+      this.adjustBoundariesToSize(new Point(this.lefts_bottom.x, this.lefts_bottom.y)),                           //10 bottom of lefts line
+      this.adjustBoundariesToSize(new Point(234 * this.scale + this.pan.x , 315 * this.scale + this.pan.y)),      //11
+      this.adjustBoundariesToSize(new Point(221 * this.scale + this.pan.x , 315 * this.scale + this.pan.y))       //12
+    ];
+    this.height_of_base_shape = this.rights_top.y - this.base_shape_bottom;
+    this.width_of_base_shape = this.crown_bottom.x - 221 * this.scale + this.pan.x;
+
+    this.wing_width_caption_point = new Point(0,0);
+
+    this.Rebuild();
+    
+    requestAnimationFrame(() => { this.drawDiagram(); });
+  }
+
   adjustBoundariesToSize(p: Point){
-    /*
-    console.log("===========================")
-    console.log("p ->" + p.x + "," + p.y);
-    console.log("t_l ->" + this.top_left_bondaries.x + "," + this.top_left_bondaries.y);
-    console.log("b_r ->" + this.bottom_right_bondaries.x + "," + this.bottom_right_bondaries.y);
-    */
     let adjusted:boolean = false;
     let adjust_point:string ="";
     if (p.x < this.top_left_bondaries.x){
@@ -65,27 +175,10 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
       adjusted = true;
       adjust_point += ((adjust_point=="")? "": ", ") + "4" + reason;
     }
-    /*
-    if(adjust_point != ""){
-      console.log("Adjusted at " + adjust_point);
-      console.log("top_lefts " + this.top_left_bondaries.x + "," + this.top_left_bondaries.y);
-      console.log("bot_right " + this.bottom_right_bondaries.x + "," + this.bottom_right_bondaries.y);
-    }
-    else {
-      console.log("=== Not adjusted");
-    }
-    */
     return p;
   }
 
-  @ViewChild("diagram_canvas", { read: ElementRef }) diagram_canvas!: ElementRef;
-  @ViewChild("tooltip", { read: ElementRef }) tooltip!: ElementRef;
 
-  ctx: any;
-  color: string = "white";
-  backcolor: string = "white";
-  cursor: Point = new Point(0, 0);
-  onBaby: string = "";
 
   mouseMove(e: any){
     this.cursor.x = e.offsetX;
@@ -103,70 +196,14 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
   }
 
   showTooltip(text: string){
-    this.tooltip.nativeElement.style.display = "block";
-    this.tooltip.nativeElement.innerHTML = text;
+    if(this.show_tooltips){
+      this.tooltip.nativeElement.style.display = "block";
+      this.tooltip.nativeElement.innerHTML = text;
+    }
   }
 
   hideTooltip(){
     this.tooltip.nativeElement.style.display = "none";
-  }
-
-  // LEFTS
-  lefts_top = new Point(354 * this.scale + this.pan.x, 231.5 * this.scale + this.pan.y);
-  lefts_bottom = new Point(234 * this.scale + this.pan.x, 301.5 * this.scale + this.pan.y);
-  lefts_start = new Point (234 * this.scale + this.pan.x, 315 * this.scale + this.pan.y);
-  lefts_start_angle = 180;
-  lefts_end_angle = (270 - this.top_angles);
-
-  //RIGHT
-  rights_top = new Point(385 * this.scale + this.pan.x, 231.5 * this.scale + this.pan.y);
-  rights_bottom = new Point(510 * this.scale + this.pan.x, 290 * this.scale + this.pan.y);
-  rights_start_angle = 270 + this.top_angles;
-  rights_end_angle = 360;
-
-  crown_bottom = new Point (510 * this.scale + this.pan.x , 326 * this.scale + this.pan.y);
-  central_circle_point = new Point(this.lefts_top.x + ((this.rights_top.x - this.lefts_top.x)/2), this.lefts_bottom.y);
-  base_shape_bottom: number = 531.5 * this.scale + this.pan.y;
-  
-  path_items:any = [];
-
-      /*    top
-          9____8
-          /    \ rights
-    lefts/      \7
-        /10      | crown
-1/12 __|    5 ___|6
-     |  11   /
-     |     4/
-     |    |
-    2|____|3
-    */
-  wing_base_shape = [
-    this.adjustBoundariesToSize(new Point(221 * this.scale + this.pan.x, 315 * this.scale + this.pan.y)),       //1
-    this.adjustBoundariesToSize(new Point(221 * this.scale + this.pan.x , this.base_shape_bottom)),             //2
-    this.adjustBoundariesToSize(new Point(358.5 * this.scale + this.pan.x , this.base_shape_bottom)),           //3
-    this.adjustBoundariesToSize(new Point(358.5 * this.scale + this.pan.x , 495 * this.scale + this.pan.y)),    //4
-    this.adjustBoundariesToSize(new Point(475 * this.scale + this.pan.x , 326 * this.scale + this.pan.y)),      //5
-    this.adjustBoundariesToSize(new Point(this.crown_bottom.x, this.crown_bottom.y)),                           //6 //bottom of crown
-    this.adjustBoundariesToSize(new Point(this.rights_bottom.x, this.rights_bottom.y)),                         //7 bottom of rights
-    this.adjustBoundariesToSize(new Point(this.rights_top.x ,this.rights_top.y)),                               //8 top of righs
-    this.adjustBoundariesToSize(new Point(this.lefts_top.x , this.lefts_top.y)),                                //9 top of lefts
-    this.adjustBoundariesToSize(new Point(this.lefts_bottom.x, this.lefts_bottom.y)),                           //10 bottom of lefts line
-    this.adjustBoundariesToSize(new Point(234 * this.scale + this.pan.x , 315 * this.scale + this.pan.y)),      //11
-    this.adjustBoundariesToSize(new Point(221 * this.scale + this.pan.x , 315 * this.scale + this.pan.y))       //12
-  ];
-  height_of_base_shape = this.rights_top.y - this.base_shape_bottom;
-  width_of_base_shape = this.crown_bottom.x - 221 * this.scale + this.pan.x;
-
-  wing_width_caption_point = new Point(0,0);
-
-  constructor (private globalService: GlobalsService){
-    this.setColors(this.globalService.currentTheme());
-    this.globalService.themeChanged.subscribe({
-      next: (theme: string)=> {
-        this.setColors(theme);
-      }
-    });
   }
   
   checkArrEquality(a:[], b:[]) {
@@ -188,13 +225,9 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
   }
 
   setColors(theme:string){
-    this.color = (theme == "dark")? "#f8f9fa": "#212529";
-    this.backcolor = (theme == "dark")? "#212529" : "#f8f9fa";
-  }
-
-  ngAfterViewInit(): void {
-    this.Rebuild();
-    requestAnimationFrame(() => { this.drawDiagram(); });
+    let theme_to_Set = (this.preset_theme!="")? this.preset_theme : theme;
+    this.color = (theme_to_Set == "dark")? "#f8f9fa": "#212529";
+    this.backcolor = (theme_to_Set == "dark")? "#212529" : "#f8f9fa";
   }
 
   public Rebuild(){
@@ -209,6 +242,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     
 
     this.ctx = this.diagram_canvas.nativeElement.getContext('2d');
+  
     let new_height = (this.bottom_right_bondaries.y - this.top_left_bondaries.y);
     let new_width = (this.bottom_right_bondaries.x - this.top_left_bondaries.x);
 
@@ -249,12 +283,12 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     this.ctx.stroke(wing_path);
 
     this.buildExtras();
-    if(this.width > 0) {
+    if(this.show_texts && this.width > 0) {
       this.ctx.beginPath();
       this.ctx.textAlign = "center";
       this.ctx.textBaseline = "middle";
       this.ctx.fillStyle = this.color;
-      this.ctx.font = "normal " + (12 * this.scale) + "px Arial";    
+      this.ctx.font = "normal " + (12 * this.scale) + "px Arial";
       this.ctx.fillText(this.width.toFixed(1) + " cm", this.wing_width_caption_point.x + this.pan.x, this.wing_width_caption_point.y + this.pan.y);
     }
   }
@@ -461,15 +495,17 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
       this.ctx.lineWidth=this.thickness;
       this.ctx.stroke(this.path_items[baby_i].path);
   
-      this.ctx.beginPath();
-      this.ctx.textAlign = "center";
-      this.ctx.textBaseline = "middle";
-      this.ctx.fillStyle = this.color;
-      this.ctx.font = "normal " + (12 * this.scale) + "px Arial";
-      
-      this.ctx.fillText(this.path_items[baby_i].length, this.path_items[baby_i].length_info_point.x, this.path_items[baby_i].length_info_point.y);
-  
-      if(this.ctx.isPointInPath(this.path_items[baby_i].path, this.cursor.x, this.cursor.y))
+      if(this.show_texts) {
+        this.ctx.beginPath();
+        this.ctx.textAlign = "center";
+        this.ctx.textBaseline = "middle";
+        this.ctx.fillStyle = this.color;
+        this.ctx.font = "normal " + (12 * this.scale) + "px Arial";
+        
+        this.ctx.fillText(this.path_items[baby_i].length, this.path_items[baby_i].length_info_point.x, this.path_items[baby_i].length_info_point.y);
+      }
+
+      if(this.highlight_mouseover_baby && this.ctx.isPointInPath(this.path_items[baby_i].path, this.cursor.x, this.cursor.y))
       {
         this.ctx.fillStyle = '#ffc107'; 
         this.ctx.fill(this.path_items[baby_i].path);
@@ -485,7 +521,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
         this.ctx.fillStyle = this.color;
         //this.onBaby = "";
       }
-      if(this.path_items[baby_i].show_text)
+      if(this.show_texts && this.path_items[baby_i].show_text)
       {
         this.ctx.fillText(this.path_items[baby_i].title, this.path_items[baby_i].mid_point.x, this.path_items[baby_i].mid_point.y);
       }
@@ -494,7 +530,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
   }
 
   drawShapes (){
-
+    
     this.draw_main_wing();
     this.drawBabies();
   }

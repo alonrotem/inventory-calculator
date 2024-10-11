@@ -3,7 +3,7 @@ import { WingsList, WingsListItem } from '../../../../types';
 import { PaginatorComponent } from '../../common/paginator/paginator.component';
 import { faArrowsRotate, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { WingsService } from '../../../services/wings.service';
-import { DateStrPipe } from "../../../utils/date_pipe";
+import { DateStrPipe } from "../../../utils/pipes/date_pipe";
 import { Router, RouterModule } from '@angular/router';
 import { DecimalPipe, NgFor } from '@angular/common';
 import { FaIconComponent, FontAwesomeModule } from '@fortawesome/angular-fontawesome';

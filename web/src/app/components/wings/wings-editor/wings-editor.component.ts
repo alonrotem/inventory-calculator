@@ -1,33 +1,38 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnInit, viewChild, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, HostListener, OnDestroy, OnInit, viewChild, ViewChild } from '@angular/core';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
-import { faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faArrowUp, faL, faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { Wing, WingBaby } from '../../../../types';
 import { FormsModule, NgForm } from '@angular/forms';
 import { WingsService } from '../../../services/wings.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { NgFor, NgIf } from '@angular/common';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { NgFor, NgIf, PlatformLocation } from '@angular/common';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { WingsBabiesTableComponent } from '../wings-babies-table/wings-babies-table.component';
 import { WingDiagramComponent } from '../wing-diagram/wing-diagram.component';
-import { PrefixPipe } from "../wings-babies-table/prefix-pipe";
+import { PrefixPipe } from "../../../utils/pipes/prefix-pipe";
 import { BabiesLengthPickerComponent } from "../../babies/babies-length-picker/babies-length-picker.component";
 import { BabyLengthModalComponent } from '../baby-length-modal/baby-length-modal.component';
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { ToastService } from '../../../services/toast.service';
+import { HasUnsavedChanges } from '../../../guards/unsaved-changes-guard';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-wings-editor',
   standalone: true,
-  imports: [ConfirmationDialogComponent, FormsModule, NgIf, NgFor, FaIconComponent, WingsBabiesTableComponent, WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent, BabyLengthModalComponent, ModalDialogComponent],
+  imports: [ ConfirmationDialogComponent, FormsModule, NgIf, NgFor, FaIconComponent, WingsBabiesTableComponent, WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent, BabyLengthModalComponent, ModalDialogComponent],
   templateUrl: './wings-editor.component.html',
   styleUrl: './wings-editor.component.scss',/*
   changeDetection: ChangeDetectionStrategy.OnPush*/
+  
 })
-export class WingsEditorComponent implements OnInit, AfterViewInit {
+export class WingsEditorComponent implements OnInit, AfterViewInit,/*, OnDestroy*/ HasUnsavedChanges {
 
   faSave: IconDefinition = faSave;
   faTrashAlt:IconDefinition = faTrashAlt;
+  faArrowLeft:IconDefinition = faArrowLeft;
   faTimesCircle:IconDefinition = faTimesCircle;
+  faArrowUp: IconDefinition = faArrowUp;
   title: string = "Create Wing";
   is_new_wing: Boolean = true;
 
@@ -38,6 +43,7 @@ export class WingsEditorComponent implements OnInit, AfterViewInit {
   @ViewChild("wingName", { read: ElementRef }) wingName!: ElementRef;
   @ViewChild('wingForm') wingForm!: NgForm;
   @ViewChild('delete_confirmation') delete_confirmation!: ConfirmationDialogComponent;
+  @ViewChild('navigate_confirmation') navigate_confirmation!: ConfirmationDialogComponent;
   @ViewChild("btn_save", { read: ElementRef }) btn_save!: ElementRef;
   @ViewChild("top_picker") top_picker!: BabiesLengthPickerComponent;
   @ViewChild("length_editor") length_editor! :ModalDialogComponent;
@@ -45,6 +51,8 @@ export class WingsEditorComponent implements OnInit, AfterViewInit {
 
   @ViewChild("crown_size", { read: ElementRef }) crown_size!: ElementRef;
   @ViewChild("crown_picker") crown_picker!: BabiesLengthPickerComponent;
+  @ViewChild("diagram_container", { read: ElementRef }) diagram_container!: ElementRef;
+  @ViewChild("wing_preview", { read: ElementRef }) wing_preview!: ElementRef;
 
   wing_id: number = 0;
 
@@ -54,9 +62,12 @@ export class WingsEditorComponent implements OnInit, AfterViewInit {
     width: 0,
     babies: []
   }
-  crown_babies_options = Array(5).fill(0).map((_, i)=> i+1)
+  crown_babies_options = Array(5).fill(0).map((_, i)=> i+1);
 
-  constructor(private wingsService: WingsService, private activatedRoute: ActivatedRoute, private router: Router, private toastService: ToastService){
+  // for opening the unsave changes dialog
+  private confirmResult: boolean | null = null;
+
+  constructor(private wingsService: WingsService, private activatedRoute: ActivatedRoute, private router: Router, private toastService: ToastService, private _location: PlatformLocation){
     let nav = this.router.getCurrentNavigation();
     if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {
       let info = nav.extras.state['info']['textInfo'];
@@ -74,8 +85,25 @@ export class WingsEditorComponent implements OnInit, AfterViewInit {
     }
   }
 
+  hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
+    if(!this.wingForm.pristine) {
+      return new Promise((resolve) => {
+        this.confirmResult = null;
+        // Ensure this refers to the component's instance using an arrow function
+        this.navigate_confirmation.open(); // Open the modal dialog
+    
+        // Use arrow function to preserve `this` context
+        this.navigate_confirmation.confirm.subscribe((result: boolean) => {
+          this.confirmResult = result;
+          setTimeout(() => this.confirmResult = null, 0); 
+          resolve(result);  // Resolve the promise based on user confirmation
+        });
+      });
+    }
+    return true;
+  }
+
   ngOnInit(): void {
-    console.log("ngOnInit")
     this.is_new_wing = !this.activatedRoute.snapshot.queryParamMap.has('id');
     if(!this.is_new_wing)
     {
@@ -83,15 +111,13 @@ export class WingsEditorComponent implements OnInit, AfterViewInit {
       this.is_new_wing = false;
       this.wing_id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
       this.getWing(this.wing_id);
-    } 
+    }
   }
 
   getWing(id: number){
-    console.log("getWing")
     this.wingsService.getWing(id).subscribe(
     {
       next: (wing: Wing) => {
-        console.log("received wing")
         this.wing = wing;
         let crownBabies = this.wing.babies.filter((b) => b.position.startsWith("C"));
         this.crown_units = crownBabies.length;
@@ -101,6 +127,10 @@ export class WingsEditorComponent implements OnInit, AfterViewInit {
         console.log(error);
       }
     })
+  }
+
+  babies_length_clicked() {
+    this.wingForm.form.markAsDirty();
   }
 
   babyLengths(pos: string){
@@ -132,7 +162,7 @@ export class WingsEditorComponent implements OnInit, AfterViewInit {
 
   //set the crown controls according to the babies objects
   set_crown(){
-    console.log(this.crown_size.nativeElement);
+    this.wingForm.form.markAsDirty();
     let num_of_crown_items = this.crown_size.nativeElement.value;
     let new_length = this.crown_picker.get_length(); 
     this.crown_units = num_of_crown_items;
@@ -153,8 +183,7 @@ export class WingsEditorComponent implements OnInit, AfterViewInit {
     this.wingForm.form.markAllAsTouched();
     if(this.wingForm.form.valid)
     {
-      //this.wing.babies = this.babiesLeft.concat(this.babiesRight).concat(this.babiesCrown).concat(this.babiesTop);
-
+      this.wingForm.form.markAsPristine();
       //edit
       if(!this.is_new_wing)
       {
@@ -165,6 +194,16 @@ export class WingsEditorComponent implements OnInit, AfterViewInit {
       else
       {
         this.saveNewWing(this.wing, goToHatEditor);
+      }
+    }
+    else {
+      let form = document.getElementById('wingForm');
+      if(form){
+        let firstInvalidControl = form.getElementsByClassName('ng-invalid')[0];
+        firstInvalidControl.classList.remove("ng-invalid");
+        firstInvalidControl.scrollIntoView();
+        (firstInvalidControl as HTMLElement).focus();
+        firstInvalidControl.classList.add("ng-invalid");
       }
     }
   }
@@ -267,8 +306,6 @@ export class WingsEditorComponent implements OnInit, AfterViewInit {
 
   length_editor_closed(){
     this.crown_units =  this.baby_length_modal.crown_units;
-    //debugger;
-    console.log(this.baby_length_modal.crown_units);
     this.crown_size.nativeElement.value =  this.baby_length_modal.crown_units;
     this.set_crown();
   }
@@ -284,6 +321,26 @@ export class WingsEditorComponent implements OnInit, AfterViewInit {
 
     //"refresh" the array, to detect the change
     this.wing.babies = this.wing.babies.map(el => Object.assign({}, el));
+    this.form_touched();
+  }
+
+  form_touched() {
+    //window.addEventListener('beforeunload', (e) => {  console.log(this); /*e.preventDefault();*/ e.returnValue="hello"; return false; });
+  }
+
+  scrollToFullDiagram() {
+    this.diagram_container.nativeElement.scrollIntoView();
+  }
+
+  // Listen for the window scroll event
+  @HostListener('window:scroll', [])
+  onWindowScroll(): void {
+    const elementPosition = this.diagram_container.nativeElement.getBoundingClientRect().top;
+   if(elementPosition < 0){
+      this.wing_preview.nativeElement.classList.remove("hidden_preview");
+    } else {
+      this.wing_preview.nativeElement.classList.add("hidden_preview");
+    }
   }
 }
 

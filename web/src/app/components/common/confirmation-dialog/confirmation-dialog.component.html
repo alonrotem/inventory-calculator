@@ -1,7 +1,7 @@
 
 
-<app-modal-dialog #confirmation_dialog>
+<app-modal-dialog #confirmation_dialog [reverseButtons]="reverseButtons">
     <div #modalContent>
-        <p>{{ modalText }}</p>
+        <p [innerHTML]="modalText"></p>
     </div>
 </app-modal-dialog>

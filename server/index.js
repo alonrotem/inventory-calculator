@@ -12,6 +12,8 @@ const countriessRouter = require("./routes/countries");
 const infoRouter = require("./routes/info");
 const wingsRouter = require("./routes/wings");
 const hatsRouter = require("./routes/hats");
+const customersRouter = require("./routes/customers");
+
 
 app.use(express.json());
 app.use(
@@ -30,6 +32,7 @@ app.use("/countries", countriessRouter);
 app.use("/info", infoRouter);
 app.use("/wings", wingsRouter);
 app.use("/hats", hatsRouter);
+app.use("/customers", customersRouter);
 
 /* Error handler middleware */
 app.use((err, req, res, next) => {

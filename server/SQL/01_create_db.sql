@@ -6,14 +6,19 @@ use inventory;
 # CLEANUP
 # -----------
 # Drop foreign key if exists:
-SET @table_name = 'babies', @fk_name = 'fk_baby_raw_material_parent'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+SET @table_name = 'babies', @fk_name = 'fk_baby_raw_material_customer_parent'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 SET @table_name = 'raw_materials', @fk_name = 'fk_raw_material_country'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 SET @table_name = 'raw_materials', @fk_name = 'fk_raw_material_currency'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 SET @table_name = 'wings_babies', @fk_name = 'fk_parent_wing_id'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 SET @table_name = 'hats_wings', @fk_name = 'fk_hat_parent_wing_id'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+SET @table_name = 'customer_banks', @fk_name = 'fk_raw_material_customer'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+SET @table_name = 'customer_banks', @fk_name = 'fk_customer_raw_material'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
+drop table if exists users;
 
 drop table if exists raw_materials;
+drop table if exists customers;
+drop table if exists customer_banks;
 drop table if exists babies;
 drop table if exists countries;
 drop table if exists currencies;
@@ -27,6 +32,21 @@ drop table if exists hats_wings;
 
 # CREATE TABLES
 # ---------------
+/*
+CREATE TABLE  IF NOT EXISTS `users` (
+	`id` INT NOT NULL auto_increment,
+	`username`  VARCHAR(64) NOT NULL,
+    `email`  	VARCHAR(64) NOT NULL,
+    `password`  VARCHAR(64) NOT NULL,
+    PRIMARY KEY (`username`)
+);
+
+CREATE TABLE  IF NOT EXISTS `user_profiles` (
+	
+  CONSTRAINT fk_user_profile
+  FOREIGN KEY (`currency`) REFERENCES currencies(`code`)
+);*/
+
 CREATE TABLE  IF NOT EXISTS `countries`
 (
   `code`  VARCHAR(2) NOT NULL,
@@ -273,7 +293,7 @@ values
 ('UZ', 'Uzbekistan', DEFAULT),
 ('VU', 'Vanuatu', DEFAULT),
 ('VE', 'Venezuela', DEFAULT),
-('VN', 'Viet Nam', DEFAULT),
+('VN', 'Vietnam', DEFAULT),
 ('VG', 'Virgin Islands (British)', DEFAULT),
 ('VI', 'Virgin Islands (US)', DEFAULT),
 ('WF', 'Wallis and Futuna', DEFAULT),
@@ -290,6 +310,12 @@ CREATE TABLE  IF NOT EXISTS `currencies`
   `order` int default(999),
   PRIMARY KEY (`code`)
 );
+
+Insert into currencies (`code`, `name`, `symbol`, `order`)
+values
+  ('USD', 'US', '$', 10),
+  ('EUR', 'EURO', _ucs2 0x20AC, 20),
+  ('RUB', 'Ruble', _ucs2 0x20BD, 30);
 
 CREATE TABLE  IF NOT EXISTS `raw_materials`
 (
@@ -315,10 +341,37 @@ CREATE TABLE  IF NOT EXISTS `raw_materials`
   FOREIGN KEY (`currency`) REFERENCES currencies(`code`)
 );
 
+CREATE TABLE  IF NOT EXISTS `customers` (
+	`id`            	INT NOT NULL auto_increment,
+	`name`          	VARCHAR(255) NOT NULL ,
+	`business_name`     VARCHAR(255) NULL ,
+	`email`     		VARCHAR(255) NULL ,
+	`phone`     		VARCHAR(255) NULL ,
+	`tax_id`     		VARCHAR(255) NULL ,
+	`created_at`    	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+	`updated_at`    	DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`created_by`	 	int null,
+	`updated_by`	 	int null,    
+    PRIMARY KEY (`id`)
+);
+
+CREATE TABLE  IF NOT EXISTS `customer_banks` (
+	`id`            			INT NOT NULL auto_increment,
+	`customer_id`            	INT NOT NULL,
+    `raw_material_id`            INT NOT NULL,
+	`weight`   	    			float NULL ,
+	`units`						INT NULL,
+    PRIMARY KEY (`id`),
+  CONSTRAINT fk_raw_material_customer
+  FOREIGN KEY (`customer_id`) REFERENCES customers(`id`)  ON DELETE CASCADE,
+  CONSTRAINT fk_customer_raw_material
+  FOREIGN KEY (`raw_material_id`) REFERENCES raw_materials(`id`)  ON DELETE CASCADE
+);
+
 CREATE TABLE  IF NOT EXISTS `babies`
 (
   `id`            INT NOT NULL auto_increment,
-  `raw_material_parent_id` INT NOT NULL,
+  `customer_bank_id` INT NOT NULL,
   `length`   	    float NOT NULL,
   `quantity`   	    INT NOT NULL,
   `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
@@ -326,8 +379,8 @@ CREATE TABLE  IF NOT EXISTS `babies`
   `created_by`	 int null,
   `updated_by`	 int null,
   PRIMARY KEY (`id`),
-  CONSTRAINT fk_baby_raw_material_parent
-  FOREIGN KEY (`raw_material_parent_id`) REFERENCES raw_materials(`id`) ON DELETE CASCADE
+  CONSTRAINT fk_baby_raw_material_customer_parent
+  FOREIGN KEY (`customer_bank_id`) REFERENCES customer_banks(`id`) /*ON DELETE CASCADE*/
 );
 
 /*
@@ -381,133 +434,5 @@ CREATE TABLE  IF NOT EXISTS `hats_wings`
   CONSTRAINT fk_hat_parent_wing_id
   FOREIGN KEY (`parent_hat_id`) REFERENCES hats(`id`) ON DELETE CASCADE
 );
-
-# DATA SEED
-# ---------
-/*
-  `notes`			varchar(255) NULL,
-  `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
-  `updated_at`    DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
-  `created_by`	 int null,
-  `updated_by`	 int null,
-*/
-
-Insert into currencies (`code`, `name`, `symbol`, `order`)
-values
-  ('USD', 'US', '$', 10),
-  ('EUR', 'EURO', _ucs2 0x20AC, 20),
-  ('RUB', 'Ruble', _ucs2 0x20BD, 30);
-
-INSERT INTO `raw_materials` (
-  `id`, `name`, `purchased_at`, `weight`, `units`, `units_per_kg`, `vendor_name`, `origin_country`, 
-  `price`, `currency`, `notes`, `created_at`, `updated_at`, `created_by`, `updated_by`) 
-VALUES 
-(1,'Sable','2024-06-08',30,NULL,200,'JJ','US',30,'USD','This is a test material','2024-08-30 13:42:56','2024-08-31 13:04:00',1,1),
-(2,'DM','2024-06-09',NULL,25,NULL,'MM','US',40,'EUR','This is a test material','2024-08-30 13:42:56','2024-08-31 17:14:00',1,1),
-(3,'SM','2024-06-08',NULL,1000,112,'KK','RU',3,'USD','This is a test material','2024-08-30 13:42:56','2024-08-31 18:48:00',1,1),
-(4,'BM','2024-06-08',NULL,750,135,NULL,'US',60,'EUR','This is a test material','2024-08-30 13:42:56','2024-08-31 18:51:00',1,1),
-(5,'Canady','2024-06-08',50,NULL,7,'XY','US',10,'USD','This is a test material','2024-08-30 13:42:56','2024-08-31 13:06:00',1,1);
-
-set @gold_id = (select id from raw_materials where name='Gold' limit 1);
-set @silver_id = (select id from raw_materials where name='Silver' limit 1);
-set @wood_id = (select id from raw_materials where name='Wood' limit 1);
-
-INSERT INTO `babies` (
-  `id`, `raw_material_parent_id`, `length`, `quantity`, `created_at`, `updated_at`, `created_by`, `updated_by`) 
-VALUES 
-  (1,1,5.5,100,'2024-08-30 13:42:00','2024-08-31 13:04:00',1,1),
-  (2,1,6,200,'2024-08-30 13:42:00','2024-08-31 13:04:00',1,1),
-  (3,1,10.5,356,'2024-08-30 13:42:00','2024-08-31 13:04:00',1,1),
-  (4,2,12.5,50,'2024-08-30 13:42:00','2024-08-31 17:14:00',1,1),
-  (5,2,9,6,'2024-08-30 13:42:00','2024-08-31 17:14:00',1,1),
-  (6,2,13,3,'2024-08-30 13:42:00','2024-08-31 17:14:00',1,1),
-  (7,4,8,650,'2024-08-30 13:42:00','2024-08-31 18:51:00',1,1),
-  (8,4,9,510,'2024-08-30 13:42:00','2024-08-31 18:51:00',1,1),
-  (9,4,10,40,'2024-08-30 13:42:00','2024-08-31 18:51:00',1,1),
-  (10,1,7,1400,'2024-08-31 12:57:00','2024-08-31 13:04:00',1,1);
-
-INSERT INTO `wings` (`name`, `width`) 
-VALUES 
-  ('RT100', 10),
-  ('Wing RT90', 9),
-  ('Wing 2', 5.5),
-  ('Wing 3', 11);
-
-set @wing_id_RT100 = (select id from wings where name='RT100' limit 1);
-set @wing_id_Wing_RT90 = (select id from wings where name='Wing RT90' limit 1);
-set @wing_id_2 = (select id from wings where name='Wing 2' limit 1);
-
-/*
-	`id`            INT NOT NULL auto_increment,
-    `parent_wing_id` INT NOT NULL,
-    `position`		VARCHAR(255) NOT NULL,
-	`length`   	    float NOT NULL,
-*/
-INSERT INTO `wings_babies` (`parent_wing_id`, `position`, `length`) 
-VALUES
-(@wing_id_RT100, 'L1', 5.5),
-(@wing_id_RT100, 'L2', 6.5),
-(@wing_id_RT100, 'L3', 7),
-(@wing_id_RT100, 'L4', 7.5),
-(@wing_id_RT100, 'L5', 8),
-(@wing_id_RT100, 'L6', 8.5),
-(@wing_id_RT100, 'L7', 9),
-(@wing_id_RT100, 'L8', 9.5),
-(@wing_id_RT100, 'R1', 5.5),
-(@wing_id_RT100, 'R2', 6.5),
-(@wing_id_RT100, 'R3', 7),
-(@wing_id_RT100, 'R4', 7.5),
-(@wing_id_RT100, 'R5', 8),
-(@wing_id_RT100, 'R6', 8.5),
-(@wing_id_RT100, 'R7', 9),
-(@wing_id_RT100, 'R8', 9.5),
-(@wing_id_RT100, 'TOP', 10),
-(@wing_id_RT100, 'C1', 10),
-(@wing_id_RT100, 'C2', 10),
-(@wing_id_RT100, 'C3', 10),
-(@wing_id_RT100, 'C4', 10),
-
-(@wing_id_Wing_RT90, 'L1', 5.5),
-(@wing_id_Wing_RT90, 'L2', 6),
-(@wing_id_Wing_RT90, 'L3', 7),
-(@wing_id_Wing_RT90, 'L4', 7.5),
-(@wing_id_Wing_RT90, 'L5', 8.5),
-(@wing_id_Wing_RT90, 'R1', 5.5),
-(@wing_id_Wing_RT90, 'R2', 6.5),
-(@wing_id_Wing_RT90, 'R3', 7),
-(@wing_id_Wing_RT90, 'R4', 7.5),
-(@wing_id_Wing_RT90, 'R5', 8.5),
-(@wing_id_Wing_RT90, 'TOP', 9),
-(@wing_id_Wing_RT90, 'C1', 10),
-(@wing_id_Wing_RT90, 'C2', 10),
-(@wing_id_Wing_RT90, 'C3', 10);
-
-insert into hats (name, hat_material, crown_material)
-VALUES
-	('RT100 Hat', 'Sable', 'Sable'),
-    ('RT90 Hat', 'DM', 'SM'),
-    ('Wing 2 Hat', 'BM', 'Canady'),
-    ('Hat 4', 'New material', 'BM'),
-    ('Hat 5', 'DM', 'Gold');
-
-set @rt_100_hat = (select id from hats where name='RT100 Hat' limit 1);
-set @rt_90_hat = (select id from hats where name='RT90 Hat' limit 1);
-set @wing_2_hat = (select id from hats where name='Wing 2 Hat' limit 1);
-set @hat_4 = (select id from hats where name='Hat 4' limit 1);
-set @hat_5 = (select id from hats where name='Hat 5' limit 1);
-
-set @wing_name_rt_100 = (select name from wings where name='RT100' limit 1);
-set @wing_name_rt_90 = (select name from wings where name='Wing RT90' limit 1);
-set @wing_name_wing_2 = (select name from wings where name='Wing 2' limit 1);
-set @wing_name_wing_3 = (select name from wings where name='Wing 3' limit 1);
-set @nonexisting_wing_name = 'Other wing';
-
-insert into hats_wings(parent_hat_id, wing_name, wing_quantity)
-VALUES
-	(@rt_100_hat, @wing_name_rt_100, 15),
-	(@rt_90_hat, @wing_name_rt_90, 32),
-	(@wing_2_hat, @wing_name_wing_2, 10),
-	(@hat_4, @wing_name_wing_3, 4),
-	(@hat_5, @nonexisting_wing_name, 20);
 
 select "All done";

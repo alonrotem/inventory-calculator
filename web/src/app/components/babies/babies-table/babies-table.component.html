@@ -1,7 +1,6 @@
 
 <h1 *ngIf="bigTitle"><span class="icon-baby"></span> Babies</h1>
 <h3 *ngIf="!bigTitle"><span class="icon-baby"></span> Babies</h3>
-<div class="infotitle">Total: {{ totalquantity | number: '1.0-0' }} {{ totalquantity == 1? 'baby':'babies' }}, in {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'record':'records' }}</div>
 
 <app-modal-dialog #baby_editor>
   <app-baby-editor-dialog #modalContent></app-baby-editor-dialog>
@@ -22,6 +21,9 @@
   <div *ngIf="!readOnly" [hidden]="loading">
     <a class="btn btn-primary btn-add" (click)="openDialog(null)">+ Add baby</a>
   </div>
+
+  <div class="infotitle">Total: {{ totalquantity | number: '1.0-0' }} {{ totalquantity == 1? 'baby':'babies' }}, in {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'record':'records' }}</div>
+
   <div [hidden]="loading || this.babies.length == 0">
  <div class="table-responsive">
   <table class="table table-striped table-hover">

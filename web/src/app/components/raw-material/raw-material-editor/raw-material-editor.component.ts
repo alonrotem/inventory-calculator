@@ -6,15 +6,18 @@ import { RouterLink, RouterOutlet, ActivatedRoute } from '@angular/router';
 import { Form, FormsModule, NgForm } from '@angular/forms';
 import { RawMaterialsService } from '../../../services/raw-materials.service';
 import { DatePipe } from '@angular/common';
-import { BabiesTableComponent } from '../../babies/babies-table/babies-table.component';
+//import { BabiesTableComponent } from '../../babies/babies-table/babies-table.component';
 import { InfoService } from '../../../services/info.service';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
-import { DateStrPipe } from '../../../utils/date_pipe';
+import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faSave, faTrashAlt, faTimesCircle, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faSave, faTrashAlt, faTimesCircle, IconDefinition, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmationDialogComponent } from "../../common/confirmation-dialog/confirmation-dialog.component";
 import { AutocompleteLibModule } from 'angular-ng-autocomplete';
 import { ToastService } from '../../../services/toast.service';
+import { HasUnsavedChanges } from '../../../guards/unsaved-changes-guard';
+import { Observable } from 'rxjs';
+import { RawMaterialCustomerTableComponent } from '../raw-material-customer-table/raw-material-customer-table.component';
 
 
 @Component({
@@ -22,13 +25,13 @@ import { ToastService } from '../../../services/toast.service';
   standalone: true,
   imports: [ 
     RouterModule, RouterLink, RouterOutlet, FormsModule, 
-    DatePipe, BabiesTableComponent, NgSelectModule, DateStrPipe, 
-    FaIconComponent, NgIf, ConfirmationDialogComponent, NgFor, AutocompleteLibModule
+    DatePipe, NgSelectModule, DateStrPipe, 
+    FaIconComponent, NgIf, ConfirmationDialogComponent, NgFor, AutocompleteLibModule, RawMaterialCustomerTableComponent
   ],
   templateUrl: './raw-material-editor.component.html',
   styleUrl: './raw-material-editor.component.scss'
 })
-export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
+export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUnsavedChanges {
 
   public rawMaterialItem : RawMaterial = {
     id: 0,
@@ -46,8 +49,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
     currency: 'USD',
     notes: '',
     created_at: new Date(),
-    babies_quantity: 0,
-    babies: []
+    customer_banks: []
   }
 
   countries: Country[] = [];
@@ -57,8 +59,10 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
   faSave: IconDefinition = faSave;
   faTrashAlt:IconDefinition = faTrashAlt;
   faTimesCircle:IconDefinition = faTimesCircle;
+  faArrowLeft: IconDefinition = faArrowLeft;
   is_new_material: Boolean = true;
   raw_material_names: string[] = [];
+  private confirmResult: boolean | null = null;
 
   //@ViewChild("materialName", { read: ElementRef }) materialName!: ElementRef;
   @ViewChild("materialName", { read: ElementRef }) materialName! :ElementRef;
@@ -70,7 +74,8 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
   @ViewChild("materialUnits", { read: ElementRef }) materialUnits!: ElementRef;
   @ViewChild('raw_material_form') raw_material_form!: NgForm;
   @ViewChild('delete_confirmation') delete_confirmation!: ConfirmationDialogComponent;
-  @ViewChild('babies_table') babies_table!: BabiesTableComponent;
+  @ViewChild('navigate_confirmation') navigate_confirmation!: ConfirmationDialogComponent;
+  //@ViewChild('babies_table') babies_table!: BabiesTableComponent;
   @ViewChild("btn_save", { read: ElementRef }) btn_save!: ElementRef;
   @ViewChild("price", { read: ElementRef }) price!: ElementRef;
   @ViewChild("currency") currency!: NgSelectComponent;
@@ -82,6 +87,24 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
         this.raw_material_names = names;
       }
     });
+  }
+
+  hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
+    if(!this.raw_material_form.pristine) {
+      return new Promise((resolve) => {
+        this.confirmResult = null;
+        // Ensure this refers to the component's instance using an arrow function
+        this.navigate_confirmation.open(); // Open the modal dialog
+    
+        // Use arrow function to preserve `this` context
+        this.navigate_confirmation.confirm.subscribe((result: boolean) => {
+          this.confirmResult = result;
+          setTimeout(() => this.confirmResult = null, 0); 
+          resolve(result);  // Resolve the promise based on user confirmation
+        });
+      });
+    }
+    return true;
   }
 
   ngOnInit(): void {
@@ -133,11 +156,10 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
 
   save()
   {
-    console.log("save");
     this.raw_material_form.form.markAllAsTouched();
     if((this.raw_material_form.form.valid) && (this.checkUnitsOrWeight() == true))
     {
-      this.rawMaterialItem.babies = this.babies_table.babies;
+      this.raw_material_form.form.markAsPristine();
       this.rawMaterialItem.purchased_at =  new Date(this.purchase_date.nativeElement.value); //.toISOString()
       //edit
       if(!this.is_new_material)
@@ -153,11 +175,18 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
     }
     else
     {
-      /*
-      console.log("this.raw_material_form.form.valid: " + this.raw_material_form.form.valid);
-      console.log("this.checkUnitsOrWeight(): " + (this.checkUnitsOrWeight()== true));
-      */
+      let form = document.getElementById('raw_material_form');
+      if(form){
+        form.childNodes[0]
+        let firstInvalidControl = form.getElementsByClassName('ng-invalid')[0];
+        firstInvalidControl.classList.remove("ng-invalid");
+        firstInvalidControl.scrollIntoView();
+        (firstInvalidControl as HTMLElement).focus();
+        firstInvalidControl.classList.add("ng-invalid");
+      }
+
       this.toastService.showError("Please fill all the mandatory fields before saving!");
+
     }
   }
 
@@ -199,17 +228,6 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit {
   }
 
   checkUnitsOrWeight(): boolean {
-    /*
-    console.log("this.radioUnits.nativeElement.checked " + this.radioUnits.nativeElement.checked);
-    console.log("(this.materialUnits.nativeElement.value) " + Number(this.materialUnits.nativeElement.value));
-    console.log("(!!this.materialUnits.nativeElement.value) " + (!!Number(this.materialUnits.nativeElement.value)));
-    console.log("this.radioWeight.nativeElement.checked " + this.radioWeight.nativeElement.checked);
-    console.log("this.materialWeight.nativeElement.checked " + (!!this.materialWeight.nativeElement.value));
-    console.log("Total " + (
-      ((this.radioUnits.nativeElement.checked) && (!!this.materialUnits.nativeElement.value)) ||
-      ((this.radioWeight.nativeElement.checked) && (!!this.materialWeight.nativeElement.value))
-    ));
-    */
     return (
       ((this.radioUnits.nativeElement.checked) && (!!Number(this.materialUnits.nativeElement.value))) ||
       ((this.radioWeight.nativeElement.checked) && (!!Number(this.materialWeight.nativeElement.value)))

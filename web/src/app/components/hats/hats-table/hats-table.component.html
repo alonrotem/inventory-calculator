@@ -1,5 +1,4 @@
 <h1><span class="icon-hat"></span> Hats</h1>
-<div class="infotitle">Total: {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'hat':'hats' }}</div>
 
 <div id="loading_icon" [hidden]="!loading">
   <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
@@ -10,6 +9,10 @@
 
 <div [hidden]="loading">
   <a id="btnNewRaw" class="btn btn-primary" routerLink="/templates/hats/editor">+ Hat</a>
+
+  <div class="infotitle" [hidden]="loading || this.hatsList.length <= 0">Total: {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'hat':'hats' }}</div>
+
+
   <div [hidden]="loading || this.hatsList.length == 0">
 
 <table class="table table-responsive table-striped table-hover">

@@ -1,0 +1,68 @@
+.transparent_text {
+    color: transparent;
+}
+
+.ng-autocomplete {
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+}
+
+::ng-deep .autocomplete-container.active {
+    z-index: 9999 !important;
+}
+
+::ng-deep .ng-autocomplete {
+    width: auto !important;
+}
+
+::ng-deep .input-container input {
+    color: var(--bs-body-color) !important;
+    background-color: var(--bs-body-bg) !important;
+}
+
+::ng-deep .suggestions-container a {
+    color: var(--bs-body-color) !important;
+    background-color: var(--bs-body-bg) !important;
+}
+
+::ng-deep .suggestions-container a:hover {
+    color: var(--bs-body-bg) !important;
+    background-color: var(--bs-body-color) !important;
+}
+
+::ng-deep .autocomplete-container {
+    box-shadow: none !important;
+    height: auto !important;
+}
+
+::ng-deep .autocomplete-container .input-container .x i {
+    color: var(--bs-body-color) !important;
+}
+
+::ng-deep .autocomplete-container .not-found {
+    color: var(--bs-body-bg) !important;
+    background-color: var(--bs-body-color) !important;    
+}
+
+.spaced-row {
+    margin: 25px 0px;
+}
+
+.unspaced-row {
+    margin-top: -20px;
+}
+
+
+input.invalid, .ng-autocomplete.invalid ::ng-deep ng-autocomplete{
+    animation: blinker 1.3s 0.34s 2 !important;
+    
+}
+.ng-autocomplete.invalid ::ng-deep ng-autocomplete input {
+    background-color: transparent !important;
+}
+
+@keyframes blinker {
+    50% {
+        background-color: red; /*var(--bs-danger)*/
+    }
+}

@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnInit, viewChild, ViewChild } from '@angular/core';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
-import { faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { Hat, Wing, WingBaby } from '../../../../types';
 import { FormsModule, NgForm } from '@angular/forms';
 import { WingsService } from '../../../services/wings.service';
@@ -12,7 +12,7 @@ import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.com
 import { HatsService } from '../../../services/hats.service';
 import { NgOption, NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { WingDiagramComponent } from '../../wings/wing-diagram/wing-diagram.component';
-import { PrefixPipe } from '../../wings/wings-babies-table/prefix-pipe';
+import { PrefixPipe } from '../../../utils/pipes/prefix-pipe';
 import { ToastService } from '../../../services/toast.service';
 import { RawMaterialsService } from '../../../services/raw-materials.service';
 import { AutocompleteComponent, AutocompleteLibModule } from 'angular-ng-autocomplete';
@@ -63,6 +63,7 @@ export class HatsEditorComponent  implements OnInit, AfterViewInit{
   wing_loaded = false;
   active_wing_name :string = "";
   raw_material_names: string[] = [];
+  faArrowLeft: IconDefinition = faArrowLeft;
 
   constructor(private hatsService: HatsService, private wingsService: WingsService, private activatedRoute: ActivatedRoute, private router: Router, private toastService:ToastService, private rawMaterialsService: RawMaterialsService){
     this.rawMaterialsService.getRawMaterialNames().subscribe({

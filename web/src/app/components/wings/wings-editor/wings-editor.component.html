@@ -4,7 +4,17 @@
     modalText="Are you sure you want to delete this wing, {{ wing.name }}?"
     [btnYesIcon]=faTrashAlt
     btnYesText="Delete"
-    btnYesClass="btn-danger">
+    btnYesClass="btn-danger"
+    [reverseButtons]="true">
+</app-confirmation-dialog>
+
+<app-confirmation-dialog 
+    #navigate_confirmation 
+    modalTitle="Leaving so quickly?"
+    modalText="<strong>Your unsaved changed will be lost!</strong><br/>Are you sure you want to navigate away?"
+    [btnYesIcon]=faArrowLeft
+    btnYesText="Yes"
+    btnYesClass="btn-warning">
 </app-confirmation-dialog>
 
 <app-modal-dialog #length_editor (confirm)="length_editor_closed()">
@@ -15,18 +25,34 @@
 <div class="col-lg-7 col-md-12">
 
     <h3><span class="icon-feather-wing"></span> {{ this.title }} <span class="icon-feather-wing-r"></span></h3>
-    <form novalidate #wingForm="ngForm">
+    <form novalidate #wingForm="ngForm" [id]="'wingForm'">
         <div class="editorForm">
         <div class="row">
-            <div class="col">
+            <div class="col-6">
                 <div class="form-floating">
-                    <input type="text" class="form-control" id="wingName" #wingName="ngModel" [(ngModel)]="wing.name" name="wingName" required>
+                    <input type="text" class="form-control" id="wingName" #wingName="ngModel" [(ngModel)]="wing.name" name="wingName" required (ngModelChange)="form_touched()">
                     <label for="wingName">Wing name <span class="text-danger">*</span></label>
                 </div>
                 <div class="text-danger" *ngIf="wingName.invalid && (wingName.touched || wingName.dirty)" > 
                     <span *ngIf="wingName.errors?.['required']">Please enter a name for the wing</span>
                     <!-- span *ngIf="firstName.errors?.['minlength']">Min 3 Charactors Needed</span --> 
                 </div>            
+            </div>
+            <div class="col-2">
+                <button class="btn btn-warning upper-button" (click)="gotoWingsList()" title="Cancel and go back">
+                    <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>
+                </button>
+            </div>
+            <div class="col-2">
+                <button #btn_save class="btn btn-success upper-button" type="submit" (click)="save()" title="Save">
+                    <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
+                </button>
+            </div>
+            <div class="col-2"  *ngIf="!this.is_new_wing">
+                <button class="btn btn-danger upper-button" (click)="confirm_delete()" title="Delete this wing">
+                    <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>
+                </button>
+
             </div>
         </div>
         <div class="row">
@@ -38,11 +64,12 @@
                     [(length)]="wing.width"
                     [min_length]=5
                     [max_length]=11
+                    (lengthChange)="babies_length_clicked()"
                  />
             </div>
         </div>
         <div class="row">
-            <div class="col">
+            <div class="col" #diagram_container>
                 <app-wing-diagram
                     #diagram 
                         [lefts]="this.wing.babies | prefix: 'L' : true"
@@ -51,7 +78,27 @@
                         [crown]="this.wing.babies | prefix: 'C' : true"
                         [width]="wing.width"
                         (babyClicked)="this.diagram_babyClicked($event)"
+                        [scale]="1"
                  />
+                 <div #wing_preview class="wing_preview hidden_preview" (click)="scrollToFullDiagram()" title="Click to see the wing">
+                    <div style="text-align: center; color:white;"><fa-icon [icon]="faArrowUp"></fa-icon></div>
+                    <div>
+                        <app-wing-diagram
+                            #diagram_preview
+                            [lefts]="this.wing.babies | prefix: 'L' : true"
+                            [rights]="this.wing.babies | prefix: 'R' : true"
+                            [top_length]="this.wing.babies | prefix: 'TOP' : true"
+                            [crown]="this.wing.babies | prefix: 'C' : true"
+                            [width]="wing.width"
+                            [scale]=".3"
+                            [show_tooltips]="false"
+                            [highlight_mouseover_baby]="false"
+                            [show_texts]="false"
+                            [preset_theme]="'dark'"
+                        />
+                    </div>
+                    <div style="text-align: center; color:white;">Wing preview</div>
+                 </div>
             </div>
         </div>
         <div class="row wing-babies-container">
@@ -61,6 +108,7 @@
                     [(wingsbabies)]="this.wing.babies" 
                     [wingPrefix]="'L'"
                     (OnBabyClick)="this.openLengthModal($event)"
+                    (wingsbabiesChange)="babies_length_clicked()"
                     />
             </div>
         </div>
@@ -72,6 +120,7 @@
                     [(wingsbabies)]="this.wing.babies" 
                     [wingPrefix]="'R'"
                     (OnBabyClick)="this.openLengthModal($event)"
+                    (wingsbabiesChange)="babies_length_clicked()"
                     />
             </div>
         </div>
@@ -84,6 +133,7 @@
                     [title]="'Choose top length:'"
                     [length]="get_top()"
                     (lengthChange)="set_top()"
+                    (lengthChange)="babies_length_clicked()"
                 />
             </div>
         </div>
@@ -119,6 +169,12 @@
     -->
 
         <div class="row buttons-area">
+            <div class="col-12 d-flex justify-content-center {{ this.is_new_wing? 'col-md-4':'col-md-3' }}">
+                <button class="btn btn-warning" (click)="gotoWingsList()">
+                    <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>
+                    <div>Cancel Chages</div>
+                </button>
+            </div>            
                 <div class="col-12 d-flex justify-content-center {{ this.is_new_wing? 'col-md-4':'col-md-3' }}">
                     <button #btn_save class="btn btn-success" type="submit" (click)="save()">
                         <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
@@ -129,12 +185,6 @@
                     <button #btn_save class="btn btn-primary" type="submit" (click)="save(true)">
                         <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon> + <span class="icon-hat"></span></div>
                         <div>Save & Hat!</div>
-                    </button>
-                </div>
-                <div class="col-12 d-flex justify-content-center {{ this.is_new_wing? 'col-md-4':'col-md-3' }}">
-                    <button class="btn btn-warning" (click)="gotoWingsList()">
-                        <div class="btn-icon"><fa-icon [icon]="faTimesCircle"></fa-icon></div>
-                        <div>Cancel Chages</div>
                     </button>
                 </div>
                 <div class="col-12 d-flex justify-content-center col-md-3" *ngIf="!this.is_new_wing">

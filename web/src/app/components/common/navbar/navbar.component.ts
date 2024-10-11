@@ -2,11 +2,13 @@ import { Component } from '@angular/core';
 import { ThemeSelectorComponent } from '../theme-selector/theme-selector.component';
 import { Location, NgClass } from '@angular/common';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { RouterLink, RouterOutlet } from '@angular/router';
+
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [ ThemeSelectorComponent, NgClass ],
+  imports: [ ThemeSelectorComponent, NgClass, RouterLink, RouterOutlet ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss'
 })

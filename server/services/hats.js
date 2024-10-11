@@ -45,7 +45,7 @@ async function create(hat){
   const result = await db.query(`INSERT INTO hats (name, hat_material, crown_material) VALUES ((?),(?),(?))`,[ hat.name, hat.hat_material, hat.crown_material ]);
 
   let message = 'Error creating hats.';
-  console.log("New hat ID: " + result.insertId + " ("+ hat.name +")");
+  //console.log("New hat ID: " + result.insertId + " ("+ hat.name +")");
 
   if (result.affectedRows) {
     message = 'Hat \'' + hat.name + '\' created successfully.';
@@ -55,14 +55,14 @@ async function create(hat){
   {
     message += " " + await sync_wings_for_hat(hat.wings, result.insertId);
   }
-  console.log(message);
+  //console.log(message);
   return {message};
 }
 
 async function update(id, hat){
     const result = await db.query(`UPDATE hats SET name=(?), hat_material=(?), crown_material=(?) WHERE id=${id}`, [ hat.name, hat.hat_material, hat.crown_material]);
 
-    console.log("Updated hat ID: " + id + " ("+ hat.name +").");
+    //console.log("Updated hat ID: " + id + " ("+ hat.name +").");
     let message = 'Error in updating hat.';
   
     if (result.affectedRows) {
@@ -113,7 +113,7 @@ async function sync_wings_for_hat(wings, hat_id)
         wing.wing_quantity
       ]
     ).flat(1);
-    let placeholder = Array(wings.length).fill("(" + Array(4).fill("?").join(",") + ")").join(",");
+    let placeholder = Array(wings.length).fill("(" + Array(wings_arr.length / wings.length).fill("?").join(",") + ")").join(",");
     //VALUES (?, ?), (?,?)
 
     const update_result = await db.query(

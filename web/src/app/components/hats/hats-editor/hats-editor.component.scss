@@ -14,7 +14,6 @@ h3 {
     justify-content: center;
     padding: 6px 19px;
     margin: 10px 0;
-    width: 100%;
 }
 @media screen and (min-width: 768px) and (max-width: 992px) {
     .buttons-area button {
@@ -59,7 +58,7 @@ h3 {
 
 .wings_label {
     margin-bottom: 12px;
-    margin-top: 12px;
+    /*margin-top: 12px;*/
     font-family: var(--bs-body-font-family);
     font-size: 15px;
     font-weight: 400;

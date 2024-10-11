@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, OnInit, ViewChild } from '@angular/core';
 import { Baby, ModalObjectEditor } from '../../../../types';
 import { FormBuilder, FormControl, FormGroup, FormsModule, NgForm, NgSelectOption, ReactiveFormsModule, RequiredValidator, Validators } from '@angular/forms';
 import { NgIf } from '@angular/common';
@@ -45,6 +45,8 @@ export class BabyEditorDialogComponent implements ModalObjectEditor, AfterViewIn
   constructor(private fb: FormBuilder, private toastService: ToastService) {
 
   }
+  close: EventEmitter<any> = new EventEmitter<Baby>();
+
   ngAfterViewInit(): void {
     this.length_picker.lengthChange.subscribe((value: Number) => {
       this.quantity.nativeElement.focus();
@@ -88,8 +90,12 @@ export class BabyEditorDialogComponent implements ModalObjectEditor, AfterViewIn
     //this.editedObject.length =  this.babyFormEditor.get('length')!.value ?? 0;
     //this.editedObject.length = this.length_picker.get_length();
     this.editedObject.quantity =  this.babyFormEditor.get('quantity')!.value ?? 0;
-    this.toastService.showSuccess("Added!");
+    this.toastService.showSuccess("Saved");
     return true;
+  }
+
+  sendit(event:any){
+    this.close.emit(this.editedObject);
   }
 /*
   setLength(length:string) {

@@ -1,8 +1,8 @@
 import { AfterViewChecked, AfterViewInit, Component, Input, OnChanges, OnInit, Output, ViewChild } from '@angular/core';
 import { PaginatorComponent } from '../../common/paginator/paginator.component';
 import { Babies, Baby } from '../../../../types';
-import { faArrowsRotate, faTrash, faTrashAlt, faTrashCan, IconDefinition } from '@fortawesome/free-solid-svg-icons';
-import { DateStrPipe } from "../../../utils/date_pipe";
+import { faArrowsRotate, faTrashCan, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { DateStrPipe } from "../../../utils/pipes/date_pipe";
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { RouterModule } from '@angular/router';

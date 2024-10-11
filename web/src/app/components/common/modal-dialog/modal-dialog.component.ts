@@ -1,6 +1,6 @@
 import { Component, ContentChild, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { NgIf } from '@angular/common';
+import { NgClass, NgIf } from '@angular/common';
 import { ModalObjectEditor } from '../../../../types';
 import { BabyEditorDialogComponent } from '../../babies/baby-editor-dialog/baby-editor-dialog.component';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -9,7 +9,7 @@ import { faBorderNone, faTrashAlt, faW, IconDefinition } from '@fortawesome/free
 @Component({
   selector: 'app-modal-dialog',
   standalone: true,
-  imports: [ NgIf, FaIconComponent ],
+  imports: [ NgIf, NgClass, FaIconComponent ],
   templateUrl: './modal-dialog.component.html',
   styleUrl: './modal-dialog.component.scss'
 })
@@ -28,15 +28,24 @@ export class ModalDialogComponent {
 
   @Output() confirm = new EventEmitter<any>();
   @Output() cancel = new EventEmitter<void>();
-  @Input() editedItem: any;
+  //@Input() editedItem: any;
+  @Input() reverseButtons: boolean = false;
+  modal_content_close_subscription:any;
 
-  constructor(private modalService: NgbModal) { }
+  constructor(private modalService: NgbModal) { 
+
+  }
   
   public open() {
-    console.log("modal-dialog open!")
     this.modalReference = this.modalService.open(this.content, { centered: true, size: 'm' });
     if(this.dialog_content_component.onOpen){
       this.dialog_content_component.onOpen();
+    }
+
+    if(this.dialog_content_component && this.dialog_content_component.close){
+    this.modal_content_close_subscription = this.dialog_content_component.close.subscribe((obj :any) => {
+        this.onConfirm();
+      });
     }
   }
 
@@ -46,7 +55,6 @@ export class ModalDialogComponent {
       let okToClose = this.dialog_content_component.beforeClose();
       if(!okToClose)
       {
-        console.log("Pre closing validation: " + okToClose);
         return;
       }
     }
@@ -56,18 +64,25 @@ export class ModalDialogComponent {
    //}
     if(this.dialog_content_component && this.dialog_content_component.editedObject)
     {
-      console.log(this.dialog_content_component.editedObject);
       this.confirm.emit(this.dialog_content_component.editedObject);
     }
     else
     {
       this.confirm.emit(true);
     }
+    if(this.modal_content_close_subscription){
+      this.modal_content_close_subscription.unsubscribe();
+      this.modal_content_close_subscription = null;
+    }
     this.modalReference.close();
   }
 
   onCancel () {
     this.cancel.emit();
+    if(this.modal_content_close_subscription){
+      this.modal_content_close_subscription.unsubscribe();
+      this.modal_content_close_subscription = null;
+    }
     this.modalReference.close();
   }
 }

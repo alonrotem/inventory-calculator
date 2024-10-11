@@ -8,7 +8,7 @@ import { AutocompleteLibModule } from 'angular-ng-autocomplete';
 import { FormsModule } from '@angular/forms';
 import { RawMaterialsService } from '../../../services/raw-materials.service';
 import { ToastService } from '../../../services/toast.service';
-import { PrefixPipe } from "./prefix-pipe";
+import { PrefixPipe } from "../../../utils/pipes/prefix-pipe";
 
 @Component({
   selector: 'app-wings-babies-table',
@@ -32,7 +32,7 @@ export class WingsBabiesTableComponent {
   faArrowsUpToLine:IconDefinition = faArrowsUpToLine;
 
   constructor(private toastService: ToastService){
-    this.wingsbabiesChange.emit(this.wingsbabies);
+    //this.wingsbabiesChange.emit(this.wingsbabies);
   }
 
   addBabyToTable(){

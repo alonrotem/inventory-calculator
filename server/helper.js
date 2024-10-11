@@ -40,10 +40,15 @@ function nowDateStr()
 //returns a date string, formatted for DB, from date object
 function dateStr(date)
 {
-  return date.getFullYear() + "-" +
-  (date.getMonth() + 1) + "-" +
-  date.getDate() + " " +
-  date.getHours() + ":" + date.getMinutes();
+  if(!date) {
+    return "";
+  }
+  else {
+    return date.getFullYear() + "-" +
+      (date.getMonth() + 1) + "-" +
+      date.getDate() + " " +
+      date.getHours() + ":" + date.getMinutes();
+  }
 }
 
 module.exports = {

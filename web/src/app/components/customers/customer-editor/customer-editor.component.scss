@@ -1,0 +1,86 @@
+.transparent_text {
+    color: transparent;
+}
+
+::ng-deep.ng-select-container {
+    height: calc(3.5rem + calc(var(--bs-border-width)* 2)) !important;
+    min-width: 50px;
+}
+
+.editorForm div.col {
+    /*height: calc(3.5rem + calc(var(--bs-border-width)* 2));*/
+    margin: 8px 0px;
+}
+
+h3 {
+    margin: 25px 0;
+}
+
+.buttons-area button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 19px;
+    margin: 10px 0;
+    /*width: 100%;*/
+}
+@media screen and (min-width: 768px) and (max-width: 992px) {
+    .buttons-area button {
+        height: 80px;
+    }
+}
+@media screen and (min-width: 1200px) {
+    .buttons-area button {
+        width: 80%;
+    }
+}
+
+.babies-container
+{
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.ng-autocomplete {
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+}
+
+::ng-deep .autocomplete-container.active {
+    z-index: 9999 !important;
+}
+
+::ng-deep .ng-autocomplete {
+    width: auto !important;
+}
+
+::ng-deep .input-container input {
+    color: var(--bs-body-color) !important;
+    background-color: var(--bs-body-bg) !important;
+}
+
+::ng-deep .suggestions-container a {
+    color: var(--bs-body-color) !important;
+    background-color: var(--bs-body-bg) !important;
+}
+
+::ng-deep .suggestions-container a:hover {
+    color: var(--bs-body-bg) !important;
+    background-color: var(--bs-body-color) !important;
+}
+
+::ng-deep .autocomplete-container {
+    box-shadow: none !important;
+    height: auto !important;
+}
+
+::ng-deep .autocomplete-container .input-container .x i {
+    color: var(--bs-body-color) !important;
+}
+
+::ng-deep .autocomplete-container .not-found {
+    color: var(--bs-body-bg) !important;
+    background-color: var(--bs-body-color) !important;    
+}
+

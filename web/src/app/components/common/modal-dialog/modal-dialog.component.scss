@@ -5,3 +5,8 @@ fa-icon:has(svg.fa-border-none) {
 fa-icon:has(svg) {
     margin-right: 5px;
 }
+
+.reversed_buttons {
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+}

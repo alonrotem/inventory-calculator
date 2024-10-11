@@ -1,4 +1,5 @@
 import { HttpContext, HttpHeaders, HttpParams } from "@angular/common/http";
+import { EventEmitter } from "@angular/core";
 
 export interface Options {
     headers?: HttpHeaders | {
@@ -53,10 +54,18 @@ export interface RawMaterial {
     updated_at: Date;
     created_by: number;
     updated_by: number;
-    babies_quantity: number;
-    babies: Baby[];
+    customer_banks: RawMaterialCustomerBank[];
 }
 
+export interface RawMaterialCustomerBank {
+    id: number;
+    name: string;
+    business_name: string;
+    raw_material_id: number;
+    customer_id: number;
+    weight: number;
+    units: number;
+}
 
 export interface Baby {
     id: number;
@@ -163,6 +172,7 @@ export interface ModalObjectEditor {
     editedObject: any;
     onOpen(): any;
     beforeClose(): Boolean;
+    close: EventEmitter<any>;
 }
 
 export interface Stats {
@@ -181,3 +191,52 @@ export class Point {
       this.y = y;
     }
   }
+
+  export interface Customer {
+    id: number;
+    name: string;
+    business_name: string;
+    email: string; 
+    phone: string; 
+    tax_id: string;
+    created_at: Date;
+    updated_at: Date;
+    created_by: number;
+    updated_by: number;
+
+    banks: Customer_Bank[];
+    babies: Customer_Baby[];
+}
+
+export interface Customer_Bank {
+    bank_id: number;
+    customer_id: number;
+    raw_material_id: number;
+    weight: number;
+    units: number;
+    raw_material_name: string;
+    customer_name: string;
+}
+
+export interface Customer_Baby {
+    id: number;
+    customer_bank_id: number;
+    length: number;
+    quantity: number;
+    created_at: Date;
+    updated_at: Date;
+    created_by: number;
+    updated_by: number;
+    customer_id: number;
+    material_name: string;
+    customer_name: string;
+}
+
+export interface Customers {
+    data: Customer[];
+    meta: { 
+        page: number;
+        total_records: number;
+        total_pages: number;
+    };
+}

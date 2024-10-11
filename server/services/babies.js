@@ -57,7 +57,7 @@ async function getMultipleByRawMaterial(raw_material_id, page = 1, perPage){
     from babies b inner join raw_materials m on b.raw_material_parent_id = m.id
     where b.raw_material_parent_id=${raw_material_id}
         ORDER BY b.length desc ${subset}`;
-  console.log(q);
+  //console.log(q);
   const rows = await db.query(q);
   const total = await db.query(
     `SELECT count(*) as count FROM babies where raw_material_parent_id=${raw_material_id}`
@@ -97,7 +97,7 @@ async function create(baby){
     );
   
     let message = 'Error in creating baby';
-    console.log("New baby ID: " + result.insertId + " (raw material: "+ baby.raw_material_parent_id +")");
+    //console.log("New baby ID: " + result.insertId + " (raw material: "+ baby.raw_material_parent_id +")");
   
     if (result.affectedRows) {
       message = 'Raw baby created successfully';
@@ -120,7 +120,7 @@ async function update(id, baby){
         baby.updated_by
       ]
     );
-    console.log("Updated baby ID: " + id + " (raw material: "+ baby.raw_material_parent_id +")");
+    //console.log("Updated baby ID: " + id + " (raw material: "+ baby.raw_material_parent_id +")");
     let message = 'Error in updating baby';
   
     if (result.affectedRows) {
@@ -185,7 +185,7 @@ async function sync_babies_for_raw_material(babies, raw_material_id)
         baby.updated_by
       ]
     ).flat(1);
-    let placeholder = Array(babies.length).fill("(" + Array(8).fill("?").join(",") + ")").join(",");
+    let placeholder = Array(babies.length).fill("(" + Array(babies_arr.length / babies.length).fill("?").join(",") + ")").join(",");
     //VALUES (?, ?), (?,?)
 
     const update_result = await db.query(
@@ -196,7 +196,7 @@ async function sync_babies_for_raw_material(babies, raw_material_id)
       ${placeholder}`,
       babies_arr
     );
-    message += ", " + update_result.affectedRows + " babies added/updated";
+    message += ", " + (update_result.affectedRows/2) + " babies added/updated";
   }
   else
   {

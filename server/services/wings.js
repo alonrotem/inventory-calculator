@@ -99,7 +99,7 @@ async function create(wing){
   const result = await db.query(`INSERT INTO wings (name, width)  VALUES ((?), (?))`, [ wing.name, wing.width ]);
 
   let message = 'Error creating raw material';
-  console.log("New wing ID: " + result.insertId + " ("+ wing.name +")");
+  //console.log("New wing ID: " + result.insertId + " ("+ wing.name +")");
 
   if (result.affectedRows) {
     message = 'Wing \'' + wing.name + '\' created successfully';
@@ -109,7 +109,7 @@ async function create(wing){
   {
     await sync_babies_for_wing(wing.babies, result.insertId);
   }
-  console.log(message);
+  //console.log(message);
   return {message};
 }
 /*
@@ -129,7 +129,7 @@ async function getWingNames(){
 
 async function update(id, wing){
     const result = await db.query(`UPDATE wings SET name=(?), width=(?) WHERE id=${id}`, [ wing.name, wing.width ]);
-    console.log("Updated wing ID: " + id + " ("+ wing.name +")");
+    //console.log("Updated wing ID: " + id + " ("+ wing.name +")");
     let message = 'Error in updating wing';
   
     if (result.affectedRows) {
@@ -153,7 +153,7 @@ async function sync_babies_for_wing(babies, wing_id)
       baby.length
     ]
   ).flat(1);
-  let placeholder = Array(babies.length).fill("(" + Array(3).fill("?").join(",") + ")").join(",");
+  let placeholder = Array(babies.length).fill("(" + Array(babies_arr.length / babies.length).fill("?").join(",") + ")").join(",");
 
   if(babies.length > 0){
     const update_result = await db.query(

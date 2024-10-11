@@ -1,6 +1,4 @@
 <h1><span class="icon-leaf"></span> Raw Materials</h1>
-<div class="infotitle">Total: {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'raw material':'raw materials' }} with {{ totalbabies | number: '1.0-0' }} {{ totalbabies == 1? 'baby':'babies' }}</div>
-
 <div id="loading_icon" [hidden]="!loading">
   <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
     <div><fa-icon [icon]="faArrowsRotate" [spin]="true" size="3x"></fa-icon></div>
@@ -10,6 +8,9 @@
 
 <div [hidden]="loading">
   <a id="btnNewRaw" class="btn btn-primary" routerLink="/inventory/raw/editor">+ New raw material</a>
+
+  <div class="infotitle" [hidden]="loading || this.rawMaterials.length <= 0">Total: {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'raw material':'raw materials' }}</div>
+
   <div [hidden]="loading || this.rawMaterials.length == 0">
 <table class="table table-responsive table-striped table-hover">
     <thead>
@@ -17,7 +18,6 @@
         <th scope="col">Name</th>
         <th scope="col">Purchased at</th>
         <th scope="col">Quantity</th>
-        <th scope="col">Babies</th>
         <th scope="col">Last update</th>
         <th scope="col">Last update by</th>
       </tr>
@@ -33,7 +33,6 @@
           <span *ngIf="(rawMaterial.weight && rawMaterial.weight > 0)">{{ rawMaterial.weight }} kg</span>
           <span *ngIf="(!rawMaterial.weight)">{{ rawMaterial.units }} unit<span *ngIf="(rawMaterial.units != 1)">s</span></span>
         </td>
-        <td>{{ rawMaterial.babies_quantity }}</td>
         <td>{{ rawMaterial.updated_at | dateStr }}</td>
         <td>{{ rawMaterial.updated_by }}</td>
       </tr>

@@ -1,0 +1,79 @@
+<form novalidate #bankForm="ngForm" [id]="'bankForm'">
+<div class="row spaced-row">
+    <div class="col p-field">
+        <span class="form-floating">
+        <div [ngClass]="{'ng-autocomplete': true, 'invalid': (customerName.touched && customerName.value==='')}">
+            <ng-autocomplete 
+              [data]="customer_names"
+              placeholder="Customer name"
+              [itemTemplate]="itemTemplate"
+              [(ngModel)]="editedObject.name"
+              class="form-control form-control-plaintext abc"
+              name="customerName"
+              #customerName="ngModel"
+              required="true"
+              (selected)="customer_name_selected($event)"
+              (inputChanged)="customer_name_selected($event)">
+            </ng-autocomplete>
+            <ng-template #itemTemplate let-item>
+                <a [innerHTML]="item"></a>
+            </ng-template>
+        </div>
+        </span>
+    </div>
+    <div class="text-danger" *ngIf="attemptedClose && customerName.value==''">Please enter a customer name</div>
+    <div class="text-success" *ngIf="customerName.value!='' && customer_names.indexOf(customerName.value) == -1">New customer <strong>{{ customerName.value }}</strong> will be created</div>
+</div>
+<div class="row spaced-row">
+    <div class="col col-6" style="display: flex; flex-direction: column; justify-content: flex-end;">
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="flexRadioDefault" #radioWeight [checked]="editedObject.weight > 0 || (editedObject.weight == 0 && editedObject.units == 0)" (click)="focusOnWeight()">
+            <label class="form-check-label" for="radioWeight" (click)="focusOnWeight()">
+                Weight
+            </label>
+        </div>
+        <div class="form-floating">
+            <input type="number" #materialWeight="ngModel" [ngClass]="{'form-control': true, 'invalid': 
+            ((bankForm.touched && ((radioWeight.checked  &&(materialWeight.value=='' || materialWeight.value <= 0)))) ||
+            (!radioWeight.checked && !radioUnits.checked))
+            
+            }"
+            
+            placeholder="0" [(ngModel)]="editedObject.weight" name="materialWeight" (focusin)="focusOnWeight()">
+            <label for="materialWeight">Weight in kg</label>
+        </div>            
+    </div>
+    <div class="col col-6" style="display: flex; flex-direction: column; justify-content: flex-end;">
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="flexRadioDefault" #radioUnits [checked]="editedObject.units > 0" (click)="focusOnUnits()">
+            <label class="form-check-label" for="radioUnits" (click)="focusOnUnits()">
+                Units
+            </label>
+        </div>
+        <div class="form-floating">
+            <input type="number"
+            
+            [ngClass]="{'form-control': true, 'invalid': 
+            ((bankForm.touched && ((radioUnits.checked  &&(materialUnits.value=='' || materialUnits.value <= 0)))) || (!radioWeight.checked && !radioUnits.checked))}"
+            placeholder="0" [(ngModel)]="editedObject.units" (focusin)="focusOnUnits()" name="materialUnits" #materialUnits="ngModel" >
+            <label for="materialUnits">Number of units</label>
+        </div>            
+    </div>
+</div>
+<div class="row unspaced-row">
+    <div class="col">
+        <!--
+        validation:
+        -->
+        <div class="text-danger" *ngIf="
+            (attemptedClose &&
+            ((radioUnits.checked  &&
+            (materialUnits.value=='' || materialUnits.value <= 0)) 
+            ||
+            (radioWeight.checked  && 
+            (materialWeight.value=='' || materialWeight.value <= 0))))">
+            Select weight in kg or no. of units, and enter a value
+        </div>
+    </div>
+</div>
+</form>

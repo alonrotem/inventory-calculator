@@ -17,6 +17,7 @@ export class ConfirmationDialogComponent implements OnInit, AfterViewInit {
   @Input() btnNoText: string = "No";
   @Input() btnYesIcon: IconDefinition = faBorderNone;
   @Input() btnYesClass: string = "";
+  @Input() reverseButtons: boolean = false;
   @Output() confirm = new EventEmitter<any>();
   @Output() cancel = new EventEmitter<void>();
 

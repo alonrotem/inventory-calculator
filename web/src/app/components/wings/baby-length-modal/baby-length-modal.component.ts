@@ -24,12 +24,13 @@ export class BabyLengthModalComponent implements ModalObjectEditor {
     length: 0,
     position: ''
   };
+  close: EventEmitter<any> = new EventEmitter<WingBaby>();
 
   onOpen() {
   }
 
   set_crown(){
-    this.console.log("set_crown " +  this.crown_units + " :: " + this.crown_size.nativeElement.value);
+    //this.console.log("set_crown " +  this.crown_units + " :: " + this.crown_size.nativeElement.value);
   }
 
 
@@ -38,7 +39,7 @@ export class BabyLengthModalComponent implements ModalObjectEditor {
   }
 
   lengthClicked(newLength:number){
-    console.log("Changed " + newLength);
+    //console.log("Changed " + newLength);
     this.editedObject.length = newLength;
     this.length_changed.emit(this.editedObject);
   }

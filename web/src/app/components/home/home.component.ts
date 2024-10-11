@@ -1,38 +1,15 @@
-import { Component, OnInit } from '@angular/core';
-import { InfoService } from '../../services/info.service';
-import { Stats } from '../../../types';
-import { DecimalPipe } from '@angular/common';
+import { Component } from '@angular/core';
+import { SummaryCardComponent } from '../dashboard/summary-card/summary-card.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [ DecimalPipe ],
+  imports: [ SummaryCardComponent ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent {
 
-  raw_material_records: number = 0;
-  total_baby_records: number = 0;
-  total_babies: number = 0;
-  total_wings: number = 0;
-  total_hats: number = 0;
-
-  constructor(private infoService: InfoService) {
-  }
-
-  ngOnInit(): void {
-    this.infoService.getStatistics().subscribe({
-      next: (stats: Stats) => {
-        this.raw_material_records = stats.raw_material_records;
-        this.total_baby_records = stats.total_baby_records;
-        this.total_babies = stats.total_babies;
-        this.total_wings = stats.total_wings;
-        this.total_hats = stats.total_hats;
-      },
-      error: (error) => {
-        console.log(error);
-      }
-    })
+  constructor() {
   }
 }

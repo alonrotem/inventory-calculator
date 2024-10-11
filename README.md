@@ -8,6 +8,28 @@ npm install --save bootstrap
 ng generate component home
 
 NEXT TODOS:     
+❎ Customer entity
+	- name
+	- business name
+	- email
+	- phone
+	- tax identifier
+	Bank
+	- Raw material name + pieces / kgs
+❎ Raw material not managing babies. Customer instead.
+⏹️ Add raw material bank from customer screen: for existing raw material, or new.
+❎ Save customer syncs banks and babies
+⏹️ Wing width reflects in diagram
+⏹️ UX: Discard changes popup: 3rd option to save and then navigate
+Babies
+⏹️ Babies UX: Save and add new button in new dialog
+⏹️ Babies UX: prev/next button in edit dialog
+❎ Babies UX: [Enter] closes the dialog
+
+⏹️ Error handling client/server
+⏹️ Server exceptions on improper data
+
+❎ Action buttons moved to top on all screens
 ❎ 🪶 Show either units or kg in main raw table     
 ❎ 🪶 Show total # of babies in main raw table - lighter query     
 ❎ 🪶 Opening baby dialog: focus and select-all first field. Clear validation message.     
@@ -21,8 +43,8 @@ NEXT TODOS:
 ❎ 🐞 Bug: New babies don't get aggregated if their length matches (make sure client & server)     
             check this.babyEditorDialog.confirm.subscribe((baby:Baby) => { on babies table component
 ❎ 🐞 Bug: Opening a baby record doesn't select the baby    
-⏹️ 🪶 Wings      
-⏹️ 🪶 Hats      
+❎ 🪶 Wings      
+❎ 🪶 Hats      
 
 Extra features:    
 ⏹️ 🪶 Make tables sortable, filterable     
