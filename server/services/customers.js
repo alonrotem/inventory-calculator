@@ -1,5 +1,6 @@
 const db = require('./db');
 const helper = require('../helper');
+const transaction_history = require('./transaction_history');
 const { raw } = require('mysql2');
 
 async function getSingle(id){
@@ -211,8 +212,7 @@ async function sync_banks_for_raw_material(banks, raw_material_id)
   //id of banks that should be existing (have IDs)
   let bank_ids_to_keep = banks.filter(bank => bank.id != 0).map(bank => bank.id).join(",");
 
-  if(bank_ids_to_keep.length > 0)
-  {
+  if(bank_ids_to_keep.length > 0) {
     //remove irrelevant ones
     const deletion_result = await db.query(
       `DELETE FROM customer_banks WHERE raw_material_id=${ raw_material_id } and id not in (${ bank_ids_to_keep })`
@@ -234,32 +234,72 @@ async function sync_banks_for_raw_material(banks, raw_material_id)
   let banks_updated = 0;
   let customers_created = 0;
   //console.log("banks_with_existing_customers.length " + banks_with_existing_customers.length);
-  if(banks_with_existing_customers.length > 0)
-  {
+  if(banks_with_existing_customers.length > 0) {
     // add or update existing ones
-    //"INSERT INTO table_test (name , last_name , year) VALUES ?"
+    /*
+      `id`            			INT NOT NULL auto_increment,
+      `customer_id`            	INT NOT NULL,
+      `raw_material_id`            INT NOT NULL,
+      `quantity`   	    		float NOT NULL,
+      `remaining_quantity`   	    float NOT NULL ,    
+    */
+
+    // NEW IMPLEMENTATION
+    banks_with_existing_customers.forEach(async (bank) => {
+      const result = await db.query(
+        `INSERT INTO customer_banks (id, customer_id, raw_material_id, quantity, remaining_quantity) 
+          VALUES 
+          ((?), (?), (?), (?), (?))
+          ON DUPLICATE KEY
+          UPDATE 
+            customer_id=values(customer_id),
+            raw_material_id=values(raw_material_id),
+            quantity=values(quantity),
+            remaining_quantity=values(remaining_quantity);`,
+            [ 
+              bank.id,
+              bank.customer_id,
+              raw_material_id,
+              bank.quantity,
+              bank.remaining_quantity
+            ]
+      );
+      let bank_id = (bank.id == 0)? result.insertId : bank.id;
+      if(bank.transaction_record){
+        bank.transaction_record.raw_material_id = raw_material_id;
+        bank.transaction_record.customer_bank_id = bank_id;
+        await transaction_history.create_history_record(bank.transaction_record);
+      }
+      banks_updated++;
+    }); 
+    // OLD IMPLEMENTATION BELOW
+    /*
     let banks_arr = banks_with_existing_customers.map(bank => 
       [
         bank.id,
         bank.customer_id, 
         raw_material_id, 
-        bank.weight, 
-        bank.units
+        bank.quantity, 
+        bank.remaining_quantity
       ]
     ).flat(1);
     let placeholder = Array(banks_with_existing_customers.length).fill("(" + Array(banks_arr.length / banks_with_existing_customers.length).fill("?").join(",") + ")").join(",");
     //VALUES (?, ?), (?,?)
 
     const add_banks_for_existing = await db.query(
-      `INSERT INTO customer_banks (id, customer_id, raw_material_id, weight, units) 
+      `INSERT INTO customer_banks (id, customer_id, raw_material_id, quantity, remaining_quantity) 
         VALUES 
         ${placeholder}
         ON DUPLICATE KEY
         UPDATE 
-          customer_id=values(customer_id), raw_material_id=values(raw_material_id), weight=values(weight), units=values(units);`,
+          customer_id=values(customer_id),
+          raw_material_id=values(raw_material_id),
+          weight=values(quantity),
+          units=values(remaining_quantity);`,
         banks_arr
     );
     banks_updated += (add_banks_for_existing.affectedRows);
+    */
   }
 
   //console.log("banks_with_new_customers.length " + banks_with_new_customers.length);
@@ -271,18 +311,24 @@ async function sync_banks_for_raw_material(banks, raw_material_id)
       
       const add_banks_for_new = await db.query(
         `REPLACE INTO customer_banks 
-        (id, customer_id, raw_material_id, weight, units) 
+        (id, customer_id, raw_material_id, quantity, remaining_quantity) 
         VALUES 
         ((?),(?),(?),(?),(?))`,
         [
           banks_with_new_customers[i].id,
           new_customer_id,
           raw_material_id, 
-          banks_with_new_customers[i].weight, 
-          banks_with_new_customers[i].units
+          banks_with_new_customers[i].quantity, 
+          banks_with_new_customers[i].remaining_quantity
         ]
       );
       banks_updated += (add_banks_for_new.affectedRows/2);
+      let bank_id = (banks_with_new_customers[i].id == 0)? result.insertId : banks_with_new_customers[i].id;
+      if(bank.transaction_record){
+        bank.transaction_record.raw_material_id = raw_material_id;
+        bank.transaction_record.customer_bank_id = bank_id;
+        await transaction_history.create_history_record(bank.transaction_record);
+      }
     }
   }
   if(banks_updated > 0) {

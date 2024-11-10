@@ -42,6 +42,15 @@ router.get('/single/:id', async function(req, res, next) {
     }
   });
 
+  router.get('/quantity_units', async function(req, res, next) {
+    try {
+      res.json(await raw_materials.getQuantityUnitTypes());
+    } catch (err) {
+      console.error(`Error while getting quantity units `, err.message);
+      next(err);
+    }
+  });
+
 /* POST: create raw material */
 /*
 curl -i -X POST \
@@ -49,17 +58,18 @@ curl -i -X POST \
     -H 'Content-type: application/json' \
     --data "{  \"name\":\"Test's material\",  \"purchased_at\": \"2024-05-01\", \"weight\": 100, \"created_by\": 2 }" \
         http://localhost:3000/raw_materials/
-*/
+
 router.post('/', async function(req, res, next) {
     try {
-      res.json(await raw_materials.create(req.body));
+      res.json(await raw_materials.save_material(req.body));
     } catch (err) {
       console.error(`Error while creating raw material`, err.message);
       next(err);
     }
   });
+  */
 
-  // PUT (update) raw material
+  // PUT -> save (create/update) raw material
   /*
     curl -i \
         -X PUT \
@@ -68,11 +78,11 @@ router.post('/', async function(req, res, next) {
         --data "{  \"name\":\"Alon's\",  \"purchased_at\": \"2024-05-01\", \"weight\": 100, \"updated_by\": 4 }" \
         http://localhost:3000/raw_materials/12
   */
-  router.put('/:id', async function(req, res, next) {
+  router.put('/', async function(req, res, next) {
     try {
-      res.json(await raw_materials.update(req.params.id, req.body));
+      res.json(await raw_materials.save_material(req.body));
     } catch (err) {
-      console.error(`Error while updating raw material`, err.message);
+      console.error(`Error while saving raw material`, err.message);
       next(err);
     }
   });

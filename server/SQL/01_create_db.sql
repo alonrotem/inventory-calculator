@@ -2,7 +2,13 @@
 # & cmd.exe /c """C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"" -u root -p12345678 < .\SQL\create_db.sql"
 
 use inventory;
-
+/*
+CREATE TABLE  IF NOT EXISTS `test` (
+`quantity_units`	ENUM('kg', 'units') DEFAULT 'kg'
+);
+SHOW COLUMNS FROM test LIKE 'quantity_units';
+drop table if exists test;
+*/
 # CLEANUP
 # -----------
 # Drop foreign key if exists:
@@ -13,12 +19,14 @@ SET @table_name = 'wings_babies', @fk_name = 'fk_parent_wing_id'; SET @sql = (SE
 SET @table_name = 'hats_wings', @fk_name = 'fk_hat_parent_wing_id'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 SET @table_name = 'customer_banks', @fk_name = 'fk_raw_material_customer'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 SET @table_name = 'customer_banks', @fk_name = 'fk_customer_raw_material'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+SET @table_name = 'customer_banks_babies', @fk_name = 'fk_customer_babies_bank'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 drop table if exists users;
 
 drop table if exists raw_materials;
 drop table if exists customers;
 drop table if exists customer_banks;
+drop table if exists customer_banks_babies;
 drop table if exists babies;
 drop table if exists countries;
 drop table if exists currencies;
@@ -29,6 +37,9 @@ drop table if exists wings_babies;
 
 drop table if exists hats;
 drop table if exists hats_wings;
+
+drop table if exists transaction_history;
+
 
 # CREATE TABLES
 # ---------------
@@ -317,13 +328,38 @@ values
   ('EUR', 'EURO', _ucs2 0x20AC, 20),
   ('RUB', 'Ruble', _ucs2 0x20BD, 30);
 
+/*
+	raw_materials
+		purchase quantity
+        current remaining quantity
+    
+    customers
+		customer bank
+			current quantity
+            assigned to work
+            
+		customer bank work allocation
+			stock
+            remaining quantity
+    
+		transaction history
+			raw material id
+            transaction type:
+				added raw material
+                move to customer bank
+                allocate to customer work
+			transaction quantity
+*/
+# raw_materials -> customer_banks -> customer_banks_babies -> babies
+
 CREATE TABLE  IF NOT EXISTS `raw_materials`
 (
   `id`            	INT NOT NULL auto_increment,
   `name`          	VARCHAR(255) NOT NULL ,
   `purchased_at` 	DATE NOT NULL DEFAULT(CURRENT_DATE),
-  `weight`   	    float NULL ,
-  `units`			INT NULL,
+  `purchase_quantity`   	    float NOT NULL ,
+  `remaining_quantity`   	    float NOT NULL ,
+  `quantity_units`	ENUM('kg', 'units') DEFAULT 'kg',
   `units_per_kg`	float NULL,
   `vendor_name`		varchar(255) NULL,
   `origin_country`	VARCHAR(2) NULL,
@@ -348,6 +384,7 @@ CREATE TABLE  IF NOT EXISTS `customers` (
 	`email`     		VARCHAR(255) NULL ,
 	`phone`     		VARCHAR(255) NULL ,
 	`tax_id`     		VARCHAR(255) NULL ,
+    `notes`				varchar(255) NULL,
 	`created_at`    	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
 	`updated_at`    	DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`created_by`	 	int null,
@@ -359,19 +396,30 @@ CREATE TABLE  IF NOT EXISTS `customer_banks` (
 	`id`            			INT NOT NULL auto_increment,
 	`customer_id`            	INT NOT NULL,
     `raw_material_id`            INT NOT NULL,
-	`weight`   	    			float NULL ,
-	`units`						INT NULL,
-    PRIMARY KEY (`id`),
+	`quantity`   	    		float NOT NULL,
+    `remaining_quantity`   	    float NOT NULL ,
+	PRIMARY KEY (`id`),
   CONSTRAINT fk_raw_material_customer
   FOREIGN KEY (`customer_id`) REFERENCES customers(`id`)  ON DELETE CASCADE,
   CONSTRAINT fk_customer_raw_material
   FOREIGN KEY (`raw_material_id`) REFERENCES raw_materials(`id`)  ON DELETE CASCADE
 );
 
+# Withdrawn for work
+CREATE TABLE  IF NOT EXISTS `customer_banks_babies` (
+	`id`            			INT NOT NULL auto_increment,
+    `customer_bank_id`          INT NOT NULL,
+	`quantity`   	    		float NOT NULL,
+    `remaining_quantity`   	    float NOT NULL ,
+    PRIMARY KEY (`id`),
+    CONSTRAINT fk_customer_babies_bank
+	FOREIGN KEY (`customer_bank_id`) REFERENCES customer_banks(`id`)  ON DELETE CASCADE
+);
+
 CREATE TABLE  IF NOT EXISTS `babies`
 (
   `id`            INT NOT NULL auto_increment,
-  `customer_bank_id` INT NOT NULL,
+  `customer_banks_babies_id` INT NOT NULL,
   `length`   	    float NOT NULL,
   `quantity`   	    INT NOT NULL,
   `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
@@ -380,7 +428,32 @@ CREATE TABLE  IF NOT EXISTS `babies`
   `updated_by`	 int null,
   PRIMARY KEY (`id`),
   CONSTRAINT fk_baby_raw_material_customer_parent
-  FOREIGN KEY (`customer_bank_id`) REFERENCES customer_banks(`id`) /*ON DELETE CASCADE*/
+  FOREIGN KEY (`customer_banks_babies_id`) REFERENCES customer_banks_babies(`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE  IF NOT EXISTS transaction_history (
+	`id`            	INT NOT NULL auto_increment,
+    `date`    			DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `added_by` INT,
+    `transaction_quantity`     float NOT NULL,
+    `transaction_type`	ENUM(
+		'raw_material_purchase', 
+        'to_customer_bank', 
+        'customer_bank_allocate_to_Work'
+	) NOT NULL,
+    
+    # involved banks in this transaction:
+	`raw_material_id` 	INT,
+    `customer_id` 		INT,
+    `customer_bank_id` 	INT,
+    `customer_banks_babies_id` INT,
+		
+	# track keeping on quantities at the time of this transaction:
+    `cur_raw_material_quantity` float,
+    `cur_customer_bank_quantity` float,
+    `cur_banks_babies_allocation_quantity` float,
+        
+    PRIMARY KEY (`id`)
 );
 
 /*

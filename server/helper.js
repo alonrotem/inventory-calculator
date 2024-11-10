@@ -1,3 +1,7 @@
+const db = require('./services/db');
+const config = require('./config');
+const { raw } = require('mysql2');
+
 function getOffset(currentPage = 1, listPerPage) {
   return (currentPage - 1) * [listPerPage];
 }
@@ -47,8 +51,29 @@ function dateStr(date)
     return date.getFullYear() + "-" +
       (date.getMonth() + 1) + "-" +
       date.getDate() + " " +
-      date.getHours() + ":" + date.getMinutes();
+      date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
   }
+}
+
+async function getEnumValues(table, column){
+  const rows = await db.query(
+      `SELECT DISTINCT SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING(COLUMN_TYPE, 7,     
+          LENGTH(COLUMN_TYPE) - 8), "','", 1 + units.i + tens.i * 10) , "','", -1) 'enum_values'
+          FROM INFORMATION_SCHEMA.COLUMNS
+          CROSS JOIN (SELECT 0 AS i UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION 
+          SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION 
+          SELECT 9) units
+          CROSS JOIN (SELECT 0 AS i UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION 
+          SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION 
+          SELECT 9) tens
+          WHERE TABLE_NAME = '${table}' 
+          AND COLUMN_NAME = '${column}'`
+  );
+  const enum_rec = emptyOrRows(rows);
+  if(enum_rec){
+      //console.log(enum_rec);
+  }
+  return enum_rec;
 }
 
 module.exports = {
@@ -58,5 +83,6 @@ module.exports = {
   formatDate,
   nowDateStr,
   dateStr,
-  isEmptyObj
+  isEmptyObj,
+  getEnumValues
 }
