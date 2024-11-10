@@ -1,0 +1,56 @@
+<app-modal-dialog #dialog 
+  [btnSaveClass]="'d-none'" 
+  [btnCancelClass]="'btn-primary m-auto'" 
+  [modalTitle]="'<span class=\'icon-history\'></span> Transaction history'"
+  [modalSize]="'lg'"
+  >
+
+  <div *ngIf="loading">
+    <div style="height: 170px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+      <div><fa-icon [icon]="faArrowsRotate" [spin]="true" size="3x"></fa-icon></div>
+      <div id="loading_message" class="mt-4">Loading history records...</div>
+    </div>
+  </div>
+  <div *ngIf="!loading && history_records && history_records.length > 0">
+    <div class="mb-3">
+      History records for raw material: <strong>{{ raw_material_name }}</strong>
+    </div>
+    <table class="table table-light">
+        <thead>
+          <tr>
+            <th scope="col">Date</th>
+            <th scope="col">Action</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">Remaining quantity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let record of history_records; index as i">
+            <td>{{ record.date | dateStr }}</td>
+            <td [ngSwitch]="record.transaction_type">
+              <span *ngSwitchCase="'raw_material_purchase'">Material purchase</span>
+              <span *ngSwitchCase="'to_customer_bank'">
+                To customer's bank: <strong>{{ record.customer_name }}</strong>
+              </span>
+            </td>
+            <td [ngSwitch]="record.transaction_type" class="text-end">
+              <span *ngSwitchCase="'raw_material_purchase'" class="text-success">+{{ record.transaction_quantity }} {{ raw_material_units }}</span>
+              <span *ngSwitchCase="'to_customer_bank'" class="text-danger">-{{ record.transaction_quantity }} {{ raw_material_units }}</span>
+            </td>
+            <td class="text-end">{{ record.cur_raw_material_quantity }} {{ raw_material_units }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div (click)="ExportToExcel()" style="text-align: center; cursor: pointer;">
+        <span class="icon-file-excel"></span> Download raw data to Excel
+      </div>
+    </div>
+
+    <div *ngIf="((!loading) && (!history_records || history_records.length == 0))">
+      <div style="height: 170px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <div><fa-icon [icon]="faTriangleExclamation" size="3x"></fa-icon></div>
+        <div id="loading_message" class="mt-4">No history records for this material</div>
+      </div>
+    </div>
+
+</app-modal-dialog>

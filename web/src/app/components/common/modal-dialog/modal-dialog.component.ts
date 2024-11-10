@@ -25,6 +25,8 @@ export class ModalDialogComponent {
   @Input() btnCancelText: string = "Close";
   @Input() btnSaveIcon: IconDefinition = faBorderNone;
   @Input() btnSaveClass: string = "btn-primary";
+  @Input() btnCancelClass: string = "btn-secondary";
+  @Input() modalSize: string = "m";
 
   @Output() confirm = new EventEmitter<any>();
   @Output() cancel = new EventEmitter<void>();
@@ -37,8 +39,8 @@ export class ModalDialogComponent {
   }
   
   public open() {
-    this.modalReference = this.modalService.open(this.content, { centered: true, size: 'm' });
-    if(this.dialog_content_component.onOpen){
+    this.modalReference = this.modalService.open(this.content, { centered: true, size: this.modalSize });
+    if(this.dialog_content_component && this.dialog_content_component.onOpen){
       this.dialog_content_component.onOpen();
     }
 

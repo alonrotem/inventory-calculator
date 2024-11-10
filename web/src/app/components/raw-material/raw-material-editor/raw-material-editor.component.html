@@ -16,8 +16,18 @@
     btnYesClass="btn-warning">
 </app-confirmation-dialog>
 
+<app-raw-material-history-dialog #history_dialog>
+
+</app-raw-material-history-dialog>
+
+<app-modal-dialog #quantityDialog>
+    <app-raw-material-quantity-dialog #modalContent></app-raw-material-quantity-dialog>
+</app-modal-dialog>
+
+<div #tooltip class="tooltip">Tooltip</div>
+
 <div class="row justify-content-center">
-<div class="col-8">
+<div class="col-12 col-md-8">
 
     <h3><span class="icon-leaf"></span> {{ this.title }}</h3>
 
@@ -40,38 +50,39 @@
         <!-- Autocomplete -->
         <div class="row">
             <div class="col-6">
-                <div class="ng-autocomplete">
-                    <ng-autocomplete 
-                      [data]="raw_material_names"
-                      placeholder="Select a material or enter a new one*"
-                      [itemTemplate]="itemTemplate"
-                      [(ngModel)]="rawMaterialItem.name"
-                      [className]="'form-control form-control-plaintext'"
-                      name="materialName"
-                      #materialName="ngModel"
-                      [required]="true">
-                    </ng-autocomplete><!--
-                                          (selected)='selectEvent($event)'
-                      (inputChanged)='onChangeSearch($event)'
-                      (inputFocused)='onFocused($event)'
-                      (inputCleared)='onCleared($event)'
-                    [notFoundTemplate]="notFoundTemplate"-->
-                    
-                    <ng-template #itemTemplate let-item>
-                        <a [innerHTML]="item"></a>
-                    </ng-template>
-                    <!--
-                    <ng-template #notFoundTemplate let-notFound>
-                        <div [innerHTML]="notFound"></div>
-                    </ng-template>-->
+                <div style="display: flex; flex-wrap: nowrap; justify-content: flex-start; align-items: center;">
+                    <div class="ng-autocomplete" style="flex-grow: 1;">
+                        <ng-autocomplete 
+                        [data]="raw_material_names"
+                        placeholder="Select a material or enter a new one*"
+                        [itemTemplate]="itemTemplate"
+                        [(ngModel)]="rawMaterialItem.name"
+                        [className]="'form-control form-control-plaintext'"
+                        name="materialName"
+                        #materialName="ngModel"
+                        [required]="true">
+                        </ng-autocomplete><!--
+                                            (selected)='selectEvent($event)'
+                        (inputChanged)='onChangeSearch($event)'
+                        (inputFocused)='onFocused($event)'
+                        (inputCleared)='onCleared($event)'
+                        [notFoundTemplate]="notFoundTemplate"-->
+                        
+                        <ng-template #itemTemplate let-item>
+                            <a [innerHTML]="item"></a>
+                        </ng-template>
+                        <!--
+                        <ng-template #notFoundTemplate let-notFound>
+                            <div [innerHTML]="notFound"></div>
+                        </ng-template>-->
+                    </div>
+                    <span class="icon-history" *ngIf="rawMaterialItem.id!=0"  (click)="openHistoryDialog()" style="font-size: 23px; margin-left: 14px; cursor:pointer;" title="History records"></span>
                 </div>
 
                 <div class="text-danger" *ngIf="materialName.invalid && (materialName.touched || materialName.dirty)" > 
                     <span *ngIf="materialName.errors?.['required']">Please enter a name for the raw material</span>
                 </div> 
         </div>
-
-
 
         <div class="col-2">
             <button class="btn btn-warning upper-button" (click)="gotoMaterialsList()">
@@ -94,7 +105,44 @@
     </div>
 
     <!--/Autocomplete -->
+    <div class="row">
+        <div class="col col-12 col-md-4  mt-3 mt-md-0 mb-3 mb-md-0">
+            <div class="input-group">
+                <div class="form-floating">
+                    <input type="number" id="materialPurchaseQuantity" class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.purchase_quantity" name="materialPurchaseQuantity" #purchase_quantity="ngModel" (change)="recalculateRemaining()">
+                    <label for="materialPurchaseQuantity">Quantity</label>
+                </div>
+                <ng-select [(ngModel)]="rawMaterialItem.quantity_units" name="quantityunits" [clearable]="false" #rawMaterialItem.quantity_units="ngModel" [disabled]="lock_quantity_control" (mousemove)="(!lock_quantity_control)? false: showTooltip('<strong>🔒 Locked</strong><br/>Quantity is locked for editing, as it is used by customer banks.<br/>You can top it up with the top-up button!')" (mouseout)="this.show_tooltip=false">
+                    @for (unit of quantity_units; track unit) {
+                        <ng-option [value]="unit">{{unit}}</ng-option>
+                    }
+                </ng-select>
+            </div>
+        </div>
+        <div class="col col-12 col-md-4  mt-3 mt-md-0 mb-3 mb-md-0" style="display: flex; flex-direction: row; justify-content: space-evenly; align-items: center; flex-wrap: nowrap;">
+            <span style="text-align: center;"><strong>Remaining:<br/></strong>{{ rawMaterialItem.remaining_quantity }} {{ rawMaterialItem.quantity_units }}</span>
+            <!--
+            <span *ngIf="lock_quantity_control">
+                <button class="btn btn-primary" style="font-size:12px;" (click)="openQuantityDialog()">+<br/>Top up!</button>
+            </span>
+            -->
+        </div>
+        <div class="col col-12 col-md-4  mt-3 mt-md-0 mb-3 mb-md-0">
+            <div class="form-floating">
+                <input type="number" id="units_per_kg" class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.units_per_kg" name="units_per_kg">
+                <label for="units_per_kg">Units per kg</label>
+            </div>            
+        </div>
+    </div>
 
+    <div class="row" style="margin-top: -20px !important;" *ngIf="insufficient_quantity_for_banks">
+        <div class="col col-12 col-md-8 mb-3 mb-md-0">
+            <div class="text-danger">
+                Quantity cannot be less than the used quantity, {{ curr_total_in_banks }} {{ rawMaterialItem.quantity_units }}
+            </div>
+        </div>
+    </div>
+<!--
         <div class="row">
             <div class="col col-12 col-md-4" style="display: flex; flex-direction: column; justify-content: flex-end;">
                 <div class="form-check">
@@ -127,9 +175,9 @@
                 </div>            
             </div>
         </div>
-        <!--
+        < !--
         validation:
-        -->
+        -- >
         <div class="text-danger" *ngIf="
             (radioUnits.checked && (materialUnits.touched || materialUnits.dirty) && 
             (materialUnits.value=='' || materialUnits.value <= 0)) 
@@ -138,9 +186,9 @@
             (materialWeight.value=='' || materialWeight.value <= 0))">
             Please select weight in kg or number of units, and enter a valid value
         </div>
-
+    -->
         <div class="row">
-            <div class="col col-12 col-md-4">
+            <div class="col-12 col-md-4 mt-3 mt-md-0 mb-3 mb-md-0">
                 <div class="input-group">
                     <ng-select [(ngModel)]="rawMaterialItem.currency" name="currency" [clearable]="false" #currency="ngModel">
                         @for (currency of currencies; track currency.code) {
@@ -157,7 +205,7 @@
                     Please select a currency for the price
                 </div>           
             </div>
-            <div class="col col-12 col-md-4">
+            <div class="col col-12 col-md-4 mt-3 mt-md-0 mb-3 mb-md-0">
                 <div class="form-floating">
                 <ng-select [(ngModel)]="rawMaterialItem.origin_country" name="country">
                     @for (country of countries; track country.code) {
@@ -167,7 +215,7 @@
                 <label for="">Origin country</label>
                 </div>
             </div>
-            <div class="col col-12 col-md-4">
+            <div class="col col-12 col-md-4 mt-3 mt-md-0 mb-3 mb-md-0">
                 <div class="form-floating">
                     <input type="text" class="form-control" id="vendorName" [(ngModel)]="rawMaterialItem.vendor_name" name="vendor_name">
                     <label for="vendorName">Vendor name</label>
@@ -176,14 +224,14 @@
         </div>
 
         <div class="row">
-            <div class="col col-12 col-md-6">
+            <div class="col col-12 col-md-6  mt-3 mt-md-0 mb-3 mb-md-0">
                 <div class="form-floating">
                     <input type="date" #purchasedAt class="form-control" placeholder="0" [ngModel]="rawMaterialItem.purchased_at | date: 'yyyy-MM-dd'" name="purchased_at">
                     <label for="purchasedAt">Purchased at</label>
                 </div>
             </div>
             <div class="col col-12 col-md-6" style="display: flex; flex-direction: column; justify-content: center;">
-                Last updated at: {{ (newMaterialMode)? "Not yet!" : rawMaterialItem.updated_at | dateStr }}
+                <span><strong>Last updated at: </strong>{{ (newMaterialMode)? "Not yet!" : rawMaterialItem.updated_at | dateStr }}</span>
             </div>
         </div>
 
@@ -200,6 +248,8 @@
             <div class="col col-12 banks-container">
                 <app-raw-material-customer-table 
                     [banks]="rawMaterialItem.customer_banks"
+                    [parent_raw_material]="rawMaterialItem"
+                    (banksChanged)="recalculateRemaining()"
                 />
             <!--
                 <app-babies-table 

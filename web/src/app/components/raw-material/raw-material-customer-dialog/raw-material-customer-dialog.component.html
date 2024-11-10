@@ -13,7 +13,8 @@
               #customerName="ngModel"
               required="true"
               (selected)="customer_name_selected($event)"
-              (inputChanged)="customer_name_selected($event)">
+              (inputChanged)="customer_name_selected($event)"
+              [disabled]="editedObject.id!=0">
             </ng-autocomplete>
             <ng-template #itemTemplate let-item>
                 <a [innerHTML]="item"></a>
@@ -25,6 +26,18 @@
     <div class="text-success" *ngIf="customerName.value!='' && customer_names.indexOf(customerName.value) == -1">New customer <strong>{{ customerName.value }}</strong> will be created</div>
 </div>
 <div class="row spaced-row">
+    <div class="col-12">
+        
+            <span style="display: flex; flex-wrap: nowrap; justify-content: flex-start; align-items: center;">
+                <div class="form-floating" style="width: 100%; margin-right: 20px;">
+                <input type="number" #materialQuantity="ngModel" [ngClass]="{'form-control': true, 'invalid': (bankForm.touched && editedObject.quantity <=0)}"
+                    placeholder="0" [(ngModel)]="editedObject.quantity" name="materialQuantity" required="true" min="1"> 
+                    <label for="materialQuantity">Quantity</label>
+                </div>
+                <span>{{ editedObject.quantity_units }}</span>
+            </span>
+        </div>
+    <!--
     <div class="col col-6" style="display: flex; flex-direction: column; justify-content: flex-end;">
         <div class="form-check">
             <input class="form-check-input" type="radio" name="flexRadioDefault" #radioWeight [checked]="editedObject.weight > 0 || (editedObject.weight == 0 && editedObject.units == 0)" (click)="focusOnWeight()">
@@ -39,13 +52,14 @@
             
             }"
             
-            placeholder="0" [(ngModel)]="editedObject.weight" name="materialWeight" (focusin)="focusOnWeight()">
+            placeholder="0" [(ngModel)]="editedObject.quantity" name="materialWeight" (focusin)="focusOnWeight()">
             <label for="materialWeight">Weight in kg</label>
-        </div>            
+        </div>
     </div>
+
     <div class="col col-6" style="display: flex; flex-direction: column; justify-content: flex-end;">
         <div class="form-check">
-            <input class="form-check-input" type="radio" name="flexRadioDefault" #radioUnits [checked]="editedObject.units > 0" (click)="focusOnUnits()">
+            <input class="form-check-input" type="radio" name="flexRadioDefault" #radioUnits [checked]="editedObject.quantity > 0" (click)="focusOnUnits()">
             <label class="form-check-label" for="radioUnits" (click)="focusOnUnits()">
                 Units
             </label>
@@ -53,26 +67,29 @@
         <div class="form-floating">
             <input type="number"
             
-            [ngClass]="{'form-control': true, 'invalid': 
+            >
+           [ngClass]="{'form-control': true, 'invalid': 
             ((bankForm.touched && ((radioUnits.checked  &&(materialUnits.value=='' || materialUnits.value <= 0)))) || (!radioWeight.checked && !radioUnits.checked))}"
-            placeholder="0" [(ngModel)]="editedObject.units" (focusin)="focusOnUnits()" name="materialUnits" #materialUnits="ngModel" >
+            placeholder="0" [(ngModel)]="editedObject.units" (focusin)="focusOnUnits()" name="materialUnits" #materialUnits="ngModel" 
+
             <label for="materialUnits">Number of units</label>
         </div>            
     </div>
+-->
 </div>
 <div class="row unspaced-row">
     <div class="col">
         <!--
         validation:
         -->
-        <div class="text-danger" *ngIf="
+        <div class="text-danger" *ngIf="(attemptedClose && (materialQuantity.value=='' || materialQuantity.value <= 0) )"><!--*ngIf="
             (attemptedClose &&
             ((radioUnits.checked  &&
             (materialUnits.value=='' || materialUnits.value <= 0)) 
             ||
             (radioWeight.checked  && 
-            (materialWeight.value=='' || materialWeight.value <= 0))))">
-            Select weight in kg or no. of units, and enter a value
+            (materialWeight.value=='' || materialWeight.value <= 0))))"-->
+            Please enter a valid quantity
         </div>
     </div>
 </div>

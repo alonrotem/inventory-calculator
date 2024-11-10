@@ -30,12 +30,19 @@ export class RawMaterialsService {
     });
   };
 
+  getRawMaterialQuantityUnits = (): Observable<string[]> => {
+    return this.apiService.get(`${environment.serverUrl}/raw_materials/quantity_units/`, {
+      responseType: 'json'
+    });
+  };
+/*
   saveNewRawMaterial = (material: RawMaterial): Observable<any> => {
     return this.apiService.post(`${environment.serverUrl}/raw_materials/`, material, { });
   };
-
-  updateRawMaterial = (material: RawMaterial): Observable<any> => {
-    return this.apiService.put(`${environment.serverUrl}/raw_materials/${material.id}`, material, { });
+*/
+  //save: update or create
+  save = (material: RawMaterial): Observable<any> => {
+    return this.apiService.put(`${environment.serverUrl}/raw_materials/`, material, { }); //${material.id}
   };
 
   deleteRawMaterial = (id: number): Observable<any> => {

@@ -70,6 +70,17 @@ Extra features:
 + Spread materials editor buttons + add icons
 + Babies
 
+
+===========================================================
+Raw material
+    Initial purchase: 
+        Quantity type: Units / kg
+        Quantity: (number)
+    Central Bank: 
+        Followed by audit:
+            Date | by user | quantity
+
+
 ===========================================================
 
 BACKUP:

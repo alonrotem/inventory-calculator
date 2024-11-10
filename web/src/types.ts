@@ -40,21 +40,23 @@ export interface Babies {
 
 export interface RawMaterial {
     id: number;
-    name: String;
+    name: string;
     purchased_at: Date;
-    weight: number;
-    units: number;
-    units_per_kg: number;
-    vendor_name: string;
-    origin_country: string;
-    price: number;
-    currency: string;
+    purchase_quantity: number;
+    remaining_quantity: number; 
+    quantity_units: string; 
+    units_per_kg: number; 
+    vendor_name: string; 
+    origin_country: string; 
+    price: number; 
+    currency: string; 
     notes: string;
-    created_at: Date;
-    updated_at: Date;
-    created_by: number;
+    created_at: Date; 
+    updated_at: Date; 
+    created_by: number; 
     updated_by: number;
     customer_banks: RawMaterialCustomerBank[];
+    transaction_record: TransactionRecord | null;
 }
 
 export interface RawMaterialCustomerBank {
@@ -63,8 +65,18 @@ export interface RawMaterialCustomerBank {
     business_name: string;
     raw_material_id: number;
     customer_id: number;
-    weight: number;
-    units: number;
+    quantity: number;
+    remaining_quantity: number;
+    quantity_units: string;
+    transaction_record: TransactionRecord | null;
+}
+
+export interface CustomerBanksBabies {
+	id: number;
+    customer_bank_id: number;
+	quantity: number;
+    remaining_quantity: number;
+    transaction_record: TransactionRecord | null;
 }
 
 export interface Baby {
@@ -239,4 +251,49 @@ export interface Customers {
         total_records: number;
         total_pages: number;
     };
+}
+
+export enum TransactionType {
+    raw_material_purchase = "raw_material_purchase",
+    to_customer_bank = "to_customer_bank",
+    customer_bank_allocate_to_Work = "customer_bank_allocate_to_Work"
+}
+
+export interface TransactionRecord {
+	id: number;
+    date: Date;
+    added_by: number;
+    transaction_quantity: number;
+    transaction_type: TransactionType;
+    
+    // involved banks in this transaction:
+	raw_material_id: number;
+    customer_id: number;
+    customer_bank_id: number;
+    customer_banks_babies_id: number;
+		
+	// track keeping on quantities at the time of this transaction:
+    cur_raw_material_quantity: number;
+    cur_customer_bank_quantity: number;
+    cur_banks_babies_allocation_quantity: number;
+}
+
+export interface HistoryReportRecord {
+    id: number;
+    
+    raw_material_name: string;
+    customer_name: string;
+    transaction_type: TransactionType; 
+    
+    transaction_quantity: number;
+    raw_material_id: number;
+    customer_id: number;
+    customer_bank_id: number;
+    customer_banks_babies_id: number;
+    cur_raw_material_quantity: number;
+    cur_customer_bank_quantity: number;
+    cur_banks_babies_allocation_quantity: number;
+
+    date: Date;
+    added_by: number;
 }

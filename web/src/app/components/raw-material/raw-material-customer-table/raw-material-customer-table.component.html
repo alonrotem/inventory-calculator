@@ -33,8 +33,7 @@
         <td class="hover-warning" routerLink="/inventory/customer/editor" [queryParams]="{ id: bank.customer_id}"><span class="icon-address-book action-icon"></span>{{ bank.name }}<span class="text-success" [hidden]="bank.customer_id!=0" title="This non-existing customer will be created">*</span></td>
         <td>{{ bank.business_name }}</td>
         <td class="hover-warning" (click)="openCustomerEditor(bank)"><fa-icon class="action-icon" [icon]="faPencil"></fa-icon>
-          <span *ngIf="(bank.weight && bank.weight > 0)">{{ bank.weight | number: '1.1-1' }} kg</span>
-          <span *ngIf="(!bank.weight)">{{ bank.units }} unit<span *ngIf="(bank.units != 1)">s</span></span>
+          {{ bank.quantity }} {{ bank.quantity_units }} ({{ bank.remaining_quantity }} remaining)
         </td>
         <td class="text-center" (click)="deleteBank(i, bank)"><fa-icon class="text-danger" [icon]="faTrashCan"></fa-icon></td>
       </tr>

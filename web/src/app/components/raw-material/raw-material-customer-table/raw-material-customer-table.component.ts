@@ -1,7 +1,7 @@
-import { AfterViewInit, Component, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faMoneyCheckDollar, faPencil, faTrashAlt, faTrashCan, IconDefinition } from '@fortawesome/free-solid-svg-icons';
-import { RawMaterialCustomerBank } from '../../../../types';
+import { RawMaterial, RawMaterialCustomerBank } from '../../../../types';
 import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { RouterModule } from '@angular/router';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
@@ -28,6 +28,8 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   @ViewChild('delete_confirmation') delete_confirmation!: ConfirmationDialogComponent;
   @ViewChild("bank_editor") bank_editor!: ModalDialogComponent;
   @Input() banks: RawMaterialCustomerBank[] = [];
+  @Input() parent_raw_material: RawMaterial | null = null;
+  @Output() banksChanged: EventEmitter<void> = new EventEmitter();
 
   deleteBank(index:number, bank: RawMaterialCustomerBank){
     this.delete_confirmation.modalText = `Are you sure you want to delete this bank for customer <strong>${bank.name}</strong>?`;
@@ -42,6 +44,7 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
       }
       this.pending_delete_index = -1;
       this.recalculateSums();
+      this.banksChanged.emit();
     });
     this.delete_confirmation.cancel.subscribe(() => {
       this.pending_delete_index = -1;
@@ -51,18 +54,23 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
 
   ngOnChanges(changes: SimpleChanges): void {
     this.recalculateSums();
+    this.banksChanged.emit();
   }
 
   recalculateSums(){
     this.banks_summary_string = "";
-    var sumUnits = this.banks.reduce((acc, cur) => acc + cur.units, 0);
-    var sumWeight = this.banks.reduce((acc, cur) => acc + cur.weight, 0);
-    if(sumUnits > 0) {
-      this.banks_summary_string = sumUnits + " units";
+    let totalQuantity = this.banks.reduce((acc, cur) => acc + cur.quantity, 0);
+    if(totalQuantity > 0) {
+      this.banks_summary_string = totalQuantity + " " + this.parent_raw_material?.quantity_units;
     }
-    if(sumWeight>0) {
-      this.banks_summary_string += ((sumUnits > 0)? ", ": "") + sumWeight.toFixed(1) + " kg";
-    }
+    //var sumUnits = this.banks.reduce((acc, cur) => acc + cur.units, 0);
+    //var sumWeight = this.banks.reduce((acc, cur) => acc + cur.weight, 0);
+    //if(sumUnits > 0) {
+    //  this.banks_summary_string = sumUnits + " units";
+    //}
+    //if(sumWeight>0) {
+    //  this.banks_summary_string += ((sumUnits > 0)? ", ": "") + sumWeight.toFixed(1) + " kg";
+    //}
     this.banks_summary_string = (this.banks_summary_string=="")? "": (" (" + this.banks_summary_string + ")");
   }
 
@@ -77,10 +85,11 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
         id: 0,
         name: '',
         business_name: '',
-        raw_material_id: 0,
+        raw_material_id: (this.parent_raw_material)? this.parent_raw_material.id : 0,
         customer_id: 0,
-        weight: 0,
-        units: 0
+        quantity: 0,
+        remaining_quantity: 0,
+        quantity_units: (this.parent_raw_material)? this.parent_raw_material.quantity_units : '',
       };
     }
     this.bank_editor.open();
@@ -95,8 +104,8 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
       bankWithSameCustomerName.id = (bank.id != 0)? bank.id : bankWithSameCustomerName.id;
       bankWithSameCustomerName.business_name = bank.business_name;
       bankWithSameCustomerName.raw_material_id = bank.raw_material_id;
-      bankWithSameCustomerName.weight = bank.weight;
-      bankWithSameCustomerName.units = bank.units;
+      //bankWithSameCustomerName.weight = bank.weight;
+      //bankWithSameCustomerName.units = bank.units;
     }
     else {
       this.banks.push(bank);
@@ -112,5 +121,6 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
     }
     this.banks.sort((a, b) => { return (a.name.toUpperCase() < b.name.toUpperCase())?-1:1; });
     this.recalculateSums();
+    this.banksChanged.emit();
   }
 }
