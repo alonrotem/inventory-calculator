@@ -1,21 +1,26 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, ViewChild } from '@angular/core';
-import { Customer, Customers, ModalObjectEditor, RawMaterialCustomerBank } from '../../../../types';
+import { Customer, Customers, ModalDialog, RawMaterialCustomerBank } from '../../../../types';
 import { AutocompleteLibModule } from 'angular-ng-autocomplete';
 import { CustomersService } from '../../../services/customers.service';
 import { FormsModule, NgForm } from '@angular/forms';
 import { NgClass, NgIf } from '@angular/common';
-
-
+import { ModalContentDirective } from '../../common/directives/modal-content.directive';
+import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
+import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 
 @Component({
   selector: 'app-raw-material-customer-dialog',
   standalone: true,
-  imports: [ AutocompleteLibModule, FormsModule, NgIf, NgClass ],
+  imports: [ AutocompleteLibModule, FormsModule, NgIf, NgClass, ModalDialogComponent, ModalContentDirective, ModalContentDirective ],
   templateUrl: './raw-material-customer-dialog.component.html',
-  styleUrl: './raw-material-customer-dialog.component.scss'
+  styleUrl: './raw-material-customer-dialog.component.scss',
+  providers: [{
+    provide: MODAL_OBJECT_EDITOR,
+    useExisting: RawMaterialCustomerDialogComponent
+  }]
 })
-export class RawMaterialCustomerDialogComponent implements ModalObjectEditor, AfterViewInit {
-  editedObject: RawMaterialCustomerBank = {
+export class RawMaterialCustomerDialogComponent implements ModalContentDirective, ModalDialog, AfterViewInit {
+@Input() editedObject: RawMaterialCustomerBank = {
     id: 0,
     name: '',
     business_name: '',
@@ -30,8 +35,11 @@ export class RawMaterialCustomerDialogComponent implements ModalObjectEditor, Af
   customer_names: string[] = [];
   attemptedClose: boolean = false;
   
+  @ViewChild("customerDialog") dialogWrapper!: ModalDialogComponent;
   @ViewChild("bankForm") bankForm!: NgForm;
-  @Input() remainingQuantity: number = -1;
+  @Input() initialBankQuantity: number = -1;
+  @Input() initialBankRemainingQuantity: number = -1;
+  @Input() remainingMaterialQuantity: number = -1;
 
   constructor(private customersService: CustomersService) {
     this.customersService.getCustomers({ } as any).subscribe({
@@ -41,6 +49,7 @@ export class RawMaterialCustomerDialogComponent implements ModalObjectEditor, Af
       }
     });
   }
+
   close: EventEmitter<any> = new EventEmitter<RawMaterialCustomerBank>();
   
   onOpen() {
@@ -50,6 +59,7 @@ export class RawMaterialCustomerDialogComponent implements ModalObjectEditor, Af
   }
   
   beforeClose(): Boolean {
+    console.log("beforeClose from RawMaterialCustomerDialogComponent");
     this.attemptedClose = true;
     this.bankForm.form.markAllAsTouched();
     if(this.bankForm.valid){
@@ -60,7 +70,6 @@ export class RawMaterialCustomerDialogComponent implements ModalObjectEditor, Af
       this.bankForm.form.controls["customerName"].markAsUntouched();
       this.bankForm.form.controls["materialquantity"].markAsUntouched();
     }, 3000); 
-    
     return false;
   }
   

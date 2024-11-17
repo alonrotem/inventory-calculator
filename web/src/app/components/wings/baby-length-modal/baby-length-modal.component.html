@@ -5,7 +5,9 @@
     </select>
 </div>
 
-<app-babies-length-picker 
-    [length]="this.editedObject.length" 
-    (lengthChange)="lengthClicked($event)"
-    />
+<app-modal-dialog #dialogWrapper>
+    <app-babies-length-picker modalContent
+        [length]="this.editedObject.length" 
+        (lengthChange)="lengthClicked($event)"
+        />
+</app-modal-dialog>

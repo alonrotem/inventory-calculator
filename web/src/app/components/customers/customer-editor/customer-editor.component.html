@@ -16,9 +16,8 @@
     btnYesClass="btn-warning">
 </app-confirmation-dialog>
 
-<div class="row justify-content-center"><div class="col-12 col-md-9">
 <div class="row justify-content-center">
-<div class="col-8 col-md-12">
+    <div class="col-12 col-md-8">
 
     <h3><span class="icon-address-book"></span> {{ this.title }}</h3>
 
@@ -100,14 +99,26 @@
     <div class="col">
         <h4><fa-icon [icon]="faMoneyCheckDollar" style="margin-right: 10px;"></fa-icon>Material banks</h4>
 
-        <div *ngFor="let customer_bank of customerItem.banks">
-            <app-customer-bank-table 
-            [banks]="customerItem.banks"
-            [babies]="customerItem.babies"
-            [bank_id]="customer_bank.bank_id"
-            />
+        <div *ngIf="customerItem.banks.length > 0">
+            <div>
+                {{ customerItem.banks.length }} raw material banks, split into {{ customerItem.banks_baby_allocations.length }} allocations and {{ customerItem.babies.length }} babies.
+            </div>
+            <div>
+                <app-customer-banks-table 
+                    *ngFor="let bank of customerItem.banks"
+                    [bank]="bank"
+                    [banks_baby_allocations]="customerItem.banks_baby_allocations"
+                    [babies]="customerItem.babies"
+                    [raw_material_quantity_units]="bank.raw_material_quantity_units"
+                    (bank_changed)="recalculateBanks()"
+                />
+            </div>
         </div>
-
+            <div style="height: 150px; display: flex; flex-direction: column; flex-wrap: nowrap; justify-content: center; align-items: center;" *ngIf="customerItem.banks.length == 0">
+            <div><fa-icon [icon]="faTriangleExclamation" size="2x"></fa-icon></div>
+            <div>No material banks assigned to this customer.</div>
+            <div>Add some from the <a routerLink="/inventory/raw"><span class="icon-leaf" style="margin-left: 10px;"></span> Raw materials</a>.</div>
+        </div>
     </div>
 </div>
 
@@ -137,5 +148,3 @@
 </div>
 
 </div>
-
-</div></div>

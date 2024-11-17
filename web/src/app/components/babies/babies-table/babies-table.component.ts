@@ -37,7 +37,7 @@ export class BabiesTableComponent implements OnInit, AfterViewInit, AfterViewChe
   @Input() paged: Boolean = true;     //enable pagination
   @Input() bigTitle: Boolean = true;  //enable big page title
   @ViewChild("paginator") paginator!: PaginatorComponent;
-  @ViewChild("baby_editor") babyEditorDialog!: ModalDialogComponent;
+  @ViewChild("baby_editor") babyEditorDialog!: BabyEditorDialogComponent;
   loading: boolean = true;
   current_page = 1;
   rowsPerPage:number = 5;
@@ -113,7 +113,7 @@ export class BabiesTableComponent implements OnInit, AfterViewInit, AfterViewChe
       this.getBabies(1);
     }
 
-    this.babyEditorDialog.confirm.subscribe((baby:Baby) => {
+    this.babyEditorDialog.dialogWrapper.confirm.subscribe((baby:Baby) => {
       if(this.dialogMode == DialogMode.Add)
       {
         let matchingBabyLength = this.babies.find(b => b.length === baby.length);
@@ -157,20 +157,20 @@ export class BabiesTableComponent implements OnInit, AfterViewInit, AfterViewChe
     if(!this.readOnly) {
       if(baby == null) {
         this.dialogMode = DialogMode.Add;
-        this.babyEditorDialog.dialog_content_component.editedObject = {
+        this.babyEditorDialog.editedObject = {
           id: 0, raw_material_parent_id: 0,  raw_material: '',
           length: 0, quantity: 0,
           created_at: new Date(), updated_at: new Date(),
           created_by: 1, updated_by: 1
         };
-        this.babyEditorDialog.modalTitle = "<span class='icon-baby'></span> Add new babies";
+        this.babyEditorDialog.dialogWrapper.modalTitle = "<span class='icon-baby'></span> Add new babies";
       }
       else {
         this.dialogMode = DialogMode.Edit;
-        this.babyEditorDialog.modalTitle = "<span class='icon-baby'></span> Edit babies";
-        this.babyEditorDialog.dialog_content_component.editedObject = baby;
+        this.babyEditorDialog.dialogWrapper.modalTitle = "<span class='icon-baby'></span> Edit babies";
+        this.babyEditorDialog.editedObject = baby;
       }
-      this.babyEditorDialog.open();
+      this.babyEditorDialog.dialogWrapper.open();
     }
   }
 

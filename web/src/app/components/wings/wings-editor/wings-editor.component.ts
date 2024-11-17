@@ -46,8 +46,8 @@ export class WingsEditorComponent implements OnInit, AfterViewInit,/*, OnDestroy
   @ViewChild('navigate_confirmation') navigate_confirmation!: ConfirmationDialogComponent;
   @ViewChild("btn_save", { read: ElementRef }) btn_save!: ElementRef;
   @ViewChild("top_picker") top_picker!: BabiesLengthPickerComponent;
-  @ViewChild("length_editor") length_editor! :ModalDialogComponent;
-  @ViewChild("modalContent") baby_length_modal! :BabyLengthModalComponent;
+  //@ViewChild("length_editor") length_editor! :ModalDialogComponent;
+  @ViewChild("length_editor") length_editor! :BabyLengthModalComponent;
 
   @ViewChild("crown_size", { read: ElementRef }) crown_size!: ElementRef;
   @ViewChild("crown_picker") crown_picker!: BabiesLengthPickerComponent;
@@ -296,17 +296,17 @@ export class WingsEditorComponent implements OnInit, AfterViewInit,/*, OnDestroy
   }
 
   openLengthModal(obj: WingBaby){
-    this.length_editor.dialog_content_component.editedObject = obj;
-    this.length_editor.modalTitle = "Edit " + ((obj.position.toUpperCase().startsWith("C"))? "Crown" : obj.position);
+    this.length_editor.editedObject = obj;
+    this.length_editor.dialogWrapper!.modalTitle = "Edit " + ((obj.position.toUpperCase().startsWith("C"))? "Crown" : obj.position);
     this.crown_units = this.wing.babies.filter((b) => b.position.startsWith("C")).length;
-    this.baby_length_modal.crown_units = this.crown_units;
-    this.baby_length_modal.crown_babies_options = this.crown_babies_options;
-    this.length_editor.open();
+    this.length_editor.crown_units = this.crown_units;
+    this.length_editor.crown_babies_options = this.crown_babies_options;
+    this.length_editor.dialogWrapper!.open();
   }
 
   length_editor_closed(){
-    this.crown_units =  this.baby_length_modal.crown_units;
-    this.crown_size.nativeElement.value =  this.baby_length_modal.crown_units;
+    this.crown_units =  this.length_editor.crown_units;
+    this.crown_size.nativeElement.value =  this.length_editor.crown_units;
     this.set_crown();
   }
 
@@ -316,7 +316,7 @@ export class WingsEditorComponent implements OnInit, AfterViewInit,/*, OnDestroy
       this.crown_length = obj.length;
     }
     else {
-      this.length_editor.onConfirm();
+      this.length_editor.dialogWrapper!.onConfirm();
     }
 
     //"refresh" the array, to detect the change

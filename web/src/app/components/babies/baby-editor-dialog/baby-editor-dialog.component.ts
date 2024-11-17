@@ -1,23 +1,33 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, OnInit, ViewChild } from '@angular/core';
-import { Baby, ModalObjectEditor } from '../../../../types';
+import { Baby, ModalDialog } from '../../../../types';
 import { FormBuilder, FormControl, FormGroup, FormsModule, NgForm, NgSelectOption, ReactiveFormsModule, RequiredValidator, Validators } from '@angular/forms';
 import { NgIf } from '@angular/common';
 import { NgOptionComponent, NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { BabiesLengthPickerComponent } from '../babies-length-picker/babies-length-picker.component';
 import { ToastService } from '../../../services/toast.service';
+import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
+import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
+import { ModalContentDirective } from '../../common/directives/modal-content.directive';
 
 @Component({
   selector: 'app-baby-editor-dialog',
   standalone: true,
-  imports: [ FormsModule, NgIf, NgSelectModule, ReactiveFormsModule, BabiesLengthPickerComponent ],
+  imports: [ FormsModule, NgIf, NgSelectModule, ReactiveFormsModule, BabiesLengthPickerComponent, ModalDialogComponent, ModalContentDirective ],
   templateUrl: './baby-editor-dialog.component.html',
-  styleUrl: './baby-editor-dialog.component.scss'
+  styleUrl: './baby-editor-dialog.component.scss',
+  providers: [
+    {
+      provide: MODAL_OBJECT_EDITOR,
+      useExisting: BabyEditorDialogComponent
+    }
+  ]  
 })
-export class BabyEditorDialogComponent implements ModalObjectEditor, AfterViewInit {
+export class BabyEditorDialogComponent implements ModalContentDirective, ModalDialog, AfterViewInit {
 
   //@ViewChild("length") length!: NgSelectComponent;
   @ViewChild("length_picker") length_picker!: BabiesLengthPickerComponent;
   @ViewChild("quantity", { read: ElementRef }) quantity!: ElementRef;
+  @ViewChild("babyEditorDialog") dialogWrapper!: ModalDialogComponent;
 
   public editedObject: Baby = {
     id: 0,

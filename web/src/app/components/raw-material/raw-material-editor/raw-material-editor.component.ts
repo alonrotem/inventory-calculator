@@ -95,8 +95,8 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
   @ViewChild("price", { read: ElementRef }) price!: ElementRef;
   @ViewChild("currency") currency!: NgSelectComponent;
   @ViewChild("tooltip", { read: ElementRef }) tooltip!: ElementRef;
-  @ViewChild('modalContent') quantityDialogContent!: RawMaterialQuantityDialogComponent
-  @ViewChild('quantityDialog') quantityDialog! :ModalDialogComponent;
+  @ViewChild('quantityDialog') quantityDialog!: RawMaterialQuantityDialogComponent
+  //@ViewChild('quantityDialog') quantityDialog! :ModalDialogComponent;
   @ViewChild('history_dialog') history_dialog!: RawMaterialHistoryDialogComponent;
   
   /*
@@ -419,8 +419,8 @@ if(banks != initial_in_banks)
           }
         });
     });
-    this.quantityDialog.confirm.subscribe(() => { 
-      let top_up = this.quantityDialogContent.top_up_quantity;
+    this.quantityDialog.dialogWrapper.confirm.subscribe(() => { 
+      let top_up = this.quantityDialog.top_up_quantity;
       if(top_up > 0) {
         this.rawMaterialItem.purchase_quantity += top_up;
         this.recalculateRemaining();
@@ -442,8 +442,8 @@ if(banks != initial_in_banks)
 
   openQuantityDialog(){
     //this.quantityDialogContent.remaining_quantity = this.rawMaterialItem.remaining_quantity;
-    this.quantityDialog.dialog_content_component.editedObject = this.rawMaterialItem;
-    this.quantityDialog.modalTitle = "+ Top up quantity";
+    this.quantityDialog.editedObject = this.rawMaterialItem;
+    this.quantityDialog.dialogWrapper.modalTitle = "+ Top up quantity";
     this.quantityDialog.open();
   }
 

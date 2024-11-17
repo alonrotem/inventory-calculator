@@ -16,13 +16,11 @@
     btnYesClass="btn-warning">
 </app-confirmation-dialog>
 
-<app-raw-material-history-dialog #history_dialog>
+<app-raw-material-history-dialog #history_dialog />
 
-</app-raw-material-history-dialog>
-
-<app-modal-dialog #quantityDialog>
-    <app-raw-material-quantity-dialog #modalContent></app-raw-material-quantity-dialog>
-</app-modal-dialog>
+<!--<app-modal-dialog #quantityDialog>-->
+    <app-raw-material-quantity-dialog #quantityDialog></app-raw-material-quantity-dialog>
+<!--</app-modal-dialog>-->
 
 <div #tooltip class="tooltip">Tooltip</div>
 
@@ -110,7 +108,7 @@
             <div class="input-group">
                 <div class="form-floating">
                     <input type="number" id="materialPurchaseQuantity" class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.purchase_quantity" name="materialPurchaseQuantity" #purchase_quantity="ngModel" (change)="recalculateRemaining()">
-                    <label for="materialPurchaseQuantity">Quantity</label>
+                    <label for="materialPurchaseQuantity">Total quantity purchased</label>
                 </div>
                 <ng-select [(ngModel)]="rawMaterialItem.quantity_units" name="quantityunits" [clearable]="false" #rawMaterialItem.quantity_units="ngModel" [disabled]="lock_quantity_control" (mousemove)="(!lock_quantity_control)? false: showTooltip('<strong>🔒 Locked</strong><br/>Quantity is locked for editing, as it is used by customer banks.<br/>You can top it up with the top-up button!')" (mouseout)="this.show_tooltip=false">
                     @for (unit of quantity_units; track unit) {
@@ -121,11 +119,9 @@
         </div>
         <div class="col col-12 col-md-4  mt-3 mt-md-0 mb-3 mb-md-0" style="display: flex; flex-direction: row; justify-content: space-evenly; align-items: center; flex-wrap: nowrap;">
             <span style="text-align: center;"><strong>Remaining:<br/></strong>{{ rawMaterialItem.remaining_quantity }} {{ rawMaterialItem.quantity_units }}</span>
-            <!--
             <span *ngIf="lock_quantity_control">
                 <button class="btn btn-primary" style="font-size:12px;" (click)="openQuantityDialog()">+<br/>Top up!</button>
             </span>
-            -->
         </div>
         <div class="col col-12 col-md-4  mt-3 mt-md-0 mb-3 mb-md-0">
             <div class="form-floating">

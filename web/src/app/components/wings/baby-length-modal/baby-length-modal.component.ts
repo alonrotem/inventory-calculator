@@ -1,17 +1,28 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { ModalObjectEditor, WingBaby } from '../../../../types';
+import { ModalDialog, WingBaby } from '../../../../types';
 import { BabiesLengthPickerComponent } from "../../babies/babies-length-picker/babies-length-picker.component";
 import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
+import { ModalContentDirective } from '../../common/directives/modal-content.directive';
+import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
 
 @Component({
   selector: 'app-baby-length-modal',
   standalone: true,
-  imports: [BabiesLengthPickerComponent, NgFor, NgIf, FormsModule],
+  imports: [BabiesLengthPickerComponent, NgFor, NgIf, FormsModule, ModalDialogComponent, ModalContentDirective],
   templateUrl: './baby-length-modal.component.html',
-  styleUrl: './baby-length-modal.component.scss'
+  styleUrl: './baby-length-modal.component.scss',
+  providers: [
+    {
+      provide: MODAL_OBJECT_EDITOR,
+      useExisting: BabyLengthModalComponent
+    }
+  ]
 })
-export class BabyLengthModalComponent implements ModalObjectEditor {
+export class BabyLengthModalComponent implements ModalContentDirective, ModalDialog {
+  
+  @ViewChild("dialogWrapper") dialogWrapper!: ModalDialogComponent | null;
 
   @Input() crown_units: number = 0;
   @Input() crown_babies_options: number[] = [];

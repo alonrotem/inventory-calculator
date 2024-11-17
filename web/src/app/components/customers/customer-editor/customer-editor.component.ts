@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, ViewChild } from '@angular/core';
 import { Location, NgFor, NgIf } from '@angular/common';
-import { Country, Currency, Customer, RawMaterial } from '../../../../types';
+import { Country, Currency, Customer, RawMaterial, Customer_Bank } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
 import { RouterLink, RouterOutlet, ActivatedRoute } from '@angular/router';
 import { Form, FormsModule, NgForm } from '@angular/forms';
@@ -11,22 +11,23 @@ import { InfoService } from '../../../services/info.service';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faSave, faTrashAlt, faTimesCircle, IconDefinition, faArrowLeft, faMoneyCheckDollar } from '@fortawesome/free-solid-svg-icons';
+import { faSave, faTrashAlt, faTimesCircle, IconDefinition, faArrowLeft, faMoneyCheckDollar, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmationDialogComponent } from "../../common/confirmation-dialog/confirmation-dialog.component";
 import { AutocompleteLibModule } from 'angular-ng-autocomplete';
 import { ToastService } from '../../../services/toast.service';
 import { CustomersService } from '../../../services/customers.service';
 import { HasUnsavedChanges } from '../../../guards/unsaved-changes-guard';
 import { Observable } from 'rxjs';
-import { CustomerBankTableComponent } from '../customer-bank-table/customer-bank-table.component';
+import { CustomerBanksTableComponent } from '../customer-banks-table/customer-banks-table.component';
+//import { CustomerBankTableComponent } from '../customer-bank-table/customer-bank-table.component';
 
 
 @Component({
   selector: 'app-customer-editor',
   standalone: true,
-  imports: [ RouterModule, RouterLink, RouterOutlet, FormsModule, 
-    DatePipe, BabiesTableComponent, NgSelectModule, DateStrPipe, 
-    FaIconComponent, NgIf, ConfirmationDialogComponent, NgFor, AutocompleteLibModule, CustomerBankTableComponent ],
+  imports: [ RouterModule, FormsModule, NgSelectModule, DateStrPipe, 
+    FaIconComponent, NgIf, NgFor, ConfirmationDialogComponent, AutocompleteLibModule, 
+    CustomerBanksTableComponent ],
   templateUrl: './customer-editor.component.html',
   styleUrl: './customer-editor.component.scss'
 })
@@ -34,8 +35,8 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
 
   public customerItem : Customer = {
     id: 0,
-    name: "",
-    business_name: "",
+    name: '',
+    business_name: '',
     email: '',
     phone: '',
     tax_id: '',
@@ -43,7 +44,8 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     updated_at: new Date(),
     created_by: 0,
     updated_by: 0,
-    banks: [],
+    banks:[],
+    banks_baby_allocations: [],
     babies: []
   }
 
@@ -54,6 +56,7 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
   faTimesCircle:IconDefinition = faTimesCircle;
   faArrowLeft: IconDefinition = faArrowLeft;
   faMoneyCheckDollar: IconDefinition = faMoneyCheckDollar;
+  faTriangleExclamation: IconDefinition = faTriangleExclamation;
   is_new_customer: Boolean = true;
 
   // for opening the unsave changes dialog
@@ -105,6 +108,8 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     {
       next: (customer: Customer) => {
         this.customerItem = customer;
+        this.recalculateBanks();
+        //console.log(customer);
       },
       error: (error) => {
         console.log(error);
@@ -245,5 +250,14 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     if (!allowedPattern.test(inputElement.value)) {
       inputElement.value = inputElement.value.replace(/[^0-9\-\+\(\)\ ]/g, ''); // Remove invalid characters
     }
+  }
+
+  recalculateBanks(){
+    //let totalQuantity = this.banks.reduce((acc, cur) => acc + cur.quantity, 0);
+    this.customerItem.banks.forEach(bank => {
+      bank.remaining_quantity = bank.quantity;
+      let allocated = this.customerItem.banks_baby_allocations.filter(alloc => alloc.customer_bank_id == bank.id).reduce((acc, cur) => acc + cur.quantity, 0);
+      bank.remaining_quantity -= allocated;
+    });
   }
 }

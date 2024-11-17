@@ -12,7 +12,7 @@ import { faBorderNone, IconDefinition } from '@fortawesome/free-solid-svg-icons'
 export class ConfirmationDialogComponent implements OnInit, AfterViewInit {
   @ViewChild("confirmation_dialog") confirmation_dialog!: ModalDialogComponent;
   @Input() modalTitle: string = "Confirm";
-  @Input() modalText: string = "Are you sure?";
+  @Input() modalText: string = "Are you absolutely sure?";
   @Input() btnYesText: string = "Yes";
   @Input() btnNoText: string = "No";
   @Input() btnYesIcon: IconDefinition = faBorderNone;

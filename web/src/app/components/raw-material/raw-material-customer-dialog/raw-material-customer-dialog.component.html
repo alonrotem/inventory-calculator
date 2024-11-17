@@ -1,3 +1,5 @@
+<app-modal-dialog #customerDialog>
+    <div modalContent>
 <form novalidate #bankForm="ngForm" [id]="'bankForm'">
 <div class="row spaced-row">
     <div class="col p-field">
@@ -30,67 +32,33 @@
         
             <span style="display: flex; flex-wrap: nowrap; justify-content: flex-start; align-items: center;">
                 <div class="form-floating" style="width: 100%; margin-right: 20px;">
-                <input type="number" #materialQuantity="ngModel" [ngClass]="{'form-control': true, 'invalid': (bankForm.touched && editedObject.quantity <=0)}"
-                    placeholder="0" [(ngModel)]="editedObject.quantity" name="materialQuantity" required="true" min="1"> 
+                <input type="number" #materialQuantity="ngModel" [ngClass]="{'form-control': true, 'invalid': ((bankForm.touched) && ((editedObject.quantity <=0) || (editedObject.quantity > remainingMaterialQuantity)))}"
+                    placeholder="0" [(ngModel)]="editedObject.quantity" name="materialQuantity" required="true" min="1" max="{{ remainingMaterialQuantity }}"> 
                     <label for="materialQuantity">Quantity</label>
                 </div>
                 <span>{{ editedObject.quantity_units }}</span>
             </span>
         </div>
-    <!--
-    <div class="col col-6" style="display: flex; flex-direction: column; justify-content: flex-end;">
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="flexRadioDefault" #radioWeight [checked]="editedObject.weight > 0 || (editedObject.weight == 0 && editedObject.units == 0)" (click)="focusOnWeight()">
-            <label class="form-check-label" for="radioWeight" (click)="focusOnWeight()">
-                Weight
-            </label>
-        </div>
-        <div class="form-floating">
-            <input type="number" #materialWeight="ngModel" [ngClass]="{'form-control': true, 'invalid': 
-            ((bankForm.touched && ((radioWeight.checked  &&(materialWeight.value=='' || materialWeight.value <= 0)))) ||
-            (!radioWeight.checked && !radioUnits.checked))
-            
-            }"
-            
-            placeholder="0" [(ngModel)]="editedObject.quantity" name="materialWeight" (focusin)="focusOnWeight()">
-            <label for="materialWeight">Weight in kg</label>
-        </div>
-    </div>
-
-    <div class="col col-6" style="display: flex; flex-direction: column; justify-content: flex-end;">
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="flexRadioDefault" #radioUnits [checked]="editedObject.quantity > 0" (click)="focusOnUnits()">
-            <label class="form-check-label" for="radioUnits" (click)="focusOnUnits()">
-                Units
-            </label>
-        </div>
-        <div class="form-floating">
-            <input type="number"
-            
-            >
-           [ngClass]="{'form-control': true, 'invalid': 
-            ((bankForm.touched && ((radioUnits.checked  &&(materialUnits.value=='' || materialUnits.value <= 0)))) || (!radioWeight.checked && !radioUnits.checked))}"
-            placeholder="0" [(ngModel)]="editedObject.units" (focusin)="focusOnUnits()" name="materialUnits" #materialUnits="ngModel" 
-
-            <label for="materialUnits">Number of units</label>
-        </div>            
-    </div>
--->
 </div>
 <div class="row unspaced-row">
     <div class="col">
         <!--
         validation:
         -->
-        <div class="text-danger" *ngIf="(attemptedClose && (materialQuantity.value=='' || materialQuantity.value <= 0) )"><!--*ngIf="
-            (attemptedClose &&
-            ((radioUnits.checked  &&
-            (materialUnits.value=='' || materialUnits.value <= 0)) 
-            ||
-            (radioWeight.checked  && 
-            (materialWeight.value=='' || materialWeight.value <= 0))))"-->
+        <div class="text-danger" *ngIf="(attemptedClose && (materialQuantity.value=='' || materialQuantity.value <= 0) )">
             Please enter a valid quantity
+        </div>
+        <div class="text-danger" *ngIf="(attemptedClose && (materialQuantity.value!='' && materialQuantity.value > remainingMaterialQuantity) )">
+            Not enough raw material quantity (<strong>Max: {{ remainingMaterialQuantity }} {{editedObject.quantity_units }}</strong>)
         </div>
     </div>
 </div>
 </form>
+<div>
+    initialBankQuantity: {{initialBankQuantity}}<br/>
+    initialBankRemainingQuantity {{ initialBankRemainingQuantity }}<br/>
+    remainingMaterialQuantity: {{ remainingMaterialQuantity }}<br/>
+    Can't go higher than {{ remainingMaterialQuantity }}, but not lower than {{ initialBankQuantity - initialBankRemainingQuantity }} (in use)
+</div>
+</div>
+</app-modal-dialog>

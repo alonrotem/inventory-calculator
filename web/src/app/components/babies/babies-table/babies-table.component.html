@@ -2,9 +2,9 @@
 <h1 *ngIf="bigTitle"><span class="icon-baby"></span> Babies</h1>
 <h3 *ngIf="!bigTitle"><span class="icon-baby"></span> Babies</h3>
 
-<app-modal-dialog #baby_editor>
-  <app-baby-editor-dialog #modalContent></app-baby-editor-dialog>
-</app-modal-dialog>
+<!--<app-modal-dialog #baby_editor>-->
+  <app-baby-editor-dialog #baby_editor></app-baby-editor-dialog>
+<!--</app-modal-dialog>-->
 
 <app-modal-dialog #delete_confirmation>
   <app-confirmation-dialog #modalContent></app-confirmation-dialog>

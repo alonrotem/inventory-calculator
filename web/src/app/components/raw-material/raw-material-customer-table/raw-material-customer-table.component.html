@@ -7,9 +7,11 @@
     btnYesClass="btn-danger">
 </app-confirmation-dialog>
 
-<app-modal-dialog #bank_editor>
-  <app-raw-material-customer-dialog  #modalContent></app-raw-material-customer-dialog>
-</app-modal-dialog>
+<!--<app-modal-dialog #bank_editor>-->
+  <app-raw-material-customer-dialog  #bank_editor></app-raw-material-customer-dialog>
+<!--</app-modal-dialog>-->
+
+<app-raw-material-quantity-dialog #top_up_dialog />
 
 <h4><fa-icon [icon]="faMoneyCheckDollar"></fa-icon> Customer banks</h4>
 
@@ -24,6 +26,7 @@
         <th scope="col">Customer</th>
         <th scope="col">Business name</th>
         <th scope="col">Quantity</th>
+        <th scope="col" class="text-center">Top up</th>
         <th scope="col" class="text-center">Remove</th>
       </tr>
     </thead>
@@ -35,6 +38,7 @@
         <td class="hover-warning" (click)="openCustomerEditor(bank)"><fa-icon class="action-icon" [icon]="faPencil"></fa-icon>
           {{ bank.quantity }} {{ bank.quantity_units }} ({{ bank.remaining_quantity }} remaining)
         </td>
+        <td class="text-center"><button class="btn btn-primary" (click)="top_up()">+</button></td>
         <td class="text-center" (click)="deleteBank(i, bank)"><fa-icon class="text-danger" [icon]="faTrashCan"></fa-icon></td>
       </tr>
     </tbody>

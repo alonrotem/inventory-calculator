@@ -1,5 +1,6 @@
 import { HttpContext, HttpHeaders, HttpParams } from "@angular/common/http";
 import { EventEmitter } from "@angular/core";
+import { ModalDialogComponent } from "./app/components/common/modal-dialog/modal-dialog.component";
 
 export interface Options {
     headers?: HttpHeaders | {
@@ -180,8 +181,10 @@ export interface Currency {
     order: number;
 }
 
-export interface ModalObjectEditor {
-    editedObject: any;
+
+export interface ModalDialog {
+    dialogWrapper: ModalDialogComponent | null;
+    editedObject: any | null;
     onOpen(): any;
     beforeClose(): Boolean;
     close: EventEmitter<any>;
@@ -217,20 +220,34 @@ export class Point {
     updated_by: number;
 
     banks: Customer_Bank[];
+    banks_baby_allocations: Customer_Bank_Baby_Allocation[];
     babies: Customer_Baby[];
 }
 
 export interface Customer_Bank {
-    bank_id: number;
+    raw_material_name: string; 
+    raw_material_quantity_units: string;
+    id: number; 
     customer_id: number;
     raw_material_id: number;
-    weight: number;
-    units: number;
-    raw_material_name: string;
-    customer_name: string;
+    quantity: number;
+    remaining_quantity: number;
+}
+
+export interface Customer_Bank_Baby_Allocation {
+    id: number; 
+    customer_bank_id: number; 
+    quantity: number; 
+    remaining_quantity: number; 
 }
 
 export interface Customer_Baby {
+    id: number;
+    customer_banks_babies_id: number;
+    length: number;
+    quantity: number;
+    
+    /*
     id: number;
     customer_bank_id: number;
     length: number;
@@ -242,6 +259,7 @@ export interface Customer_Baby {
     customer_id: number;
     material_name: string;
     customer_name: string;
+    */
 }
 
 export interface Customers {

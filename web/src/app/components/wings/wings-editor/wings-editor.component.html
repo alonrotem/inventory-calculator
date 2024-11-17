@@ -17,9 +17,9 @@
     btnYesClass="btn-warning">
 </app-confirmation-dialog>
 
-<app-modal-dialog #length_editor (confirm)="length_editor_closed()">
-    <app-baby-length-modal #modalContent (length_changed)="modal_length_Changed($event)" [crown_units]="crown_units" />
-</app-modal-dialog>
+<!--<app-modal-dialog #length_editor >-->
+    <app-baby-length-modal #length_editor (length_changed)="modal_length_Changed($event)" [crown_units]="crown_units" (confirm)="length_editor_closed()" />
+<!--</app-modal-dialog>-->
 
 <div class="row justify-content-center">
 <div class="col-lg-7 col-md-12">
