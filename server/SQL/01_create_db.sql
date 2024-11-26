@@ -422,10 +422,6 @@ CREATE TABLE  IF NOT EXISTS `babies`
   `customer_banks_babies_id` INT NOT NULL,
   `length`   	    float NOT NULL,
   `quantity`   	    INT NOT NULL,
-  `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
-  `updated_at`    DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
-  `created_by`	 int null,
-  `updated_by`	 int null,
   PRIMARY KEY (`id`),
   CONSTRAINT fk_baby_raw_material_customer_parent
   FOREIGN KEY (`customer_banks_babies_id`) REFERENCES customer_banks_babies(`id`) ON DELETE CASCADE
@@ -439,6 +435,7 @@ CREATE TABLE  IF NOT EXISTS transaction_history (
     `transaction_type`	ENUM(
 		'raw_material_purchase', 
         'to_customer_bank', 
+        'deleted_customer_bank',
         'customer_bank_allocate_to_Work'
 	) NOT NULL,
     

@@ -49,17 +49,17 @@ curl -i -X POST \
     -H 'Content-type: application/json' \
     --data "{  \"name\":\"Test's material\",  \"purchased_at\": \"2024-05-01\", \"weight\": 100, \"created_by\": 2 }" \
         http://localhost:3000/customers/
-*/
+
 router.post('/', async function(req, res, next) {
     try {
-      res.json(await customers.create(req.body));
+      res.json(await customers.save(req.body));
     } catch (err) {
       console.error(`Error while creating customer `, err.message);
       next(err);
     }
   });
-
-  // PUT (update) customer
+*/
+  // PUT (create/update) customer
   /*
     curl -i \
         -X PUT \
@@ -68,9 +68,9 @@ router.post('/', async function(req, res, next) {
         --data "{  \"name\":\"Alon's\",  \"purchased_at\": \"2024-05-01\", \"weight\": 100, \"updated_by\": 4 }" \
         http://localhost:3000/babies/12
   */
-  router.put('/:id', async function(req, res, next) {
+  router.put('/', async function(req, res, next) {
     try {
-      res.json(await customers.update(req.params.id, req.body));
+      res.json(await customers.save(req.body));
     } catch (err) {
       console.error(`Error while updating customer `, err.message);
       next(err);

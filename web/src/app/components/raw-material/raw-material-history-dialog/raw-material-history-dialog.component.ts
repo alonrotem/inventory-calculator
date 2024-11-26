@@ -23,6 +23,7 @@ export class RawMaterialHistoryDialogComponent {
   loading: boolean = true;
   faArrowsRotate: IconDefinition = faArrowsRotate;
   faTriangleExclamation: IconDefinition = faTriangleExclamation;
+  Math = Math;
 
   constructor(private transactionHistoryService: TransactionHistoryService, private excelService: ExcelService) {
   }

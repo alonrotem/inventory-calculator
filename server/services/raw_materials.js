@@ -134,6 +134,13 @@ async function save_material(rawMaterial){
     rawMaterial.transaction_record.raw_material_id = id;
     await transaction_history.create_history_record(rawMaterial.transaction_record);
   }
+  if(rawMaterial.deleted_bank_records) {
+    for(let r = 0; r < rawMaterial.deleted_bank_records.length; r++){
+      rawMaterial.deleted_bank_records[r].raw_material_id = id;
+      //console.dir(rawMaterial.deleted_bank_records[r]);
+      await transaction_history.create_history_record(rawMaterial.deleted_bank_records[r]);
+    }
+  }
 
   let message = 'Error creating raw material';
   //console.log("New material ID: " + result.insertId + " ("+ rawMaterial.name +")");

@@ -7,6 +7,16 @@
     btnYesClass="btn-danger">
 </app-confirmation-dialog>
 
+<app-confirmation-dialog
+  #not_enough_material
+  modalTitle="Not enough material!"
+  modalText="Not enough remaining material to top up.<br/>Please increase the raw material quantity."
+  btnYesText="I see..."
+  btnYesClass="btn btn-warning m-auto"
+  btnNoClass="d-none"
+  [dialogIcon]="faTriangleExclamation"
+  />
+
 <!--<app-modal-dialog #bank_editor>-->
   <app-raw-material-customer-dialog  #bank_editor></app-raw-material-customer-dialog>
 <!--</app-modal-dialog>-->
@@ -19,7 +29,7 @@
  <div class="addbtn_container">
   <a id="btnNewRaw" class="btn btn-primary" (click)="openCustomerEditor(null)">+ Add customer bank</a>
 </div>
-<div [hidden]="this.banks.length <= 0">Total: {{ banks.length }} customer {{((banks.length == 1)? "bank":"banks") }} {{banks_summary_string}}</div>
+<div [hidden]="this.banks.length <= 0">{{ banks_summary_string }}</div>
   <table class="table table-responsive table-striped table-hover" [hidden]="banks.length <= 0">
     <thead>
       <tr>
@@ -38,7 +48,7 @@
         <td class="hover-warning" (click)="openCustomerEditor(bank)"><fa-icon class="action-icon" [icon]="faPencil"></fa-icon>
           {{ bank.quantity }} {{ bank.quantity_units }} ({{ bank.remaining_quantity }} remaining)
         </td>
-        <td class="text-center"><button class="btn btn-primary" (click)="top_up()">+</button></td>
+        <td class="text-center"><button class="btn btn-primary" (click)="top_up(bank)">+</button></td>
         <td class="text-center" (click)="deleteBank(i, bank)"><fa-icon class="text-danger" [icon]="faTrashCan"></fa-icon></td>
       </tr>
     </tbody>

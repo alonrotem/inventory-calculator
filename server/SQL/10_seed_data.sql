@@ -24,8 +24,8 @@ INSERT INTO `raw_materials` (
   `name`, `purchased_at`, `purchase_quantity`, `remaining_quantity`, `quantity_units`, `units_per_kg`, `vendor_name`, `origin_country`, 
   `price`, `currency`, `notes`, `created_at`, `updated_at`, `created_by`, `updated_by`) 
 VALUES 
-('Sable', '2024-06-08', 200, 200, 'units', 30, 'JJ','US', 30, 'USD', 'This is a test material', NOW(), NOW(), 1, 1),
-('DM','2024-06-09',25, 25, 'kg', NULL,'MM','US',40,'EUR','This is a test material',NOW(), NOW(), 1, 1),
+('Sable', '2024-06-08', 210, 152, 'units', 30, 'JJ','US', 30, 'USD', 'This is a test material', NOW(), NOW(), 1, 1),
+('DM','2024-06-09',25, 5, 'kg', NULL,'MM','US',40,'EUR','This is a test material',NOW(), NOW(), 1, 1),
 ('SM','2024-06-08',1000, 1000, 'units',112,'KK','RU',3,'USD','This is a test material',NOW(), NOW(), 1, 1),
 ('BM','2024-06-08',750,  750, 'units', 135,NULL,'US',60,'EUR','This is a test material',NOW(), NOW(), 1, 1),
 ('Canady', '2024-06-08', 7, 7, 'kg', 10, 'XY', 'US', 10, 'USD', 'This is a test material',NOW(), NOW(), 1, 1);
@@ -39,23 +39,73 @@ set @canady_id = (select id from raw_materials where name='Canady' limit 1);
 -- seed raw material customer banks
 INSERT INTO customer_banks (customer_id, raw_material_id, quantity, remaining_quantity)
 VALUES 
-(@alon_id, @sable_id, 10, 10),
-(@avi_id, @sable_id, 15, 15),
+(@alon_id, @sable_id, 10, 2),
+(@alon_id, @dm_id, 20, 0),
+(@avi_id, @sable_id, 30, 30),
 (@guy_id, @sable_id, 2, 2),
 (@eran_id, @sable_id, 16, 16);
-#(@eran_id, @dm_id, NULL, 25);
+
 
 set @bank_eran_sable = (select id from customer_banks where customer_id=@eran_id and raw_material_id=@sable_id limit 1);
 set @bank_eran_dm = (select id from customer_banks where customer_id=@eran_id and raw_material_id=@dm_id limit 1);
+set @bank_guy_sable = (select id from customer_banks where customer_id=@guy_id and raw_material_id=@sable_id limit 1);
+set @bank_avi_sable = (select id from customer_banks where customer_id=@avi_id and raw_material_id=@sable_id limit 1);
+set @bank_alon_sable = (select id from customer_banks where customer_id=@alon_id and raw_material_id=@sable_id limit 1);
+set @bank_alon_dm = (select id from customer_banks where customer_id=@alon_id and raw_material_id=@dm_id limit 1);
+
+-- Create history records for materials
+INSERT INTO `transaction_history` (
+	`date`, `added_by`, `transaction_quantity`,  `transaction_type`, 
+    `raw_material_id`, `customer_id`, `customer_bank_id`, 
+    `customer_banks_babies_id`, `cur_raw_material_quantity`, 
+    `cur_customer_bank_quantity`, `cur_banks_babies_allocation_quantity`)
+VALUES
+-- Sable: 200
+('2024-09-11', 1, 200, 'raw_material_purchase', @sable_id, 0, 0, 0, 200, 0, 0),
+('2024-09-11 01:01', 1, 10, 'to_customer_bank', @sable_id, @alon_id, @bank_alon_sable, 0, 190, 10, 0),
+('2024-09-11 01:02', 1, 15, 'to_customer_bank', @sable_id, @avi_id, @bank_avi_sable, 0, 175, 15, 0),
+('2024-09-11 01:03', 1, 2, 'to_customer_bank', @sable_id, @guy_id, @bank_guy_sable, 0, 173, 2, 0),
+('2024-09-11 01:04', 1, 16, 'to_customer_bank', @sable_id, @eran_id, @bank_eran_sable, 0, 157, 16, 0),
+('2024-09-11 01:05', 1, 10, 'raw_material_purchase', @sable_id, 0, 0, 0, 167, 0, 0),
+('2024-09-11 01:06', 1, 15, 'to_customer_bank', @sable_id, @avi_id, @bank_avi_sable, 0, 152, 30, 0),
+-- DM: 25
+('2024-09-11', 1, 25, 'raw_material_purchase', @dm_id, 0, 0, 0, 25, 0, 0),
+('2024-09-11 01:00', 1, 20, 'to_customer_bank', @dm_id, @alon_id, @bank_alon_dm, 0, 5, 20, 0),
+-- Other purchases
+('2024-09-11', 1, 1000, 'raw_material_purchase', @sm_id, 0, 0, 0, 1000, 0, 0),
+('2024-09-11', 1, 750, 'raw_material_purchase', @bm_id, 0, 0, 0, 750, 0, 0),
+('2024-09-11', 1, 7, 'raw_material_purchase', @canady_id, 0, 0, 0, 7, 0, 0);
+
+-- baby allocations in customer banks
+INSERT INTO `customer_banks_babies` (
+	`customer_bank_id`, `quantity`, `remaining_quantity`
+) 
+VALUES 
+	(@bank_alon_sable, 5, 5),
+    (@bank_alon_sable, 3, 3),
+    (@bank_alon_dm, 20, 20),
+    (@bank_eran_sable, 10, 10);
+    
+set @alon_sable_bank_allocation_1 = (select id from customer_banks_babies where customer_bank_id=@bank_alon_sable limit 1 offset 0);
+set @alon_sable_bank_allocation_2 = (select id from customer_banks_babies where customer_bank_id=@bank_alon_sable limit 1 offset 1);
+set @alon_dm_bank_allocation_1 = (select id from customer_banks_babies where customer_bank_id=@bank_alon_dm limit 1 offset 0);
+set @bank_eran_sable_allocation_1 = (select id from customer_banks_babies where customer_bank_id=@bank_eran_sable limit 1 offset 0);
 
 -- seed babies
-INSERT INTO babies (customer_bank_id, length, quantity, created_at, updated_at, created_by, updated_by)
+INSERT INTO babies (customer_banks_babies_id, length, quantity)
 VALUES 
-(@bank_eran_sable, 10.5, 10,NOW(), NOW(),1,1),
-(@bank_eran_sable, 9, 19,NOW(), NOW(),1,1),
-(@bank_eran_sable, 6, 31,NOW(), NOW(),1,1),
-(@bank_eran_sable, 7.5, 20,NOW(), NOW(),1,1),
-(@bank_eran_dm, 11, 34, NOW(), NOW(),1,1),
-(@bank_eran_dm, 6.5, 11, NOW(), NOW(),1,1),
-(@bank_eran_dm, 5, 13, NOW(), NOW(),1,1);
+(@alon_sable_bank_allocation_1, 10.5, 10),
+(@alon_sable_bank_allocation_1, 9, 19),
+(@alon_sable_bank_allocation_1, 6, 31),
+(@alon_sable_bank_allocation_1, 7.5, 20),
+(@alon_sable_bank_allocation_1, 11, 34),
+(@alon_sable_bank_allocation_2, 6.5, 11),
+(@alon_sable_bank_allocation_2, 5, 13),
+(@alon_dm_bank_allocation_1, 10.5, 10),
+(@bank_eran_sable_allocation_1, 9, 19),
+(@bank_eran_sable_allocation_1, 6, 31),
+(@bank_eran_sable_allocation_1, 5, 10),
+(@bank_eran_sable_allocation_1, 6, 10),
+(@bank_eran_sable_allocation_1, 7, 10);
+
 

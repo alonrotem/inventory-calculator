@@ -1,11 +1,13 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { ModalDialogComponent } from "../modal-dialog/modal-dialog.component";
 import { faBorderNone, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { NgIf } from '@angular/common';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'app-confirmation-dialog',
   standalone: true,
-  imports: [ModalDialogComponent],
+  imports: [ModalDialogComponent, NgIf, FaIconComponent],
   templateUrl: './confirmation-dialog.component.html',
   styleUrl: './confirmation-dialog.component.scss'
 })
@@ -17,6 +19,8 @@ export class ConfirmationDialogComponent implements OnInit, AfterViewInit {
   @Input() btnNoText: string = "No";
   @Input() btnYesIcon: IconDefinition = faBorderNone;
   @Input() btnYesClass: string = "";
+  @Input() btnNoClass: string = "";
+  @Input() dialogIcon: IconDefinition | null = null;
   @Input() reverseButtons: boolean = false;
   @Output() confirm = new EventEmitter<any>();
   @Output() cancel = new EventEmitter<void>();
@@ -35,6 +39,7 @@ export class ConfirmationDialogComponent implements OnInit, AfterViewInit {
     this.confirmation_dialog.btnCancelText = this.btnNoText;
     this.confirmation_dialog.btnSaveIcon = this.btnYesIcon;
     this.confirmation_dialog.btnSaveClass = this.btnYesClass;
+    this.confirmation_dialog.btnCancelClass = this.btnNoClass;
 
     this.confirmation_dialog.confirm.subscribe((value: Boolean) => {
       this.confirm.emit(value);

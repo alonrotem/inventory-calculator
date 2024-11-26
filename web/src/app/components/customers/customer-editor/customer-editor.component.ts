@@ -107,6 +107,12 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     this.customersService.getCustomer(id).subscribe(
     {
       next: (customer: Customer) => {
+        //failed to fetch material with ID, returned an empty object
+        if(Object.keys(customer).length == 0) {
+          this.gotoCustomersList("Could not find customer with ID " + id, true);
+          return;
+        }
+
         this.customerItem = customer;
         this.recalculateBanks();
         //console.log(customer);
@@ -123,6 +129,9 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     if(this.customer_form.form.valid)
     {
       this.customer_form.form.markAsPristine();
+
+      this.saveCustomer();
+      /*
       //edit
       if(!this.is_new_customer)
       {
@@ -134,6 +143,7 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
       {
         this.saveNewCustomer(this.customerItem);
       }
+      */
     }
     else
     {
@@ -151,7 +161,7 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
 
     }
   }
-
+/*
   saveNewCustomer(customer:Customer)
   {
     this.btn_save.nativeElement.classList.add("disabled");
@@ -162,13 +172,13 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
         error:(error) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoCustomersList(error, true); }
       }
     );
-  }
+  }*/
 
-  updateCustomer(id: number, customer:Customer)
+  saveCustomer()
   {
     this.btn_save.nativeElement.classList.add("disabled");
 
-    this.customersService.updateCustomer(customer).subscribe(
+    this.customersService.saveCustomer(this.customerItem).subscribe(
     {
       next:(data) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoCustomersList(data['message'], false); },//this.getRawMaterials(this.current_page); },
       error:(error) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoCustomersList(error, true); }

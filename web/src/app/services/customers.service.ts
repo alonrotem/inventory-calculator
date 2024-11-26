@@ -30,12 +30,14 @@ export class CustomersService {
     });
   };
 
+  /*
   saveNewCustomer = (customer: Customer): Observable<any> => {
     return this.apiService.post(`${environment.serverUrl}/customers/`, customer, { });
   };
+  */
 
-  updateCustomer = (customer: Customer): Observable<any> => {
-    return this.apiService.put(`${environment.serverUrl}/customers/${customer.id}`, customer, { });
+  saveCustomer = (customer: Customer): Observable<any> => {
+    return this.apiService.put(`${environment.serverUrl}/customers/`, customer, { });
   };
 
   deleteCustomer = (id: number): Observable<any> => {

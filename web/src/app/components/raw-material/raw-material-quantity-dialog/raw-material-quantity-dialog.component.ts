@@ -24,26 +24,14 @@ export class RawMaterialQuantityDialogComponent implements ModalContentDirective
   @ViewChild("quantityDialog") dialogWrapper! :ModalDialogComponent;
   
   close: EventEmitter<number> = new EventEmitter<number>();
-  @Input() editedObject: RawMaterial = {
-    id: 0,
-    name: '',
-    purchased_at: new Date(),
-    purchase_quantity: 0,
+  @Input() editedObject = {
+    top_up_quantity: 0,
+    current_quantity: 0,
     remaining_quantity: 0,
-    quantity_units: '',
-    units_per_kg: 0,
-    vendor_name: '',
-    origin_country: '',
-    price: 0,
-    currency: '',
-    notes: '',
-    created_at: new Date(),
-    updated_at: new Date(),
-    created_by: 0,
-    updated_by: 0,
-    customer_banks: [],
-    transaction_record: null
+    quantity_units: "kg",
+    max_topping: 0
   };
+  @Input() text = "";
 
   constructor() {
     //this.quantityDialog.confirm.subscribe()
@@ -63,10 +51,10 @@ export class RawMaterialQuantityDialogComponent implements ModalContentDirective
   }
 
   beforeClose(): Boolean {
-    console.log("before close FROM QUANTITY");
     this.attemptedClose = true;
     this.quantityForm.form.markAllAsTouched();
-    if(this.quantityForm.valid){
+    let okToClose = (this.editedObject.max_topping > 0)? this.quantityForm.form.controls["topUpQuantity"].value <= this.editedObject.max_topping : true;
+    if(this.quantityForm.valid && okToClose){
       return true;
     }
     setTimeout(() => {

@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faMoneyCheckDollar, faPencil, faTrashAlt, faTrashCan, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faMoneyCheckDollar, faPencil, faTrashAlt, faTrashCan, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { RawMaterial, RawMaterialCustomerBank } from '../../../../types';
 import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { RouterModule } from '@angular/router';
@@ -27,15 +27,19 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   faTrashAlt: IconDefinition = faTrashAlt;
   faTrashCan: IconDefinition = faTrashCan;
   faPencil: IconDefinition = faPencil;
+  faTriangleExclamation: IconDefinition = faTriangleExclamation;
   pending_delete_index:number = -1;
   banks_summary_string = "";
   @ViewChild('delete_confirmation') delete_confirmation!: ConfirmationDialogComponent;
   @ViewChild("bank_editor") bank_editor!: RawMaterialCustomerDialogComponent;
   @ViewChild("top_up_dialog") top_up_dialog! :RawMaterialQuantityDialogComponent;
+  @ViewChild("not_enough_material") not_enough_material! :RawMaterialQuantityDialogComponent;
   @Input() banks: RawMaterialCustomerBank[] = [];
   @Input() parent_raw_material: RawMaterial | null = null;
   @Output() banksChanged: EventEmitter<void> = new EventEmitter();
   banks_loaded_quantities: any[] = [];
+  topped_up_bank : RawMaterialCustomerBank | null = null;
+
 
   deleteBank(index:number, bank: RawMaterialCustomerBank){
     this.delete_confirmation.modalText = `Are you sure you want to delete this bank for customer <strong>${bank.name}</strong>?`;
@@ -56,12 +60,22 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
       this.pending_delete_index = -1;
     });
     this.bank_editor.dialogWrapper.confirm.subscribe((b: RawMaterialCustomerBank)=>{ 
-      console.log("confirm caught with " + b);
-      this.closedCustomerEditor(b); });
+      //console.log("confirm caught with " + b);
+      this.closedCustomerEditor(b); 
+    });
+    this.top_up_dialog.dialogWrapper.confirm.subscribe(() => {
+      if(this.topped_up_bank){
+        let top_up = this.top_up_dialog.editedObject.top_up_quantity;
+        if(top_up > 0) {
+          this.topped_up_bank.quantity += top_up;
+          this.topped_up_bank.remaining_quantity += top_up;
+        }  
+      }
+      this.topped_up_bank = null;
+      this.recalculateSums();
+      this.banksChanged.emit();      
+    });
   }
-  //check how much the quantity was raised from initial quantity
-  //if more than material remaining: error
-  //if less than remaining quantity: error
 
   ngOnChanges(changes: SimpleChanges): void {
     this.recalculateSums();
@@ -71,7 +85,8 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
       this.banks_loaded_quantities = this.banks.map((b => ({  
         bank_id: b.id, 
         initial_bank_quantity: b.quantity, 
-        initial_bank_remaining: b.remaining_quantity  
+        initial_bank_remaining: b.remaining_quantity,
+        bank_in_use: (b.quantity - b.remaining_quantity)
       })));
       console.log(this.banks_loaded_quantities);
     }
@@ -84,9 +99,12 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
     this.banks_summary_string = "";
     let totalQuantity = this.banks.reduce((acc, cur) => acc + cur.quantity, 0);
     if(totalQuantity > 0) {
-      this.banks_summary_string = totalQuantity + " " + this.parent_raw_material?.quantity_units;
+      this.banks_summary_string = totalQuantity + " " + this.parent_raw_material?.quantity_units + 
+      " of material, used in " + this.banks.length + " customer " + ((this.banks.length == 1)? "bank":"banks");
     }
-    this.banks_summary_string = (this.banks_summary_string=="")? "": (" (" + this.banks_summary_string + ")");
+    else {
+      this.banks_summary_string = "No material used by customer banks."
+    }
   }
 
   openCustomerEditor(bank: RawMaterialCustomerBank | null){
@@ -98,6 +116,7 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
       if(initialBankInfo){
         this.bank_editor.initialBankQuantity = initialBankInfo.initial_bank_quantity;
         this.bank_editor.initialBankRemainingQuantity = initialBankInfo.initial_bank_remaining;
+        this.bank_editor.initialBankInUseQuantity = initialBankInfo.bank_in_use;
       }
     }
     else {
@@ -113,28 +132,71 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
         quantity_units: (this.parent_raw_material)? this.parent_raw_material.quantity_units : '',
         transaction_record: null
       };
-      this.bank_editor.initialBankQuantity = -1;
-      this.bank_editor.initialBankRemainingQuantity = -1;
+      this.bank_editor.initialBankQuantity = 0;
+      this.bank_editor.initialBankRemainingQuantity = 0;
     }
     this.bank_editor.remainingMaterialQuantity = (this.parent_raw_material?.remaining_quantity)? this.parent_raw_material?.remaining_quantity : -1;
+    this.bank_editor.raw_material_remaining =  this.parent_raw_material!.remaining_quantity;
+    this.bank_editor.banks = this.banks;
+    this.bank_editor.banks_loaded_quantities = this.banks_loaded_quantities;
     this.bank_editor.dialogWrapper.open();
   }
 
   closedCustomerEditor(bank: RawMaterialCustomerBank){
+    console.log("closedCustomerEditor bank -> ");
+    console.dir(bank);
     //1. check if there is a bank with that customer name, no matter the customer id
     let bankWithSameCustomerName = this.banks.find(b => b.name.toUpperCase() == bank.name.toUpperCase());
+    let bankInitialData = this.banks_loaded_quantities.find(b => b.bank_id == bank.id);
+    let toopped_by = (bankInitialData)? (bank.quantity - bankInitialData.initial_bank_quantity) : 0;
+    let remaining = (bankInitialData) ? bankInitialData.initial_bank_remaining + toopped_by : bank.quantity;
+    /*
+        bank_id: b.id, 
+        initial_bank_quantity: b.quantity, 
+        initial_bank_remaining: b.remaining_quantity
+
+        initial: 10
+        initia in use: 8
+        initial remaining: 2
+
+        after: 20
+        quantity topped by 20 - 10, remai
+
+    */
+   /*
     if(bankWithSameCustomerName) {
       // copy properties of the updated bank to the existing bank
       bankWithSameCustomerName.customer_id = (bank.customer_id != 0)? bank.customer_id : bankWithSameCustomerName.customer_id;
       bankWithSameCustomerName.id = (bank.id != 0)? bank.id : bankWithSameCustomerName.id;
       bankWithSameCustomerName.business_name = bank.business_name;
       bankWithSameCustomerName.raw_material_id = bank.raw_material_id;
-      bankWithSameCustomerName.remaining_quantity = (bank.id == 0)? bankWithSameCustomerName.quantity : -1;
+      bankWithSameCustomerName.remaining_quantity = remaining;
       //bankWithSameCustomerName.weight = bank.weight;
       //bankWithSameCustomerName.units = bank.units;
     }
     else {
       bank.remaining_quantity = bank.quantity;
+      this.banks.push(bank);
+    }
+
+
+
+    */
+    if(bankWithSameCustomerName) {
+      console.log("bankWithSameCustomerName found:");
+      console.dir(bankWithSameCustomerName);
+      // copy properties of the updated bank to the existing bank
+      bankWithSameCustomerName.customer_id = (bank.customer_id != 0)? bank.customer_id : bankWithSameCustomerName.customer_id;
+      bankWithSameCustomerName.id = (bank.id != 0)? bank.id : bankWithSameCustomerName.id;
+      bankWithSameCustomerName.business_name = bank.business_name;
+      bankWithSameCustomerName.raw_material_id = bank.raw_material_id;
+      bankWithSameCustomerName.remaining_quantity = bank.remaining_quantity;
+      bankWithSameCustomerName.quantity = bank.quantity;
+      //bankWithSameCustomerName.weight = bank.weight;
+      //bankWithSameCustomerName.units = bank.units;
+    }
+    else {   
+    //if(!bankWithSameCustomerName) {
       this.banks.push(bank);
     }
 
@@ -151,7 +213,21 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
     this.banksChanged.emit();
   }
 
-  top_up() {
-    this.top_up_dialog.open();
+  top_up(bank :RawMaterialCustomerBank) {
+    if(this.parent_raw_material && this.parent_raw_material.remaining_quantity > 0){
+      this.top_up_dialog.dialogWrapper.modalTitle = "+ Top up customer bank";
+      this.top_up_dialog.editedObject = {
+        top_up_quantity: 0,
+        current_quantity: bank.quantity,
+        remaining_quantity: bank.remaining_quantity,
+        quantity_units: bank.quantity_units,
+        max_topping: this.parent_raw_material!.remaining_quantity
+      };
+      this.topped_up_bank = bank;
+      this.top_up_dialog.open();
+    }
+    else {
+      this.not_enough_material.open();
+    }
   }
 }

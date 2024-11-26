@@ -56,7 +56,8 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
     remaining_quantity: 0,
     quantity_units: 'kg',
     customer_banks: [],
-    transaction_record: null
+    transaction_record: null,
+    deleted_bank_records: []
   }
 
   countries: Country[] = [];
@@ -227,13 +228,26 @@ if(banks != initial_in_banks)
     this.rawMaterialsService.getRawMaterial(id).subscribe(
     {
       next: (rawMaterial: RawMaterial) => {
-        this.rawMaterialItem = rawMaterial;
-        this.initial_quantity = rawMaterial.purchase_quantity;
-        this.initial_remaining = rawMaterial.remaining_quantity;
-        this.initial_in_banks = rawMaterial.customer_banks.reduce((n, {quantity}) => n + quantity, 0);
-        this.initial_totals_per_bank = rawMaterial.customer_banks.map(b => ({ bank_id: b.id, bank_quantity: b.quantity  }));
+        //failed to fetch material with ID, returned an empty object
+        if(Object.keys(rawMaterial).length == 0)
+        {
+          this.gotoMaterialsList("Could not find material with ID " + id, true);
+          return;
+        }
+        else {
+          this.rawMaterialItem = rawMaterial;
+          this.initial_quantity = rawMaterial.purchase_quantity;
+          this.initial_remaining = rawMaterial.remaining_quantity;
+          this.initial_in_banks = rawMaterial.customer_banks.reduce((n, {quantity}) => n + quantity, 0);
+          this.initial_totals_per_bank = rawMaterial.customer_banks.map(b => ({ 
+            bank_id: b.id, 
+            bank_name:b.name, 
+            bank_quantity: b.quantity,
+            customer_id: b.customer_id
+          }));
 
-        this.recalculateRemaining();
+          this.recalculateRemaining();
+        }
       },
       error: (error) => {
         console.log(error);
@@ -277,6 +291,7 @@ if(banks != initial_in_banks)
         this.rawMaterialItem.transaction_record = null;
       }
 
+      let artificial_secs = 1;  //add artificial seconds, to make the records sequential
       // bank quantities have changex
       if(this.curr_total_in_banks != this.initial_in_banks) {
         let counting_quantity = this.rawMaterialItem.remaining_quantity + added_to_banks_since_last_load;
@@ -284,7 +299,6 @@ if(banks != initial_in_banks)
         console.log("added_to_banks_since_last_load " + added_to_banks_since_last_load);
         console.log("counting_quantity " + counting_quantity);
         
-        let artificial_secs = 1;  //add artificial seconds, to make the records sequential
         this.rawMaterialItem.customer_banks.forEach(customer_bank => {
           
           let initial_bank_data = this.initial_totals_per_bank.find(b => b.bank_id == customer_bank.id);
@@ -313,6 +327,46 @@ if(banks != initial_in_banks)
           artificial_secs++;
         });
       }
+      //banks were deleted?
+      //check if banks in inital load do not exist in saved banks
+      /**
+       * remaining 162
+       * start with 162+20
+       * removed bank (10) -> 
+       * removed bank (10) -> 172
+       */
+      let current_bank_ids = this.rawMaterialItem.customer_banks.filter(bank => bank.id > 0).map(bank => bank.id);
+      let deleted_banks = this.initial_totals_per_bank.filter(bank => current_bank_ids.indexOf(bank.bank_id) < 0);
+      let total_quantity_in_deleted_banks = deleted_banks.reduce((n, {bank_quantity}) => n + bank_quantity, 0);
+      let cur_raw_material_quantity = this.rawMaterialItem.remaining_quantity - total_quantity_in_deleted_banks;
+      console.log("quantity before banks were deleted: " + cur_raw_material_quantity);
+      if(!this.rawMaterialItem.deleted_bank_records) {
+        this.rawMaterialItem.deleted_bank_records = [];
+      }
+      deleted_banks.forEach(bank => {
+        let date = new Date();
+        date.setSeconds(date.getSeconds() + artificial_secs);
+        cur_raw_material_quantity += bank.bank_quantity;
+        console.log("Deleted costomer bank " + bank.bank_name + ", quantity " + bank.bank_quantity + " remaining "+ cur_raw_material_quantity);
+        this.rawMaterialItem.deleted_bank_records.push({
+          id: 0,
+          date: date,
+          added_by: 1,
+          transaction_quantity: bank.bank_quantity,
+          transaction_type: TransactionType.deleted_customer_bank,
+          raw_material_id: this.rawMaterialItem.id,
+          customer_id: bank.customer_id,
+          customer_bank_id: bank.bank_id,
+          customer_banks_babies_id: 0,
+          cur_raw_material_quantity: cur_raw_material_quantity,
+          cur_customer_bank_quantity: 0,
+          cur_banks_babies_allocation_quantity: 0
+        });
+        artificial_secs++;
+      });
+
+
+
       this.btn_save.nativeElement.classList.add("disabled");
 
       this.rawMaterialsService.save(this.rawMaterialItem).subscribe(
@@ -419,8 +473,8 @@ if(banks != initial_in_banks)
           }
         });
     });
-    this.quantityDialog.dialogWrapper.confirm.subscribe(() => { 
-      let top_up = this.quantityDialog.top_up_quantity;
+    this.quantityDialog.dialogWrapper.confirm.subscribe(() => {
+      let top_up = this.quantityDialog.editedObject.top_up_quantity;
       if(top_up > 0) {
         this.rawMaterialItem.purchase_quantity += top_up;
         this.recalculateRemaining();
@@ -442,7 +496,13 @@ if(banks != initial_in_banks)
 
   openQuantityDialog(){
     //this.quantityDialogContent.remaining_quantity = this.rawMaterialItem.remaining_quantity;
-    this.quantityDialog.editedObject = this.rawMaterialItem;
+    this.quantityDialog.editedObject = {
+      top_up_quantity: 0,
+      current_quantity: this.rawMaterialItem.purchase_quantity,
+      remaining_quantity: this.rawMaterialItem.remaining_quantity,
+      quantity_units: this.rawMaterialItem.quantity_units,
+      max_topping: 0
+    };
     this.quantityDialog.dialogWrapper.modalTitle = "+ Top up quantity";
     this.quantityDialog.open();
   }

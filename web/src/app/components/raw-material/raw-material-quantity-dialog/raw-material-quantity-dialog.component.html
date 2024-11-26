@@ -2,35 +2,62 @@
     <div modalContent>
         <form novalidate #quantityForm="ngForm" [id]="'quantityForm'">
             <div class="row">
-                <div class="col-12">Add {{ editedObject.quantity_units }} of material to the purchase:</div>
+                <div class="col-12">Top up quantity by {{ editedObject.top_up_quantity }} {{ editedObject.quantity_units }}</div>
             </div>
             <div class="row">
                 <div class="col-12">
                     <div>
                         <span style="display: flex; flex-wrap: nowrap; justify-content: flex-start; align-items: center;">
                             <div class="form-floating" style="width: 100%; margin-right: 20px;">
-                            <input type="number" #topUpQuantity="ngModel" class="form-control"
-                                placeholder="0" [(ngModel)]="top_up_quantity" name="topUpQuantity" required="true" min="0" [ngClass]="{'form-control': true, 'invalid': (quantityForm.touched && top_up_quantity <=0)}"> 
+                            <input 
+                                type="number" 
+                                #topUpQuantity="ngModel" 
+                                class="form-control"
+                                placeholder="0" 
+                                [(ngModel)]="editedObject.top_up_quantity" 
+                                name="topUpQuantity" 
+                                required="true" 
+                                min="0" 
+                                [attr.max]="editedObject.max_topping > 0 ? editedObject.max_topping : null" 
+                                [ngClass]="{'form-control': true, 'invalid': (quantityForm.touched && (editedObject.top_up_quantity <=0 || (editedObject.max_topping > 0 ? editedObject.top_up_quantity > editedObject.max_topping : false)))}"> 
                                 <label for="topUpQuantity">Top up quantity</label>
                             </div>
                             <span>{{ editedObject.quantity_units }}</span>
                         </span>
                     </div>
-                    <div>
+                    <!--div>
                         <span *ngIf="top_up_quantity >= 0">Material quantity will be updated to {{ this.editedObject.purchase_quantity + top_up_quantity }} {{ editedObject.quantity_units }}</span>
                         <span class="text-danger" *ngIf="top_up_quantity < 0">Please enter a positibe top-up quantity</span>
-                    </div>
+                    </div-->
                 </div>
 
             </div>
             <div class="row unspaced-row">
                 <div class="col">
+                    <!--div>
+                        editedObject.max_topping {{ editedObject.max_topping }}<br/>
+                        topUpQuantity.value {{ topUpQuantity.value }}<br/>
+                        attemptedClose {{ attemptedClose }}<br/>
+                        topUpQuantity.value!='' {{ topUpQuantity.value!='' }} <br/>
+                        editedObject.max_topping > 0 {{ editedObject.max_topping > 0 }}<br/>
+                        topUpQuantity.value > editedObject.top_up_quantity {{ topUpQuantity.value > editedObject.top_up_quantity }}<br/>
+                        validation error {{ (attemptedClose && topUpQuantity.value!='' && editedObject.max_topping > 0 && topUpQuantity.value > editedObject.top_up_quantity) }}
+                    </div-->
+                    <div class="text-success" *ngIf="editedObject.max_topping > 0 && topUpQuantity.value <= editedObject.max_topping">Maximum available material: {{ editedObject.max_topping }} {{ editedObject.quantity_units }}</div>
+                    <div class="text-danger" *ngIf="(topUpQuantity.value!='' && editedObject.max_topping > 0 && topUpQuantity.value > editedObject.max_topping)">
+                        Not enough material, cannot top more than {{ editedObject.max_topping }} {{ editedObject.quantity_units }}
+                    </div>
                     <!--
                     validation:
                     
                     <div class="text-danger" *ngIf="(attemptedClose && (materialQuantity.value=='' || materialQuantity.value <= 0) )">
                         Please enter a valid quantity
                     </div>-->
+                </div>
+            </div>
+            <div class="row" style="margin-top:5px;">
+                <div class="col">
+                    Quantity will be topped up to {{ editedObject.current_quantity + editedObject.top_up_quantity }} {{ editedObject.quantity_units }} (Remaining to {{ editedObject.remaining_quantity + editedObject.top_up_quantity  }})
                 </div>
             </div>
         </form>

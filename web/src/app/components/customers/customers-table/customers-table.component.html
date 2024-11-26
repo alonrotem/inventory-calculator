@@ -19,6 +19,8 @@
       <tr>
         <th scope="col">Name</th>
         <th scope="col">Business name</th>
+        <th scope="col" class="text-center">Raw material banks</th>
+        <th scope="col" class="text-center">Work allocations</th>
       </tr>
     </thead>
     <tbody>
@@ -28,6 +30,8 @@
         [queryParams]="{ id: customer.id }" role="button">
         <td>{{ customer.name }}</td>
         <td>{{ customer.business_name }}</td>
+        <td class="text-center">{{ customer.bank_count }}</td>
+        <td class="text-center">{{ customer.allocation_count }}</td>
       </tr>
     </tbody>
   </table>

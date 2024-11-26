@@ -58,6 +58,7 @@ export interface RawMaterial {
     updated_by: number;
     customer_banks: RawMaterialCustomerBank[];
     transaction_record: TransactionRecord | null;
+    deleted_bank_records: TransactionRecord[];
 }
 
 export interface RawMaterialCustomerBank {
@@ -223,6 +224,20 @@ export class Point {
     banks_baby_allocations: Customer_Bank_Baby_Allocation[];
     babies: Customer_Baby[];
 }
+export interface CustomerListItem {
+    id: number;
+    name: string;
+    business_name: string;
+    email: string; 
+    phone: string; 
+    tax_id: string;
+    created_at: Date;
+    updated_at: Date;
+    created_by: number;
+    updated_by: number;
+    bank_count: number;
+    allocation_count: number;
+}
 
 export interface Customer_Bank {
     raw_material_name: string; 
@@ -263,7 +278,7 @@ export interface Customer_Baby {
 }
 
 export interface Customers {
-    data: Customer[];
+    data: CustomerListItem[];
     meta: { 
         page: number;
         total_records: number;
@@ -274,7 +289,8 @@ export interface Customers {
 export enum TransactionType {
     raw_material_purchase = "raw_material_purchase",
     to_customer_bank = "to_customer_bank",
-    customer_bank_allocate_to_Work = "customer_bank_allocate_to_Work"
+    customer_bank_allocate_to_Work = "customer_bank_allocate_to_Work",
+    deleted_customer_bank = "deleted_customer_bank"
 }
 
 export interface TransactionRecord {

@@ -31,7 +31,7 @@
         <td>{{ rawMaterial.name }}</td>
         <td>{{ rawMaterial.purchased_at | dateStr }}</td>
         <td>
-          {{ rawMaterial.purchase_quantity }} {{ rawMaterial.quantity_units }}
+          {{ rawMaterial.purchase_quantity }} {{ rawMaterial.quantity_units }} ({{rawMaterial.remaining_quantity}} left)
         </td>
         <td>{{ rawMaterial.updated_at | dateStr }}</td>
         <td>{{ rawMaterial.updated_by }}</td>

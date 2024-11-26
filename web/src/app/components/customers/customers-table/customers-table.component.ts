@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { Customer, Customers } from '../../../../types';
+import { Customer, CustomerListItem, Customers } from '../../../../types';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { PaginatorComponent } from "../../common/paginator/paginator.component";
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -46,7 +46,7 @@ export class CustomersTableComponent implements OnInit {
   }
   current_page = 1;
   rowsPerPage:number = 5;
-  customers: Customer[] = [];
+  customers: CustomerListItem[] = [];
   @ViewChild("paginator") paginator!: PaginatorComponent;
   faArrowsRotate: IconDefinition = faArrowsRotate;
   loading: boolean = true;

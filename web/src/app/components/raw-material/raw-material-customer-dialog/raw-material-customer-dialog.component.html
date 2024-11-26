@@ -9,14 +9,14 @@
               [data]="customer_names"
               placeholder="Customer name"
               [itemTemplate]="itemTemplate"
-              [(ngModel)]="editedObject.name"
+              [(ngModel)]="editedObjectCopy.name"
               class="form-control form-control-plaintext abc"
               name="customerName"
               #customerName="ngModel"
               required="true"
               (selected)="customer_name_selected($event)"
               (inputChanged)="customer_name_selected($event)"
-              [disabled]="editedObject.id!=0">
+              [disabled]="editedObjectCopy.id!=0">
             </ng-autocomplete>
             <ng-template #itemTemplate let-item>
                 <a [innerHTML]="item"></a>
@@ -29,14 +29,13 @@
 </div>
 <div class="row spaced-row">
     <div class="col-12">
-        
             <span style="display: flex; flex-wrap: nowrap; justify-content: flex-start; align-items: center;">
                 <div class="form-floating" style="width: 100%; margin-right: 20px;">
-                <input type="number" #materialQuantity="ngModel" [ngClass]="{'form-control': true, 'invalid': ((bankForm.touched) && ((editedObject.quantity <=0) || (editedObject.quantity > remainingMaterialQuantity)))}"
-                    placeholder="0" [(ngModel)]="editedObject.quantity" name="materialQuantity" required="true" min="1" max="{{ remainingMaterialQuantity }}"> 
+                <input type="number" #materialQuantity="ngModel" [ngClass]="{'form-control': true, 'invalid': ((bankForm.touched) && ((editedObjectCopy.quantity <=0) || (editedObjectCopy.quantity > remainingMaterialQuantity)))}"
+                    placeholder="0" [(ngModel)]="editedObjectCopy.quantity" name="materialQuantity" required="true" min="{{ initialBankInUseQuantity }}" max="{{ initialBankQuantity + remainingMaterialQuantity }}"> 
                     <label for="materialQuantity">Quantity</label>
                 </div>
-                <span>{{ editedObject.quantity_units }}</span>
+                <span>{{ editedObjectCopy.quantity_units }}</span>
             </span>
         </div>
 </div>
@@ -48,17 +47,21 @@
         <div class="text-danger" *ngIf="(attemptedClose && (materialQuantity.value=='' || materialQuantity.value <= 0) )">
             Please enter a valid quantity
         </div>
-        <div class="text-danger" *ngIf="(attemptedClose && (materialQuantity.value!='' && materialQuantity.value > remainingMaterialQuantity) )">
-            Not enough raw material quantity (<strong>Max: {{ remainingMaterialQuantity }} {{editedObject.quantity_units }}</strong>)
+        <div class="text-danger" *ngIf="(attemptedClose && (materialQuantity.value!='' && materialQuantity.value > initialBankQuantity + remainingMaterialQuantity) )">
+            Not enough raw material quantity (<strong>Max: {{ initialBankQuantity }} + {{ remainingMaterialQuantity }} = {{ initialBankQuantity + remainingMaterialQuantity }} {{editedObjectCopy.quantity_units }}</strong>)
+        </div>
+        <div class="text-danger" *ngIf="(attemptedClose && (materialQuantity.value!='' && materialQuantity.value > 0 && materialQuantity.value < initialBankInUseQuantity) )">
+            Cannot go below {{ initialBankInUseQuantity }} {{editedObjectCopy.quantity_units }}, already in use.
         </div>
     </div>
 </div>
 </form>
 <div>
-    initialBankQuantity: {{initialBankQuantity}}<br/>
-    initialBankRemainingQuantity {{ initialBankRemainingQuantity }}<br/>
-    remainingMaterialQuantity: {{ remainingMaterialQuantity }}<br/>
-    Can't go higher than {{ remainingMaterialQuantity }}, but not lower than {{ initialBankQuantity - initialBankRemainingQuantity }} (in use)
+    <strong>Analysis:</strong><br/>
+    <span class="text-success" *ngIf="(this.editedObjectCopy.quantity - this.initialBankQuantity) >= 0">Topping up</span><span class="text-danger" *ngIf="(this.editedObjectCopy.quantity - this.initialBankQuantity) < 0">Reducing</span> by {{ Math.abs(this.editedObjectCopy.quantity - this.initialBankQuantity) }} {{editedObjectCopy.quantity_units }}<br/>
+    After this change, the bank will have {{ this.editedObjectCopy.quantity }} {{editedObjectCopy.quantity_units }}<br/>
+    {{ initialBankInUseQuantity }} {{editedObjectCopy.quantity_units }} are already in use, {{ this.initialBankRemainingQuantity + (this.editedObjectCopy.quantity - this.initialBankQuantity) }} {{editedObjectCopy.quantity_units }} remaining.<br/>
+    Remaining raw material will {{ (this.editedObjectCopy.quantity - this.initialBankQuantity == 0)? "not change" :  (((this.editedObjectCopy.quantity - this.initialBankQuantity < 0) ? "increase" : "reduce") + " from " +  this.raw_material_remaining + " to " +  (this.raw_material_remaining - (this.editedObjectCopy.quantity - this.initialBankQuantity))  + " " + editedObjectCopy.quantity_units) }}.
 </div>
 </div>
 </app-modal-dialog>
