@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { Location, NgFor, NgIf } from '@angular/common';
-import { Country, Currency, Customer, RawMaterial, Customer_Bank } from '../../../../types';
+import { Country, Currency, Customer, RawMaterial, Customer_Bank, TransactionType } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
 import { RouterLink, RouterOutlet, ActivatedRoute } from '@angular/router';
 import { Form, FormsModule, NgForm } from '@angular/forms';
@@ -44,9 +44,10 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     updated_at: new Date(),
     created_by: 0,
     updated_by: 0,
-    banks:[],
+    banks: [],
     banks_baby_allocations: [],
-    babies: []
+    babies: [],
+    transaction_history: []
   }
 
   title: string = "Create Customer";
@@ -58,6 +59,7 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
   faMoneyCheckDollar: IconDefinition = faMoneyCheckDollar;
   faTriangleExclamation: IconDefinition = faTriangleExclamation;
   is_new_customer: Boolean = true;
+  banks_loaded_quantities: any[] = [];
 
   // for opening the unsave changes dialog
   private confirmResult: boolean | null = null;
@@ -114,6 +116,7 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
         }
 
         this.customerItem = customer;
+        this.cacheCustomerBanksInitialData();
         this.recalculateBanks();
         //console.log(customer);
       },
@@ -123,13 +126,27 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     })
   }
 
+  cacheCustomerBanksInitialData() {
+    if(this.banks_loaded_quantities.length == 0 && this.customerItem.banks_baby_allocations.length > 0){
+      this.banks_loaded_quantities = this.customerItem.banks_baby_allocations.map((a => ({
+        allocation_id: a.id,
+        bank_id: a.customer_bank_id,
+        quantity: a.quantity
+      })));
+      console.log("this.banks_loaded_quantities.length " + this.banks_loaded_quantities.length);
+    }
+    else {
+      console.log("initial banks already loaded...");
+    }
+  }
+
   save()
   {
     this.customer_form.form.markAllAsTouched();
     if(this.customer_form.form.valid)
     {
       this.customer_form.form.markAsPristine();
-
+      this.processBankHistoryChanges();
       this.saveCustomer();
       /*
       //edit
@@ -173,6 +190,63 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
       }
     );
   }*/
+  processBankHistoryChanges(){
+/*
+    let new_allocations = this.customerItem.banks_baby_allocations.filter(a => this.banks_loaded_quantities.findIndex(preloaded => preloaded.allocation_id == a.id) < 0);
+    let deleted_allocations = this.banks_loaded_quantities.filter(preloaded => this.customerItem.banks_baby_allocations.findIndex(a => a.id == preloaded.allocation_id) < 0);
+    let changed_allocations = this.customerItem.banks_baby_allocations.filter(a => this.banks_loaded_quantities.findIndex(preloaded => preloaded.allocation_id == a.id && preloaded.quantity != a.quantity) >= 0);
+    
+    let sum_added_allocations = new_allocations.reduce((acc, alloc) => acc + alloc.quantity, 0);
+    let sum_deleted_allocations = deleted_allocations.reduce((acc, alloc) => acc + alloc.quantity, 0);
+    let sum_changed_allocations = 0;
+    this.customerItem.banks_baby_allocations.forEach(alloc => {
+      let original_allocation = this.banks_loaded_quantities.find(preloaded => preloaded.allocation_id == alloc.id && preloaded.quantity != alloc.quantity);
+      if(original_allocation) {
+        sum_changed_allocations += (alloc.quantity - original_allocation.quantity); 
+      }
+    });
+    let initial
+
+    new_allocations.forEach(alloc => {
+      let bank = this.customerItem.banks.find(b => b.id == alloc.customer_bank_id);
+      this.createHistoryRecord(
+        bank!.raw_material_name, 
+        TransactionType.customer_bank_allocate_to_Work,
+        alloc.quantity,
+        bank!.raw_material_id,
+        bank!.id,
+        alloc.id
+      );
+    });
+    */
+  }
+  
+  createHistoryRecord(
+    raw_material_name: string, 
+    transaction_type: TransactionType, 
+    transaction_quantity: number,
+    raw_material_id:number,
+    bank_id:number, 
+    allocation_id:number,
+    bank_quantity:number) {
+    /*
+      this.customerItem.transaction_history.push({
+      raw_material_name: raw_material_name,
+      customer_name: this.customerItem.name,
+      transaction_type: transaction_type,
+      transaction_quantity: transaction_quantity,
+      raw_material_id: raw_material_id,
+      customer_id: this.customerItem.id,
+      customer_bank_id: bank_id,
+      customer_banks_babies_id: allocation_id,
+      cur_raw_material_quantity: 0,
+      cur_customer_bank_quantity: 0,
+      cur_banks_babies_allocation_quantity: 0,
+      date: undefined,
+      added_by: 1
+    });
+    */
+  }
 
   saveCustomer()
   {

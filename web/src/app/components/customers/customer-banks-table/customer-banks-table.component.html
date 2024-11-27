@@ -10,6 +10,16 @@
 
 <app-baby-editor-dialog #babies_picker />
 
+<app-confirmation-dialog
+  #not_enough_material
+  modalTitle="Not enough material in the bank!"
+  modalText="Not enough remaining material to allocate for work.<br/>Please request more material!"
+  btnYesText="I see..."
+  btnYesClass="btn btn-warning m-auto"
+  btnNoClass="d-none"
+  [dialogIcon]="faTriangleExclamation"
+  />
+
 <div style="border: 1px solid; padding: 20px; border-radius: 20px; margin: 20px 0px;">
 <div>
     <h5 style="display: inline-block; margin-right: 10px;" title="Click to go to raw material ({{ bank.raw_material_name }})">

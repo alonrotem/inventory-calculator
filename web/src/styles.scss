@@ -159,3 +159,15 @@ form .row {
 td {
     vertical-align: middle;
 }
+
+
+input.invalid {
+    animation: blinker 1.3s 0.34s 2 !important;
+    
+}
+
+@keyframes blinker {
+    50% {
+        background-color: red; /*var(--bs-danger)*/
+    }
+}

@@ -88,7 +88,7 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
         initial_bank_remaining: b.remaining_quantity,
         bank_in_use: (b.quantity - b.remaining_quantity)
       })));
-      console.log(this.banks_loaded_quantities);
+      //console.log(this.banks_loaded_quantities);
     }
     else {
       console.log("initial banks already loaded...");

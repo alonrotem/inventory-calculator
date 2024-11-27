@@ -47,7 +47,7 @@ export class RawMaterialQuantityDialogComponent implements ModalContentDirective
     this.top_up_quantity = 0;
     this.quantityForm.form.markAsPristine();
     this.quantityForm.form.markAsUntouched();
-    this.attemptedClose = false;    
+    this.attemptedClose = false;
   }
 
   beforeClose(): Boolean {

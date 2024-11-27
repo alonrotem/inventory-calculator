@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, ViewChild } from '@angular/core';
 import { Baby, Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation } from '../../../../types';
 import { RouterModule } from '@angular/router';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
@@ -34,6 +34,7 @@ export class CustomerBanksTableComponent implements AfterViewInit {
   @Input() raw_material_quantity_units: string = "";
   @Output() bank_changed = new EventEmitter<void>();
   @ViewChild('delete_allocation_dialog') delete_allocation_dialog!: ConfirmationDialogComponent;
+  @ViewChild('not_enough_material') not_enough_material!: ConfirmationDialogComponent;
   @ViewChild('allocation_dialog') allocation_dialog!: BankAllocationDialogComponent;
   @ViewChild('babies_picker') babies_picker!: BabyEditorDialogComponent;
   faTriangleExclamation: IconDefinition = faTriangleExclamation;
@@ -41,20 +42,20 @@ export class CustomerBanksTableComponent implements AfterViewInit {
   faTrashCan: IconDefinition = faTrashCan;
   faChartPie: IconDefinition = faChartPie;
   newAllcoationCounter: number = -1;
-  pendingDeletionAllocation: number = -999;
+  pendingAllocationIdAction: number = -999;
   pendingBabyAppendAllocation: number = -999;
   pendingBabyAppendBaby: number = -999;
   newAllocationIdCounter = -1;
 
   constructor() { 
    }
-
+ 
   ngAfterViewInit(): void {
 
     this.delete_allocation_dialog.confirm.subscribe((response:any) => {
-      if(this.pendingDeletionAllocation != -999) {
-        this.delete_allocation_confirmed(this.pendingDeletionAllocation);
-        this.pendingDeletionAllocation = -999;
+      if(this.pendingAllocationIdAction != -999) {
+        this.delete_allocation_confirmed(this.pendingAllocationIdAction);
+        this.pendingAllocationIdAction = -999;
       }
     });
     this.babies_picker.dialogWrapper.modalTitle = "Modify babies in allocation";
@@ -62,6 +63,7 @@ export class CustomerBanksTableComponent implements AfterViewInit {
     this.babies_picker.dialogWrapper.confirm.subscribe((baby: Baby) => { this.babies_dialog_closed(baby); });
 
     this.allocation_dialog.dialogWrapper.modalTitle = "Manage allocation";
+    this.allocation_dialog.dialogWrapper.confirm.subscribe(() => { this.allocation_dialog_closed(this.allocation_dialog.CurrentQuantity); });
   }
 
   delete_allocation(allocationId:number){
@@ -70,7 +72,7 @@ export class CustomerBanksTableComponent implements AfterViewInit {
       this.delete_allocation_confirmed(allocationId);
     }
     else {
-      this.pendingDeletionAllocation = allocationId;
+      this.pendingAllocationIdAction = allocationId;
       this.delete_allocation_dialog.open();
     }
   }
@@ -94,9 +96,44 @@ export class CustomerBanksTableComponent implements AfterViewInit {
   }
 
   open_allocation_dialog(allocation_id: number) {
-    
+    let allocation = this.banks_baby_allocations.find(a => a.id == allocation_id);
+    if(allocation) {
+      this.allocation_dialog.CurrentQuantity = allocation.quantity;
+      this.allocation_dialog.MaxQuantity = allocation.quantity + this.bank.remaining_quantity;
+    }
+    else {
+      if(this.bank.remaining_quantity <= 0) {
+        this.not_enough_material.open();
+        return;
+      }
+      else {
+        this.allocation_dialog.CurrentQuantity = 0;
+        this.allocation_dialog.MaxQuantity = this.bank.remaining_quantity;
+      }
+    }
+    this.allocation_dialog.isNew = (allocation_id == -999);
+    this.allocation_dialog.RemainingInBank = this.bank.remaining_quantity;
+    this.allocation_dialog.QuantityUnits = this.bank.raw_material_quantity_units;
+    this.pendingAllocationIdAction = allocation_id;
     //bank.remaining_quantity
     this.allocation_dialog.open();
+  }
+
+  allocation_dialog_closed(currentQuantity: number) {
+    let allocation = this.banks_baby_allocations.find(a => a.id == this.pendingAllocationIdAction);
+    if(allocation){
+      allocation.quantity = currentQuantity;
+    }
+    else {
+      this.banks_baby_allocations.push({
+        id: this.newAllocationIdCounter--,
+        customer_bank_id: this.bank.id,
+        quantity: currentQuantity,
+        remaining_quantity: 0
+      });
+    }
+    this.pendingAllocationIdAction = -999;
+    this.bank_changed.emit();
   }
 
   delete_baby(baby_id: number) {

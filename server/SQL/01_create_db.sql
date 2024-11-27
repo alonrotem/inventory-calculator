@@ -436,7 +436,8 @@ CREATE TABLE  IF NOT EXISTS transaction_history (
 		'raw_material_purchase', 
         'to_customer_bank', 
         'deleted_customer_bank',
-        'customer_bank_allocate_to_Work'
+        'customer_bank_allocate_to_Work',
+        'customer_bank_allocation_deleted'
 	) NOT NULL,
     
     # involved banks in this transaction:

@@ -223,6 +223,8 @@ export class Point {
     banks: Customer_Bank[];
     banks_baby_allocations: Customer_Bank_Baby_Allocation[];
     babies: Customer_Baby[];
+
+    transaction_history: HistoryReportRecord[];
 }
 export interface CustomerListItem {
     id: number;
@@ -290,6 +292,7 @@ export enum TransactionType {
     raw_material_purchase = "raw_material_purchase",
     to_customer_bank = "to_customer_bank",
     customer_bank_allocate_to_Work = "customer_bank_allocate_to_Work",
+    customer_bank_allocation_deleted = "customer_bank_allocation_deleted",
     deleted_customer_bank = "deleted_customer_bank"
 }
 

@@ -28,6 +28,8 @@ Babies
 
 ⏹️ Error handling client/server
 ⏹️ Server exceptions on improper data
+⏹️ LOW MATERIAL ALERTS
+⏹️ Quantity graphs
 
 ❎ Action buttons moved to top on all screens
 ❎ 🪶 Show either units or kg in main raw table     

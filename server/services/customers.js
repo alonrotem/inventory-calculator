@@ -4,16 +4,7 @@ const transaction_history = require('./transaction_history');
 const { raw } = require('mysql2');
 
 async function getSingle(id){
-/*
 
-
-
-
-select 
-	cbb.id, cbb.customer_bank_id, cbb.quantity, cbb.remaining_quantity 
-from customer_banks_babies cbb 
-where cbb.customer_bank_id in (select cb.id from customer_banks cb where cb.customer_id=25);
-*/
     const rows = await db.query(
       `select 
         c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.notes, 
@@ -131,20 +122,7 @@ async function delete_all_customer_banks(where_rule, force=false){
     console.log("Set force=true to force delete them all");
     return;
   }
-  /*
-  console.log(`delete from babies
-    where customer_banks_babies_id in 
-    (select id from customer_banks_babies 
-      where customer_bank_id in 
-      (select id from customer_banks ${where_rule}));
-      
-      delete from customer_banks_babies 
-        where customer_bank_id in 
-        (select id from customer_banks ${where_rule});
-
-        DELETE FROM customer_banks ${where_rule};
-      `);
-  */
+ 
   const delete1 = await db.query(
     `delete from babies
     where customer_banks_babies_id in 
@@ -163,7 +141,7 @@ async function delete_all_customer_banks(where_rule, force=false){
 }
 
 async function save_customer_bank (customer, bank_id){
-  console.log("save_customer_bank -> bank_id " + bank_id)
+
   //get the bank we are trying to save for the customer, by id
   //(can be a positive (existing), zero(new) or negative(new) id)
   let bank_by_id = customer.banks.filter(b => b.id == bank_id);
@@ -186,9 +164,6 @@ async function save_customer_bank (customer, bank_id){
     //set it to 0 for insert, and to get a new auto id from the db
     bank.id = 0;
   }
-  console.log("original_bank_id " + original_bank_id);
-  console.log("new_bank_id " + new_bank_id);
-  console.log("saving bank...");
   console.dir(bank);
   const bank_result = await db.query(`
     INSERT INTO customer_banks (id, customer_id, raw_material_id, quantity, remaining_quantity)
@@ -208,25 +183,15 @@ async function save_customer_bank (customer, bank_id){
     //---/SAVE THE BANK -------------------------
 
     //--- SAVE ALLOCATIONS OF THIS BANK -------------------------
-    // bank saved -> ok
-    // find allocations conected to this bank not attached, and remove them
-    //    with their babies
-    //  create/save allocations
-    //    get their id
-    //    clean up babies in the allocation, not in list
-    //    save their babies
-
-
-
 
     // remove non-existing allocations from the database
     let existing_bank_allocations = customer.banks_baby_allocations.filter(a => a.id > 0 && a.customer_bank_id == bank_id);
-    console.log("Checking allocations to remove")
+
     if(existing_bank_allocations.length >= 0) {
       let existing_allocations_filter = "";
       if(existing_bank_allocations.length > 0) {
         let existing_bank_allocation_ids = existing_bank_allocations.map(a => a.id).join(",");
-        console.log("removing allocations not in " +existing_bank_allocation_ids);
+
         existing_allocations_filter = `and id not in(${existing_bank_allocation_ids})`;
       }
       //First delete all the babies, which are connected to the non-existing allocations
@@ -246,10 +211,9 @@ async function save_customer_bank (customer, bank_id){
 
     //create/update allocation
     let allocations_for_this_bank = customer.banks_baby_allocations.filter(a => a.customer_bank_id == bank_id);
-    console.log("allocations_for_this_bank " + allocations_for_this_bank.length);
+
     for(allocation of allocations_for_this_bank){
-      console.log("-- handling allocation " + allocation.id);
-      console.dir(allocation);
+
       //is this allocation new?
       let original_allocation_id = allocation.id;
       let new_allocation_id = allocation.id;
@@ -257,9 +221,6 @@ async function save_customer_bank (customer, bank_id){
         //set it to 0 for insert
         allocation.id = 0;
       }
-      console.log("Handling allocation")
-      console.log("original_allocation_id " + original_allocation_id);
-      console.log("new_allocation_id " + new_allocation_id);
 
       //delete non-existing babies for this allocation, if this allocation is not new
       if(allocation.id > 0){
@@ -274,8 +235,6 @@ async function save_customer_bank (customer, bank_id){
         );
       }
 
-      console.log("Saving allocation: with id " + new_allocation_id + " and bank id " + new_bank_id);
-      console.dir(allocation)
       // create/update the allocation
       const allocation_result = await db.query(
         `insert into customer_banks_babies (id, customer_bank_id, quantity, remaining_quantity)
@@ -286,18 +245,17 @@ async function save_customer_bank (customer, bank_id){
         quantity=values(quantity),
         remaining_quantity=values(remaining_quantity)`,
       [
-        new_allocation_id,
+        allocation.id,
         new_bank_id,
         allocation.quantity,
         allocation.remaining_quantity
       ]);
       new_allocation_id = (new_allocation_id <= 0)? allocation_result.insertId : new_allocation_id;
-      console.log("After saving allocation id is " + new_allocation_id);
 
       //find babies which are by the old (or new) allocation id and save them
       let babies_to_save = customer.babies.filter(b => b.customer_banks_babies_id == original_allocation_id);
       if(babies_to_save.length > 0) {
-        console.log("Saving " + babies_to_save.length + " babies for this allocation");
+
         let babies_to_save_arr = babies_to_save.map(baby => 
           [
             (baby.id < 0)? 0 : baby.id,
@@ -307,8 +265,7 @@ async function save_customer_bank (customer, bank_id){
           ]
         ).flat(1);
         let placeholder = Array(babies_to_save.length).fill("(" + Array(babies_to_save_arr.length / babies_to_save.length).fill("?").join(",") + ")").join(",");
-        console.log("Babies to save: " + babies_to_save_arr);
-        //insert statemne!!!
+
         const babiesResult = await db.query(
           `INSERT INTO babies (id, customer_banks_babies_id, length, quantity)
           VALUES ${placeholder}
@@ -318,12 +275,6 @@ async function save_customer_bank (customer, bank_id){
           quantity=values(quantity)`, babies_to_save_arr);
       }
     }
-    console.log("============= DONE WITH BANK =============")
-  /*
-  let allocations = customer.banks_baby_allocations.filter(a => a.customer_bank_id == bank.id);
-  let allocation_ids = allocations.map(a => a.id);
-  let babies = customer.babies(b => b.customer_banks_babies_id``);
-  */
 }
 
 async function sync_customer_banks(customer){
@@ -345,7 +296,6 @@ async function sync_customer_banks(customer){
     }
   }
   for(bank of customer.banks){
-    console.log("---------- save_customer_bank(" + bank.id + ") -----------")
     await save_customer_bank(customer, bank.id);
   }
   //await customer.banks.forEach(b => save_customer_bank(customer, b.id));
@@ -364,64 +314,7 @@ async function sync_customer_banks(customer){
   // loop through allocations with IDs less than 0
 }
 
-async function create(customer){
-  const result = await db.query(
-    `INSERT INTO customers
-    (id, name, business_name, email, phone, tax_id, created_at, updated_at, created_by, updated_by)
-    VALUES 
-    ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?))`,
-    [
-      customer.id,
-      customer.name,
-      customer.business_name,
-      customer.email,
-      customer.phone,
-      customer.tax_id,
-      helper.nowDateStr(),
-      helper.nowDateStr(),
-      customer.created_by,
-      customer.updated_by
-    ]
-  );
 
-  let message = 'Error creating customer';
-  if(customer.babies){
-    sync_babies_for_customer(customer.babies, result.insertId);
-  }
-
-  if (result.affectedRows) {
-    message = 'Customer \'' + customer.name + '\' created successfully';
-  }
-  return {message};
-}
-
-async function update(id, customer){
-  const result = await db.query(
-    `UPDATE customers 
-    SET id=(?), name=(?), business_name=(?), email=(?), phone=(?), tax_id=(?), updated_at=(?), updated_by=(?)
-    WHERE id=${id}`,
-    [
-      customer.id,
-      customer.name,
-      customer.business_name,
-      customer.email,
-      customer.phone,
-      customer.tax_id,
-      helper.nowDateStr(),
-      customer.updated_by
-    ]
-  );
-  let message = 'Error in updating customer';
-
-  if (result.affectedRows) {
-    message = 'Customer \''+customer.name +'\' updated successfully';
-  }
-  if(customer.babies){
-    sync_babies_for_customer(customer.babies, customer.id);
-  }
-
-  return {message};
-}
 
 async function remove(id){
   const del_babies_result = await db.query(`DELETE from babies where customer_bank_id in (select id from customer_banks where customer_id=${id}`);
@@ -435,52 +328,6 @@ async function remove(id){
   }
 
   return {message};
-}
-
-async function sync_babies_for_customer(babies, customer_id){
-  return;
-  if(babies.length == 0){
-    const deletion_result = await db.query(
-      `DELETE FROM babies where customer_bank_id in (select id from customer_banks where customer_id=${customer_id});`
-    );
-    return "";
-  }
-
-  let baby_ids_to_keep = babies.filter(baby => baby.id != 0).map(baby => baby.id).join(",");
-
-  if(baby_ids_to_keep.length > 0)
-  {
-    //remove irrelevant ones
-    const deletion_result = await db.query(
-      `DELETE FROM babies WHERE id not in (${ baby_ids_to_keep })`
-    );
-  }
-
-  let babies_arr = babies.map(baby => 
-    [
-      baby.id, 
-      baby.customer_bank_id, 
-      baby.length, 
-      baby.quantity,
-      helper.formatDate(baby.created_at), 
-      helper.nowDateStr(), 
-      baby.created_by, 
-      baby.updated_by
-    ]
-  ).flat(1);
-  let placeholder = Array(babies.length).fill("(" + Array(babies_arr.length / babies.length).fill("?").join(",") + ")").join(",");
-
-  const update_result = await db.query(
-    `INSERT INTO babies 
-    (id, customer_bank_id, length, quantity, created_at, updated_at, created_by, updated_by) 
-    VALUES 
-    ${placeholder}
-      ON DUPLICATE KEY UPDATE
-      customer_bank_id=values(customer_bank_id), length=values(length), quantity=values(quantity), 
-      created_at=values(created_at), updated_at=values(updated_at), created_by=values(created_by), updated_by=values(updated_by)`,
-    babies_arr
-  );
-  //message += ", " + (update_result.affectedRows/2) + " babies added/updated";
 }
 
 //add/remove/update customer banks for raw material
@@ -525,13 +372,6 @@ async function sync_banks_for_raw_material(banks, raw_material_id)
   let customers_created = 0;
   if(banks_with_existing_customers.length > 0) {
     // add or update existing ones
-    /*
-      `id`            			INT NOT NULL auto_increment,
-      `customer_id`            	INT NOT NULL,
-      `raw_material_id`            INT NOT NULL,
-      `quantity`   	    		float NOT NULL,
-      `remaining_quantity`   	    float NOT NULL ,    
-    */
 
     // NEW IMPLEMENTATION
     banks_with_existing_customers.forEach(async (bank) => {
@@ -561,34 +401,6 @@ async function sync_banks_for_raw_material(banks, raw_material_id)
       }
       banks_updated++;
     }); 
-    // OLD IMPLEMENTATION BELOW
-    /*
-    let banks_arr = banks_with_existing_customers.map(bank => 
-      [
-        bank.id,
-        bank.customer_id, 
-        raw_material_id, 
-        bank.quantity, 
-        bank.remaining_quantity
-      ]
-    ).flat(1);
-    let placeholder = Array(banks_with_existing_customers.length).fill("(" + Array(banks_arr.length / banks_with_existing_customers.length).fill("?").join(",") + ")").join(",");
-    //VALUES (?, ?), (?,?)
-
-    const add_banks_for_existing = await db.query(
-      `INSERT INTO customer_banks (id, customer_id, raw_material_id, quantity, remaining_quantity) 
-        VALUES 
-        ${placeholder}
-        ON DUPLICATE KEY
-        UPDATE 
-          customer_id=values(customer_id),
-          raw_material_id=values(raw_material_id),
-          weight=values(quantity),
-          units=values(remaining_quantity);`,
-        banks_arr
-    );
-    banks_updated += (add_banks_for_existing.affectedRows);
-    */
   }
 
   if(banks_with_new_customers.length > 0) {
@@ -630,11 +442,9 @@ async function sync_banks_for_raw_material(banks, raw_material_id)
 }
 
 module.exports = {
-    //create,
     save,
     getSingle,
     getMultiple,
-    //update,
     remove,
     getNames,
     sync_banks_for_raw_material
