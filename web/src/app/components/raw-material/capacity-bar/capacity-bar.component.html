@@ -1,0 +1,28 @@
+<div style="display:flex; flex-wrap: nowrap; flex-direction: row; align-items: center;">
+    <div>0</div>
+    <div
+        class="capacity-container"
+        (mousemove)="onMouseMove($event)"
+        (mouseup)="onMouseUp()">
+            <div class="fixed-capacity" [style.width.%]="totalCapacity ? ((materialInUse / totalCapacity) * 100) : 0"></div>
+            <div class="dynamic-capacity" [style.width.%]="totalCapacity ? ((bankQuantity / totalCapacity) * 100) : 0">
+                <div class="dynamic-border" (mousedown)="onMouseDown($event)"></div>
+            </div>
+    </div>
+    <div>{{ totalCapacity }}</div>
+</div>
+<div class="legend-row">
+    <div class="fixed-capacity-legend">
+        <strong>In use</strong><br/>
+        {{ materialInUse }}
+    </div>
+    <div class="dynamic-capacity-legend">
+        <strong>Quantity</strong><br/>
+        {{ ((bankQuantity >= 0 && materialInUse >= 0) ? (bankQuantity + materialInUse) : 0) | number: '1.0-0' }}
+    </div>
+    <div class="capacity-legend">
+        <strong>Available</strong><br/>
+        {{ totalCapacity - ((bankQuantity >= 0 && materialInUse >= 0) ? (bankQuantity + materialInUse) : 0)  | number: '1.0-0' }}
+    </div>
+</div>
+

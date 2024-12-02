@@ -21,6 +21,7 @@ SET @table_name = 'customer_banks', @fk_name = 'fk_raw_material_customer'; SET @
 SET @table_name = 'customer_banks', @fk_name = 'fk_customer_raw_material'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 SET @table_name = 'customer_banks_babies', @fk_name = 'fk_customer_babies_bank'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
+/*
 drop table if exists users;
 
 drop table if exists raw_materials;
@@ -39,7 +40,7 @@ drop table if exists hats;
 drop table if exists hats_wings;
 
 drop table if exists transaction_history;
-
+*/
 
 # CREATE TABLES
 # ---------------
@@ -311,7 +312,9 @@ values
 ('EH', 'Western Sahara', DEFAULT),
 ('YE', 'Yemen', DEFAULT),
 ('ZM', 'Zambia', DEFAULT),
-('ZW', 'Zimbabwe', DEFAULT);
+('ZW', 'Zimbabwe', DEFAULT) AS new_countries
+ON DUPLICATE KEY UPDATE
+name=new_countries.name, `order`=new_countries.order;
 
 CREATE TABLE  IF NOT EXISTS `currencies`
 (
@@ -326,7 +329,9 @@ Insert into currencies (`code`, `name`, `symbol`, `order`)
 values
   ('USD', 'US', '$', 10),
   ('EUR', 'EURO', _ucs2 0x20AC, 20),
-  ('RUB', 'Ruble', _ucs2 0x20BD, 30);
+  ('RUB', 'Ruble', _ucs2 0x20BD, 30) AS new_currencies
+ON DUPLICATE KEY UPDATE
+name=new_currencies.name, symbol= new_currencies.symbol, `order`=new_currencies.order;
 
 /*
 	raw_materials
@@ -453,6 +458,18 @@ CREATE TABLE  IF NOT EXISTS transaction_history (
         
     PRIMARY KEY (`id`)
 );
+
+ALTER TABLE
+    `transaction_history`
+MODIFY COLUMN
+    `transaction_type` enum(
+		'raw_material_purchase', 
+        'to_customer_bank', 
+        'deleted_customer_bank',
+        'customer_bank_allocate_to_Work',
+        'customer_bank_allocation_deleted'
+    )
+NOT NULL;
 
 /*
 CREATE TABLE  IF NOT EXISTS wing_positions (

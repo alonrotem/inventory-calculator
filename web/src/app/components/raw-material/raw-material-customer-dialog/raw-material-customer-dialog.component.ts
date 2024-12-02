@@ -7,11 +7,12 @@ import { NgClass, NgIf } from '@angular/common';
 import { ModalContentDirective } from '../../common/directives/modal-content.directive';
 import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
+import { CapacityBarComponent } from '../capacity-bar/capacity-bar.component';
 
 @Component({
   selector: 'app-raw-material-customer-dialog',
   standalone: true,
-  imports: [ AutocompleteLibModule, FormsModule, NgIf, NgClass, ModalDialogComponent, ModalContentDirective, ModalContentDirective ],
+  imports: [ AutocompleteLibModule, FormsModule, NgIf, NgClass, ModalDialogComponent, ModalContentDirective, ModalContentDirective, CapacityBarComponent ],
   templateUrl: './raw-material-customer-dialog.component.html',
   styleUrl: './raw-material-customer-dialog.component.scss',
   providers: [{
@@ -37,15 +38,37 @@ export class RawMaterialCustomerDialogComponent implements ModalContentDirective
   attemptedClose: boolean = false;
   Math: any = Math;
   
+/*
+|------------------------------------------| 
+- Total remaining units of raw material
+
+- Current bank quantity (0 for new)
+
+- Current bank used quantity / remaining quantity
+
+Range: 
+	Min: current bank used
+	Max: Current bank used quantity + Total remaining raw material
+-----------------------------
+*/
+
   @ViewChild("customerDialog") dialogWrapper!: ModalDialogComponent;
   @ViewChild("bankForm") bankForm!: NgForm;
+  @ViewChild("meter") meter!: CapacityBarComponent;
+
+  //initial state of the current edited/new bank
   @Input() initialBankQuantity: number = 0;
   @Input() initialBankRemainingQuantity: number = 0;
   @Input() initialBankInUseQuantity: number = 0;
+  
+  //?
   @Input() remainingMaterialQuantity: number = 0;
-  @Input() raw_material_remaining: number = 0;
+  //@Input() raw_material_remaining: number = 0;
+
   @Input() banks: RawMaterialCustomerBank[] = [];
+
   banks_loaded_quantities: any[] = [];
+  loadedQuantity: number = 0;
   
   constructor(private customersService: CustomersService) {
     this.customersService.getCustomers({ } as any).subscribe({
@@ -65,7 +88,24 @@ export class RawMaterialCustomerDialogComponent implements ModalContentDirective
 
     this.editedObjectCopy = { ...this.editedObject };
     console.log(this.editedObjectCopy);
+    this.loadedQuantity = this.editedObject.quantity;
+    this.initialBankRemainingQuantity = this.editedObject.remaining_quantity;
 
+    this.meter.totalCapacity = this.remainingMaterialQuantity + this.editedObjectCopy.quantity;
+    this.meter.materialInUse = this.editedObjectCopy.quantity - this.editedObjectCopy.remaining_quantity;
+    this.meter.bankQuantity = this.editedObjectCopy.quantity;
+    /*
+    @Input() totalCapacity: number = 250;
+    @Input() materialInUse: number = 40;
+    @Input() bankQuantity: number = 50;    
+
+    [totalCapacity]="(remainingMaterialQuantity > 0)? initialBankQuantity + remainingMaterialQuantity : loadedQuantity"
+    [materialInUse]="initialBankInUseQuantity"
+    [bankQuantity]="editedObjectCopy.quantity - initialBankInUseQuantity"
+    */
+
+    this.meter.opened();
+    //alert("onopen " + this.initialBankRemainingQuantity)
   }
   
   beforeClose(): Boolean {
@@ -120,7 +160,14 @@ export class RawMaterialCustomerDialogComponent implements ModalContentDirective
         this.initialBankRemainingQuantity = initialBankInfo.initial_bank_remaining;
         this.initialBankInUseQuantity = initialBankInfo.bank_in_use;
       }
-      
+      else {
+        this.initialBankQuantity = 0;
+        this.initialBankRemainingQuantity = 0;
+        this.initialBankInUseQuantity = 0;
+      } 
     }
+  }
+  capacityBarChanged(quantity:number){
+    this.editedObjectCopy.quantity = quantity;
   }
 }

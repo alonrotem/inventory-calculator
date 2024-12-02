@@ -28,18 +28,20 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   faTrashCan: IconDefinition = faTrashCan;
   faPencil: IconDefinition = faPencil;
   faTriangleExclamation: IconDefinition = faTriangleExclamation;
-  pending_delete_index:number = -1;
-  banks_summary_string = "";
+  
   @ViewChild('delete_confirmation') delete_confirmation!: ConfirmationDialogComponent;
   @ViewChild("bank_editor") bank_editor!: RawMaterialCustomerDialogComponent;
   @ViewChild("top_up_dialog") top_up_dialog! :RawMaterialQuantityDialogComponent;
   @ViewChild("not_enough_material") not_enough_material! :RawMaterialQuantityDialogComponent;
+
   @Input() banks: RawMaterialCustomerBank[] = [];
   @Input() parent_raw_material: RawMaterial | null = null;
   @Output() banksChanged: EventEmitter<void> = new EventEmitter();
+
+  pending_delete_index:number = -1;
+  banks_summary_string = "";
   banks_loaded_quantities: any[] = [];
   topped_up_bank : RawMaterialCustomerBank | null = null;
-
 
   deleteBank(index:number, bank: RawMaterialCustomerBank){
     this.delete_confirmation.modalText = `Are you sure you want to delete this bank for customer <strong>${bank.name}</strong>?`;
@@ -56,13 +58,16 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
       this.recalculateSums();
       this.banksChanged.emit();
     });
+
     this.delete_confirmation.cancel.subscribe(() => {
       this.pending_delete_index = -1;
     });
+
     this.bank_editor.dialogWrapper.confirm.subscribe((b: RawMaterialCustomerBank)=>{ 
       //console.log("confirm caught with " + b);
       this.closedCustomerEditor(b); 
     });
+
     this.top_up_dialog.dialogWrapper.confirm.subscribe(() => {
       if(this.topped_up_bank){
         let top_up = this.top_up_dialog.editedObject.top_up_quantity;
@@ -134,9 +139,10 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
       };
       this.bank_editor.initialBankQuantity = 0;
       this.bank_editor.initialBankRemainingQuantity = 0;
+      this.bank_editor.initialBankInUseQuantity = 0;
     }
-    this.bank_editor.remainingMaterialQuantity = (this.parent_raw_material?.remaining_quantity)? this.parent_raw_material?.remaining_quantity : -1;
-    this.bank_editor.raw_material_remaining =  this.parent_raw_material!.remaining_quantity;
+    this.bank_editor.remainingMaterialQuantity = (this.parent_raw_material?.remaining_quantity)? this.parent_raw_material?.remaining_quantity : 0;
+    //this.bank_editor.raw_material_remaining =  this.parent_raw_material!.remaining_quantity;
     this.bank_editor.banks = this.banks;
     this.bank_editor.banks_loaded_quantities = this.banks_loaded_quantities;
     this.bank_editor.dialogWrapper.open();
