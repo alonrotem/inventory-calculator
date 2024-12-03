@@ -40,7 +40,7 @@ set @canady_id = (select id from raw_materials where name='Canady' limit 1);
 INSERT INTO customer_banks (customer_id, raw_material_id, quantity, remaining_quantity)
 VALUES 
 (@alon_id, @sable_id, 10, 2),
-(@alon_id, @dm_id, 20, 0),
+(@alon_id, @dm_id, 20, 15),
 (@avi_id, @sable_id, 30, 30),
 (@guy_id, @sable_id, 2, 2),
 (@eran_id, @sable_id, 16, 16);
@@ -83,7 +83,7 @@ INSERT INTO `customer_banks_babies` (
 VALUES 
 	(@bank_alon_sable, 5, 5),
     (@bank_alon_sable, 3, 3),
-    (@bank_alon_dm, 20, 20),
+    (@bank_alon_dm, 5, 5),
     (@bank_eran_sable, 10, 10);
     
 set @alon_sable_bank_allocation_1 = (select id from customer_banks_babies where customer_bank_id=@bank_alon_sable limit 1 offset 0);

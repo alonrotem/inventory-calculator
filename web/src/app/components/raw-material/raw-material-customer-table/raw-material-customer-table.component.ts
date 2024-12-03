@@ -116,16 +116,20 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
     //let bank_dialog = (this.bank_editor.dialog_content_component as RawMaterialCustomerDialogComponent);
     if(bank) {
       this.bank_editor.dialogWrapper.modalTitle = "Edit customer bank";
+      this.bank_editor.editMode = true;
       this.bank_editor.editedObject = bank;
+      /*
       let initialBankInfo = this.banks_loaded_quantities.find(b => b.bank_id == bank.id);
       if(initialBankInfo){
         this.bank_editor.initialBankQuantity = initialBankInfo.initial_bank_quantity;
         this.bank_editor.initialBankRemainingQuantity = initialBankInfo.initial_bank_remaining;
         this.bank_editor.initialBankInUseQuantity = initialBankInfo.bank_in_use;
       }
+        */
     }
     else {
       this.bank_editor.dialogWrapper.modalTitle = "Create customer bank";
+      this.bank_editor.editMode = false;
       this.bank_editor.editedObject = {
         id: 0,
         name: '',
@@ -137,14 +141,16 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
         quantity_units: (this.parent_raw_material)? this.parent_raw_material.quantity_units : '',
         transaction_record: null
       };
+      /*
       this.bank_editor.initialBankQuantity = 0;
       this.bank_editor.initialBankRemainingQuantity = 0;
       this.bank_editor.initialBankInUseQuantity = 0;
+      */
     }
-    this.bank_editor.remainingMaterialQuantity = (this.parent_raw_material?.remaining_quantity)? this.parent_raw_material?.remaining_quantity : 0;
+    this.bank_editor.currentRawMaterialRemainingQuantity = (this.parent_raw_material?.remaining_quantity)? this.parent_raw_material?.remaining_quantity : 0;
     //this.bank_editor.raw_material_remaining =  this.parent_raw_material!.remaining_quantity;
     this.bank_editor.banks = this.banks;
-    this.bank_editor.banks_loaded_quantities = this.banks_loaded_quantities;
+    //this.bank_editor.banks_loaded_quantities = this.banks_loaded_quantities;
     this.bank_editor.dialogWrapper.open();
   }
 
@@ -189,8 +195,8 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
 
     */
     if(bankWithSameCustomerName) {
-      console.log("bankWithSameCustomerName found:");
-      console.dir(bankWithSameCustomerName);
+      //console.log("bankWithSameCustomerName found:");
+      //console.dir(bankWithSameCustomerName);
       // copy properties of the updated bank to the existing bank
       bankWithSameCustomerName.customer_id = (bank.customer_id != 0)? bank.customer_id : bankWithSameCustomerName.customer_id;
       bankWithSameCustomerName.id = (bank.id != 0)? bank.id : bankWithSameCustomerName.id;

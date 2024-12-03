@@ -10,9 +10,10 @@ import { DecimalPipe } from '@angular/common';
   styleUrls: ['./capacity-bar.component.scss']
 })
 export class CapacityBarComponent implements OnInit {
-  @Input() totalCapacity: number = 250;
-  @Input() materialInUse: number = 40;
-  @Input() bankQuantity: number = 50;
+  @Input() totalCapacity: number = 0;
+  @Input() materialInUse: number = 0;
+  @Input() bankQuantity: number = 0;
+  notInUseCapacity: number = 0;
 
   @Output() bankQuantityChanged = new EventEmitter<number>();
 
@@ -30,7 +31,9 @@ export class CapacityBarComponent implements OnInit {
     */
   }
 
-  opened() {
+  recalculate() {
+    this.notInUseCapacity = this.bankQuantity - this.materialInUse;
+    console.log("this.notInUseCapacity(" + this.notInUseCapacity +") = this.bankQuantity ("+this.bankQuantity+") - this.materialInUse("+ this.materialInUse +")")
     setTimeout(() => {
       const container = this.elRef.nativeElement.querySelector('.capacity-container');
       this.containerWidth = container.offsetWidth;
@@ -65,8 +68,8 @@ export class CapacityBarComponent implements OnInit {
     }
 
     // Update the dynamic value based on the calculated width
-    this.bankQuantity = (newDynamicWidth / this.containerWidth) * this.totalCapacity;
-    this.bankQuantityChanged.emit(Number(this.decimalPipe.transform(this.bankQuantity + this.materialInUse, '1.0-0') || '0'));
+    this.notInUseCapacity = ((newDynamicWidth) / this.containerWidth) * this.totalCapacity;
+    this.bankQuantityChanged.emit(Number(this.decimalPipe.transform(this.notInUseCapacity + this.materialInUse, '1.0-0') || '0'));
   }
 
   @HostListener('document:mouseup', ['$event'])

@@ -16,7 +16,7 @@
               required="true"
               (selected)="customer_name_selected($event)"
               (inputChanged)="customer_name_selected($event)"
-              [disabled]="editedObjectCopy.id!=0">
+              [disabled]="editMode && editedObjectCopy.id!=0">
             </ng-autocomplete>
             <ng-template #itemTemplate let-item>
                 <a [innerHTML]="item"></a>
@@ -31,8 +31,8 @@
     <div class="col-12">
             <span style="display: flex; flex-wrap: nowrap; justify-content: flex-start; align-items: center;">
                 <div class="form-floating" style="width: 100%; margin-right: 20px;">
-                <input type="number" #materialQuantity="ngModel" [ngClass]="{'form-control': true, 'invalid': ((bankForm.touched) && ((editedObjectCopy.quantity <=0) || (editedObjectCopy.quantity > remainingMaterialQuantity)))}"
-                    placeholder="0" [(ngModel)]="editedObjectCopy.quantity" name="materialQuantity" required="true" min="{{ initialBankInUseQuantity }}" max="{{ initialBankQuantity + remainingMaterialQuantity }}"> 
+                <input type="number" #materialQuantity="ngModel" [ngClass]="{'form-control': true, 'invalid': ((bankForm.touched) && ((editedObjectCopy.quantity < min_quantity) || (editedObjectCopy.quantity > max_quantity)))}"
+                    placeholder="0" [(ngModel)]="editedObjectCopy.quantity" name="materialQuantity" required="true" min="{{ min_quantity }}" max="{{ max_quantity }}" (input)="quantityChanged()"> 
                     <label for="materialQuantity">Quantity</label>
                 </div>
                 <span>{{ editedObjectCopy.quantity_units }}</span>
@@ -50,12 +50,12 @@
         <div class="text-danger" *ngIf="(
             attemptedClose && (
                 materialQuantity.value!='' && 
-                materialQuantity.value > initialBankQuantity + remainingMaterialQuantity
+                materialQuantity.value > max_quantity
             ) )">
-            Not enough raw material quantity (Max: {{ initialBankQuantity + remainingMaterialQuantity }} {{editedObjectCopy.quantity_units }})
+            Not enough raw material quantity (Max: {{ max_quantity }} {{editedObjectCopy.quantity_units }})
         </div>
-        <div class="text-danger" *ngIf="(attemptedClose && (materialQuantity.value!='' && materialQuantity.value > 0 && materialQuantity.value < initialBankInUseQuantity) )">
-            Cannot go below {{ initialBankInUseQuantity }} {{editedObjectCopy.quantity_units }}, already in use.
+        <div class="text-danger" *ngIf="(attemptedClose && (materialQuantity.value!='' && materialQuantity.value > 0 && materialQuantity.value < min_quantity) )">
+            Cannot go below {{ min_quantity }} {{editedObjectCopy.quantity_units }}, already in use.
         </div>
     </div>
 </div>
@@ -63,47 +63,17 @@
     <div>
         <app-capacity-bar
             #meter
-            [totalCapacity]="(remainingMaterialQuantity > 0)? initialBankQuantity + remainingMaterialQuantity : loadedQuantity"
-            [materialInUse]="initialBankInUseQuantity"
-            [bankQuantity]="editedObjectCopy.quantity - initialBankInUseQuantity"
+            
             (bankQuantityChanged)="capacityBarChanged($event)"
-        ></app-capacity-bar>
+        ></app-capacity-bar><!--
+        [bankQuantity]="editedObjectCopy.quantity - initialBankInUseQuantity"
+        [totalCapacity]="(remainingMaterialQuantity > 0)? initialBankQuantity + remainingMaterialQuantity : loadedQuantity"
+        [materialInUse]="initialBankInUseQuantity"
+        -->
 
     </div>
 </div>
 </form>
 
-<div style="display: none; background-color: yellow; color: black; padding: 10px;">
-    <div>initialBankQuantity {{ initialBankQuantity }}</div>
-    <div>initialBankInUseQuantity {{ initialBankInUseQuantity }}</div>
-    <div>Remaining {{ initialBankQuantity - initialBankInUseQuantity }}</div>
-    <div>Current materialQuantity.value {{ materialQuantity.value }}</div>
-    <div>remainingMaterialQuantity {{ remainingMaterialQuantity }}</div>
-    <div>Available range: {{ (initialBankInUseQuantity) }} - {{ (remainingMaterialQuantity > 0)? initialBankQuantity + remainingMaterialQuantity : loadedQuantity }}</div>
-</div>
-
-<div style="display: none;">
-    <strong>Analysis:</strong><br/>
-    <div class="text-danger" *ngIf="(editedObjectCopy.quantity - initialBankQuantity) < 0">
-        Cannot reduce to below zero quantity!
-    </div>
-    <div *ngIf="(editedObjectCopy.quantity - initialBankQuantity) == 0">
-        No change in quantities
-    </div>
-    <div *ngIf="(editedObjectCopy.quantity - initialBankQuantity) > 0">
-        <span class="text-success" *ngIf="(editedObjectCopy.quantity - initialBankQuantity) > 0">Topping up</span><span class="text-danger" *ngIf="(editedObjectCopy.quantity - initialBankQuantity) < 0">Reducing</span> by {{ Math.abs(editedObjectCopy.quantity - initialBankQuantity) }} {{editedObjectCopy.quantity_units }}<br/>
-        After this change, the bank will have {{ editedObjectCopy.quantity }} {{editedObjectCopy.quantity_units }}<br/>
-        {{ initialBankInUseQuantity }} {{editedObjectCopy.quantity_units }} are already in use, 
-        <span *ngIf="initialBankRemainingQuantity + (editedObjectCopy.quantity - initialBankQuantity) < 0" class="text-danger">
-        can't reduce to {{ editedObjectCopy.quantity }} {{editedObjectCopy.quantity_units }}!
-        </span>
-        <span *ngIf="initialBankRemainingQuantity + (editedObjectCopy.quantity - initialBankQuantity) >= 0">
-        {{ initialBankRemainingQuantity + (editedObjectCopy.quantity - initialBankQuantity) }} {{editedObjectCopy.quantity_units }} remaining.
-        </span>
-        <br/>
-        Remaining raw material will {{ (editedObjectCopy.quantity - initialBankQuantity == 0)? "not change" :  (((editedObjectCopy.quantity - initialBankQuantity < 0) ? "increase" : "reduce") + " from " +  remainingMaterialQuantity + " to " +  (remainingMaterialQuantity - (editedObjectCopy.quantity - initialBankQuantity))  + " " + editedObjectCopy.quantity_units) }}.
-    </div>
-
-</div>
 </div>
 </app-modal-dialog>

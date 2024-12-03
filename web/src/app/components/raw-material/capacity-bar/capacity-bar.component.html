@@ -5,7 +5,7 @@
         (mousemove)="onMouseMove($event)"
         (mouseup)="onMouseUp()">
             <div class="fixed-capacity" [style.width.%]="totalCapacity ? ((materialInUse / totalCapacity) * 100) : 0"></div>
-            <div class="dynamic-capacity" [style.width.%]="totalCapacity ? ((bankQuantity / totalCapacity) * 100) : 0">
+            <div class="dynamic-capacity" [style.width.%]="totalCapacity ? (((notInUseCapacity) / totalCapacity) * 100) : 0">
                 <div class="dynamic-border" (mousedown)="onMouseDown($event)"></div>
             </div>
     </div>
@@ -17,12 +17,12 @@
         {{ materialInUse }}
     </div>
     <div class="dynamic-capacity-legend">
-        <strong>Quantity</strong><br/>
-        {{ ((bankQuantity >= 0 && materialInUse >= 0) ? (bankQuantity + materialInUse) : 0) | number: '1.0-0' }}
+        <strong>Not in use</strong><br/>
+        {{ ((notInUseCapacity >= 0) ? (notInUseCapacity) : 0) | number: '1.0-0' }}
     </div>
     <div class="capacity-legend">
         <strong>Available</strong><br/>
-        {{ totalCapacity - ((bankQuantity >= 0 && materialInUse >= 0) ? (bankQuantity + materialInUse) : 0)  | number: '1.0-0' }}
+        {{ (totalCapacity -  (materialInUse + ((notInUseCapacity >= 0) ? (notInUseCapacity) : 0)))  | number: '1.0-0' }}
     </div>
 </div>
 
