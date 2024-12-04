@@ -18,9 +18,7 @@
 
 <app-raw-material-history-dialog #history_dialog />
 
-<!--<app-modal-dialog #quantityDialog>-->
-    <app-raw-material-quantity-dialog #quantityDialog></app-raw-material-quantity-dialog>
-<!--</app-modal-dialog>-->
+<app-raw-material-quantity-dialog #quantityDialog></app-raw-material-quantity-dialog>
 
 <div #tooltip class="tooltip">Tooltip</div>
 
@@ -31,19 +29,6 @@
 
     <form novalidate #raw_material_form="ngForm" [id]="'raw_material_form'">
         <div class="editorForm">
-        <!--
-        <div class="row">
-            <div class="col">
-                <div class="form-floating">
-                    <input type="text" class="form-control" id="materialName" #materialName="ngModel" [(ngModel)]="rawMaterialItem.name" name="materialName" required>
-                    <label for="materialName">Raw material name <span class="text-danger">*</span></label>
-                </div>
-                <div class="text-danger" *ngIf="materialName.invalid && (materialName.touched || materialName.dirty)" > 
-                    <span *ngIf="materialName.errors?.['required']">Please enter a name for the raw material</span>
-                </div>            
-            </div>
-        </div>
-        -->
 
         <!-- Autocomplete -->
         <div class="row">
@@ -51,28 +36,18 @@
                 <div style="display: flex; flex-wrap: nowrap; justify-content: flex-start; align-items: center;">
                     <div class="ng-autocomplete" style="flex-grow: 1;">
                         <ng-autocomplete 
-                        [data]="raw_material_names"
-                        placeholder="Select a material or enter a new one*"
-                        [itemTemplate]="itemTemplate"
-                        [(ngModel)]="rawMaterialItem.name"
-                        [className]="'form-control form-control-plaintext'"
-                        name="materialName"
-                        #materialName="ngModel"
-                        [required]="true">
-                        </ng-autocomplete><!--
-                                            (selected)='selectEvent($event)'
-                        (inputChanged)='onChangeSearch($event)'
-                        (inputFocused)='onFocused($event)'
-                        (inputCleared)='onCleared($event)'
-                        [notFoundTemplate]="notFoundTemplate"-->
+                            [data]="raw_material_names"
+                            placeholder="Select a material or enter a new one*"
+                            [itemTemplate]="itemTemplate"
+                            [(ngModel)]="rawMaterialItem.name"
+                            [className]="'form-control form-control-plaintext'"
+                            name="materialName"
+                            #materialName="ngModel"
+                            [required]="true" />
                         
                         <ng-template #itemTemplate let-item>
                             <a [innerHTML]="item"></a>
                         </ng-template>
-                        <!--
-                        <ng-template #notFoundTemplate let-notFound>
-                            <div [innerHTML]="notFound"></div>
-                        </ng-template>-->
                     </div>
                     <span class="icon-history" *ngIf="rawMaterialItem.id!=0"  (click)="openHistoryDialog()" style="font-size: 23px; margin-left: 14px; cursor:pointer;" title="History records"></span>
                 </div>
@@ -88,7 +63,7 @@
             </button>
         </div>
         <div class="col-2">
-            <button #btn_save class="btn btn-success upper-button" type="submit" (click)="save()"><!--[disabled]="!raw_material_form.form.valid"-->
+            <button #btn_save class="btn btn-success upper-button" type="submit" (click)="save()">
                 <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
             </button>
         </div>
@@ -98,11 +73,9 @@
             </button>
         </div>
 
-
-
     </div>
-
     <!--/Autocomplete -->
+
     <div class="row">
         <div class="col col-12 col-md-4  mt-3 mt-md-0 mb-3 mb-md-0">
             <div class="input-group">
@@ -138,154 +111,96 @@
             </div>
         </div>
     </div>
-<!--
-        <div class="row">
-            <div class="col col-12 col-md-4" style="display: flex; flex-direction: column; justify-content: flex-end;">
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="flexRadioDefault" #radioWeight [checked]="rawMaterialItem.weight > 0 || (rawMaterialItem.weight == 0 && rawMaterialItem.units == 0)" (click)="focusOnWeight()">
-                    <label class="form-check-label" for="radioWeight" (click)="focusOnWeight()">
-                        Weight
-                    </label>
-                </div>
-                <div class="form-floating">
-                    <input type="number" #materialWeight="ngModel" class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.weight" name="weight" (focusin)="focusOnWeight()">
-                    <label for="materialWeight">Weight in kg</label>
-                </div>            
-            </div>
-            <div class="col col-12 col-md-4" style="display: flex; flex-direction: column; justify-content: flex-end;">
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="flexRadioDefault" #radioUnits [checked]="rawMaterialItem.units > 0" (click)="focusOnUnits()">
-                    <label class="form-check-label" for="radioUnits" (click)="focusOnUnits()">
-                        Units
-                    </label>
-                </div>
-                <div class="form-floating">
-                    <input type="number" class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.units" (focusin)="focusOnUnits()" name="materialUnits" #materialUnits="ngModel" >
-                    <label for="materialUnits">Number of units</label>
-                </div>            
-            </div>
-            <div class="col col-12 col-md-4" style="display: flex; flex-direction: column; justify-content: flex-end;">
-                <div class="form-floating">
-                    <input type="number" id="units_per_kg" class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.units_per_kg" name="units_per_kg">
-                    <label for="units_per_kg">Units per kg</label>
-                </div>            
-            </div>
-        </div>
-        < !--
-        validation:
-        -- >
-        <div class="text-danger" *ngIf="
-            (radioUnits.checked && (materialUnits.touched || materialUnits.dirty) && 
-            (materialUnits.value=='' || materialUnits.value <= 0)) 
-            ||
-            (radioWeight.checked && (materialWeight.touched || materialWeight.dirty) && 
-            (materialWeight.value=='' || materialWeight.value <= 0))">
-            Please select weight in kg or number of units, and enter a valid value
-        </div>
-    -->
-        <div class="row">
-            <div class="col-12 col-md-4 mt-3 mt-md-0 mb-3 mb-md-0">
-                <div class="input-group">
-                    <ng-select [(ngModel)]="rawMaterialItem.currency" name="currency" [clearable]="false" #currency="ngModel">
-                        @for (currency of currencies; track currency.code) {
-                            <ng-option [value]="currency.code">{{currency.symbol}}</ng-option>
-                        }
-                    </ng-select>
-                
-                    <div class="form-floating">
-                        <input type="number" id="materialWeight" class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.price" name="price" #price="ngModel">
-                        <label for="materialWeight">Price</label>
-                    </div>
-                </div>
-                <div class="text-danger" *ngIf="((price.touched || price.dirty) && price.value) && !currency.value">
-                    Please select a currency for the price
-                </div>           
-            </div>
-            <div class="col col-12 col-md-4 mt-3 mt-md-0 mb-3 mb-md-0">
-                <div class="form-floating">
-                <ng-select [(ngModel)]="rawMaterialItem.origin_country" name="country">
-                    @for (country of countries; track country.code) {
-                        <ng-option [value]="country.code">{{country.name}}</ng-option>
+    <div class="row">
+        <div class="col-12 col-md-4 mt-3 mt-md-0 mb-3 mb-md-0">
+            <div class="input-group">
+                <ng-select [(ngModel)]="rawMaterialItem.currency" name="currency" [clearable]="false" #currency="ngModel">
+                    @for (currency of currencies; track currency.code) {
+                        <ng-option [value]="currency.code">{{currency.symbol}}</ng-option>
                     }
                 </ng-select>
-                <label for="">Origin country</label>
-                </div>
-            </div>
-            <div class="col col-12 col-md-4 mt-3 mt-md-0 mb-3 mb-md-0">
+            
                 <div class="form-floating">
-                    <input type="text" class="form-control" id="vendorName" [(ngModel)]="rawMaterialItem.vendor_name" name="vendor_name">
-                    <label for="vendorName">Vendor name</label>
+                    <input type="number" id="materialWeight" class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.price" name="price" #price="ngModel">
+                    <label for="materialWeight">Price</label>
                 </div>
             </div>
+            <div class="text-danger" *ngIf="((price.touched || price.dirty) && price.value) && !currency.value">
+                Please select a currency for the price
+            </div>           
         </div>
-
-        <div class="row">
-            <div class="col col-12 col-md-6  mt-3 mt-md-0 mb-3 mb-md-0">
-                <div class="form-floating">
-                    <input type="date" #purchasedAt class="form-control" placeholder="0" [ngModel]="rawMaterialItem.purchased_at | date: 'yyyy-MM-dd'" name="purchased_at">
-                    <label for="purchasedAt">Purchased at</label>
-                </div>
-            </div>
-            <div class="col col-12 col-md-6" style="display: flex; flex-direction: column; justify-content: center;">
-                <span><strong>Last updated at: </strong>{{ (newMaterialMode)? "Not yet!" : rawMaterialItem.updated_at | dateStr }}</span>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col col-12">
-                <div class="form-floating">
-                    <input type="text" class="form-control" id="notes" [(ngModel)]="rawMaterialItem.notes" name="notes">
-                    <label for="notes">Notes</label>
-                </div>
+        <div class="col col-12 col-md-4 mt-3 mt-md-0 mb-3 mb-md-0">
+            <div class="form-floating">
+            <ng-select [(ngModel)]="rawMaterialItem.origin_country" name="country">
+                @for (country of countries; track country.code) {
+                    <ng-option [value]="country.code">{{country.name}}</ng-option>
+                }
+            </ng-select>
+            <label for="">Origin country</label>
             </div>
         </div>
-
-        <div class="row">
-            <div class="col col-12 banks-container">
-                <app-raw-material-customer-table 
-                    [banks]="rawMaterialItem.customer_banks"
-                    [parent_raw_material]="rawMaterialItem"
-                    (banksChanged)="recalculateRemaining()"
-                />
-            <!--
-                <app-babies-table 
-                    #babies_table
-                    [raw_material_id]="this.rawMaterialItem.id" 
-                    [is_new_material]="this.is_new_material" 
-                    [show_material_col]="false"
-                    [loadAll]="false"
-                    [readOnly]="false"
-                    [paged]="false"
-                    [bigTitle]="false"
-                />
-            -->
-                </div>
+        <div class="col col-12 col-md-4 mt-3 mt-md-0 mb-3 mb-md-0">
+            <div class="form-floating">
+                <input type="text" class="form-control" id="vendorName" [(ngModel)]="rawMaterialItem.vendor_name" name="vendor_name">
+                <label for="vendorName">Vendor name</label>
+            </div>
         </div>
+    </div>
 
-        <div class="row buttons-area">
-                <div class="col-12 d-flex justify-content-center {{ this.is_new_material? 'col-md-6':'col-md-4' }}">
-                    <button class="btn btn-warning" (click)="gotoMaterialsList()">
-                        <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>
-                        <div>Cancel Chages</div>
-                    </button>
-                </div>
-                <div class="col-12 d-flex justify-content-center {{ this.is_new_material? 'col-md-6':'col-md-4' }}">
-                    <button #btn_save class="btn btn-success" type="submit" (click)="save()"><!--[disabled]="!raw_material_form.form.valid"-->
-                        <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
-                        <div>Save Material</div>
-                    </button>
-                </div>
-                <div class="col-12 d-flex justify-content-center col-md-4" *ngIf="!this.is_new_material">
-                    <button class="btn btn-danger" (click)="confirm_delete()">
-                        <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>
-                        <div>Delete Material</div>
-                    </button>
-                </div>
+    <div class="row">
+        <div class="col col-12 col-md-6  mt-3 mt-md-0 mb-3 mb-md-0">
+            <div class="form-floating">
+                <input type="date" #purchasedAt class="form-control" placeholder="0" [ngModel]="rawMaterialItem.purchased_at | date: 'yyyy-MM-dd'" name="purchased_at">
+                <label for="purchasedAt">Purchased at</label>
+            </div>
         </div>
+        <div class="col col-12 col-md-6" style="display: flex; flex-direction: column; justify-content: center;">
+            <span><strong>Last updated at: </strong>{{ (newMaterialMode)? "Not yet!" : rawMaterialItem.updated_at | dateStr }}</span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col col-12">
+            <div class="form-floating">
+                <input type="text" class="form-control" id="notes" [(ngModel)]="rawMaterialItem.notes" name="notes">
+                <label for="notes">Notes</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col col-12 banks-container">
+            <app-raw-material-customer-table 
+                [banks]="rawMaterialItem.customer_banks"
+                [parent_raw_material]="rawMaterialItem"
+                (banksChanged)="recalculateRemaining()"
+            />
+            </div>
+    </div>
+
+    <div class="row buttons-area">
+            <div class="col-12 d-flex justify-content-center {{ this.is_new_material? 'col-md-6':'col-md-4' }}">
+                <button class="btn btn-warning" (click)="gotoMaterialsList()">
+                    <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>
+                    <div>Cancel Chages</div>
+                </button>
+            </div>
+            <div class="col-12 d-flex justify-content-center {{ this.is_new_material? 'col-md-6':'col-md-4' }}">
+                <button #btn_save class="btn btn-success" type="submit" (click)="save()"><!--[disabled]="!raw_material_form.form.valid"-->
+                    <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
+                    <div>Save Material</div>
+                </button>
+            </div>
+            <div class="col-12 d-flex justify-content-center col-md-4" *ngIf="!this.is_new_material">
+                <button class="btn btn-danger" (click)="confirm_delete()">
+                    <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>
+                    <div>Delete Material</div>
+                </button>
+            </div>
+    </div>
 
     </div>
 </form>
-
 
 </div>
 

@@ -1,9 +1,7 @@
 <div style="display:flex; flex-wrap: nowrap; flex-direction: row; align-items: center;">
     <div>0</div>
     <div
-        class="capacity-container"
-        (mousemove)="onMouseMove($event)"
-        (mouseup)="onMouseUp()">
+        class="capacity-container">
             <div class="fixed-capacity" [style.width.%]="totalCapacity ? ((materialInUse / totalCapacity) * 100) : 0"></div>
             <div class="dynamic-capacity" [style.width.%]="totalCapacity ? (((notInUseCapacity) / totalCapacity) * 100) : 0">
                 <div class="dynamic-border" (mousedown)="onMouseDown($event)"></div>
@@ -12,7 +10,7 @@
     <div>{{ totalCapacity }}</div>
 </div>
 <div class="legend-row">
-    <div class="fixed-capacity-legend">
+    <div class="fixed-capacity-legend" *ngIf="show_in_use">
         <strong>In use</strong><br/>
         {{ materialInUse }}
     </div>

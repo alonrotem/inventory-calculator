@@ -95,6 +95,13 @@ export class CustomerBanksTableComponent implements AfterViewInit {
       this.bank_changed.emit();
   }
 
+  /*
+  bank 
+    quantity
+    remaining
+  allocation
+    quantity
+  */
   open_allocation_dialog(allocation_id: number) {
     let allocation = this.banks_baby_allocations.find(a => a.id == allocation_id);
     if(allocation) {
@@ -112,6 +119,7 @@ export class CustomerBanksTableComponent implements AfterViewInit {
       }
     }
     this.allocation_dialog.isNew = (allocation_id == -999);
+    this.allocation_dialog.QuantityInBank = this.bank.quantity;
     this.allocation_dialog.RemainingInBank = this.bank.remaining_quantity;
     this.allocation_dialog.QuantityUnits = this.bank.raw_material_quantity_units;
     this.pendingAllocationIdAction = allocation_id;

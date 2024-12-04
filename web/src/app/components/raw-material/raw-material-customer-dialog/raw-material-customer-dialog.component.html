@@ -63,14 +63,7 @@
     <div>
         <app-capacity-bar
             #meter
-            
-            (bankQuantityChanged)="capacityBarChanged($event)"
-        ></app-capacity-bar><!--
-        [bankQuantity]="editedObjectCopy.quantity - initialBankInUseQuantity"
-        [totalCapacity]="(remainingMaterialQuantity > 0)? initialBankQuantity + remainingMaterialQuantity : loadedQuantity"
-        [materialInUse]="initialBankInUseQuantity"
-        -->
-
+            (bankQuantityChanged)="capacityBarChanged($event)" />
     </div>
 </div>
 </form>

@@ -1,14 +1,11 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnInit,ViewChild } from '@angular/core';
 import { Location, NgFor, NgIf } from '@angular/common';
-import { Country, Currency, Customer, RawMaterial, Customer_Bank, TransactionType } from '../../../../types';
+import { Customer, TransactionType } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
-import { RouterLink, RouterOutlet, ActivatedRoute } from '@angular/router';
-import { Form, FormsModule, NgForm } from '@angular/forms';
-import { RawMaterialsService } from '../../../services/raw-materials.service';
-import { DatePipe } from '@angular/common';
-import { BabiesTableComponent } from '../../babies/babies-table/babies-table.component';
+import { ActivatedRoute } from '@angular/router';
+import { FormsModule, NgForm } from '@angular/forms';
 import { InfoService } from '../../../services/info.service';
-import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faSave, faTrashAlt, faTimesCircle, IconDefinition, faArrowLeft, faMoneyCheckDollar, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
@@ -191,7 +188,12 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     );
   }*/
   processBankHistoryChanges(){
-/*
+
+    //go through the banks
+    // check if the bank is
+    //  - new
+    //  - changed
+    //  - deleted
     let new_allocations = this.customerItem.banks_baby_allocations.filter(a => this.banks_loaded_quantities.findIndex(preloaded => preloaded.allocation_id == a.id) < 0);
     let deleted_allocations = this.banks_loaded_quantities.filter(preloaded => this.customerItem.banks_baby_allocations.findIndex(a => a.id == preloaded.allocation_id) < 0);
     let changed_allocations = this.customerItem.banks_baby_allocations.filter(a => this.banks_loaded_quantities.findIndex(preloaded => preloaded.allocation_id == a.id && preloaded.quantity != a.quantity) >= 0);
@@ -206,7 +208,7 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
       }
     });
     let initial
-
+/*
     new_allocations.forEach(alloc => {
       let bank = this.customerItem.banks.find(b => b.id == alloc.customer_bank_id);
       this.createHistoryRecord(
@@ -215,10 +217,10 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
         alloc.quantity,
         bank!.raw_material_id,
         bank!.id,
-        alloc.id
+        alloc.id,
+
       );
-    });
-    */
+    });*/
   }
   
   createHistoryRecord(

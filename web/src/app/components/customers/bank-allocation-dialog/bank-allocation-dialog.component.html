@@ -19,7 +19,8 @@
                             required="true" 
                             min="0" 
                             [attr.max]="MaxQuantity" 
-                            [ngClass]="{'form-control': true, 'invalid': (quantityForm.touched && (CurrentQuantity <=0 || CurrentQuantity > MaxQuantity))}"> 
+                            [ngClass]="{'form-control': true, 'invalid': (quantityForm.touched && (CurrentQuantity <=0 || CurrentQuantity > MaxQuantity))}"
+                            (input)="quantityChanged()">
                             <label for="allocationQuantity">Allocation quantity</label>
                         </div>
                         <span>{{ QuantityUnits }}</span>                    
@@ -28,7 +29,16 @@
                 <div class="text-danger" *ngIf="attemptedClose && CurrentQuantity <= 0">Please enter a valid quantity for this bank</div>
                 <div class="text-danger" *ngIf="CurrentQuantity > MaxQuantity">Not enough material in the bank (max for this allocation: {{ MaxQuantity}})</div>
                 </div>
-            </div>          
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <app-capacity-bar
+                        #meter
+                        (bankQuantityChanged)="capacityBarChanged($event)"
+                        [show_in_use]="true"
+                         />
+                </div>
+            </div>
         </form>
     </div>
 </app-modal-dialog>

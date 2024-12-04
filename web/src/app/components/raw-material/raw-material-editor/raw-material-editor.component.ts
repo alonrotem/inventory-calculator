@@ -1,9 +1,9 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Location, NgFor, NgIf } from '@angular/common';
 import { Country, Currency, RawMaterial, RawMaterialCustomerBank, TransactionType } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
 import { RouterLink, RouterOutlet, ActivatedRoute } from '@angular/router';
-import { Form, FormsModule, NgForm } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { RawMaterialsService } from '../../../services/raw-materials.service';
 import { DatePipe } from '@angular/common';
 import { InfoService } from '../../../services/info.service';
@@ -19,7 +19,6 @@ import { Observable } from 'rxjs';
 import { RawMaterialCustomerTableComponent } from '../raw-material-customer-table/raw-material-customer-table.component';
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { RawMaterialQuantityDialogComponent } from '../raw-material-quantity-dialog/raw-material-quantity-dialog.component';
-import { toJSDate } from '@ng-bootstrap/ng-bootstrap/datepicker/ngb-calendar';
 import { RawMaterialHistoryDialogComponent } from '../raw-material-history-dialog/raw-material-history-dialog.component';
 
 
@@ -27,10 +26,10 @@ import { RawMaterialHistoryDialogComponent } from '../raw-material-history-dialo
   selector: 'app-raw-material-editor',
   standalone: true,
   imports: [ 
-    RouterModule, RouterLink, RouterOutlet, FormsModule, 
+    RouterModule, FormsModule, 
     DatePipe, NgSelectModule, DateStrPipe, 
-    FaIconComponent, NgIf, ConfirmationDialogComponent, NgFor, AutocompleteLibModule, 
-    RawMaterialCustomerTableComponent, ModalDialogComponent, RawMaterialQuantityDialogComponent,
+    FaIconComponent, NgIf, ConfirmationDialogComponent, AutocompleteLibModule, 
+    RawMaterialCustomerTableComponent, RawMaterialQuantityDialogComponent,
     RawMaterialHistoryDialogComponent
   ],
   templateUrl: './raw-material-editor.component.html',
@@ -97,44 +96,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
   @ViewChild("currency") currency!: NgSelectComponent;
   @ViewChild("tooltip", { read: ElementRef }) tooltip!: ElementRef;
   @ViewChild('quantityDialog') quantityDialog!: RawMaterialQuantityDialogComponent
-  //@ViewChild('quantityDialog') quantityDialog! :ModalDialogComponent;
   @ViewChild('history_dialog') history_dialog!: RawMaterialHistoryDialogComponent;
-  
-  /*
-  Transaction history:
-  * Allow change raw mterial quantity only with new material, or old material without customer banks
-  * For old material with customer banks, allow add only
-  * On save:
-    if the quantity has changed, add a raw_material_purchase record
-    Remaining quantity will be set on this screen autocalculated
-    With new customer banks, add a to_customer_bank record
-    changing a customer banks, add a to_customer_bank (with + or -)
-
-initial_quantity: 200
-initial_remaining = 157
-initial_in_banks: 43
-quantity_per_bank []
-
-quantity 200 -> 220
-remaining: 157
-banks: 43 -> 63
-
-save:
-if(quantity != initial_quantity)
-	save record:
-		transaction quantity = quantity - initial_quantity (20)
-		current quantity: quantity (220)
-
-if(banks != initial_in_banks)
-	counting_quantity = quantity (220)
-	for each bank b ->
-		counting_quantity -= bank_quantity
-		if(bank_quantity_changed or bank is new)
-			save record:
-				transaction_qnaitity: bank_quantity - initial_bank_quantity
-				raw_quantity = counting_quantity
-				bank_quantity: bank_quantity
-    */
   
   constructor(private rawMaterialsService: RawMaterialsService, private infoService: InfoService, private location: Location, private activatedRoute: ActivatedRoute, private router: Router, private toastService: ToastService) { 
     this.rawMaterialsService.getRawMaterialNames().subscribe({
@@ -176,13 +138,13 @@ if(banks != initial_in_banks)
       return new Promise((resolve) => {
         this.confirmResult = null;
         // Ensure this refers to the component's instance using an arrow function
-        this.navigate_confirmation.open(); // Open the modal dialog
+        this.navigate_confirmation.open();
     
         // Use arrow function to preserve `this` context
         this.navigate_confirmation.confirm.subscribe((result: boolean) => {
           this.confirmResult = result;
           setTimeout(() => this.confirmResult = null, 0); 
-          resolve(result);  // Resolve the promise based on user confirmation
+          resolve(result);
         });
       });
     }
@@ -261,7 +223,7 @@ if(banks != initial_in_banks)
     if((this.raw_material_form.form.valid) && (!this.insufficient_quantity_for_banks))
     {
       this.raw_material_form.form.markAsPristine();
-      this.rawMaterialItem.purchased_at =  new Date(this.purchase_date.nativeElement.value); //.toISOString()
+      this.rawMaterialItem.purchased_at =  new Date(this.purchase_date.nativeElement.value);
       
       let added_to_banks_since_last_load = 0;
       this.rawMaterialItem.customer_banks.forEach((bank: RawMaterialCustomerBank) => {
@@ -327,14 +289,6 @@ if(banks != initial_in_banks)
           artificial_secs++;
         });
       }
-      //banks were deleted?
-      //check if banks in inital load do not exist in saved banks
-      /**
-       * remaining 162
-       * start with 162+20
-       * removed bank (10) -> 
-       * removed bank (10) -> 172
-       */
       let current_bank_ids = this.rawMaterialItem.customer_banks.filter(bank => bank.id > 0).map(bank => bank.id);
       let deleted_banks = this.initial_totals_per_bank.filter(bank => current_bank_ids.indexOf(bank.bank_id) < 0);
       let total_quantity_in_deleted_banks = deleted_banks.reduce((n, {bank_quantity}) => n + bank_quantity, 0);
@@ -365,8 +319,6 @@ if(banks != initial_in_banks)
         artificial_secs++;
       });
 
-
-
       this.btn_save.nativeElement.classList.add("disabled");
 
       this.rawMaterialsService.save(this.rawMaterialItem).subscribe(
@@ -392,30 +344,7 @@ if(banks != initial_in_banks)
 
     }
   }
-  /*
-  saveNewRawMaterial(material:RawMaterial)
-  {
-    this.btn_save.nativeElement.classList.add("disabled");
 
-    this.rawMaterialsService.saveNewRawMaterial(material).subscribe(
-      {
-        next:(data) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoMaterialsList(data['message'], false); },//this.getRawMaterials(this.current_page); },
-        error:(error) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoMaterialsList(error, true); }
-      }
-    );
-  }
-
-  updateRawMaterial(id: number, material:RawMaterial)
-  {
-    this.btn_save.nativeElement.classList.add("disabled");
-
-    this.rawMaterialsService.saveRawMaterial(material).subscribe(
-    {
-      next:(data) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoMaterialsList(data['message'], false); },//this.getRawMaterials(this.current_page); },
-      error:(error) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoMaterialsList(error, true); }
-    });
-  }
-*/
   gotoMaterialsList(textInfo: string = '', isError: Boolean = false) {
     this.router.navigate(['inventory/raw'], {
       state: {

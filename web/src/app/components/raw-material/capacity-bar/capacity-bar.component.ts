@@ -1,18 +1,19 @@
-import { Component, Input, Output, EventEmitter, ElementRef, OnInit, HostListener } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { Component, Input, Output, EventEmitter, ElementRef, HostListener } from '@angular/core';
+import { DecimalPipe, NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-capacity-bar',
   standalone: true,
-  imports: [ DecimalPipe ],
+  imports: [ DecimalPipe, NgIf ],
   providers: [DecimalPipe],
   templateUrl: './capacity-bar.component.html',
   styleUrls: ['./capacity-bar.component.scss']
 })
-export class CapacityBarComponent implements OnInit {
+export class CapacityBarComponent {
   @Input() totalCapacity: number = 0;
   @Input() materialInUse: number = 0;
   @Input() bankQuantity: number = 0;
+  @Input() show_in_use:boolean = true;
   notInUseCapacity: number = 0;
 
   @Output() bankQuantityChanged = new EventEmitter<number>();
@@ -20,20 +21,12 @@ export class CapacityBarComponent implements OnInit {
   containerWidth: number = 0;
   isDragging: boolean = false;
 
-  constructor(private elRef: ElementRef, private decimalPipe: DecimalPipe) {}
-
-  ngOnInit() {
-    /*
-    setTimeout(() => {
-      const container = this.elRef.nativeElement.querySelector('.capacity-container');
-      this.containerWidth = container.offsetWidth;
-    });
-    */
+  constructor(private elRef: ElementRef, private decimalPipe: DecimalPipe) {
   }
 
+  //To be called whenever data is fed to this component, to invoke recalculation
   recalculate() {
     this.notInUseCapacity = this.bankQuantity - this.materialInUse;
-    console.log("this.notInUseCapacity(" + this.notInUseCapacity +") = this.bankQuantity ("+this.bankQuantity+") - this.materialInUse("+ this.materialInUse +")")
     setTimeout(() => {
       const container = this.elRef.nativeElement.querySelector('.capacity-container');
       this.containerWidth = container.offsetWidth;
@@ -42,23 +35,28 @@ export class CapacityBarComponent implements OnInit {
 
   onMouseDown(event: MouseEvent) {
     this.isDragging = true;
-    event.preventDefault(); // Prevent default behavior
+    event.preventDefault();
   }
 
-  onMouseUp() {
+
+  @HostListener('document:mouseup', ['$event'])
+  onGlobalMouseUp(event: MouseEvent) {
     this.isDragging = false;
   }
 
-  onMouseMove(event: MouseEvent) {
-    if (!this.isDragging) return;
+  @HostListener('document:mousemove', ['$event'])
+  onGlobalMouseMove(event: MouseEvent) {
+    if(!this.isDragging) return;
 
     const container = this.elRef.nativeElement.querySelector('.capacity-container');
     const rect = container.getBoundingClientRect();
     const mouseX = event.clientX - rect.left; // Mouse position relative to the container
     const fixedWidth = (this.materialInUse / this.totalCapacity) * this.containerWidth;
 
+    let newDynamicWidth = 0;
+
     // Calculate new width of the dynamic rectangle
-    let newDynamicWidth = mouseX - fixedWidth;
+    newDynamicWidth = mouseX - fixedWidth;
 
     // Ensure dynamic rectangle stays within bounds
     if (newDynamicWidth < 0) {
@@ -69,11 +67,6 @@ export class CapacityBarComponent implements OnInit {
 
     // Update the dynamic value based on the calculated width
     this.notInUseCapacity = ((newDynamicWidth) / this.containerWidth) * this.totalCapacity;
-    this.bankQuantityChanged.emit(Number(this.decimalPipe.transform(this.notInUseCapacity + this.materialInUse, '1.0-0') || '0'));
-  }
-
-  @HostListener('document:mouseup', ['$event'])
-  onGlobalMouseUp(event: MouseEvent) {
-    this.isDragging = false;
+    this.bankQuantityChanged.emit(Number( Math.trunc(this.notInUseCapacity + this.materialInUse) || '0'));
   }
 }
