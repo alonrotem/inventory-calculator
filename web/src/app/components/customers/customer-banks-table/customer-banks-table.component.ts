@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, ViewChild } from '@angular/core';
 import { Baby, Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation } from '../../../../types';
 import { RouterModule } from '@angular/router';
-import { DecimalPipe, NgFor, NgIf } from '@angular/common';
+import { DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
 import { BabiesTableComponent } from '../../babies/babies-table/babies-table.component';
 import { faChartPie, faPencil, faTrashCan, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
@@ -14,7 +14,7 @@ import { SortPipe } from '../../../utils/pipes/sort-pipe';
 @Component({
   selector: 'app-customer-banks-table',
   standalone: true,
-  imports: [ RouterModule, NgFor, FilterPipe, NgIf, BabiesTableComponent, FaIconComponent, 
+  imports: [ RouterModule, NgFor, FilterPipe, NgIf, FaIconComponent, NgClass,
     DecimalPipe, ConfirmationDialogComponent, BankAllocationDialogComponent, BabyEditorDialogComponent, SortPipe ],
   templateUrl: './customer-banks-table.component.html',
   styleUrl: './customer-banks-table.component.scss'

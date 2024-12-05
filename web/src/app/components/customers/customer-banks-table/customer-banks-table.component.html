@@ -32,6 +32,21 @@
         </span>
     </h5>
     <div style="display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: flex-start; align-items: center;"><span>{{ bank.quantity }} {{ raw_material_quantity_units }} ({{ bank.remaining_quantity }} remaining)</span> <span><button class="btn btn-primary" style="padding: 0px 11px 3px 5px; margin-left: 10px;" *ngIf="(banks_baby_allocations | filter: 'customer_bank_id' : bank.id).length > 0" (click)="open_allocation_dialog(-999)">+ New work allocation</button></span></div>
+
+<div style="margin-top: 15px;">
+  <div class="progress">
+    <div 
+        [ngClass]="{
+            'bg-danger':((bank.quantity - bank.remaining_quantity)*100/bank.quantity) >= 80, 
+            'bg-warning':((bank.quantity - bank.remaining_quantity)*100/bank.quantity) < 80 && ((bank.quantity - bank.remaining_quantity)*100/bank.quantity) >= 60,
+            'bg-success':((bank.quantity - bank.remaining_quantity)*100/bank.quantity) <= 60,
+            }"
+        role="progressbar" 
+        [style.width.%]="((bank.quantity - bank.remaining_quantity)*100/bank.quantity)" 
+        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+  </div>
+</div>
+
 </div>
 
 <!-- allocations from this bank -->

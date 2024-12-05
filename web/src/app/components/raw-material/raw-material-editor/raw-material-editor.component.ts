@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
-import { Location, NgFor, NgIf } from '@angular/common';
+import { Location, NgClass, NgFor, NgIf } from '@angular/common';
 import { Country, Currency, RawMaterial, RawMaterialCustomerBank, TransactionType } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
 import { RouterLink, RouterOutlet, ActivatedRoute } from '@angular/router';
@@ -30,7 +30,7 @@ import { RawMaterialHistoryDialogComponent } from '../raw-material-history-dialo
     DatePipe, NgSelectModule, DateStrPipe, 
     FaIconComponent, NgIf, ConfirmationDialogComponent, AutocompleteLibModule, 
     RawMaterialCustomerTableComponent, RawMaterialQuantityDialogComponent,
-    RawMaterialHistoryDialogComponent
+    RawMaterialHistoryDialogComponent, NgClass
   ],
   templateUrl: './raw-material-editor.component.html',
   styleUrl: './raw-material-editor.component.scss'
