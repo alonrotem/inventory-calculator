@@ -118,6 +118,7 @@ export class CustomerBanksTableComponent implements AfterViewInit {
         this.allocation_dialog.MaxQuantity = this.bank.remaining_quantity;
       }
     }
+    this.allocation_dialog.dialogWrapper.modalTitle = (allocation_id == -999)? "Create Allocation" : "Manage Allocation";
     this.allocation_dialog.isNew = (allocation_id == -999);
     this.allocation_dialog.QuantityInBank = this.bank.quantity;
     this.allocation_dialog.RemainingInBank = this.bank.remaining_quantity;
