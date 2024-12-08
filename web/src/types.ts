@@ -224,7 +224,7 @@ export class Point {
     banks_baby_allocations: Customer_Bank_Baby_Allocation[];
     babies: Customer_Baby[];
 
-    transaction_history: HistoryReportRecord[];
+    
 }
 export interface CustomerListItem {
     id: number;
@@ -249,6 +249,8 @@ export interface Customer_Bank {
     raw_material_id: number;
     quantity: number;
     remaining_quantity: number;
+
+    transaction_history: TransactionRecord[];
 }
 
 export interface Customer_Bank_Baby_Allocation {
@@ -296,6 +298,7 @@ export enum TransactionType {
     deleted_customer_bank = "deleted_customer_bank"
 }
 
+// for saving action transactions
 export interface TransactionRecord {
 	id: number;
     date: Date;
@@ -315,6 +318,7 @@ export interface TransactionRecord {
     cur_banks_babies_allocation_quantity: number;
 }
 
+//for history record reports
 export interface HistoryReportRecord {
     id: number;
     

@@ -79,13 +79,24 @@ async function get_all_raw_maerial_transactions(raw_material_id){
             transaction_history th
             left join raw_materials rh on rh.id = th.raw_material_id
             left join customers c on c.id = th.customer_id
-        where th.raw_material_id=${raw_material_id} order by date;`);
+        where 
+            th.raw_material_id=${raw_material_id} 
+            and transaction_type in ('raw_material_purchase', 'to_customer_bank', 'deleted_customer_bank')
+        order by date;`);
     const data = helper.emptyOrRows(rows);
+    return data;
+}
+async function get_all_customer_bank_transactions(bank_id) {
+    const rows = await db.query(
+        `select * from transaction_history where customer_bank_id=${bank_id} order by date;`
+    );
+        const data = helper.emptyOrRows(rows);
     return data;
 }
 
 module.exports = {
     create_history_record,
     get_enum_values,
-    get_all_raw_maerial_transactions
+    get_all_raw_maerial_transactions,
+    get_all_customer_bank_transactions
 }

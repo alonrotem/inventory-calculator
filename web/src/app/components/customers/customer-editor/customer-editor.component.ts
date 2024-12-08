@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, Input, OnInit,ViewChild } from '@angular/core';
 import { Location, NgFor, NgIf } from '@angular/common';
-import { Customer, TransactionType } from '../../../../types';
+import { Customer, TransactionRecord, TransactionType } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -43,8 +43,7 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     updated_by: 0,
     banks: [],
     banks_baby_allocations: [],
-    babies: [],
-    transaction_history: []
+    babies: []
   }
 
   title: string = "Create Customer";
@@ -130,10 +129,10 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
         bank_id: a.customer_bank_id,
         quantity: a.quantity
       })));
-      console.log("this.banks_loaded_quantities.length " + this.banks_loaded_quantities.length);
+      //console.log("this.banks_loaded_quantities.length " + this.banks_loaded_quantities.length);
     }
     else {
-      console.log("initial banks already loaded...");
+      //("initial banks already loaded...");
     }
   }
 
@@ -143,7 +142,7 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     if(this.customer_form.form.valid)
     {
       this.customer_form.form.markAsPristine();
-      this.processBankHistoryChanges();
+      //this.processBankHistoryChanges();
       this.saveCustomer();
       /*
       //edit
@@ -188,18 +187,75 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     );
   }*/
   processBankHistoryChanges(){
+    this.customerItem.banks.forEach(bank => {
+      let allocations_for_this_bank = this.customerItem.banks_baby_allocations.filter(alloc => alloc.customer_bank_id == bank.id);
+      let initial_allocations_for_this_bank = this.banks_loaded_quantities.filter(alloc => alloc.bank_id == bank.id);
 
+      let before_bank_quantities =  initial_allocations_for_this_bank.reduce((acc, alloc) => acc + alloc.quantity, 0);
+      let after_bank_quantities =  allocations_for_this_bank.reduce((acc, alloc) => acc + alloc.quantity, 0);
+      let diff = after_bank_quantities - before_bank_quantities;
+      let bank_quantity = bank.quantity + diff;
+/*
+      allocation_id: a.id,
+      bank_id: a.customer_bank_id,
+      quantity: a.quantity
+*/
+      let new_allocations = allocations_for_this_bank.filter(alloc => (alloc.customer_bank_id == bank.id) &&  (initial_allocations_for_this_bank.findIndex(init => init.allocation_id == alloc.id ) < 0));
+      let changed_allocations = allocations_for_this_bank.filter(alloc => initial_allocations_for_this_bank.findIndex(init => init.allocation_id == alloc.id) < 0);
+    });
+
+/*
+    //sum up all the changes in the allocations
+    let new_allocations = this.customerItem.banks_baby_allocations.filter(a => this.banks_loaded_quantities.findIndex(preloaded => preloaded.allocation_id == a.id) < 0);
+    let changed_allocations = this.customerItem.banks_baby_allocations.filter(a => this.banks_loaded_quantities.findIndex(preloaded => preloaded.allocation_id == a.id && preloaded.quantity != a.quantity) >= 0);
+    let deleted_allocations = this.banks_loaded_quantities.filter(preloaded => this.customerItem.banks_baby_allocations.findIndex(a => a.id == preloaded.allocation_id) < 0);
+
+    let sum_added_allocations = new_allocations.reduce((acc, alloc) => acc + alloc.quantity, 0);
+    let sum_changed_allocations = changed_allocations.reduce((acc, alloc) => {
+      let preloaded_bank = this.banks_loaded_quantities.find(preloaded => preloaded.allocation_id == alloc.id);
+      let diff = 0;
+      if(preloaded_bank) {
+        diff = alloc.quantity - preloaded_bank.quantity;
+      }
+      return acc + diff;
+    }, 0);
+    let sum_deleted_allocations = deleted_allocations.reduce((acc, alloc) => acc + alloc.quantity, 0);    
+    
+    console.log("SUM sum_added_allocations " + sum_added_allocations);
+    console.dir(new_allocations);
+    console.log("SUM sum_changed_allocations " + sum_changed_allocations);
+    console.dir(changed_allocations);
+    console.log("SUM sum_deleted_allocations " + sum_deleted_allocations);
+    console.dir(deleted_allocations);
+    
+    new_allocations.forEach(new_allocation => {
+      let bank = this.customerItem.banks.find(b => b.id == new_allocation.customer_bank_id);
+      this.customerItem.transaction_history.push({
+        id: 0,
+        raw_material_name: bank!.raw_material_name,
+        customer_name: this.customerItem.name,
+        transaction_type: TransactionType.customer_bank_allocate_to_Work,
+        transaction_quantity: new_allocation.quantity,
+        raw_material_id: bank!.raw_material_id,
+        customer_id: this.customerItem.id,
+        customer_bank_id: bank!.id,
+        customer_banks_babies_id: new_allocation.id,
+        cur_raw_material_quantity: 0,
+        cur_customer_bank_quantity: 0,
+        cur_banks_babies_allocation_quantity: 0,
+        date: undefined,
+        added_by: 0
+      })
+    });
+    
+    return;
     //go through the banks
     // check if the bank is
     //  - new
     //  - changed
     //  - deleted
-    let new_allocations = this.customerItem.banks_baby_allocations.filter(a => this.banks_loaded_quantities.findIndex(preloaded => preloaded.allocation_id == a.id) < 0);
-    let deleted_allocations = this.banks_loaded_quantities.filter(preloaded => this.customerItem.banks_baby_allocations.findIndex(a => a.id == preloaded.allocation_id) < 0);
-    let changed_allocations = this.customerItem.banks_baby_allocations.filter(a => this.banks_loaded_quantities.findIndex(preloaded => preloaded.allocation_id == a.id && preloaded.quantity != a.quantity) >= 0);
     
-    let sum_added_allocations = new_allocations.reduce((acc, alloc) => acc + alloc.quantity, 0);
-    let sum_deleted_allocations = deleted_allocations.reduce((acc, alloc) => acc + alloc.quantity, 0);
+/*
     let sum_changed_allocations = 0;
     this.customerItem.banks_baby_allocations.forEach(alloc => {
       let original_allocation = this.banks_loaded_quantities.find(preloaded => preloaded.allocation_id == alloc.id && preloaded.quantity != alloc.quantity);
@@ -207,7 +263,6 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
         sum_changed_allocations += (alloc.quantity - original_allocation.quantity); 
       }
     });
-    let initial
 /*
     new_allocations.forEach(alloc => {
       let bank = this.customerItem.banks.find(b => b.id == alloc.customer_bank_id);

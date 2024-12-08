@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, ViewChild } from '@angular/core';
-import { Baby, Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation } from '../../../../types';
+import { Baby, Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, HistoryReportRecord, TransactionRecord, TransactionType } from '../../../../types';
 import { RouterModule } from '@angular/router';
 import { DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
@@ -10,12 +10,13 @@ import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/co
 import { BankAllocationDialogComponent } from '../bank-allocation-dialog/bank-allocation-dialog.component';
 import { BabyEditorDialogComponent } from '../../babies/baby-editor-dialog/baby-editor-dialog.component';
 import { SortPipe } from '../../../utils/pipes/sort-pipe';
+import { BankHistoryDialogComponent } from '../bank-history-dialog/bank-history-dialog.component';
 
 @Component({
   selector: 'app-customer-banks-table',
   standalone: true,
   imports: [ RouterModule, NgFor, FilterPipe, NgIf, FaIconComponent, NgClass,
-    DecimalPipe, ConfirmationDialogComponent, BankAllocationDialogComponent, BabyEditorDialogComponent, SortPipe ],
+    DecimalPipe, ConfirmationDialogComponent, BankAllocationDialogComponent, BabyEditorDialogComponent, SortPipe, BankHistoryDialogComponent ],
   templateUrl: './customer-banks-table.component.html',
   styleUrl: './customer-banks-table.component.scss'
 })
@@ -27,7 +28,8 @@ export class CustomerBanksTableComponent implements AfterViewInit {
     raw_material_id: 0,
     quantity: 0,
     remaining_quantity: 0,
-    raw_material_quantity_units: ''
+    raw_material_quantity_units: '',
+    transaction_history: []
   };
   @Input() banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
   @Input() babies: Customer_Baby[] = [];
@@ -37,6 +39,7 @@ export class CustomerBanksTableComponent implements AfterViewInit {
   @ViewChild('not_enough_material') not_enough_material!: ConfirmationDialogComponent;
   @ViewChild('allocation_dialog') allocation_dialog!: BankAllocationDialogComponent;
   @ViewChild('babies_picker') babies_picker!: BabyEditorDialogComponent;
+  @ViewChild('history_dialog') history_dialog! : BankHistoryDialogComponent;
   faTriangleExclamation: IconDefinition = faTriangleExclamation;
   faPencil: IconDefinition = faPencil;
   faTrashCan: IconDefinition = faTrashCan;
@@ -48,7 +51,7 @@ export class CustomerBanksTableComponent implements AfterViewInit {
   newAllocationIdCounter = -1;
 
   constructor() { 
-   }
+  }
  
   ngAfterViewInit(): void {
 
@@ -76,9 +79,11 @@ export class CustomerBanksTableComponent implements AfterViewInit {
       this.delete_allocation_dialog.open();
     }
   }
+
   delete_allocation_confirmed(allocationId:number){
-    let baby_index = 999;
     let deleted = false;
+    //delete all babies for this allocation
+    let baby_index = 999;
     while (baby_index >= 0){
       baby_index = this.babies.findIndex(b => b.customer_banks_babies_id == allocationId);
       if(baby_index >= 0){
@@ -86,11 +91,48 @@ export class CustomerBanksTableComponent implements AfterViewInit {
         deleted = true;
       }
     }
+    //transaction history: add a "deleted" record, if the allocation is not new (id >= 0)
+    //and remove all other history transactions pending (for add/change)
+    if(!this.bank.transaction_history) {
+      console.log("!!! RESETTING !!!");
+      this.bank.transaction_history = [];
+    }
+
+    //Remove its records of other pending transaction actions (added changed allocation)
+    let allocation_transaction_index = 0;
+    do {
+      allocation_transaction_index = this.bank.transaction_history.findIndex(a => a.customer_banks_babies_id == allocationId);
+      if(allocation_transaction_index >= 0) {
+        this.bank.transaction_history.splice(allocation_transaction_index, 1);
+        console.log("removing transaction record");
+      }
+      deleted = true;  
+    } while (allocation_transaction_index >= 0);
+
     let allocation_index = this.banks_baby_allocations.findIndex(a => a.id == allocationId);
     if(allocation_index >= 0){
+      //if the allocation id is already persisted (id >= 0), push the notification it's deleted
+      if(allocationId >= 0) {
+        this.bank.transaction_history.push({
+          id: 0,
+          date: new Date(),
+          added_by: 1,
+          transaction_quantity: this.banks_baby_allocations[allocation_index].quantity,
+          transaction_type: TransactionType.customer_bank_allocation_deleted,
+          raw_material_id: this.bank.raw_material_id,
+          customer_id: this.bank.customer_id,
+          customer_bank_id: this.bank.id,
+          customer_banks_babies_id:  this.banks_baby_allocations[allocation_index].id,
+          cur_raw_material_quantity: 0,
+          cur_customer_bank_quantity: (this.bank.remaining_quantity + this.banks_baby_allocations[allocation_index].quantity),
+          cur_banks_babies_allocation_quantity: 0
+        });
+      }
       this.banks_baby_allocations.splice(allocation_index, 1);
       deleted = true;
     }
+
+    console.dir(this.bank.transaction_history);
     if(deleted)
       this.bank_changed.emit();
   }
@@ -129,18 +171,61 @@ export class CustomerBanksTableComponent implements AfterViewInit {
   }
 
   allocation_dialog_closed(currentQuantity: number) {
+    let other_allocations_sum = this.banks_baby_allocations.filter(alloc => alloc.customer_bank_id == this.bank.id && alloc.id != this.pendingAllocationIdAction)
+      .reduce((acc, alloc) => acc + alloc.quantity, 0);
+    console.log("other_allocations_sum " + other_allocations_sum);
+    console.log("remaing: (this.bank.quantity: " + this.bank.quantity +" - other_allocations_sum: " + other_allocations_sum + " - currentQuantity: " + currentQuantity + " = " + 
+      (this.bank.quantity - other_allocations_sum - currentQuantity))
     let allocation = this.banks_baby_allocations.find(a => a.id == this.pendingAllocationIdAction);
+    if(!this.bank.transaction_history) {
+      console.log("!!! RESETTING !!!");
+      this.bank.transaction_history = [];
+    }
+    let pushNewTransationRecord = false;
+    let transactionrec = this.bank.transaction_history.find(rec => rec.customer_banks_babies_id == this.pendingAllocationIdAction);
+    if(!transactionrec) {
+      transactionrec = {
+        id: 0,
+        date: new Date(),
+        added_by: 1,
+        transaction_quantity: 0,
+        transaction_type: TransactionType.customer_bank_allocate_to_Work,
+        raw_material_id: this.bank.raw_material_id,
+        customer_id: this.bank.customer_id,
+        customer_bank_id: this.bank.id,
+        customer_banks_babies_id: 0,
+        cur_raw_material_quantity: -1,
+        cur_customer_bank_quantity: currentQuantity,
+        cur_banks_babies_allocation_quantity: 0
+      };
+      pushNewTransationRecord = true;
+    }
+    else {
+      console.log("transaction found, to fix");
+    }
     if(allocation){
+      //let directionFactor = (transactionrec.customer_banks_babies_id  allocation.id);
+      console.log("allocation found, to fix");
+      transactionrec.transaction_quantity = (allocation.id < 0) ? allocation.quantity : (currentQuantity - allocation.quantity);
+      transactionrec.customer_banks_babies_id = allocation.id;
       allocation.quantity = currentQuantity;
     }
     else {
       this.banks_baby_allocations.push({
-        id: this.newAllocationIdCounter--,
+        id: this.newAllocationIdCounter,
         customer_bank_id: this.bank.id,
         quantity: currentQuantity,
         remaining_quantity: 0
       });
+      transactionrec.transaction_quantity = currentQuantity;
+      transactionrec.customer_banks_babies_id = this.newAllocationIdCounter;
+      this.newAllocationIdCounter--;
     }
+    transactionrec.cur_customer_bank_quantity = (this.bank.quantity - other_allocations_sum - currentQuantity);
+    if(pushNewTransationRecord) {
+      this.bank.transaction_history.push(transactionrec);
+    }
+    console.dir(this.bank.transaction_history);
     this.pendingAllocationIdAction = -999;
     this.bank_changed.emit();
   }
@@ -191,5 +276,11 @@ export class CustomerBanksTableComponent implements AfterViewInit {
     }
     this.pendingBabyAppendAllocation = -999;
     this.pendingBabyAppendBaby = -999;
+  }
+
+  openHistoryDialog(){
+    this.history_dialog.raw_material_name = this.bank.raw_material_name;
+    this.history_dialog.raw_material_id = this.bank.raw_material_id;
+    this.history_dialog.open(this.bank.id);
   }
 }

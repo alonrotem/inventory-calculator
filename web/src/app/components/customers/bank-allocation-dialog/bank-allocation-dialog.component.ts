@@ -42,6 +42,7 @@ export class BankAllocationDialogComponent implements ModalContentDirective, Mod
   }
 
   onOpen(): void {
+    /*
     console.log(
       "  RemainingInBank: " + this.RemainingInBank +
       ", QuantityInBank: " + this.QuantityInBank +
@@ -49,6 +50,7 @@ export class BankAllocationDialogComponent implements ModalContentDirective, Mod
       ", MaxQuantity: " + this.MaxQuantity +
       ", QuantityUnits: " + this.QuantityUnits
     );
+    */
     /*
        RemainingInBank: 2, QuantityInBank: 10, CurrentQuantity: 5, MaxQuantity: 7, QuantityUnits: units
 
@@ -65,11 +67,11 @@ export class BankAllocationDialogComponent implements ModalContentDirective, Mod
     */
     this.attemptedClose = false;
     this.meter.bankQuantity = this.CurrentQuantity + this.QuantityInBank - (this.CurrentQuantity + this.RemainingInBank);
-    console.log("this.meter.bankQuantity " + this.meter.bankQuantity);
+    //console.log("this.meter.bankQuantity " + this.meter.bankQuantity);
     this.meter.materialInUse = this.QuantityInBank - (this.CurrentQuantity + this.RemainingInBank);
-    console.log("this.meter.materialInUse " + this.meter.materialInUse);
+    //console.log("this.meter.materialInUse " + this.meter.materialInUse);
     this.meter.totalCapacity = this.QuantityInBank;
-    console.log("this.meter.totalCapacity " + this.meter.totalCapacity);
+    //console.log("this.meter.totalCapacity " + this.meter.totalCapacity);
     this.meter.recalculate();
   }
 
@@ -95,7 +97,7 @@ export class BankAllocationDialogComponent implements ModalContentDirective, Mod
   }
 
   quantityChanged() {
-    console.log("this.CurrentQuantity " + this.CurrentQuantity + ", this.MaxQuantity " + this.MaxQuantity);
+    //console.log("this.CurrentQuantity " + this.CurrentQuantity + ", this.MaxQuantity " + this.MaxQuantity);
     if(this.CurrentQuantity >= 0 && this.CurrentQuantity <= this.MaxQuantity){
       this.meter.bankQuantity = this.CurrentQuantity + (this.QuantityInBank - this.RemainingInBank);
       this.meter.recalculate();  

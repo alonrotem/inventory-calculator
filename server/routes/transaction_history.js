@@ -26,6 +26,15 @@ router.post('/', async function(req, res, next) {
     }
   });
 
+  router.get('/customer_bank/:id', async function(req, res, next) {
+    try {
+      res.json(await transaction_history.get_all_customer_bank_transactions(req.params.id));
+    } catch (err) {
+      console.error(`Error while getting enum values `, err.message);
+      next(err);
+    }
+  });
+
   router.get('/enums', async function(req, res, next) {
     try {
       res.json(await transaction_history.get_enum_values('transaction_history', 'transaction_type'));

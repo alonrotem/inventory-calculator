@@ -16,4 +16,10 @@ export class TransactionHistoryService {
       responseType: 'json'
     });
   }
+
+  get_history_for_customer_bank(bank_id:number): Observable<HistoryReportRecord[]> {
+    return this.apiService.get(`${environment.serverUrl}/transaction_history/customer_bank/${bank_id}`, {
+      responseType: 'json'
+    });
+  }
 }

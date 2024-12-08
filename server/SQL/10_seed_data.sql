@@ -43,7 +43,7 @@ VALUES
 (@alon_id, @dm_id, 20, 15),
 (@avi_id, @sable_id, 30, 30),
 (@guy_id, @sable_id, 2, 2),
-(@eran_id, @sable_id, 16, 16);
+(@eran_id, @sable_id, 16, 6);
 
 
 set @bank_eran_sable = (select id from customer_banks where customer_id=@eran_id and raw_material_id=@sable_id limit 1);
@@ -52,6 +52,21 @@ set @bank_guy_sable = (select id from customer_banks where customer_id=@guy_id a
 set @bank_avi_sable = (select id from customer_banks where customer_id=@avi_id and raw_material_id=@sable_id limit 1);
 set @bank_alon_sable = (select id from customer_banks where customer_id=@alon_id and raw_material_id=@sable_id limit 1);
 set @bank_alon_dm = (select id from customer_banks where customer_id=@alon_id and raw_material_id=@dm_id limit 1);
+
+-- baby allocations in customer banks
+INSERT INTO `customer_banks_babies` (
+	`customer_bank_id`, `quantity`, `remaining_quantity`
+) 
+VALUES 
+	(@bank_alon_sable, 5, 5),
+    (@bank_alon_sable, 3, 2),
+    (@bank_alon_dm, 5, 5),
+    (@bank_eran_sable, 10, 10);
+    
+set @alon_sable_bank_allocation_1 = (select id from customer_banks_babies where customer_bank_id=@bank_alon_sable limit 1 offset 0);
+set @alon_sable_bank_allocation_2 = (select id from customer_banks_babies where customer_bank_id=@bank_alon_sable limit 1 offset 1);
+set @alon_dm_bank_allocation_1 = (select id from customer_banks_babies where customer_bank_id=@bank_alon_dm limit 1 offset 0);
+set @bank_eran_sable_allocation_1 = (select id from customer_banks_babies where customer_bank_id=@bank_eran_sable limit 1 offset 0);
 
 -- Create history records for materials
 INSERT INTO `transaction_history` (
@@ -74,22 +89,11 @@ VALUES
 -- Other purchases
 ('2024-09-11', 1, 1000, 'raw_material_purchase', @sm_id, 0, 0, 0, 1000, 0, 0),
 ('2024-09-11', 1, 750, 'raw_material_purchase', @bm_id, 0, 0, 0, 750, 0, 0),
-('2024-09-11', 1, 7, 'raw_material_purchase', @canady_id, 0, 0, 0, 7, 0, 0);
-
--- baby allocations in customer banks
-INSERT INTO `customer_banks_babies` (
-	`customer_bank_id`, `quantity`, `remaining_quantity`
-) 
-VALUES 
-	(@bank_alon_sable, 5, 5),
-    (@bank_alon_sable, 3, 3),
-    (@bank_alon_dm, 5, 5),
-    (@bank_eran_sable, 10, 10);
-    
-set @alon_sable_bank_allocation_1 = (select id from customer_banks_babies where customer_bank_id=@bank_alon_sable limit 1 offset 0);
-set @alon_sable_bank_allocation_2 = (select id from customer_banks_babies where customer_bank_id=@bank_alon_sable limit 1 offset 1);
-set @alon_dm_bank_allocation_1 = (select id from customer_banks_babies where customer_bank_id=@bank_alon_dm limit 1 offset 0);
-set @bank_eran_sable_allocation_1 = (select id from customer_banks_babies where customer_bank_id=@bank_eran_sable limit 1 offset 0);
+('2024-09-11', 1, 7, 'raw_material_purchase', @canady_id, 0, 0, 0, 7, 0, 0),
+-- bank work allocations
+('2024-09-12', 1, 5, 'customer_bank_allocate_to_Work', @sable_id, @alon_id, @bank_alon_sable, @alon_sable_bank_allocation_1, -1, 5, 0),
+('2024-09-13', 1, 3, 'customer_bank_allocate_to_Work', @sable_id, @alon_id, @bank_alon_sable, @alon_sable_bank_allocation_2, -1, 2, 0),
+('2024-09-13', 1, 5, 'customer_bank_allocate_to_Work', @sable_id, @alon_id, @bank_alon_dm, @alon_dm_bank_allocation_1, -1, 15, 0);
 
 -- seed babies
 INSERT INTO babies (customer_banks_babies_id, length, quantity)

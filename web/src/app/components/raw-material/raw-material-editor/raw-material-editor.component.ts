@@ -282,7 +282,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
               customer_bank_id: customer_bank.id,
               customer_banks_babies_id: 0,
               cur_raw_material_quantity: counting_quantity,
-              cur_customer_bank_quantity: customer_bank.quantity,
+              cur_customer_bank_quantity: customer_bank.remaining_quantity,
               cur_banks_babies_allocation_quantity: -1              
             };
           }

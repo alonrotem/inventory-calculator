@@ -111,7 +111,7 @@ async function save(customer){
     customer.id = (isNew)? result.insertId : customer.id;
     await sync_customer_banks(customer);
 
-    return "SAVED!";
+    return { message: "Saved successfully" };
 }
 
 //makes sure to delete all the banks, allocations and babies
@@ -164,7 +164,7 @@ async function save_customer_bank (customer, bank_id){
     //set it to 0 for insert, and to get a new auto id from the db
     bank.id = 0;
   }
-  console.dir(bank);
+  //console.dir(bank);
   const bank_result = await db.query(`
     INSERT INTO customer_banks (id, customer_id, raw_material_id, quantity, remaining_quantity)
     VALUES 
@@ -252,6 +252,21 @@ async function save_customer_bank (customer, bank_id){
       ]);
       new_allocation_id = (new_allocation_id <= 0)? allocation_result.insertId : new_allocation_id;
 
+      //save transaction records for this allocation
+      if(bank.transaction_history && bank.transaction_history.length > 0){
+        console.log("FOUND " + bank.transaction_history.length +" TRANSACTIONS TO SAVE");
+        console.log("original allocation id: " + original_allocation_id);
+        console.log("new allocation id: " + new_allocation_id);
+        let filtered_recs = bank.transaction_history.filter(alloc => alloc.customer_banks_babies_id == original_allocation_id);
+        console.log("filtered_recs " + filtered_recs.length);
+        console.dir(bank.transaction_history);
+        bank.transaction_history.filter(alloc => alloc.customer_banks_babies_id == original_allocation_id).forEach(async record => {
+          record.customer_banks_babies_id = new_allocation_id;
+          console.log(record);
+          await transaction_history.create_history_record(record);
+        });
+      }
+
       //find babies which are by the old (or new) allocation id and save them
       let babies_to_save = customer.babies.filter(b => b.customer_banks_babies_id == original_allocation_id);
       if(babies_to_save.length > 0) {
@@ -274,6 +289,14 @@ async function save_customer_bank (customer, bank_id){
           length=values(length),
           quantity=values(quantity)`, babies_to_save_arr);
       }
+    }
+    //save transaction records for deleted allocations
+    if(bank.transaction_history && bank.transaction_history.length > 0){
+      bank.transaction_history.filter(rec => rec.transaction_type=='customer_bank_allocation_deleted').forEach(
+        async transaction => {
+            await transaction_history.create_history_record(transaction);
+          }
+      );
     }
 }
 
