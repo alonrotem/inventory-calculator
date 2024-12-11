@@ -14,6 +14,7 @@ const wingsRouter = require("./routes/wings");
 const hatsRouter = require("./routes/hats");
 const customersRouter = require("./routes/customers");
 const transaction_historyRouter = require("./routes/transaction_history");
+const backupRouter = require("./routes/backup");
 
 app.use(express.json());
 app.use(
@@ -34,6 +35,7 @@ app.use("/wings", wingsRouter);
 app.use("/hats", hatsRouter);
 app.use("/customers", customersRouter);
 app.use("/transaction_history", transaction_historyRouter);
+app.use("/backup", backupRouter);
 
 /* Error handler middleware */
 app.use((err, req, res, next) => {

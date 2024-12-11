@@ -46,7 +46,7 @@ router.get('/', async function(req, res, next) {
       next(err);
     }
   });
-
+/*
   router.post('/', async function(req, res, next) {
     try {
       res.json(await wings.create(req.body));
@@ -55,10 +55,10 @@ router.get('/', async function(req, res, next) {
       next(err);
     }
   });
-
-  router.put('/:id', async function(req, res, next) {
+*/
+  router.put('/', async function(req, res, next) {
     try {
-      res.json(await wings.update(req.params.id, req.body));
+      res.json(await wings.save(req.body));
     } catch (err) {
       console.error(`Error while updating ging `, err.message);
       next(err);

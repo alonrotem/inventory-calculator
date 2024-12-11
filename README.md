@@ -17,7 +17,7 @@ NEXT TODOS:
 	Bank
 	- Raw material name + pieces / kgs
 ❎ Raw material not managing babies. Customer instead.
-⏹️ Add raw material bank from customer screen: for existing raw material, or new.
+❎ Add raw material bank from customer screen: for existing raw material, or new.
 ❎ Save customer syncs banks and babies
 ⏹️ Wing width reflects in diagram
 ⏹️ UX: Discard changes popup: 3rd option to save and then navigate
@@ -48,11 +48,13 @@ Babies
 ❎ 🪶 Wings      
 ❎ 🪶 Hats      
 
-Extra features:    
+Extra features:
+⏹️ 🪶 Open item screens in view mode first
+⏹️ 🪶 Apply button, to save but not navigate?
 ⏹️ 🪶 Make tables sortable, filterable     
 ⏹️ 🪶 Manage suppliers     
 ⏹️ 🪶 Cache countries and currencies     
-⏹️ 🪶 Hamburger menu animation     
+❎ 🪶 Hamburger menu animation     
 ⏹️ 🐞 CSS loading too late     
 ⏹️ 🪶 CSS not loading immediately. Maybe add loading page animation     
 ❌ 🪶 Load babies with the raw material, no need for another request <- not possible     

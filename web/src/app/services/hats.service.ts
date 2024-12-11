@@ -23,13 +23,13 @@ export class HatsService {
       responseType: 'json'
     });
   };
-
+/*
   saveNewHat = (hat: Hat): Observable<any> => {
     return this.apiService.post(`${environment.serverUrl}/hats/`, hat, { });
   };
-
-  updateHat = (hat: Hat): Observable<any> => {
-    return this.apiService.put(`${environment.serverUrl}/hats/${hat.id}`, hat, { });
+*/
+  saveHat = (hat: Hat): Observable<any> => {
+    return this.apiService.put(`${environment.serverUrl}/hats/`, hat, { });
   };
 
   deleteHat = (id: number): Observable<any> => {

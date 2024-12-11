@@ -25,7 +25,8 @@ function construct_inserts(table_name, table_info, records){
     console.log(`Constructing inserts for table ${table_name}\n${"-".repeat(table_name.length + 34)}`);
     console.log(`Table conlumns: ${table_info.length}`);
     console.log(`Table records: ${records.length}\n`);
-    let insert_statement = `# ${table_name.toUpperCase()}\n# ${"-".repeat(table_name.length + 2)}\n\n`
+    let insert_statement = `# ${table_name.toUpperCase()}\n# ${"-".repeat(table_name.length + 2)}\n\n`;
+    let onduplicate = `ON DUPLICATE KEY UPDATE\n${ table_info.filter(f=> f.Field != 'id').map((c) => c.Field + "=values("+c.Field+")").join(", ") };\n`;
     let values = "";
     if (!records || !records.length) {
         console.log("No records to insert.");
@@ -39,7 +40,7 @@ function construct_inserts(table_name, table_info, records){
         insert_statement += `INSERT INTO \`${table_name}\` (${ table_info.map((c) => c.Field).join(", ") }) \nVALUES\n`;
         for(let row=0; row < records.length; row++)
         {
-            let eol = (row == records.length - 1)? ";\n" : ",\n";
+            let eol = (row == records.length - 1)? "\n" : ",\n";
             values += `(`;
             for(let col = 0; col < table_info.length; col++) { 
                 let current_rec_value = records[row][table_info[col].Field];
@@ -68,8 +69,16 @@ function construct_inserts(table_name, table_info, records){
             }
             values += `)${eol}`;
         }
+        
+
+    /*
+    ON DUPLICATE KEY UPDATE
+    name=values(name), business_name=values(business_name), email=values(email), 
+    phone=values(phone), tax_id=values(tax_id), created_at=values(created_at), 
+    updated_at=values(updated_at), created_by=values(created_by), updated_by=values(updated_by)    
+    */        
     }
-    fs.appendFileSync(outputFile, insert_statement + values + "\n\n");
+    fs.appendFileSync(outputFile, insert_statement + values + onduplicate + "\n\n");
 }
 
 console.log("Fetching...")

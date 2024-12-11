@@ -40,13 +40,13 @@ export class WingsService {
         responseType: 'json'
       });
     };
-
+/*
   saveNewWing = (wing: Wing): Observable<any> => {
     return this.apiService.post(`${environment.serverUrl}/wings/`, wing, { });
   };
-
-  updateWing = (wing: Wing): Observable<any> => {
-    return this.apiService.put(`${environment.serverUrl}/wings/${wing.id}`, wing, { });
+*/
+  saveWing = (wing: Wing): Observable<any> => {
+    return this.apiService.put(`${environment.serverUrl}/wings/`, wing, { });
   };
 
   deleteWing = (id: number): Observable<any> => {

@@ -41,39 +41,31 @@ async function getMultiple(page = 1, perPage){
   }
 }
 
-async function create(hat){
-  const result = await db.query(`INSERT INTO hats (name, hat_material, crown_material) VALUES ((?),(?),(?))`,[ hat.name, hat.hat_material, hat.crown_material ]);
+async function save(hat){
+  const result = await db.query(
+    `INSERT INTO hats (id, name, hat_material, crown_material) 
+    VALUES 
+    ((?),(?),(?),(?)) as new_hats
+    ON DUPLICATE KEY UPDATE
+    name=new_hats.name, hat_material=new_hats.hat_material, crown_material=new_hats.crown_material`,
+    [ hat.id, hat.name, hat.hat_material, hat.crown_material ]
+  );
+  let hat_id = (hat.id == 0)? result.insertId : hat.id;
 
-  let message = 'Error creating hats.';
-  //console.log("New hat ID: " + result.insertId + " ("+ hat.name +")");
+  let message = 'Error saving hat.';
 
   if (result.affectedRows) {
-    message = 'Hat \'' + hat.name + '\' created successfully.';
+    message = 'Hat \'' + hat.name + '\' saved successfully.';
   }
 
   if(hat.wings)
   {
-    message += " " + await sync_wings_for_hat(hat.wings, result.insertId);
+    message += " " + await sync_wings_for_hat(hat.wings, hat_id);
   }
   //console.log(message);
   return {message};
 }
 
-async function update(id, hat){
-    const result = await db.query(`UPDATE hats SET name=(?), hat_material=(?), crown_material=(?) WHERE id=${id}`, [ hat.name, hat.hat_material, hat.crown_material]);
-
-    //console.log("Updated hat ID: " + id + " ("+ hat.name +").");
-    let message = 'Error in updating hat.';
-  
-    if (result.affectedRows) {
-      message = 'Hat \'' + hat.name +'\' updated successfully.';
-    }
-    if(hat.wings)
-    {
-      message += " " + await sync_wings_for_hat(hat.wings, id);
-    }
-    return {message};
-}
 
 //add/remove/update babies for raw material
 //gets the current state of babies per raw material.
@@ -117,10 +109,12 @@ async function sync_wings_for_hat(wings, hat_id)
     //VALUES (?, ?), (?,?)
 
     const update_result = await db.query(
-      `REPLACE INTO hats_wings
+      `INSERT INTO hats_wings
       (id, parent_hat_id, wing_name, wing_quantity)
-      VALUES 
-      ${placeholder}`,
+      VALUES ${placeholder} as new_hats_wings
+      ON DUPLICATE KEY UPDATE
+      parent_hat_id=new_hats_wings.parent_hat_id, 
+      wing_name=new_hats_wings.wing_name, wing_quantity=new_hats_wings.wing_quantity`,
       wings_arr
     );
     message += ", " + update_result.affectedRows + " wing" + ((update_result.affectedRows==1)?"":"s") + " added/updated";
@@ -148,9 +142,8 @@ async function remove(id){
   }
 
 module.exports = {
-    create,
+    save,
     getSingle,
     getMultiple,
-    update,
     remove
 }

@@ -201,7 +201,7 @@ export class HatsEditorComponent  implements OnInit, AfterViewInit{
         this.hat.wings[0].wing_name = this.active_wing_name;
         this.hat.wings[0].wing_quantity = this.numberOfWings.nativeElement.value;
       }
-      
+      /*
       //edit
       if(!this.is_new_hat)
       {
@@ -213,14 +213,16 @@ export class HatsEditorComponent  implements OnInit, AfterViewInit{
       {
         this.saveNewHat(this.hat, createWing);
       }
+        */
+      this.saveHat(this.hat, createWing);
     }
   }
 
-  saveNewHat(hat:Hat, goToCreateWing: boolean = false)
+  saveHat(hat:Hat, goToCreateWing: boolean = false)
   {
     this.btn_save.nativeElement.classList.add("disabled");
 
-    this.hatsService.saveNewHat(hat).subscribe(
+    this.hatsService.saveHat(hat).subscribe(
       {
         next:(data) => { 
           this.btn_save.nativeElement.classList.remove("disabled"); 
@@ -239,11 +241,12 @@ export class HatsEditorComponent  implements OnInit, AfterViewInit{
     );
   }
 
+  /*
   updateHat(id: number, hat:Hat, goToCreateWing: boolean = false)
   {
     this.btn_save.nativeElement.classList.add("disabled");
 
-    this.hatsService.updateHat(hat).subscribe(
+    this.hatsService.saveHat(hat).subscribe(
     {
       next:(data) => { 
         this.btn_save.nativeElement.classList.remove("disabled"); 
@@ -259,7 +262,7 @@ export class HatsEditorComponent  implements OnInit, AfterViewInit{
         this.gotoHatsList(error, true); 
       }
     });
-  }
+  }*/
 
   confirm_delete() {
     this.delete_confirmation.open();

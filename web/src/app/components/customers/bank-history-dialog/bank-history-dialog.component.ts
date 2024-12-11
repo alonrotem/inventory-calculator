@@ -31,10 +31,10 @@ export class BankHistoryDialogComponent {
   }
 
   open(bank_id: number) {
-    console.log("loading history for " + bank_id);
+    //console.log("loading history for " + bank_id);
     this.loading = true;
     this.transactionHistoryService.get_history_for_customer_bank(bank_id).subscribe((records: HistoryReportRecord[])=> {
-      console.log("received " + records.length)
+      //console.log("received " + records.length)
       this.history_records = records;
       this.loading = false;
     });

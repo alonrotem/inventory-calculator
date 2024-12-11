@@ -94,7 +94,7 @@ export class CustomerBanksTableComponent implements AfterViewInit {
     //transaction history: add a "deleted" record, if the allocation is not new (id >= 0)
     //and remove all other history transactions pending (for add/change)
     if(!this.bank.transaction_history) {
-      console.log("!!! RESETTING !!!");
+      //console.log("!!! RESETTING !!!");
       this.bank.transaction_history = [];
     }
 
@@ -104,7 +104,7 @@ export class CustomerBanksTableComponent implements AfterViewInit {
       allocation_transaction_index = this.bank.transaction_history.findIndex(a => a.customer_banks_babies_id == allocationId);
       if(allocation_transaction_index >= 0) {
         this.bank.transaction_history.splice(allocation_transaction_index, 1);
-        console.log("removing transaction record");
+        //console.log("removing transaction record");
       }
       deleted = true;  
     } while (allocation_transaction_index >= 0);
@@ -173,12 +173,12 @@ export class CustomerBanksTableComponent implements AfterViewInit {
   allocation_dialog_closed(currentQuantity: number) {
     let other_allocations_sum = this.banks_baby_allocations.filter(alloc => alloc.customer_bank_id == this.bank.id && alloc.id != this.pendingAllocationIdAction)
       .reduce((acc, alloc) => acc + alloc.quantity, 0);
-    console.log("other_allocations_sum " + other_allocations_sum);
-    console.log("remaing: (this.bank.quantity: " + this.bank.quantity +" - other_allocations_sum: " + other_allocations_sum + " - currentQuantity: " + currentQuantity + " = " + 
-      (this.bank.quantity - other_allocations_sum - currentQuantity))
+    //console.log("other_allocations_sum " + other_allocations_sum);
+    //console.log("remaing: (this.bank.quantity: " + this.bank.quantity +" - other_allocations_sum: " + other_allocations_sum + " - currentQuantity: " + currentQuantity + " = " + 
+    //  (this.bank.quantity - other_allocations_sum - currentQuantity))
     let allocation = this.banks_baby_allocations.find(a => a.id == this.pendingAllocationIdAction);
     if(!this.bank.transaction_history) {
-      console.log("!!! RESETTING !!!");
+      //console.log("!!! RESETTING !!!");
       this.bank.transaction_history = [];
     }
     let pushNewTransationRecord = false;
@@ -205,7 +205,7 @@ export class CustomerBanksTableComponent implements AfterViewInit {
     }
     if(allocation){
       //let directionFactor = (transactionrec.customer_banks_babies_id  allocation.id);
-      console.log("allocation found, to fix");
+      //console.log("allocation found, to fix");
       transactionrec.transaction_quantity = (allocation.id < 0) ? allocation.quantity : (currentQuantity - allocation.quantity);
       transactionrec.customer_banks_babies_id = allocation.id;
       allocation.quantity = currentQuantity;

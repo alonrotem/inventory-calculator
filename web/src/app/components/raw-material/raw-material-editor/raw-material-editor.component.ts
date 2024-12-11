@@ -257,9 +257,9 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
       // bank quantities have changex
       if(this.curr_total_in_banks != this.initial_in_banks) {
         let counting_quantity = this.rawMaterialItem.remaining_quantity + added_to_banks_since_last_load;
-        console.log("this.rawMaterialItem.remaining_quantity " + this.rawMaterialItem.remaining_quantity);
-        console.log("added_to_banks_since_last_load " + added_to_banks_since_last_load);
-        console.log("counting_quantity " + counting_quantity);
+        //console.log("this.rawMaterialItem.remaining_quantity " + this.rawMaterialItem.remaining_quantity);
+        //console.log("added_to_banks_since_last_load " + added_to_banks_since_last_load);
+        //console.log("counting_quantity " + counting_quantity);
         
         this.rawMaterialItem.customer_banks.forEach(customer_bank => {
           
@@ -293,7 +293,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
       let deleted_banks = this.initial_totals_per_bank.filter(bank => current_bank_ids.indexOf(bank.bank_id) < 0);
       let total_quantity_in_deleted_banks = deleted_banks.reduce((n, {bank_quantity}) => n + bank_quantity, 0);
       let cur_raw_material_quantity = this.rawMaterialItem.remaining_quantity - total_quantity_in_deleted_banks;
-      console.log("quantity before banks were deleted: " + cur_raw_material_quantity);
+      //console.log("quantity before banks were deleted: " + cur_raw_material_quantity);
       if(!this.rawMaterialItem.deleted_bank_records) {
         this.rawMaterialItem.deleted_bank_records = [];
       }
@@ -301,7 +301,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
         let date = new Date();
         date.setSeconds(date.getSeconds() + artificial_secs);
         cur_raw_material_quantity += bank.bank_quantity;
-        console.log("Deleted costomer bank " + bank.bank_name + ", quantity " + bank.bank_quantity + " remaining "+ cur_raw_material_quantity);
+        //console.log("Deleted costomer bank " + bank.bank_name + ", quantity " + bank.bank_quantity + " remaining "+ cur_raw_material_quantity);
         this.rawMaterialItem.deleted_bank_records.push({
           id: 0,
           date: date,

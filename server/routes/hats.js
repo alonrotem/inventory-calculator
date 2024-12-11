@@ -41,6 +41,7 @@ curl -i -X POST \
     --data "{  \"name\":\"Test's material\",  \"purchased_at\": \"2024-05-01\", \"weight\": 100, \"created_by\": 2 }" \
         http://localhost:3000/babies/
 */
+/*
 router.post('/', async function(req, res, next) {
     try {
       res.json(await hats.create(req.body));
@@ -48,9 +49,9 @@ router.post('/', async function(req, res, next) {
       console.error(`Error while creating hat `, err.message);
       next(err);
     }
-  });
+  });*/
 
-  // PUT (update) baby
+  // PUT (create/update) baby
   /*
     curl -i \
         -X PUT \
@@ -59,9 +60,9 @@ router.post('/', async function(req, res, next) {
         --data "{  \"name\":\"Alon's\",  \"purchased_at\": \"2024-05-01\", \"weight\": 100, \"updated_by\": 4 }" \
         http://localhost:3000/babies/12
   */
-  router.put('/:id', async function(req, res, next) {
+  router.put('/', async function(req, res, next) {
     try {
-      res.json(await hats.update(req.params.id, req.body));
+      res.json(await hats.save(req.body));
     } catch (err) {
       console.error(`Error while updating hat `, err.message);
       next(err);

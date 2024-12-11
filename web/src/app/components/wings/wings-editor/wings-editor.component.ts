@@ -184,6 +184,7 @@ export class WingsEditorComponent implements OnInit, AfterViewInit,/*, OnDestroy
     if(this.wingForm.form.valid)
     {
       this.wingForm.form.markAsPristine();
+      /*
       //edit
       if(!this.is_new_wing)
       {
@@ -195,6 +196,8 @@ export class WingsEditorComponent implements OnInit, AfterViewInit,/*, OnDestroy
       {
         this.saveNewWing(this.wing, goToHatEditor);
       }
+      */
+      this.saveWing(this.wing, goToHatEditor);
     }
     else {
       let form = document.getElementById('wingForm');
@@ -208,11 +211,11 @@ export class WingsEditorComponent implements OnInit, AfterViewInit,/*, OnDestroy
     }
   }
 
-  saveNewWing(wing:Wing, goToHatEditor: boolean)
+  saveWing(wing:Wing, goToHatEditor: boolean)
   {
     this.btn_save.nativeElement.classList.add("disabled");
 
-    this.wingsService.saveNewWing(wing).subscribe(
+    this.wingsService.saveWing(wing).subscribe(
       {
         next:(data) => { 
           this.btn_save.nativeElement.classList.remove("disabled");
@@ -227,7 +230,7 @@ export class WingsEditorComponent implements OnInit, AfterViewInit,/*, OnDestroy
       }
     );
   }
-
+/*
   updateWing(id: number, wing:Wing, goToHatEditor: boolean)
   {
     this.btn_save.nativeElement.classList.add("disabled");
@@ -246,7 +249,7 @@ export class WingsEditorComponent implements OnInit, AfterViewInit,/*, OnDestroy
       error:(error) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoWingsList(error, true); }
     });
   }
-
+*/
   ngAfterViewInit() {
     this.wingName.nativeElement.focus();
     this.wingName.nativeElement.select();
@@ -341,6 +344,21 @@ export class WingsEditorComponent implements OnInit, AfterViewInit,/*, OnDestroy
     } else {
       this.wing_preview.nativeElement.classList.add("hidden_preview");
     }
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize($event: any) {
+    /*
+    console.log(window.innerWidth);
+    if (window.innerWidth <= 652 ) {
+      this.diagram.scale = 0.3;
+      this.diagram.Rebuild();
+    }
+    else {
+      this.diagram.scale = 1;
+      this.diagram.pan.y = 0;
+      this.diagram.Rebuild();
+    }*/
   }
 }
 

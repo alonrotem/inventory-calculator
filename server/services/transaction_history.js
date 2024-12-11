@@ -28,19 +28,19 @@ async function create_history_record(history){
         `INSERT INTO transaction_history 
         (id, date, added_by, transaction_quantity, transaction_type, raw_material_id, customer_id, customer_bank_id, customer_banks_babies_id, cur_raw_material_quantity, cur_customer_bank_quantity, cur_banks_babies_allocation_quantity)
         VALUES 
-        ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?))
+        ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?)) as new_transaction_history
         ON DUPLICATE KEY UPDATE
-            date = values(date),
-            added_by = values(added_by),
-            transaction_quantity = values(transaction_quantity),
-            transaction_type = values(transaction_type),
-            raw_material_id = values(raw_material_id),
-            customer_id = values(customer_id),
-            customer_bank_id = values(customer_bank_id),
-            customer_banks_babies_id = values(customer_banks_babies_id),
-            cur_raw_material_quantity = values(cur_raw_material_quantity),
-            cur_customer_bank_quantity = values(cur_customer_bank_quantity),
-            cur_banks_babies_allocation_quantity = values(cur_banks_babies_allocation_quantity)`,
+            date = new_transaction_history.date,
+            added_by = new_transaction_history.added_by,
+            transaction_quantity = new_transaction_history.transaction_quantity,
+            transaction_type = new_transaction_history.transaction_type,
+            raw_material_id = new_transaction_history.raw_material_id,
+            customer_id = new_transaction_history.customer_id,
+            customer_bank_id = new_transaction_history.customer_bank_id,
+            customer_banks_babies_id = new_transaction_history.customer_banks_babies_id,
+            cur_raw_material_quantity = new_transaction_history.cur_raw_material_quantity,
+            cur_customer_bank_quantity = new_transaction_history.cur_customer_bank_quantity,
+            cur_banks_babies_allocation_quantity = new_transaction_history.cur_banks_babies_allocation_quantity`,
         [
             history.id, 
             helper.formatDate(history.date), 
@@ -66,7 +66,7 @@ async function create_history_record(history){
 }
 
 async function get_enum_values(table, column){
-    console.log(await helper.getEnumValues(table, column));
+    return await helper.getEnumValues(table, column);
 }
 
 async function get_all_raw_maerial_transactions(raw_material_id){

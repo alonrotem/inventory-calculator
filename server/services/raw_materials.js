@@ -105,10 +105,11 @@ async function save_material(rawMaterial){
       currency, notes, created_at, updated_at, created_by, updated_by) 
     VALUES 
     ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?))
+    as new_raw_materials
     ON DUPLICATE KEY UPDATE
-    name=values(name), purchase_quantity=values(purchase_quantity), remaining_quantity=values(remaining_quantity),
-    quantity_units=values(quantity_units), units_per_kg=values(units_per_kg), vendor_name=values(vendor_name), 
-    origin_country=values(origin_country), price=values(price), currency=values(currency), created_by=values(created_by), updated_by=values(updated_by)`,
+    name=new_raw_materials.name, purchase_quantity=new_raw_materials.purchase_quantity, remaining_quantity=new_raw_materials.remaining_quantity,
+    quantity_units=new_raw_materials.quantity_units, units_per_kg=new_raw_materials.units_per_kg, vendor_name=new_raw_materials.vendor_name, 
+    origin_country=new_raw_materials.origin_country, price=new_raw_materials.price, currency=new_raw_materials.currency, created_by=new_raw_materials.created_by, updated_by=new_raw_materials.updated_by`,
     [
       rawMaterial.id, 
       rawMaterial.name, 

@@ -91,11 +91,12 @@ async function save(customer){
   const result = await db.query(`
     INSERT INTO customers (id, name, business_name, email, phone, tax_id, created_at, updated_at, created_by, updated_by)
     VALUES 
-    ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?))
+    ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?)) 
+    as new_customers
     ON DUPLICATE KEY UPDATE
-    name=values(name), business_name=values(business_name), email=values(email), 
-    phone=values(phone), tax_id=values(tax_id), created_at=values(created_at), 
-    updated_at=values(updated_at), created_by=values(created_by), updated_by=values(updated_by)`,
+    name=new_customers.name, business_name=new_customers.business_name, email=new_customers.email, 
+    phone=new_customers.phone, tax_id=new_customers.tax_id, created_at=new_customers.created_at, 
+    updated_at=new_customers.updated_at, created_by=new_customers.created_by, updated_by=new_customers.updated_by`,
     [
       customer.id,
       customer.name,
@@ -151,7 +152,7 @@ async function save_customer_bank (customer, bank_id){
   }
   else {
     //No bank with this ID
-    console.log("No bank with id " + bank_id + ". skipping save");
+    //console.log("No bank with id " + bank_id + ". skipping save");
     return;
   }
 
@@ -169,9 +170,10 @@ async function save_customer_bank (customer, bank_id){
     INSERT INTO customer_banks (id, customer_id, raw_material_id, quantity, remaining_quantity)
     VALUES 
     ((?),(?),(?),(?),(?))
+    as new_customer_banks
     ON DUPLICATE KEY UPDATE
-    customer_id=values(customer_id), raw_material_id=values(raw_material_id), 
-    quantity=values(quantity), remaining_quantity=values(remaining_quantity)`,
+    customer_id=new_customer_banks.customer_id, raw_material_id=new_customer_banks.raw_material_id, 
+    quantity=new_customer_banks.quantity, remaining_quantity=new_customer_banks.remaining_quantity`,
     [
       bank.id, 
       bank.customer_id, 
@@ -240,10 +242,11 @@ async function save_customer_bank (customer, bank_id){
         `insert into customer_banks_babies (id, customer_bank_id, quantity, remaining_quantity)
         VALUES
         ((?),(?),(?),(?))
+        as new_customer_banks_babies
         ON DUPLICATE KEY UPDATE
-        customer_bank_id=values(customer_bank_id),
-        quantity=values(quantity),
-        remaining_quantity=values(remaining_quantity)`,
+        customer_bank_id=new_customer_banks_babies.customer_bank_id,
+        quantity=new_customer_banks_babies.quantity,
+        remaining_quantity=new_customer_banks_babies.remaining_quantity`,
       [
         allocation.id,
         new_bank_id,
@@ -254,15 +257,15 @@ async function save_customer_bank (customer, bank_id){
 
       //save transaction records for this allocation
       if(bank.transaction_history && bank.transaction_history.length > 0){
-        console.log("FOUND " + bank.transaction_history.length +" TRANSACTIONS TO SAVE");
-        console.log("original allocation id: " + original_allocation_id);
-        console.log("new allocation id: " + new_allocation_id);
+        //console.log("FOUND " + bank.transaction_history.length +" TRANSACTIONS TO SAVE");
+        //console.log("original allocation id: " + original_allocation_id);
+        //console.log("new allocation id: " + new_allocation_id);
         let filtered_recs = bank.transaction_history.filter(alloc => alloc.customer_banks_babies_id == original_allocation_id);
-        console.log("filtered_recs " + filtered_recs.length);
-        console.dir(bank.transaction_history);
+        //console.log("filtered_recs " + filtered_recs.length);
+        //console.dir(bank.transaction_history);
         bank.transaction_history.filter(alloc => alloc.customer_banks_babies_id == original_allocation_id).forEach(async record => {
           record.customer_banks_babies_id = new_allocation_id;
-          console.log(record);
+          //console.log(record);
           await transaction_history.create_history_record(record);
         });
       }
@@ -284,10 +287,11 @@ async function save_customer_bank (customer, bank_id){
         const babiesResult = await db.query(
           `INSERT INTO babies (id, customer_banks_babies_id, length, quantity)
           VALUES ${placeholder}
+          as new_babies
           ON DUPLICATE KEY UPDATE
-          customer_banks_babies_id=values(customer_banks_babies_id),
-          length=values(length),
-          quantity=values(quantity)`, babies_to_save_arr);
+          customer_banks_babies_id=new_babies.customer_banks_babies_id,
+          length=new_babies.length,
+          quantity=new_babies.quantity`, babies_to_save_arr);
       }
     }
     //save transaction records for deleted allocations
@@ -402,12 +406,12 @@ async function sync_banks_for_raw_material(banks, raw_material_id)
         `INSERT INTO customer_banks (id, customer_id, raw_material_id, quantity, remaining_quantity) 
           VALUES 
           ((?), (?), (?), (?), (?))
-          ON DUPLICATE KEY
-          UPDATE 
-            customer_id=values(customer_id),
-            raw_material_id=values(raw_material_id),
-            quantity=values(quantity),
-            remaining_quantity=values(remaining_quantity);`,
+          as new_customer_banks
+          ON DUPLICATE KEY UPDATE 
+            customer_id=new_customer_banks.customer_id,
+            raw_material_id=new_customer_banks.raw_material_id,
+            quantity=new_customer_banks.quantity,
+            remaining_quantity=new_customer_banks.remaining_quantity;`,
             [ 
               bank.id,
               bank.customer_id,
@@ -433,10 +437,15 @@ async function sync_banks_for_raw_material(banks, raw_material_id)
       customers_created += new_customer.affectedRows;
       
       const add_banks_for_new = await db.query(
-        `REPLACE INTO customer_banks 
-        (id, customer_id, raw_material_id, quantity, remaining_quantity) 
-        VALUES 
-        ((?),(?),(?),(?),(?))`,
+        `INSERT INTO customer_banks (id, customer_id, raw_material_id, quantity, remaining_quantity) 
+          VALUES 
+          ((?), (?), (?), (?), (?))
+          as new_customer_banks
+          ON DUPLICATE KEY UPDATE 
+            customer_id=new_customer_banks.customer_id,
+            raw_material_id=new_customer_banks.raw_material_id,
+            quantity=new_customer_banks.quantity,
+            remaining_quantity=new_customer_banks.remaining_quantity;`,
         [
           banks_with_new_customers[i].id,
           new_customer_id,

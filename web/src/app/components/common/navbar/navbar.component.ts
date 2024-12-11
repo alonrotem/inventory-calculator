@@ -3,12 +3,13 @@ import { ThemeSelectorComponent } from '../theme-selector/theme-selector.compone
 import { Location, NgClass } from '@angular/common';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { RouterLink, RouterOutlet } from '@angular/router';
+import { HamburgerComponent } from '../hamburger/hamburger.component';
 
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [ ThemeSelectorComponent, NgClass, RouterLink, RouterOutlet ],
+  imports: [ ThemeSelectorComponent, NgClass, RouterLink, RouterOutlet, HamburgerComponent ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss'
 })

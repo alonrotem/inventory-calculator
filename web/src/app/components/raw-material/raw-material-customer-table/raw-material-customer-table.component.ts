@@ -136,8 +136,8 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   }
 
   closedCustomerEditor(bank: RawMaterialCustomerBank){
-    console.log("closedCustomerEditor bank -> ");
-    console.dir(bank);
+    //console.log("closedCustomerEditor bank -> ");
+    //console.dir(bank);
     //1. check if there is a bank with that customer name, no matter the customer id
     let bankWithSameCustomerName = this.banks.find(b => b.name.toUpperCase() == bank.name.toUpperCase());
     let bankInitialData = this.banks_loaded_quantities.find(b => b.bank_id == bank.id);

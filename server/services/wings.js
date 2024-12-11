@@ -95,14 +95,20 @@ async function getMultiple(page = 1, perPage){
   }
 }
 
-async function create(wing){
-  const result = await db.query(`INSERT INTO wings (name, width)  VALUES ((?), (?))`, [ wing.name, wing.width ]);
+async function save(wing){
+  const result = await db.query(
+    `INSERT INTO wings (id, name, width) 
+      VALUES ((?), (?), (?)) as new_wing
+      ON DUPLICATE KEY UPDATE
+      name=new_wing.name, width=new_wing.width
+      `, [ wing.id, wing.name, wing.width ]
+  );
 
   let message = 'Error creating raw material';
   //console.log("New wing ID: " + result.insertId + " ("+ wing.name +")");
 
   if (result.affectedRows) {
-    message = 'Wing \'' + wing.name + '\' created successfully';
+    message = 'Wing \'' + wing.name + '\' saved successfully';
   }
 
   if(wing.babies)
@@ -126,9 +132,11 @@ async function getWingNames(){
   const data = helper.emptyOrRows(result).map(wing => wing.name);
   return (data);
 }
-
+/*
 async function update(id, wing){
-    const result = await db.query(`UPDATE wings SET name=(?), width=(?) WHERE id=${id}`, [ wing.name, wing.width ]);
+    const result = await db.query(
+      `UPDATE wings SET name=(?), width=(?) WHERE id=${id}`, [ wing.name, wing.width ]
+    );
     //console.log("Updated wing ID: " + id + " ("+ wing.name +")");
     let message = 'Error in updating wing';
   
@@ -140,7 +148,7 @@ async function update(id, wing){
       await sync_babies_for_wing(wing.babies, id);
     }
     return {message};
-}
+}*/
 
 async function sync_babies_for_wing(babies, wing_id)
 {
@@ -238,11 +246,11 @@ async function remove(id){
   }
 
 module.exports = {
-  create,
+  save,
   getSingle,
   getSingleWingByName,
   getMultiple,
-  update,
+  //update,
   remove,
   //getWingBabyPositions,
   getWingNames
