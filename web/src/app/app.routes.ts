@@ -11,6 +11,10 @@ import { HatsEditorComponent } from './components/hats/hats-editor/hats-editor.c
 import { UnsavedChangesGuard } from './guards/unsaved-changes-guard';
 import { CustomersTableComponent } from './components/customers/customers-table/customers-table.component';
 import { CustomerEditorComponent } from './components/customers/customer-editor/customer-editor.component';
+import { SettingsAlertsComponent } from './components/settings/settings-alerts/settings-alerts.component';
+import { SettingsBackupComponent } from './components/settings/settings-backup/settings-backup.component';
+import { SettingsNotificationsComponent } from './components/settings/settings-notifications/settings-notifications.component';
+import { SettingsMainComponent } from './components/settings/settings-main/settings-main.component';
 
 export const routes: Routes = [
     {
@@ -57,6 +61,21 @@ export const routes: Routes = [
         component: CustomerEditorComponent,
         canDeactivate: [UnsavedChangesGuard]
     },
+    {
+        path: 'settings/alerts',
+        component: SettingsAlertsComponent,
+        //canDeactivate: [UnsavedChangesGuard]
+    },
+    {
+        path: 'settings/backup',
+        component: SettingsBackupComponent,
+        //canDeactivate: [UnsavedChangesGuard]
+    },
+    {
+        path: 'settings',
+        component: SettingsMainComponent,
+        //canDeactivate: [UnsavedChangesGuard]
+    },    
     { 
         path: '**', pathMatch: 'full',  
         component: PagenotfoundComponent 

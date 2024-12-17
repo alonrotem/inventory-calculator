@@ -86,11 +86,39 @@ async function get_all_raw_maerial_transactions(raw_material_id){
     const data = helper.emptyOrRows(rows);
     return data;
 }
+
 async function get_all_customer_bank_transactions(bank_id) {
     const rows = await db.query(
         `select * from transaction_history where customer_bank_id=${bank_id} order by date;`
     );
-        const data = helper.emptyOrRows(rows);
+    const data = helper.emptyOrRows(rows);
+    return data;
+}
+
+async function get_raw_materials_quantity_history(quantity_units) {
+    const rows = await db.query(
+        `SELECT 
+            th.id,
+            th.date,
+            th.transaction_quantity,
+            th.transaction_type,
+            SUM(
+                CASE 
+                    WHEN th.transaction_type IN ('raw_material_purchase', 'deleted_customer_bank') THEN th.transaction_quantity
+                    WHEN th.transaction_type = 'to_customer_bank' THEN -th.transaction_quantity
+                    ELSE 0
+                END
+            ) OVER (ORDER BY th.date ROWS UNBOUNDED PRECEDING) AS cumulative_amount
+        FROM 
+            transaction_history th
+        JOIN 
+            raw_materials rm ON th.raw_material_id = rm.id
+        WHERE 
+            rm.quantity_units = '${quantity_units}' AND 
+            th.transaction_type IN ('raw_material_purchase', 'to_customer_bank', 'deleted_customer_bank')
+        ORDER BY 
+            th.date;`);
+    const data = helper.emptyOrRows(rows);
     return data;
 }
 
@@ -98,5 +126,6 @@ module.exports = {
     create_history_record,
     get_enum_values,
     get_all_raw_maerial_transactions,
-    get_all_customer_bank_transactions
+    get_all_customer_bank_transactions,
+    get_raw_materials_quantity_history
 }

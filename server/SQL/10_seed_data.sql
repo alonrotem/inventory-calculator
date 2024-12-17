@@ -77,23 +77,23 @@ INSERT INTO `transaction_history` (
 VALUES
 -- Sable: 200
 ('2024-09-11', 1, 200, 'raw_material_purchase', @sable_id, 0, 0, 0, 200, 0, 0),
-('2024-09-11 01:01', 1, 10, 'to_customer_bank', @sable_id, @alon_id, @bank_alon_sable, 0, 190, 10, 0),
-('2024-09-11 01:02', 1, 15, 'to_customer_bank', @sable_id, @avi_id, @bank_avi_sable, 0, 175, 15, 0),
-('2024-09-11 01:03', 1, 2, 'to_customer_bank', @sable_id, @guy_id, @bank_guy_sable, 0, 173, 2, 0),
-('2024-09-11 01:04', 1, 16, 'to_customer_bank', @sable_id, @eran_id, @bank_eran_sable, 0, 157, 16, 0),
-('2024-09-11 01:05', 1, 10, 'raw_material_purchase', @sable_id, 0, 0, 0, 167, 0, 0),
-('2024-09-11 01:06', 1, 15, 'to_customer_bank', @sable_id, @avi_id, @bank_avi_sable, 0, 152, 30, 0),
+('2024-09-12 01:01', 1, 10, 'to_customer_bank', @sable_id, @alon_id, @bank_alon_sable, 0, 190, 10, 0),
+('2024-09-13 01:02', 1, 15, 'to_customer_bank', @sable_id, @avi_id, @bank_avi_sable, 0, 175, 15, 0),
+('2024-09-14 01:03', 1, 2, 'to_customer_bank', @sable_id, @guy_id, @bank_guy_sable, 0, 173, 2, 0),
+('2024-09-15 01:04', 1, 16, 'to_customer_bank', @sable_id, @eran_id, @bank_eran_sable, 0, 157, 16, 0),
+('2024-09-16 01:05', 1, 10, 'raw_material_purchase', @sable_id, 0, 0, 0, 167, 0, 0),
+('2024-09-17 01:06', 1, 15, 'to_customer_bank', @sable_id, @avi_id, @bank_avi_sable, 0, 152, 30, 0),
 -- DM: 25
-('2024-09-11', 1, 25, 'raw_material_purchase', @dm_id, 0, 0, 0, 25, 0, 0),
-('2024-09-11 01:00', 1, 20, 'to_customer_bank', @dm_id, @alon_id, @bank_alon_dm, 0, 5, 20, 0),
+('2024-09-18', 1, 25, 'raw_material_purchase', @dm_id, 0, 0, 0, 25, 0, 0),
+('2024-09-19 01:00', 1, 20, 'to_customer_bank', @dm_id, @alon_id, @bank_alon_dm, 0, 5, 20, 0),
 -- Other purchases
-('2024-09-11', 1, 1000, 'raw_material_purchase', @sm_id, 0, 0, 0, 1000, 0, 0),
-('2024-09-11', 1, 750, 'raw_material_purchase', @bm_id, 0, 0, 0, 750, 0, 0),
-('2024-09-11', 1, 7, 'raw_material_purchase', @canady_id, 0, 0, 0, 7, 0, 0),
+('2024-09-20', 1, 1000, 'raw_material_purchase', @sm_id, 0, 0, 0, 1000, 0, 0),
+('2024-09-21', 1, 750, 'raw_material_purchase', @bm_id, 0, 0, 0, 750, 0, 0),
+('2024-09-22', 1, 7, 'raw_material_purchase', @canady_id, 0, 0, 0, 7, 0, 0),
 -- bank work allocations
-('2024-09-12', 1, 5, 'customer_bank_allocate_to_Work', @sable_id, @alon_id, @bank_alon_sable, @alon_sable_bank_allocation_1, -1, 5, 0),
-('2024-09-13', 1, 3, 'customer_bank_allocate_to_Work', @sable_id, @alon_id, @bank_alon_sable, @alon_sable_bank_allocation_2, -1, 2, 0),
-('2024-09-13', 1, 5, 'customer_bank_allocate_to_Work', @sable_id, @alon_id, @bank_alon_dm, @alon_dm_bank_allocation_1, -1, 15, 0);
+('2024-09-23', 1, 5, 'customer_bank_allocate_to_Work', @sable_id, @alon_id, @bank_alon_sable, @alon_sable_bank_allocation_1, -1, 5, 0),
+('2024-09-24', 1, 3, 'customer_bank_allocate_to_Work', @sable_id, @alon_id, @bank_alon_sable, @alon_sable_bank_allocation_2, -1, 2, 0),
+('2024-09-25', 1, 5, 'customer_bank_allocate_to_Work', @sable_id, @alon_id, @bank_alon_dm, @alon_dm_bank_allocation_1, -1, 15, 0);
 
 -- seed babies
 INSERT INTO babies (customer_banks_babies_id, length, quantity)

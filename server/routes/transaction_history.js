@@ -35,6 +35,15 @@ router.post('/', async function(req, res, next) {
     }
   });
 
+  router.get('/raw_quantity_history/:quantity_units', async function(req, res, next) {
+    try {
+      res.json(await transaction_history.get_raw_materials_quantity_history(req.params.quantity_units));
+    } catch (err) {
+      console.error(`Error while getting quantity history `, err.message);
+      next(err);
+    }
+  });
+
   router.get('/enums', async function(req, res, next) {
     try {
       res.json(await transaction_history.get_enum_values('transaction_history', 'transaction_type'));

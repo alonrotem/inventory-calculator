@@ -23,6 +23,7 @@ router.get('/', async function(req, res, next) {
 
     res.setHeader('Content-disposition', 'attachment; filename=' + backup_file_name);
     res.setHeader('Content-type', 'text/plain');
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
     res.charset = 'UTF-8';
     res.write(inserts);
     res.end();

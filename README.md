@@ -64,59 +64,50 @@ Extra features:
 - Notifications
 - Dashboard
 
-✅ NEXT TODOS:
-+ https://jsfiddle.net/alrotem/oqpkce0f/
-+ Save material - toaster message on saved successfully, then allow to add babies
-+ Add validation to material form
-+ Add delete button
-+ Add load either weight or units, also for empty item
-+ Save procedure to save either weight or units, not both
-+ Spread materials editor buttons + add icons
-+ Babies
-
 
 ===========================================================
-Raw material
-    Initial purchase: 
-        Quantity type: Units / kg
-        Quantity: (number)
-    Central Bank: 
-        Followed by audit:
-            Date | by user | quantity
+SETTINGS
+
+-- Alerts --
+
+Raw material totals:
+    Alert when raw material total kg quantity below ___ kg
+    Alert when raw material total unit quantity below ___ unit
+
+Raw material item:
+    Alert when raw material item quantity below ___ %
+    or
+    Alert when raw material item kg quantity below ___ kg
+    Alert when raw material item unit quantity below ___ unit
+
+    Mark raw material item yellow if quantity below __ %
+    Mark raw material item red if quantity below __ %
+
+Raw material in customer banks:
+    Alert when raw material in customer bank quantity below ___ %
+    or
+    Alert when raw material kg in customer bank below ___ kg
+    Alert when raw material units in customer bank below ___ unit
+
+    Mark raw material in customer bank yellow if quantity below __ %
+    Mark raw material in customer bank red if quantity below __ %
+
+-- Notifications --
+    Notify in app
+        Sound
+    Notify by email
+
+-- Backup --
+    Download backup
+        [with clean up]
+    Upload backup
+        [cleanup]
 
 
 ===========================================================
 
 BACKUP:
 mysqldump  -P 3306 -h 127.0.0.1 -u root -p12345678 inventory --opt --skip-dump-date | sed 's$VALUES ($VALUES\n($g' | sed 's$),($),\n($g' > /home/alon/Projects/inventory-calculator/server/SQL/data_exports/data_backup.sql; chmod 666 /home/alon/Projects/inventory-calculator/server/SQL/data_exports/data_backup.sql; git pull; git add .; git commit -m"DB data backup"; git push
-
-Wings, made of babies (each element with possible % of alternate)
--	Name
--	Left 1: baby material + size
--	Left 2
--	Left 3
--	…
--	Top 1
--	Top 2
--	Top 3
--	..
--	Right 1
--	Right 2
--	Right 3
--	…
--	Crown 1
--	Crown 2
--	Crown 3
-
-Wing positions
-                Left
-                Top
-                Right
-                Crown
-Wing Name > Wings
-                Position
-                Material
-                Length
 
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.3.5.

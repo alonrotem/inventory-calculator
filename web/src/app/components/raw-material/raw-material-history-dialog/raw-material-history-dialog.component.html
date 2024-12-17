@@ -28,7 +28,11 @@
           <tr *ngFor="let record of history_records; index as i">
             <td>{{ record.date | dateStr }}</td>
             <td [ngSwitch]="record.transaction_type">
-              <span *ngSwitchCase="'raw_material_purchase'">Material purchase</span>
+              <span *ngSwitchCase="'raw_material_purchase'">
+                <span *ngIf="record.transaction_quantity >= 0">Material purchase</span>
+                <span *ngIf="record.transaction_quantity < 0">Material quantity reduction</span>
+                
+              </span>
               <span *ngSwitchCase="'to_customer_bank'">
                 <span *ngIf="record.transaction_quantity >= 0">To customer's bank:</span>
                 <span *ngIf="record.transaction_quantity < 0">From customer's bank:</span>
@@ -39,7 +43,9 @@
               </span>
             </td>
             <td [ngSwitch]="record.transaction_type" class="text-end">
-              <span *ngSwitchCase="'raw_material_purchase'" class="text-success">+{{ record.transaction_quantity }} {{ raw_material_units }}</span>
+              <span *ngSwitchCase="'raw_material_purchase'" class="text-success">
+                <span *ngIf="record.transaction_quantity >= 0">+</span>{{ record.transaction_quantity }} {{ raw_material_units }}
+              </span>
               <span *ngSwitchCase="'to_customer_bank'">
                 <span class="text-danger" *ngIf="record.transaction_quantity >= 0">-{{ record.transaction_quantity }}</span>
                 <span class="text-success" *ngIf="record.transaction_quantity < 0">+{{ Math.abs(record.transaction_quantity) }}</span> {{ raw_material_units }}

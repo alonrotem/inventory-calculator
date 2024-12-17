@@ -102,7 +102,8 @@ async function get_backup(keep_existing_records) {
         await create_table_backup_statement('wings', keep_existing_records) +
         await create_table_backup_statement('wings_babies', keep_existing_records) +
         await create_table_backup_statement('hats', keep_existing_records) +
-        await create_table_backup_statement('hats_wings', keep_existing_records)
+        await create_table_backup_statement('hats_wings', keep_existing_records) +
+        await create_table_backup_statement('settings', keep_existing_records) 
     ;
     return inserts;
 }

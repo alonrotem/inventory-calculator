@@ -15,6 +15,7 @@ const hatsRouter = require("./routes/hats");
 const customersRouter = require("./routes/customers");
 const transaction_historyRouter = require("./routes/transaction_history");
 const backupRouter = require("./routes/backup");
+const settingsRouter = require("./routes/settings");
 
 app.use(express.json());
 app.use(
@@ -36,6 +37,7 @@ app.use("/hats", hatsRouter);
 app.use("/customers", customersRouter);
 app.use("/transaction_history", transaction_historyRouter);
 app.use("/backup", backupRouter);
+app.use("/settings", settingsRouter);
 
 /* Error handler middleware */
 app.use((err, req, res, next) => {

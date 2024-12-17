@@ -19,6 +19,10 @@ export class SummaryCardComponent implements OnInit {
   total_babies: number = 0;
   total_wings: number = 0;
   total_hats: number = 0;
+  raw_material_kg: number = 0;
+  raw_material_remaining_kg: number = 0;
+  raw_material_units: number = 0;
+  raw_material_remaining_units: number = 0;
 
   loading: boolean = true;
   faArrowsRotate: IconDefinition = faArrowsRotate;
@@ -34,6 +38,10 @@ export class SummaryCardComponent implements OnInit {
         this.total_babies = stats.total_babies;
         this.total_wings = stats.total_wings;
         this.total_hats = stats.total_hats;
+        this.raw_material_kg = stats.cur_raw_material_quantity_kg;
+        this.raw_material_remaining_kg = stats.cur_raw_material_remaining_kg;
+        this.raw_material_units = stats.cur_raw_material_quantity_units;
+        this.raw_material_remaining_units = stats.cur_raw_material_remaining_units;
         this.loading = false;
       },
       error: (error) => {

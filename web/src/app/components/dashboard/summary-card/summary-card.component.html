@@ -3,8 +3,13 @@
     <div class="card-body" [ngClass]="{'no_visibility': loading }">
       <div class="stats-container">
         <h5>Invetory</h5>
-        <p class="card-text"><span class="icon-leaf"></span> Raw material records: {{ raw_material_records | number: '1.0-0' }}</p>
-        <p class="card-text"><span class="icon-baby"></span> Babies: {{ total_babies | number: '1.0-0' }} in {{ total_baby_records | number: '1.0-0' }} {{ (total_baby_records == 1)? 'records' : 'records' }}</p>
+        <p class="card-text"><span class="icon-leaf"></span> Raw material: </p>
+        <div>
+          Raw material records: {{ raw_material_records | number: '1.0-0' }}<br/>
+          Total {{ raw_material_kg | number: '1.0-0' }} kg ({{ raw_material_remaining_kg  | number: '1.0-0' }} remaining)<br/>
+          Total {{ raw_material_units | number: '1.0-0' }} units ({{ raw_material_remaining_units  | number: '1.0-0' }} remaining)
+        </div>
+        <!--<p class="card-text"><span class="icon-baby"></span> Babies: {{ total_babies | number: '1.0-0' }} in {{ total_baby_records | number: '1.0-0' }} {{ (total_baby_records == 1)? 'records' : 'records' }}</p>-->
         
         <h5>Templates</h5>
         <p class="card-text"><span class="icon-feather-wing"></span> Wings: {{ total_wings | number: '1.0-0' }}</p>
@@ -12,7 +17,7 @@
       </div>
       <div class="shortcuts">
         <a href="/inventory/raw" class="card-link" title="Go to raw materials management"><span class="icon-leaf"></span></a>
-        <a href="/inventory/babies" class="card-link" title="Go to babies list"><span class="icon-baby"></span></a>
+        <!--<a href="/inventory/babies" class="card-link" title="Go to babies list"><span class="icon-baby"></span></a>-->
         <a href="/templates/wings" class="card-link" title="Go to wings management"><span class="icon-feather-wing"></span></a>
         <a href="/templates/hats" class="card-link" title="Go to hats management"><span class="icon-hat"></span></a>
       </div>

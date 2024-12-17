@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Options } from '../../types';
 
@@ -14,6 +14,13 @@ export class ApiService {
 
   get<T>(url: string, options: Options): Observable<T>{
     return this.httpClient.get<T>(url, options) as Observable<T>;
+  }
+
+  get_file(url: string): Observable<HttpResponse<Blob>>{
+    return this.httpClient.get(url, { 
+      observe: 'response', 
+      responseType: 'blob' 
+    }) as Observable<HttpResponse<Blob>>;
   }
 
   post<T>(url: string, body: any, options: Options): Observable<T>{

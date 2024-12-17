@@ -1,0 +1,35 @@
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8">
+      <div class="settings-title">
+        <h3><fa-icon [icon]="faGears"></fa-icon> System settings</h3>
+      </div>
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <a [ngClass]="{'nav-link': true, 'active': (currentPage == settingsPage.alerts)}" aria-current="page" (click)="setPage(settingsPage.alerts)">Alerts</a>
+    </li>
+    <li class="nav-item">
+      <a  [ngClass]="{'nav-link': true, 'active': (currentPage == settingsPage.notifications)}" (click)="setPage(settingsPage.notifications)">Notifications</a>
+    </li>
+    <li class="nav-item">
+      <a [ngClass]="{'nav-link': true, 'active': (currentPage == settingsPage.backup)}" (click)="setPage(settingsPage.backup)">Backup</a>
+    </li>
+  </ul>
+  <div class="settings-contents">
+    
+    <app-settings-alerts 
+        [ngClass]="{ 'd-none': (currentPage != settingsPage.alerts)}"
+        [settings]="settings"
+        />
+    
+
+    <app-settings-notifications 
+        [ngClass]="{ 'd-none': (currentPage != settingsPage.notifications)}"
+        />
+
+    <app-settings-backup 
+        [ngClass]="{ 'd-none': (currentPage != settingsPage.backup)}"
+        />
+
+  </div>
+    </div>
+</div>

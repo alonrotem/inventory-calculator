@@ -1,1 +1,16 @@
-<app-summary-card />
+
+<div class="home-wrapper">
+
+    <app-summary-card />
+
+    <app-raw-material-chart 
+        [raw_material_quantity_units]="'kg'"
+        [color]="'green'"
+    />
+
+    <app-raw-material-chart 
+        [raw_material_quantity_units]="'units'"
+        [color]="'red'"
+    />
+
+</div>

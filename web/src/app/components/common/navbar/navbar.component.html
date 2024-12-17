@@ -20,7 +20,7 @@
               <li><a class="dropdown-item" routerLink="inventory/customers" [ngClass]="(currentUrl.indexOf('/inventory/customers') >= 0) ? 'active': ''"><span class="icon-address-book"></span> Customers</a></li>
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item" routerLink="inventory/raw" [ngClass]="(currentUrl.indexOf('/inventory/raw') >= 0) ? 'active': ''"><span class="icon-leaf"></span> Raw materials</a></li>
-              <li><a class="dropdown-item" routerLink="inventory/babies" [ngClass]="(currentUrl.indexOf('/inventory/babies') >= 0) ? 'active': ''"><span class="icon-baby"></span> Babies</a></li>
+              <!--<li><a class="dropdown-item" routerLink="inventory/babies" [ngClass]="(currentUrl.indexOf('/inventory/babies') >= 0) ? 'active': ''"><span class="icon-baby"></span> Babies</a></li>-->
             </ul>
           </li>          
           
@@ -37,8 +37,13 @@
             </ul>
           </li>
           <li class="nav-item">
+            <a class="nav-link" aria-current="page" routerLink="/settings"  [ngClass]="(currentUrl.indexOf('/settings/') >= 0) ? 'active': ''"><span class="icon-home"></span> Settings</a> <!--active-->
+          </li>
+          <!--          
+          <li class="nav-item">
             <a class="nav-link disabled" aria-disabled="true">Disabled</a>
           </li>
+          -->
           <li>
             <app-theme-selector />
           </li>

@@ -1,0 +1,137 @@
+<h3><span class="icon-leaf"></span>Raw material alerts</h3>
+<form novalidate #settings_form="ngForm" [id]="'settings_form'" *ngIf="settings">
+<div class="section">
+    <h5>Raw material totals</h5>
+
+    <div class="switch-group form-check form-switch">
+        <input class="form-check-input" type="checkbox" #chk_alert_raw_material_total_kg="ngModel" name="chk_alert_raw_material_total_kg" [(ngModel)]="settings['alert_raw_material_total_kg']">
+        <label class="form-check-label" for="chk_alert_raw_material_total_kg">
+            Alert when raw material total quantity below 
+            <input type="number" class="form-control" #txtAlert_raw_material_total_kg_below="ngModel" name="txtAlert_raw_material_total_kg_below" placeholder="0" [(ngModel)]="settings['alert_raw_material_total_kg_below']" [disabled]="!settings['alert_raw_material_total_kg']"> 
+            kg
+        </label>
+    </div>
+
+    <div class="switch-group form-check form-switch">
+        <input class="form-check-input" type="checkbox" #chk_alert_raw_material_total_units="ngModel" name="chk_alert_raw_material_total_units" [(ngModel)]="settings['alert_raw_material_total_units']">
+        <label class="form-check-label" for="chk_alert_raw_material_total_units">
+            Alert when raw material total quantity below 
+            <input type="number" class="form-control" #txtAlert_raw_material_total_units_below="ngModel" name="txtAlert_raw_material_total_units_below" placeholder="0" [(ngModel)]="settings['alert_raw_material_total_units_below']" [disabled]="!settings['alert_raw_material_total_units']"> 
+            units
+        </label>
+    </div>
+
+</div>
+
+
+<div class="section">
+    <h5>Raw material single item</h5>
+
+    <div class="switch-group form-check form-switch">
+        <input class="form-check-input" type="checkbox" #chk_alert_raw_material_item_percents="ngModel" name="chk_alert_raw_material_total_kg" [(ngModel)]="settings['alert_raw_material_item_percents']">
+        <label class="form-check-label" for="chk_alert_raw_material_item_percents">
+            Alert when raw material item remaining quantity goes below 
+            <input type="number" class="form-control" #txt_alert_raw_material_item_percents="ngModel" name="txt_alert_raw_material_item_percents" placeholder="0" [(ngModel)]="settings['alert_raw_material_item_percents_below']" [disabled]="!settings['alert_raw_material_item_percents']"> 
+            %
+        </label>
+    </div>
+
+    <div class="switch-group form-check form-switch">
+        <input class="form-check-input" type="checkbox" #chk_alert_raw_material_item_kg="ngModel" name="chk_alert_raw_material_total_kg" [(ngModel)]="settings['alert_raw_material_item_kg']">
+        <label class="form-check-label" for="chk_alert_raw_material_item_kg">
+            Alert when raw material item remaining quantity goes below 
+            <input type="number" class="form-control" #txt_alert_raw_material_item_kg="ngModel" name="txt_alert_raw_material_item_kg" placeholder="0" [(ngModel)]="settings['alert_raw_material_item_kg_below']" [disabled]="!settings['alert_raw_material_item_kg']"> 
+            kg
+        </label>
+    </div>
+
+    <div class="switch-group form-check form-switch">
+        <input class="form-check-input" type="checkbox" #chk_alert_raw_material_item_units="ngModel" name="chk_alert_raw_material_item_units" [(ngModel)]="settings['alert_raw_material_item_units']">
+        <label class="form-check-label" for="chk_alert_raw_material_item_units">
+            Alert when raw material item remaining quantity goes below 
+            <input type="number" class="form-control" #txt_alert_raw_material_item_units="ngModel" name="txt_alert_raw_material_item_units" placeholder="0" [(ngModel)]="settings['alert_raw_material_item_units_below']" [disabled]="!settings['alert_raw_material_item_units']"> 
+            units
+        </label>
+    </div>
+
+    <div class="switch-group form-check form-switch">
+        <input class="form-check-input" type="checkbox" #chk_mark_yellow_raw_material_item_percents="ngModel" name="chk_mark_yellow_raw_material_item_percents" [(ngModel)]="settings['mark_yellow_raw_material_item_percents']">
+        <label class="form-check-label" for="chk_mark_yellow_raw_material_item_percents">
+            <span class="text-warning">Mark material item YELLOW if remaining quantity goes below</span>
+            <input type="number" class="form-control" #txt_mark_yellow_raw_material_item_percents="ngModel" name="txt_mark_yellow_raw_material_item_percents" placeholder="0" [(ngModel)]="settings['mark_yellow_raw_material_item_percents_below']" [disabled]="!settings['mark_yellow_raw_material_item_percents']"> 
+            %
+        </label>
+    </div>
+
+    <div class="switch-group form-check form-switch">
+        <input class="form-check-input" type="checkbox" #chk_mark_red_raw_material_item_percents="ngModel" name="chk_mark_red_raw_material_item_percents" [(ngModel)]="settings['mark_red_raw_material_item_percents']">
+        <label class="form-check-label" for="chk_mark_red_raw_material_item_percents">
+            <span class="text-danger">Mark material item RED if remaining quantity goes below</span>
+            <input type="number" class="form-control" #txt_mark_red_raw_material_item_percents="ngModel" name="txt_mark_red_raw_material_item_percents" placeholder="0" [(ngModel)]="settings['mark_red_raw_material_item_percents_below']" [disabled]="!settings['mark_red_raw_material_item_percents']"> 
+            %
+        </label>
+    </div>
+
+</div>
+
+<div class="section">
+    <h5>Raw material in customer banks</h5>
+<!--/* Raw material in customer banks: */
+
+
+-- Mark the customer bankin YELLOW, if raw material item quantity less than __%
+('', '1', '1', 'boolean'),
+('', '30', '30', 'number'),
+-- Mark the customer bank in RED, if raw material item quantity less than __%
+('', '1', '1', 'boolean'),
+('mark_red_customer_bank_percents_below', '10', '10', 'number')
+-->
+    <div class="switch-group form-check form-switch">
+        <input class="form-check-input" type="checkbox" #chk_alert_customer_bank_percents="ngModel" name="chk_alert_customer_bank_percents" [(ngModel)]="settings['alert_customer_bank_percents']">
+        <label class="form-check-label" for="chk_alert_customer_bank_percents">
+            Alert when customer bank remaining quantity goes below 
+            <input type="number" class="form-control" #txt_alert_customer_bank_percents="ngModel" name="txt_alert_customer_bank_percents" placeholder="0" [(ngModel)]="settings['alert_customer_bank_percents_below']" [disabled]="!settings['alert_customer_bank_percents']"> 
+            %
+        </label>
+    </div>
+
+    <div class="switch-group form-check form-switch">
+        <input class="form-check-input" type="checkbox" #chk_alert_customer_bank_kg="ngModel" name="chk_alert_customer_bank_kg" [(ngModel)]="settings['alert_customer_bank_kg']">
+        <label class="form-check-label" for="chk_alert_customer_bank_kg">
+            Alert when customer bank remaining quantity goes below 
+            <input type="number" class="form-control" #txt_alert_customer_bank_kg="ngModel" name="txt_alert_customer_bank_kg" placeholder="0" [(ngModel)]="settings['alert_customer_bank_kg_below']" [disabled]="!settings['alert_customer_bank_kg']"> 
+            kg
+        </label>
+    </div>
+
+    <div class="switch-group form-check form-switch">
+        <input class="form-check-input" type="checkbox" #chk_alert_customer_bank_units="ngModel" name="chk_alert_customer_bank_units" [(ngModel)]="settings['alert_customer_bank_units']">
+        <label class="form-check-label" for="chk_alert_customer_bank_units">
+            Alert when customer bank remaining quantity goes below 
+            <input type="number" class="form-control" #txt_alert_customer_bank_units="ngModel" name="txt_alert_customer_bank_units" placeholder="0" [(ngModel)]="settings['alert_customer_bank_units_below']" [disabled]="!settings['alert_customer_bank_units']"> 
+            units
+        </label>
+    </div>
+
+    <div class="switch-group form-check form-switch">
+        <input class="form-check-input" type="checkbox" #chk_mark_yellow_customer_bank_percents="ngModel" name="chk_mark_yellow_customer_bank_percents" [(ngModel)]="settings['mark_yellow_customer_bank_percents']">
+        <label class="form-check-label" for="chk_mark_yellow_customer_bank_percents">
+            <span class="text-warning">Mark customer bank YELLOW if remaining quantity goes below</span>
+            <input type="number" class="form-control" #txt_mark_yellow_customer_bank_percents="ngModel" name="txt_mark_yellow_customer_bank_percents" placeholder="0" [(ngModel)]="settings['mark_yellow_customer_bank_percents_below']" [disabled]="!settings['mark_yellow_customer_bank_percents']"> 
+            %
+        </label>
+    </div>
+
+    <div class="switch-group form-check form-switch">
+        <input class="form-check-input" type="checkbox" #chk_mark_red_customer_bank_percents="ngModel" name="chk_mark_red_customer_bank_percents" [(ngModel)]="settings['mark_red_customer_bank_percents']">
+        <label class="form-check-label" for="chk_mark_red_customer_bank_percents">
+            <span class="text-danger">Mark customer bank RED if remaining quantity goes below</span>
+            <input type="number" class="form-control" #txt_mark_red_customer_bank_percents="ngModel" name="txt_mark_red_customer_bank_percents" placeholder="0" [(ngModel)]="settings['mark_red_customer_bank_percents_below']" [disabled]="!settings['mark_red_customer_bank_percents']"> 
+            %
+        </label>
+    </div>
+
+</div>
+
+
+</form>

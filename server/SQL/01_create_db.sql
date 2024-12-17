@@ -523,4 +523,66 @@ CREATE TABLE  IF NOT EXISTS `hats_wings`
   FOREIGN KEY (`parent_hat_id`) REFERENCES hats(`id`) ON DELETE CASCADE
 );
 
+CREATE TABLE  IF NOT EXISTS `settings`
+(
+  `key`		VARCHAR(255) NOT NULL,
+  `value`	VARCHAR(255) NULL,
+  `default_value`	VARCHAR(255) NULL,
+  `value_type` ENUM(
+		'string', 
+		'number',
+		'boolean'
+	) NOT NULL,
+	PRIMARY KEY (`key`)
+);
+Insert into `settings` (`key`, `value`, `default_value`, `value_type`)
+VALUES
+/* Raw material totals */
+-- Alert when raw material total kg quantity below ___ kg
+('alert_raw_material_total_kg', '1', '1', 'boolean'),
+('alert_raw_material_total_kg_below', '10', '10', 'number'),
+-- Alert when raw material total unit quantity below ___ unit
+('alert_raw_material_total_units', '1', '1', 'boolean'),
+('alert_raw_material_total_units_below', '20', '20', 'number'),
+
+/* Raw material single item follow up */
+-- alert if a raw material item quantity remains less than __% percents
+('alert_raw_material_item_percents', '1', '1', 'boolean'),
+('alert_raw_material_item_percents_below', '10', '10', 'number'),
+-- alert if a raw material item quantity less than __ kg
+('alert_raw_material_item_kg', '1', '1', 'boolean'),
+('alert_raw_material_item_kg_below', '10', '10', 'number'),
+-- alert if a raw material item quantity less than __ units
+('alert_raw_material_item_units', '1', '1', 'boolean'),
+('alert_raw_material_item_units_below', '10', '10', 'number'),
+-- Mark the item in YELLOW, if raw material item quantity less than __%
+('mark_yellow_raw_material_item_percents', '1', '1', 'boolean'),
+('mark_yellow_raw_material_item_percents_below', '30', '30', 'number'),
+-- Mark the item in RED, if raw material item quantity less than __%
+('mark_red_raw_material_item_percents', '1', '1', 'boolean'),
+('mark_red_raw_material_item_percents_below', '10', '10', 'number'),
+
+/* Raw material in customer banks: */
+-- alert if a customer bank quantity remains less than __% percents
+('alert_customer_bank_percents', '1', '1', 'boolean'),
+('alert_customer_bank_percents_below', '10', '10', 'number'),
+-- alert if a customer bank quantity less than __ kg
+('alert_customer_bank_kg', '1', '1', 'boolean'),
+('alert_customer_bank_kg_below', '10', '10', 'number'),
+-- alert if a customer bank quantity less than __ units
+('alert_customer_bank_units', '1', '1', 'boolean'),
+('alert_customer_bank_units_below', '10', '10', 'number'),
+
+-- Mark the customer bankin YELLOW, if raw material item quantity less than __%
+('mark_yellow_customer_bank_percents', '1', '1', 'boolean'),
+('mark_yellow_customer_bank_percents_below', '30', '30', 'number'),
+-- Mark the customer bank in RED, if raw material item quantity less than __%
+('mark_red_customer_bank_percents', '1', '1', 'boolean'),
+('mark_red_customer_bank_percents_below', '10', '10', 'number')
+AS new_settings
+ON DUPLICATE KEY UPDATE
+	value=new_settings.value, 
+	default_value=new_settings.default_value, 
+	value_type=new_settings.value_type;
+
 select "All done";

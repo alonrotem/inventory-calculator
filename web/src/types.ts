@@ -196,7 +196,19 @@ export interface Stats {
     total_baby_records: number,
     total_babies: number,
     total_wings: number,
-    total_hats: number
+    total_hats: number,
+    cur_raw_material_quantity_kg: number,
+    cur_raw_material_remaining_kg: number,
+    cur_raw_material_quantity_units: number,
+    cur_raw_material_remaining_units: number
+}
+
+export interface QuantityHistoryRecord {
+    id: number,
+    date: Date,
+    transaction_quantity: number,
+    transaction_type: TransactionType,
+    cumulative_amount: number
 }
 
 export class Point {
