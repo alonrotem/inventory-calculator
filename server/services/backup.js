@@ -19,7 +19,7 @@ function construct_inserts(table_name, table_info, records, keep_existing_record
     console.log(`Table conlumns: ${table_info.length}`);
     console.log(`Table records: ${records.length}\n`);
     let insert_statement = `# ${table_name.toUpperCase()}\n# ${"-".repeat(table_name.length + 2)}\n\n`;
-    let onduplicate = `as new_${table_name}\nON DUPLICATE KEY UPDATE\n${ table_info.filter(f=> f.Field != 'id').map((c) => `${c.Field}=new_${table_name}.${c.Field}`).join(", ") };\n`;
+    let onduplicate = `as new_${table_name}\nON DUPLICATE KEY UPDATE\n${ table_info.filter(f=> f.Field != 'id').map((c) => `\`${c.Field}\`=new_${table_name}.\`${c.Field}\``).join(", ") };\n`;
     let values = "";
     if (!records || !records.length) {
         console.log("No records to insert.");
@@ -39,7 +39,7 @@ function construct_inserts(table_name, table_info, records, keep_existing_record
         if(!keep_existing_records) {
             insert_statement += `DELETE FROM \`${table_name}\`;\n\n`;
         }        
-        insert_statement += `INSERT INTO \`${table_name}\` (${ table_info.map((c) => c.Field).join(", ") }) \nVALUES\n`;
+        insert_statement += `INSERT INTO \`${table_name}\` (${ table_info.map((c) => `\`${c.Field}\``).join(", ") }) \nVALUES\n`;
         for(let row=0; row < records.length; row++)
         {
             let eol = (row == records.length - 1)? "\n" : ",\n";
