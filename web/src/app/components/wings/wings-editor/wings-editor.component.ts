@@ -149,7 +149,7 @@ export class WingsEditorComponent implements OnInit, AfterViewInit,/*, OnDestroy
     let new_length = this.top_picker.get_length();
     if(tops.length == 0) {
       this.wing.babies.push({
-        /*id: 0,*/
+        id: 0,
         position: "TOP",
         length: new_length,
         wing_id: this.wing_id
@@ -171,6 +171,7 @@ export class WingsEditorComponent implements OnInit, AfterViewInit,/*, OnDestroy
     this.wing.babies = this.wing.babies.filter(b => !b.position.startsWith("C"));
     for(let i=0; i < num_of_crown_items; i++) {
       this.wing.babies.push({
+        id: 0,
         length: new_length,
         position: "C" + (i+1),
         wing_id: this.wing_id

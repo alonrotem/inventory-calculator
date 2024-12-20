@@ -10,7 +10,7 @@ async function getSingle(id){
     const data = helper.emptyOrSingle(rows);
     if(!helper.isEmptyObj(data)) {
         const wing_babies = await db.query(
-            `select parent_wing_id, position, length from wings_babies 
+            `select id, parent_wing_id, position, length from wings_babies 
               where parent_wing_id=${id}
               order by position;`
           );
@@ -28,7 +28,7 @@ async function getSingleWingByName(name){
   //console.log(helper.isEmptyObj(data));
   if(!helper.isEmptyObj(data)) {
       const wing_babies = await db.query(
-          `select parent_wing_id, position, length from wings_babies 
+          `select id, parent_wing_id, position, length from wings_babies 
             where parent_wing_id=${data['id']}
             order by position;`
         );
@@ -113,7 +113,8 @@ async function save(wing){
 
   if(wing.babies)
   {
-    await sync_babies_for_wing(wing.babies, result.insertId);
+    let wing_id = (wing.id)? wing.id : result.insertId;
+    await sync_babies_for_wing(wing.babies, wing_id);
   }
   //console.log(message);
   return {message};
@@ -156,19 +157,24 @@ async function sync_babies_for_wing(babies, wing_id)
   const deletion_result = await db.query(`DELETE FROM wings_babies WHERE parent_wing_id=${ wing_id }`);
   let babies_arr = babies.map(baby => 
     [
+      baby.id,
       wing_id,
       baby.position,
       baby.length
     ]
   ).flat(1);
   let placeholder = Array(babies.length).fill("(" + Array(babies_arr.length / babies.length).fill("?").join(",") + ")").join(",");
-
+  console.log("====================");
+  console.dir(babies_arr);
+  console.log("====================");
   if(babies.length > 0){
     const update_result = await db.query(
-      `REPLACE INTO wings_babies 
-      (parent_wing_id, position, length) 
+      `INSERT INTO wings_babies 
+      (id, parent_wing_id, position, length) 
       VALUES 
-      ${placeholder}`,
+      ${placeholder} as new_wings_babies
+      ON DUPLICATE KEY UPDATE
+      parent_wing_id=new_wings_babies.parent_wing_id, position=new_wings_babies.position, length=new_wings_babies.length`,
       babies_arr
     );
     message +=  update_result.affectedRows + " wing babies added/updated";

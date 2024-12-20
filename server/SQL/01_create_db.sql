@@ -494,11 +494,11 @@ CREATE TABLE  IF NOT EXISTS wings (
 );
 
 CREATE TABLE  IF NOT EXISTS wings_babies (
-	/*`id`            INT NOT NULL auto_increment,*/
+	`id`            INT NOT NULL auto_increment,
     `parent_wing_id` INT NOT NULL,
     `position`		VARCHAR(255) NOT NULL,
 	`length`   	    float NOT NULL,
-    /*PRIMARY KEY (`id`),*/
+    PRIMARY KEY (`id`),
     CONSTRAINT fk_parent_wing_id
     FOREIGN KEY (`parent_wing_id`) REFERENCES wings(`id`) ON DELETE CASCADE
 );

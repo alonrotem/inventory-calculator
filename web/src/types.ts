@@ -120,7 +120,7 @@ export interface Wing {
 }
 
 export interface WingBaby{
-    /*id: number;*/
+    id: number;
     wing_id: number;
     length: number;
     position: string;

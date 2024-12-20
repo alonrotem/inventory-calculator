@@ -37,7 +37,7 @@ export class WingsBabiesTableComponent {
 
   addBabyToTable(){
     this.wingsbabies.push({
-      /*id: 0,*/
+      id: 0,
       wing_id: this.wing_id,
       length: this.picker.get_length(),
       position: this.wingPrefix + (this.wingsbabies.filter((b)=> b.position.startsWith(this.wingPrefix)).length + 1)
@@ -101,6 +101,7 @@ export class WingsBabiesTableComponent {
         arr_pos_found = true;
     }
     this.wingsbabies.splice(index_at_pos, 0, {
+      id: 0,
       wing_id: this.wing_id,
       length: 0,
       position: this.wingPrefix.toUpperCase() + "1"

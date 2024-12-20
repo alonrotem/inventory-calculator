@@ -31,6 +31,7 @@ export class BabyLengthModalComponent implements ModalContentDirective, ModalDia
   console = console;
 
   public editedObject: WingBaby = {
+    id: 0,
     wing_id: 0,
     length: 0,
     position: ''

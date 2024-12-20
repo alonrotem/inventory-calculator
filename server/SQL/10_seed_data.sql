@@ -5,6 +5,8 @@ delete from customer_banks;
 delete from customers;
 delete from raw_materials;
 delete from transaction_history;
+delete from wings;
+delete from hats;
 
 -- seed customers
 INSERT INTO customers (name, business_name, email, phone, tax_id, created_at, updated_at, created_by, updated_by)
