@@ -12,7 +12,7 @@ import { UnsavedChangesGuard } from './guards/unsaved-changes-guard';
 import { CustomersTableComponent } from './components/customers/customers-table/customers-table.component';
 import { CustomerEditorComponent } from './components/customers/customer-editor/customer-editor.component';
 import { SettingsAlertsComponent } from './components/settings/settings-alerts/settings-alerts.component';
-import { SettingsBackupComponent } from './components/settings/settings-backup/settings-backup.component';
+import { BackupDownloadComponent } from './components/backup/backup-download/backup-download.component';
 import { SettingsNotificationsComponent } from './components/settings/settings-notifications/settings-notifications.component';
 import { SettingsMainComponent } from './components/settings/settings-main/settings-main.component';
 
@@ -68,7 +68,7 @@ export const routes: Routes = [
     },
     {
         path: 'settings/backup',
-        component: SettingsBackupComponent,
+        component: BackupDownloadComponent,
         //canDeactivate: [UnsavedChangesGuard]
     },
     {

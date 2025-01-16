@@ -164,9 +164,9 @@ async function sync_babies_for_wing(babies, wing_id)
     ]
   ).flat(1);
   let placeholder = Array(babies.length).fill("(" + Array(babies_arr.length / babies.length).fill("?").join(",") + ")").join(",");
-  console.log("====================");
-  console.dir(babies_arr);
-  console.log("====================");
+  //console.log("====================");
+  //console.dir(babies_arr);
+  //console.log("====================");
   if(babies.length > 0){
     const update_result = await db.query(
       `INSERT INTO wings_babies 

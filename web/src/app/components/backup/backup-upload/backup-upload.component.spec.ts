@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SettingsBackupComponent } from './settings-backup.component';
+import { BackupUploadComponent } from './backup-upload.component';
 
-describe('SettingsBackupComponent', () => {
-  let component: SettingsBackupComponent;
-  let fixture: ComponentFixture<SettingsBackupComponent>;
+describe('BackupUploadComponent', () => {
+  let component: BackupUploadComponent;
+  let fixture: ComponentFixture<BackupUploadComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SettingsBackupComponent]
+      imports: [BackupUploadComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(SettingsBackupComponent);
+    fixture = TestBed.createComponent(BackupUploadComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

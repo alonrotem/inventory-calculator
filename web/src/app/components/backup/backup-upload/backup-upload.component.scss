@@ -1,0 +1,57 @@
+.backup-container {
+  padding: 25px;
+  border: 1px solid;
+  border-radius: 10px;
+  margin: 25px 0px;
+}
+
+.action-icon {
+  margin-right: 15px;
+}
+
+p, .backupSection {
+  margin: 25px 0px;
+}
+
+.backupSection div {
+  margin: 10px 0px;
+}
+
+input[type=file] {
+  display: none;
+}
+
+.file-drop-area.dragging {
+  background-color: var(--bs-warning);
+  color: var(--bs-body-bg);
+}
+
+.form-label {
+  cursor: pointer;
+  margin: 0px;
+}
+
+
+.switch-group {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  margin: 25px 0px;
+}
+
+.switch-group input[type='checkbox'] {
+  margin-right: 10px;
+}
+
+.switch-group input[type='number'] {
+  display: inline-block;
+  width: 60px;
+  padding: 0;
+  text-align: right;
+  margin: 0px 3px;
+}
+
+button {
+  min-width: 220px;
+}

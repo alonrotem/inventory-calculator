@@ -16,6 +16,8 @@ import { CustomersService } from '../../../services/customers.service';
 import { HasUnsavedChanges } from '../../../guards/unsaved-changes-guard';
 import { Observable } from 'rxjs';
 import { CustomerBanksTableComponent } from '../customer-banks-table/customer-banks-table.component';
+import { HatsService } from '../../../services/hats.service';
+import { HatsCalculatorService } from '../../../services/hats-calculator.service';
 //import { CustomerBankTableComponent } from '../customer-bank-table/customer-bank-table.component';
 
 
@@ -68,7 +70,16 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
   @ViewChild('navigate_confirmation') navigate_confirmation!: ConfirmationDialogComponent;
   @ViewChild("btn_save", { read: ElementRef }) btn_save!: ElementRef;
  
-  constructor(private customersService: CustomersService, private infoService: InfoService, private location: Location, private activatedRoute: ActivatedRoute, private router: Router, private toastService: ToastService) { 
+  constructor(
+    private customersService: CustomersService, 
+    private infoService: InfoService, 
+    private location: Location, 
+    private activatedRoute: ActivatedRoute,
+    private router: Router, 
+    private toastService: ToastService,
+    private hatsService: HatsService,
+    private hatsCalculatorService: HatsCalculatorService
+    ) { 
   }
 
   hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {

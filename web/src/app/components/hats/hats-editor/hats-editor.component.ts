@@ -65,7 +65,13 @@ export class HatsEditorComponent  implements OnInit, AfterViewInit{
   raw_material_names: string[] = [];
   faArrowLeft: IconDefinition = faArrowLeft;
 
-  constructor(private hatsService: HatsService, private wingsService: WingsService, private activatedRoute: ActivatedRoute, private router: Router, private toastService:ToastService, private rawMaterialsService: RawMaterialsService){
+  constructor(
+    private hatsService: HatsService, 
+    private wingsService: WingsService, 
+    private activatedRoute: ActivatedRoute, 
+    private router: Router, 
+    private toastService:ToastService, 
+    private rawMaterialsService: RawMaterialsService) {
     this.rawMaterialsService.getRawMaterialNames().subscribe({
       next: (names)=> {
         this.raw_material_names = names;

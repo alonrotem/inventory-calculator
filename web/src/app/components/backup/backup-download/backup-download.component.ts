@@ -3,23 +3,26 @@ import { saveAs } from 'file-saver';
 import { BackupService } from '../../../services/backup.service';
 import { faCloudDownload, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'app-settings-backup',
+  selector: 'app-backup-download',
   standalone: true,
-  imports: [ FaIconComponent ],
-  templateUrl: './settings-backup.component.html',
-  styleUrl: './settings-backup.component.scss'
+  imports: [ FaIconComponent, FormsModule ],
+  templateUrl: './backup-download.component.html',
+  styleUrl: './backup-download.component.scss'
 })
-export class SettingsBackupComponent {
+export class BackupDownloadComponent {
   faCloudDownload: IconDefinition = faCloudDownload;
+  downloadZip: boolean = true;
+  deleteExistingRecords: boolean = false;
   
   constructor(private backupService: BackupService){
 
   }
 
   get_backup() {
-    this.backupService.getBackup().subscribe((response) => {
+    this.backupService.getBackup(this.downloadZip, !this.deleteExistingRecords).subscribe((response) => {
       const ab = response.headers.keys();
       const contentDisposition = response.headers.get('Content-Disposition');
       const filename = this.backupService.extractFilename(contentDisposition) || 'backup_file';

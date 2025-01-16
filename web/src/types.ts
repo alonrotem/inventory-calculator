@@ -126,11 +126,6 @@ export interface WingBaby{
     position: string;
 }
 
-export interface WingPosition {
-    id: number;
-    name: string;
-}
-
 export interface HatListItem {
     id: number;
     name: string;

@@ -26,9 +26,13 @@
         [ngClass]="{ 'd-none': (currentPage != settingsPage.notifications)}"
         />
 
-    <app-settings-backup 
+    <app-backup-download 
         [ngClass]="{ 'd-none': (currentPage != settingsPage.backup)}"
         />
+
+    <app-backup-upload 
+      [ngClass]="{ 'd-none': (currentPage != settingsPage.backup)}"
+      />
 
   </div>
     </div>

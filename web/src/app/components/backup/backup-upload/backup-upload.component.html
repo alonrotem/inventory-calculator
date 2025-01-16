@@ -1,0 +1,42 @@
+<app-confirmation-dialog 
+  #restore_confirm 
+  modalTitle="Confirm restore"
+  modalText="Are you sure you want to upload and restore the system?<div class='text-danger'><strong>This will override your system!</strong></div>"
+  [btnYesIcon]=faCloudUpload
+  btnYesText="Yes"
+  btnYesClass="btn-danger"
+  />
+
+
+<div class="backup-container file-drop-area"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)"
+  [class.dragging]="isDragging">
+    <h3><fa-icon [icon]="faCloudUpload" class="action-icon"></fa-icon> Restore backup</h3>
+  
+    <div class="backupSection">
+      <div><a href="javascript:void(0)"><label for="backupFile" class="form-label"><fa-icon [icon]="faFolderOpen" class="action-icon"></fa-icon>Click here to choose a backup file to upload</label></a></div>
+      <div><fa-icon [icon]="faFileImport" class="action-icon"></fa-icon>Or drag and drop a backup file here</div>
+    </div>
+    
+    <input #backupFile id="backupFile" name="backupFile" type="file" (change)="onFileSelected($event)" accept=".sql,.zip" />
+  
+    <p [className]="(!file)? 'text-danger' :'text-success'">{{ filename }}</p>
+
+    <div>
+      <div class="switch-group form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="chk_alert_customer_bank_kg" name="chk_alert_customer_bank_kg" [(ngModel)]="overwriterestore">
+        <label class="form-check-label" for="chk_alert_customer_bank_kg">
+            Overwrite system data
+        </label>
+      </div>
+    </div>
+  
+  <button type="button" [className]="(!isProcessing)? 'btn btn-primary' :'btn btn-warning'" (click)="onUpload()" [disabled]="!file || isProcessing">
+    <fa-icon [icon]="faCloudUpload" class="action-icon" *ngIf="!isProcessing"></fa-icon>
+    <fa-icon [icon]="faArrowsRotate" [spin]="true" class="action-icon" *ngIf="isProcessing"></fa-icon>
+    <span *ngIf="!isProcessing">Upload and restore backup</span>
+    <span *ngIf="isProcessing">Processing...</span>
+  </button>
+</div>

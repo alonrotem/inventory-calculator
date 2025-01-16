@@ -4,9 +4,10 @@ import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/rout
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faGears, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { SettingsAlertsComponent } from '../settings-alerts/settings-alerts.component';
-import { SettingsBackupComponent } from '../settings-backup/settings-backup.component';
+import { BackupDownloadComponent } from '../../backup/backup-download/backup-download.component';
 import { SettingsNotificationsComponent } from '../settings-notifications/settings-notifications.component';
 import { SettingsService } from '../../../services/settings.service';
+import { BackupUploadComponent } from '../../backup/backup-upload/backup-upload.component';
 
 enum settingsPage {
   alerts,
@@ -17,7 +18,7 @@ enum settingsPage {
 @Component({
   selector: 'app-settings-main',
   standalone: true,
-  imports: [ NgClass, RouterLink, FaIconComponent, SettingsAlertsComponent, SettingsBackupComponent, SettingsNotificationsComponent ],
+  imports: [ NgClass, RouterLink, FaIconComponent, SettingsAlertsComponent, BackupDownloadComponent, BackupUploadComponent, SettingsNotificationsComponent ],
   templateUrl: './settings-main.component.html',
   styleUrl: './settings-main.component.scss'
 })
@@ -30,7 +31,6 @@ export class SettingsMainComponent {
 
   constructor(private settingsService: SettingsService){
     this.settingsService.getSettings([]).subscribe({next: (settings:any) => {
-      console.dir(settings);
       this.settings = settings;
     }});
   }

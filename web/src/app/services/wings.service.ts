@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { Observable } from 'rxjs';
-import { PaginationParams, Wing, WingPosition, WingsList,  } from '../../types';
+import { PaginationParams, Wing, WingsList,  } from '../../types';
 import { environment } from '../../environments/environment';
 
 @Injectable({

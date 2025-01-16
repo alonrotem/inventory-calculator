@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, ViewChild } from '@angular/core';
-import { Baby, Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, HistoryReportRecord, TransactionRecord, TransactionType } from '../../../../types';
+import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Baby, Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, Hat, HistoryReportRecord, TransactionRecord, TransactionType, Wing } from '../../../../types';
 import { RouterModule } from '@angular/router';
 import { DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
@@ -11,6 +11,9 @@ import { BankAllocationDialogComponent } from '../bank-allocation-dialog/bank-al
 import { BabyEditorDialogComponent } from '../../babies/baby-editor-dialog/baby-editor-dialog.component';
 import { SortPipe } from '../../../utils/pipes/sort-pipe';
 import { BankHistoryDialogComponent } from '../bank-history-dialog/bank-history-dialog.component';
+import { HatsService } from '../../../services/hats.service';
+import { HatsCalculatorService } from '../../../services/hats-calculator.service';
+import { WingsService } from '../../../services/wings.service';
 
 @Component({
   selector: 'app-customer-banks-table',
@@ -20,7 +23,7 @@ import { BankHistoryDialogComponent } from '../bank-history-dialog/bank-history-
   templateUrl: './customer-banks-table.component.html',
   styleUrl: './customer-banks-table.component.scss'
 })
-export class CustomerBanksTableComponent implements AfterViewInit {
+export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
   @Input() bank: Customer_Bank = {
     raw_material_name: '',
     id: 0,
@@ -50,7 +53,37 @@ export class CustomerBanksTableComponent implements AfterViewInit {
   pendingBabyAppendBaby: number = -999;
   newAllocationIdCounter = -1;
 
-  constructor() { 
+  hat: Hat | null = null;
+  wing: Wing | null = null;
+
+  constructor(
+      private hatsService: HatsService,
+      private wingsService: WingsService,
+      private hatsCalculatorService: HatsCalculatorService) {
+       
+       
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    this.hatsService.getHat(1).subscribe(hat => {
+      this.hat = hat;
+      this.wingsService.getWing(1).subscribe(wing => {
+        this.wing = wing;
+        if(this.hat) {
+          
+          let n = this.hatsCalculatorService.calculateMaxHatsWithFlexibility(
+            this.hat, 
+            [this.wing], 
+            [this.bank], 
+            this.banks_baby_allocations,
+          this.babies,
+          0, 0, 0, 0);
+          console.log(n + " hats calculated");
+          
+        }
+      });
+    });
+    //this.hatsCalculatorService.calculateMaxHatsWithFlexibility()
   }
  
   ngAfterViewInit(): void {

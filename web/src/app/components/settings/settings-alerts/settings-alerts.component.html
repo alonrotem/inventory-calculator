@@ -1,8 +1,9 @@
+<h4 class="text-warning" style="margin: 25px 0px;"><fa-icon [icon]="faPersonDigging"></fa-icon> Alerts section is under construction</h4>
+
 <h3><span class="icon-leaf"></span>Raw material alerts</h3>
 <form novalidate #settings_form="ngForm" [id]="'settings_form'" *ngIf="settings">
 <div class="section">
     <h5>Raw material totals</h5>
-
     <div class="switch-group form-check form-switch">
         <input class="form-check-input" type="checkbox" #chk_alert_raw_material_total_kg="ngModel" name="chk_alert_raw_material_total_kg" [(ngModel)]="settings['alert_raw_material_total_kg']">
         <label class="form-check-label" for="chk_alert_raw_material_total_kg">

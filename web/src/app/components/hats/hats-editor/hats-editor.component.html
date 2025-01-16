@@ -154,6 +154,19 @@
             </div>
         </div>
 
+        <div class="row">
+            <div class="col-12">
+            <!--
+                Calculator
+                Baby length  Quantity   Matarial
+
+                crown
+                Baby length  Quantity  Material
+            -->
+                {{ wing.babies.length }} Babies x {{ (hat.wings && hat.wings.length > 0)? hat.wings[0].wing_quantity : 0 }}<Br/>
+            </div>
+        </div>
+
         <div class="row buttons-area">
             <div class="col-12 d-flex justify-content-center {{ this.is_new_hat? 'col-md-6':'col-md-4' }}">
                 <button class="btn btn-warning" (click)="gotoHatsList()">
