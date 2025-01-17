@@ -71,13 +71,10 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
         this.wing = wing;
         if(this.hat) {
           
-          let n = this.hatsCalculatorService.calculateMaxHatsWithFlexibility(
-            this.hat, 
-            [this.wing], 
-            [this.bank], 
-            this.banks_baby_allocations,
-          this.babies,
-          0, 0, 0, 0);
+          let n = this.hatsCalculatorService.calculateMaxHats(this.hat,
+            this.wing, this.babies, 0,0
+          );
+          //filter: 'customer_banks_babies_id' : bank_allocation.id
           console.log(n + " hats calculated");
           
         }

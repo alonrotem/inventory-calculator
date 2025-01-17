@@ -1,0 +1,36 @@
+# IMPORTANT:
+# FIRST go to the web folder and run npm install --force
+# 
+# Then run the docker compose:
+# docker compose -f docker-compose-local-debug.yml up --build
+#
+# Changes in web files will reflect into the container
+
+name: romtech
+
+services:
+  web:
+    build: 
+      context: ./web/
+      dockerfile: Dockerfile-local-debug.yml
+    volumes: 
+      - ./web:/web
+    
+    network_mode: "host"
+    restart: always
+    depends_on:
+      - server
+
+  server:
+    build: ./server/
+    network_mode: "host"
+    restart: always
+    depends_on:
+      - db
+
+  db:
+    build: ./server/SQL/
+    volumes:
+      - ./server/SQL/mysql:/var/lib/mysql
+    network_mode: "host"
+    restart: always

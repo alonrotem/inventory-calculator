@@ -51,184 +51,97 @@ export class HatsCalculatorService {
     Count hats with shorter crown/top
 
   }    */
-  
-  calculateMaxHatsWithFlexibility(
-    hat: Hat,
-    wings: Wing[],
-    customerBanks: Customer_Bank[],
-    customerBabyAllocations: Customer_Bank_Baby_Allocation[],
-    customerBabies: Customer_Baby[],
-    topFlexibilityPercent: number,
-    crownFlexibilityPercent: number,
-    topFlexibilityAmount: number = 0.5,
-    crownFlexibilityAmount: number = 1
-  ): number {
-    const babyBank = customerBanks.find((bank) => bank.raw_material_name === hat.hat_material);
-    const crownBank = customerBanks.find((bank) => bank.raw_material_name === hat.crown_material);
-
-    if (!babyBank || !crownBank) {
-      return 0;
-    }
-
-    const babiesByLength = this.groupBabiesByLength(customerBabies, customerBabyAllocations, babyBank.id);
-    const crownBabiesByLength = this.groupBabiesByLength(customerBabies, customerBabyAllocations, crownBank.id);
-
-    for (const hatWing of hat.wings) {
-      const wing = wings.find((w) => w.name === hatWing.wing_name);
-
-      if (!wing) {
-        return 0;
-      }
-
-      // Prepare the required babies for the wing
-      const { requiredBabies, requiredCrownBabies } = this.prepareWingRequirements(
-        wing,
-        hatWing.wing_quantity,
-        topFlexibilityPercent,
-        topFlexibilityAmount,
-        crownFlexibilityPercent,
-        crownFlexibilityAmount
-      );
-
-      // Calculate limiting factors
-      const wingMaxHats = this.calculateMaxByLength(babiesByLength, requiredBabies);
-      const wingMaxCrownHats = this.calculateMaxByLength(crownBabiesByLength, requiredCrownBabies);
-
-      //maxHats = Math.min(maxHats, wingMaxHats, wingMaxCrownHats);
-    }
-    return 0;
-    //return maxHats;
-  }
-
-  private groupBabiesByLength(
-    customerBabies: Customer_Baby[],
-    customerBabyAllocations: Customer_Bank_Baby_Allocation[],
-    bankId: number
-  ): { [length: number]: number } {
-    const babiesByLength: { [length: number]: number } = {};
-
-    customerBabies.forEach((baby) => {
-      const allocation = customerBabyAllocations.find((alloc) => alloc.id === baby.customer_banks_babies_id);
-      if (allocation?.customer_bank_id === bankId) {
-        babiesByLength[baby.length] = (babiesByLength[baby.length] || 0) + baby.quantity;
-      }
-    });
-
-    return babiesByLength;
-  }
-
-  private prepareWingRequirements(
-    wing: Wing,
-    quantity: number,
-    topFlexibilityPercent: number,
-    topFlexibilityAmount: number,
-    crownFlexibilityPercent: number,
-    crownFlexibilityAmount: number
-  ): {
-    requiredBabies: { [length: number]: number };
-    requiredCrownBabies: { [length: number]: number };
-  } {
-    const requiredBabies: { [length: number]: number } = {};
-    const requiredCrownBabies: { [length: number]: number } = {};
-  
-    const topBaby = wing.babies.find((baby) => baby.position === 'TOP');
-    if (!topBaby) {
-      throw new Error(`Wing ${wing.name} has no TOP baby.`);
-    }
-  
-    const flexibleWings = Math.ceil(quantity * (topFlexibilityPercent / 100));
-    const flexibleCrownWings = Math.ceil(quantity * (crownFlexibilityPercent / 100));
-  
-    let topLength = topBaby.length;
-  
-    for (let i = 0; i < quantity; i++) {
-      const isFlexible = i < flexibleWings;
-      let adjustedTopLength = topLength;
-  
-      if (isFlexible) {
-        adjustedTopLength = Math.max(5, adjustedTopLength - topFlexibilityAmount);
-      }
-  
-      requiredBabies[adjustedTopLength] = (requiredBabies[adjustedTopLength] || 0) + 1;
-  
-      // Adjust R and L babies
-      const rightBabies = wing.babies.filter((baby) => baby.position.startsWith('R'));
-      const leftBabies = wing.babies.filter((baby) => baby.position.startsWith('L'));
-  
-      // Sort by descending order of proximity to the TOP
-      rightBabies.sort((a, b) => this.getPositionOrder(b.position) - this.getPositionOrder(a.position));
-      leftBabies.sort((a, b) => this.getPositionOrder(b.position) - this.getPositionOrder(a.position));
-  
-      let previousLength = adjustedTopLength;
-  
-      // Handle right babies
-      rightBabies.forEach((baby) => {
-        let sideLength = baby.length;
-        if (isFlexible && sideLength >= previousLength) {
-          sideLength = Math.max(5, previousLength - 0.5);
+    calculateMaxHats(
+      hat: Hat,
+      wing: Wing,
+      customerBabies: Customer_Baby[],
+      maxTopFlexibility: number = 0, // Flexibility for the TOP baby
+      maxCrownFlexibility: number = 0 // Flexibility for Crown babies
+    ): number {
+      const requiredBabies: Map<number, number> = new Map();
+    
+      // Step 1: Calculate Required Babies for One Hat
+      hat.wings.forEach((hatWing) => {
+        const wingQuantity = hatWing.wing_quantity;
+    
+        // Group babies by position
+        const topBaby = wing.babies.find((baby) => baby.position === "TOP");
+        const crownBabies = wing.babies.filter((baby) => baby.position.startsWith("C"));
+        const rightBabies = wing.babies
+          .filter((baby) => baby.position.startsWith("R"))
+          .sort((a, b) => parseInt(a.position.slice(1)) - parseInt(b.position.slice(1))); // Sort R1, R2, ...
+        const leftBabies = wing.babies
+          .filter((baby) => baby.position.startsWith("L"))
+          .sort((a, b) => parseInt(a.position.slice(1)) - parseInt(b.position.slice(1))); // Sort L1, L2, ...
+    
+        // TOP Baby Calculation
+        if (topBaby) {
+          // Add original length
+          const topLength = topBaby.length;
+          const currentTopCount = requiredBabies.get(topLength) || 0;
+          requiredBabies.set(topLength, currentTopCount + wingQuantity);
+    
+          // Add flexibility for shorter top
+          if (maxTopFlexibility > 0) {
+            const shorterTopLength = topLength - maxTopFlexibility;
+            const currentShorterTopCount = requiredBabies.get(shorterTopLength) || 0;
+            requiredBabies.set(shorterTopLength, currentShorterTopCount + wingQuantity);
+    
+            // Adjust R and L babies based on the shorter top
+            this.adjustSideBabies(rightBabies, shorterTopLength, wingQuantity, requiredBabies);
+            this.adjustSideBabies(leftBabies, shorterTopLength, wingQuantity, requiredBabies);
+          }
         }
-        requiredBabies[sideLength] = (requiredBabies[sideLength] || 0) + 1;
-        previousLength = sideLength;
+    
+        // Crown Babies Calculation
+        crownBabies.forEach((crownBaby) => {
+          // Add original crown length
+          const crownLength = crownBaby.length;
+          const currentCrownCount = requiredBabies.get(crownLength) || 0;
+          requiredBabies.set(crownLength, currentCrownCount + wingQuantity);
+    
+          // Add flexibility for shorter crown
+          if (maxCrownFlexibility > 0) {
+            const shorterCrownLength = crownLength - maxCrownFlexibility;
+            const currentShorterCrownCount = requiredBabies.get(shorterCrownLength) || 0;
+            requiredBabies.set(shorterCrownLength, currentShorterCrownCount + wingQuantity);
+          }
+        });
       });
-  
-      // Reset previousLength for left babies
-      previousLength = adjustedTopLength;
-  
-      // Handle left babies
-      leftBabies.forEach((baby) => {
-        let sideLength = baby.length;
-        if (isFlexible && sideLength >= previousLength) {
-          sideLength = Math.max(5, previousLength - 0.5);
+    
+      // Step 2: Check Available Quantities
+      let maxHats = Infinity;
+    
+      requiredBabies.forEach((requiredQuantity, length) => {
+        const customerBaby = customerBabies.find((baby) => baby.length === length);
+        if (!customerBaby || customerBaby.quantity < requiredQuantity) {
+          maxHats = 0; // Not enough materials
+        } else {
+          const possibleHats = Math.floor(customerBaby.quantity / requiredQuantity);
+          maxHats = Math.min(maxHats, possibleHats);
         }
-        requiredBabies[sideLength] = (requiredBabies[sideLength] || 0) + 1;
-        previousLength = sideLength;
+      });
+    
+      return maxHats;
+    }
+    
+    // Helper Function to Adjust R/L Babies
+    adjustSideBabies(
+      sideBabies: WingBaby[],
+      shorterTopLength: number,
+      wingQuantity: number,
+      requiredBabies: Map<number, number>
+    ) {
+      let prevLength = shorterTopLength;
+      sideBabies.forEach((baby) => {
+        const babyLength = prevLength - 0.5; // Each subsequent baby is shorter by 0.5
+        if (babyLength < 5) return; // Ignore if length falls below the minimum
+    
+        const currentCount = requiredBabies.get(babyLength) || 0;
+        requiredBabies.set(babyLength, currentCount + wingQuantity);
+    
+        prevLength = babyLength; // Update for next baby
       });
     }
-  
-    // Handle Crown flexibility
-    const crownBabies = wing.babies.filter((baby) => baby.position.startsWith('C'));
-    if (crownBabies.length > 0) {
-      const crownLength = crownBabies[0].length; // Assuming all crowns in a wing are of the same length
-  
-      for (let i = 0; i < quantity; i++) {
-        const isFlexible = i < flexibleCrownWings;
-        const adjustedCrownLength = isFlexible
-          ? Math.max(5, crownLength - crownFlexibilityAmount)
-          : crownLength;
-  
-        requiredCrownBabies[adjustedCrownLength] = (requiredCrownBabies[adjustedCrownLength] || 0) + 1;
-      }
-    }
-  
-    return { requiredBabies, requiredCrownBabies };
+    
   }
-  
-  private getPositionOrder(position: string): number {
-    if (position === 'TOP') {
-      return 0;
-    }
-    if (position.startsWith('R') || position.startsWith('L')) {
-      return parseInt(position.slice(1)) || 0;
-    }
-    return Infinity; // Crown babies
-  }
-
-  private calculateMaxByLength(
-    availableBabies: { [length: number]: number },
-    requiredBabies: { [length: number]: number }
-  ): number {
-    let maxHats = Infinity;
-
-    for (const length in requiredBabies) {
-      const requiredQuantity = requiredBabies[length];
-      const availableQuantity = availableBabies[length] || 0;
-
-      if (requiredQuantity > 0) {
-        const possibleHats = Math.floor(availableQuantity / requiredQuantity);
-        maxHats = Math.min(maxHats, possibleHats);
-      }
-    }
-
-    return maxHats;
-  }
-}
