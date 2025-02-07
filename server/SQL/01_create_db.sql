@@ -511,6 +511,7 @@ CREATE TABLE  IF NOT EXISTS `hats`
   `name` 		VARCHAR(255) NOT NULL,
   `hat_material` VARCHAR(255) NULL,
   `crown_material` VARCHAR(255) NULL,
+   `photo` VARCHAR(255) null,
   PRIMARY KEY (`id`)
 );
 
