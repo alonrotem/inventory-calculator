@@ -344,13 +344,25 @@ async function sync_customer_banks(customer){
 
 
 async function remove(id){
-  const del_babies_result = await db.query(`DELETE from babies where customer_bank_id in (select id from customer_banks where customer_id=${id}`);
-  const del_banks_result = await db.query(`DELETE from customer_banks where customer_id=${id}`);
-  const result = await db.query(`DELETE FROM customers WHERE id=${id}`);
+  console.log("DELETEING " + id);
+
+/*
+select * from babies where customer_banks_babies_id in (select id from customer_banks_babies where customer_bank_id in (select id from customer_banks where customer_id = 12));
+select * from customer_banks_babies where customer_bank_id in (select id from customer_banks where customer_id = 12);
+select * from customer_banks where customer_id = 12;
+*/
+  const customer_banks_select = `from customer_banks where customer_id = ${id}`;
+  const customer_banks_allocation_select = `from customer_banks_babies where customer_bank_id in (select id ${customer_banks_select})`;
+  const babies_select = `from babies where customer_banks_babies_id in (select id ${customer_banks_allocation_select})`;
+
+  const del_babies_result = await db.query(`DELETE ${babies_select}`);
+  const del_banks_allocations_result = await db.query(`DELETE ${customer_banks_allocation_select}`);
+  const del_banksresult = await db.query(`DELETE ${customer_banks_select}`);
+  const del_customer = await db.query(`DELETE from customers where id=${id}`);
 
   let message = 'Error in deleting customer';
 
-  if (result.affectedRows) {
+  if (del_customer.affectedRows) {
     message = 'Customer deleted successfully';
   }
 

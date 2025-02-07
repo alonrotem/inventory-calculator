@@ -22,7 +22,7 @@ export class BackupDownloadComponent {
   }
 
   get_backup() {
-    this.backupService.getBackup(this.downloadZip, !this.deleteExistingRecords).subscribe((response) => {
+    this.backupService.getBackup(this.downloadZip, !this.deleteExistingRecords).subscribe({ next: (response) => {
       const ab = response.headers.keys();
       const contentDisposition = response.headers.get('Content-Disposition');
       const filename = this.backupService.extractFilename(contentDisposition) || 'backup_file';
@@ -35,8 +35,10 @@ export class BackupDownloadComponent {
       a.download = filename;
       a.click();
       window.URL.revokeObjectURL(url); // Clean up URL
-    });
-  }
-
-
+    },
+    error: (err) => { 
+      console.dir(err.error?.message);
+    }
+  })
+  };
 }

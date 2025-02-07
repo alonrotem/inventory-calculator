@@ -5,10 +5,13 @@
   btnYesText="Delete"
   btnYesClass="btn-danger"
 />
-<app-bank-allocation-dialog #allocation_dialog
+<app-bank-allocation-dialog 
+  #allocation_dialog
 />
 
-<app-baby-editor-dialog #babies_picker />
+<app-baby-editor-dialog 
+  #babies_picker 
+/>
 
 <app-confirmation-dialog
   #not_enough_material
@@ -20,7 +23,18 @@
   [dialogIcon]="faTriangleExclamation"
   />
 
-<app-bank-history-dialog #history_dialog />
+<app-bank-history-dialog 
+  #history_dialog 
+/>
+
+<app-allocation-picker
+  #allocation_picker
+    [banks]="[bank]"
+    [banks_baby_allocations]="banks_baby_allocations"
+    [babies]="babies"
+    [instructions]="'Pick an allocation to merge into:'"
+    [confirmAction]="true"
+/>
 
 <div style="border: 1px solid; padding: 20px; border-radius: 20px; margin: 20px 0px;">
 <div>
@@ -67,15 +81,19 @@
       <div>
         <fa-icon [icon]="faChartPie" style="margin-right:10px;"></fa-icon>
         <strong>Allocated for work (#{{ bank_allocation.id }}):</strong>
-        {{ bank_allocation.quantity }} {{ raw_material_quantity_units }}, {{ (babies | filter: "customer_banks_babies_id" : bank_allocation.id).length }} babies 
+        {{ bank_allocation.quantity }} {{ raw_material_quantity_units }}, {{ (babies | filter: "customer_banks_babies_id" : bank_allocation.id) | sum: 'quantity' }} babies 
         <button class="btn btn-warning" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="open_allocation_dialog(bank_allocation.id)">
           <fa-icon [icon]="faPencil"></fa-icon>
           Edit
-      </button>
-      <button class="btn btn-danger" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="delete_allocation(bank_allocation.id)">
-        <fa-icon [icon]="faTrashCan"></fa-icon>
-        Delete
-    </button>
+        </button>
+        <button *ngIf="((this.banks_baby_allocations | filter: 'customer_bank_id' : bank.id).length > 1) && ((babies | filter: 'customer_banks_babies_id' : bank_allocation.id).length > 0)"  class="btn btn-success" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="openAllocationMergeDialog(bank_allocation.id)">
+          <span class="icon-merge"></span>
+          Merge this
+        </button>
+        <button class="btn btn-danger" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="delete_allocation(bank_allocation.id)">
+          <fa-icon [icon]="faTrashCan"></fa-icon>
+          Delete
+        </button>
       </div>
       <div *ngIf="(babies | filter: 'customer_banks_babies_id' : bank_allocation.id).length > 0"><!--show babies table-->
         <table class="table table-responsive table-striped table-hover">

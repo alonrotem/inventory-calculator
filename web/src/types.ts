@@ -148,7 +148,21 @@ export interface Hat {
     name: string;
     hat_material: string;
     crown_material: string;
+    photo: string;
     wings: HatWing[];
+}
+
+export interface HatBasicInfo {
+    // the hat
+    hat_id: number;
+    hat_name: string;
+    hat_material: string; 
+    crown_material: string;
+    photo: string;
+    // the wing
+    wing_id: number; 
+    wing_name: string;
+    wing_quantity:number;
 }
 
 export interface HatWing {
@@ -344,4 +358,9 @@ export interface HistoryReportRecord {
 
     date: Date;
     added_by: number;
+}
+
+export interface nameIdPair {
+    name: string;
+    id: number;
 }

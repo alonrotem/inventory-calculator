@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { ModalDialogComponent } from "../modal-dialog/modal-dialog.component";
 import { faBorderNone, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { NgIf } from '@angular/common';
@@ -24,6 +24,7 @@ export class ConfirmationDialogComponent implements OnInit, AfterViewInit {
   @Input() reverseButtons: boolean = false;
   @Output() confirm = new EventEmitter<any>();
   @Output() cancel = new EventEmitter<void>();
+  isOpen : boolean = false;
 
   constructor() {
     
@@ -43,10 +44,30 @@ export class ConfirmationDialogComponent implements OnInit, AfterViewInit {
 
     this.confirmation_dialog.confirm.subscribe((value: Boolean) => {
       this.confirm.emit(value);
+      this.isOpen = false;
     });    
   }
   
   public open() {
     this.confirmation_dialog.open();
+    this.isOpen = true;
   }
+
+    @HostListener('document:keyup.escape', ['$event']) onEscdownHandler(evt: KeyboardEvent) {
+      if(this.isOpen) {
+        evt.preventDefault();
+        console.log("ESC Caught");
+        this.cancel.emit();
+        this.isOpen = false;
+      }
+    }
+  
+    @HostListener('document:keyup.enter', ['$event']) onEnterdownHandler(evt: KeyboardEvent) {
+      if(this.isOpen) {
+        evt.preventDefault();
+        console.log("Enter Caught");
+        this.confirm.emit();
+        this.isOpen = false;
+      }
+    }
 }

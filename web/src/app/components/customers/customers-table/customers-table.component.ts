@@ -14,11 +14,12 @@ import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { ToastComponent } from '../../common/toast/toast.component';
 import { ToastService } from '../../../services/toast.service';
 import { CustomersService } from '../../../services/customers.service';
+import { SingleHatCalculatorComponent } from '../single-hat-calculator/single-hat-calculator.component';
 
 @Component({
   selector: 'app-customers-table',
   standalone: true,
-  imports: [ NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe, ToastComponent, DecimalPipe ],
+  imports: [ NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe, ToastComponent, DecimalPipe, SingleHatCalculatorComponent ],
   templateUrl: './customers-table.component.html',
   styleUrl: './customers-table.component.scss'
 })

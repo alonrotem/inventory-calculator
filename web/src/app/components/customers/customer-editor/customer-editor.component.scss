@@ -84,3 +84,16 @@ h3 {
     background-color: var(--bs-body-color) !important;    
 }
 
+.btn-hats-calculator {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    min-width: 260px;
+}
+
+.btn-hats-calculator .icon-calculator1 {
+    margin-right: 10px;
+}

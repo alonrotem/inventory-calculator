@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnInit, viewChild, ViewChild } from '@angular/core';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
-import { faArrowLeft, faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faRectangleXmark, faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { Hat, Wing, WingBaby } from '../../../../types';
 import { FormsModule, NgForm } from '@angular/forms';
 import { WingsService } from '../../../services/wings.service';
@@ -16,12 +16,16 @@ import { PrefixPipe } from '../../../utils/pipes/prefix-pipe';
 import { ToastService } from '../../../services/toast.service';
 import { RawMaterialsService } from '../../../services/raw-materials.service';
 import { AutocompleteComponent, AutocompleteLibModule } from 'angular-ng-autocomplete';
+import { SingleHatCalculatorComponent } from '../../customers/single-hat-calculator/single-hat-calculator.component';
+import { environment } from '../../../../environments/environment';
+import { Lightbox, LightboxModule } from 'ngx-lightbox';
+import { GlobalsService } from '../../../services/globals.service';
 
 
 @Component({
   selector: 'app-hats-editor',
   standalone: true,
-  imports: [ ConfirmationDialogComponent, FormsModule, NgIf, FaIconComponent, NgSelectModule, WingDiagramComponent, PrefixPipe, AutocompleteLibModule ],
+  imports: [ ConfirmationDialogComponent, FormsModule, NgIf, FaIconComponent, NgSelectModule, WingDiagramComponent, PrefixPipe, AutocompleteLibModule, SingleHatCalculatorComponent, LightboxModule ],
   templateUrl: './hats-editor.component.html',
   styleUrl: './hats-editor.component.scss'
 })
@@ -29,6 +33,9 @@ export class HatsEditorComponent  implements OnInit, AfterViewInit{
   faSave: IconDefinition = faSave;
   faTrashAlt:IconDefinition = faTrashAlt;
   faTimesCircle:IconDefinition = faTimesCircle;
+  faRectangleXmark: IconDefinition = faRectangleXmark;
+  no_hat_img = "/assets/images/no-hat-picture-dark.png";
+
   title: string = "Create Hat";
   is_new_hat: Boolean = true;
 
@@ -49,7 +56,8 @@ export class HatsEditorComponent  implements OnInit, AfterViewInit{
     name: '',
     wings: [],
     hat_material: '',
-    crown_material: ''
+    crown_material: '',
+    photo: ''
   }
   wing_names : string[] = [];
   blank_wing: Wing = {
@@ -65,17 +73,29 @@ export class HatsEditorComponent  implements OnInit, AfterViewInit{
   raw_material_names: string[] = [];
   faArrowLeft: IconDefinition = faArrowLeft;
 
+  selectedFile!: File | null;
+  previewUrl: string | ArrayBuffer | null = null;
+  isDragging = false;
+  album: any[] = [];
+
   constructor(
     private hatsService: HatsService, 
     private wingsService: WingsService, 
     private activatedRoute: ActivatedRoute, 
     private router: Router, 
     private toastService:ToastService, 
-    private rawMaterialsService: RawMaterialsService) {
+    private rawMaterialsService: RawMaterialsService,
+    private lightbox: Lightbox,
+    private globalsService: GlobalsService) {
     this.rawMaterialsService.getRawMaterialNames().subscribe({
       next: (names)=> {
         this.raw_material_names = names;
       }
+      
+    });
+
+    this.globalsService.themeChanged.subscribe((theme: string) => {
+      this.no_hat_img = `/assets/images/no-hat-picture-${theme}.png`;
     });
 
     let nav = this.router.getCurrentNavigation();
@@ -157,10 +177,12 @@ export class HatsEditorComponent  implements OnInit, AfterViewInit{
         });
     });
 
+
     //if(selected_wing) {
     //  let item = this.wing_name_selector.itemsList.findByLabel('RT100');
     //  this.wing_name_selector.select(item);
     //}
+    this.no_hat_img = `/assets/images/no-hat-picture-${this.globalsService.currentTheme()}.png`;
   }
 
   getWingNames(){
@@ -171,11 +193,26 @@ export class HatsEditorComponent  implements OnInit, AfterViewInit{
     });
   }
 
+  open_photo(){
+    if(this.album.length > 0) {
+      this.lightbox.open(this.album, 0);
+    }
+  }
+
   getHat(id: number){
     this.hatsService.getHat(id).subscribe(
     {
       next: (hat: Hat) => {
         this.hat = hat;
+        this.album = [];
+        if(hat.photo) {
+          this.previewUrl = `${environment.serverUrl}${hat.photo}`;
+          this.album.push({
+            src: this.previewUrl,
+            caption: hat.name,
+            thumb: this.previewUrl
+          });         
+        }
         //this.wing_name_selector.set
         if(hat.wings && hat.wings.length > 0) {
           this.numberOfWings.nativeElement.value = this.hat.wings[0].wing_quantity;
@@ -228,7 +265,7 @@ export class HatsEditorComponent  implements OnInit, AfterViewInit{
   {
     this.btn_save.nativeElement.classList.add("disabled");
 
-    this.hatsService.saveHat(hat).subscribe(
+    this.hatsService.saveHat(hat, this.selectedFile).subscribe(
       {
         next:(data) => { 
           this.btn_save.nativeElement.classList.remove("disabled"); 
@@ -304,4 +341,61 @@ export class HatsEditorComponent  implements OnInit, AfterViewInit{
   wall_material_cleared(){
       this.hat.crown_material = "";
   }
+
+  //---------------------
+  
+  //constructor(private http: HttpClient) {}
+
+  // Handle file input selection
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.processFile(input.files[0]);
+    }
+  }
+
+  // Handle drag-over effect
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    this.isDragging = true;
+  }
+
+  // Remove drag effect when leaving the area
+  onDragLeave(event: DragEvent) {
+    event.preventDefault();
+    this.isDragging = false;
+  }
+
+  // Handle file drop
+  onDrop(event: DragEvent) {
+    event.preventDefault();
+    this.isDragging = false;
+
+    if (event.dataTransfer?.files.length) {
+      this.processFile(event.dataTransfer.files[0]);
+    }
+  }
+
+  // Process the file and show preview
+  processFile(file: File) {
+    if (!file.type.startsWith('image/')) {
+      alert('Only image files are allowed!');
+      return;
+    }
+
+    this.selectedFile = file;
+
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.previewUrl = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  clearImage() {
+    this.selectedFile = null;
+    this.previewUrl = null;
+    this.hat.photo = "";
+  }
+  //---------------------
 }

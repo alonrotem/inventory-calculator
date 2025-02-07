@@ -16,6 +16,8 @@
     btnYesClass="btn-warning">
 </app-confirmation-dialog>
 
+<app-hats-calculator-dialog #hats_calculator />
+
 <div class="row justify-content-center">
     <div class="col-12 col-md-8">
 
@@ -92,8 +94,17 @@
 
 
     </div>
+    
 </form>
 
+<div class="row" style="margin: 20px 0px;">
+    <div class="col" style="display: flex; flex-direction: column; flex-wrap: nowrap; justify-content: center; align-items: center;">
+        <button class="btn btn-info btn-hats-calculator" (click)="openHatsCalculator()">
+            <span class='icon-calculator1'></span>
+            <div>Hats calculator</div>
+        </button>
+    </div>
+</div>
 
 <div class="row">
     <div class="col">

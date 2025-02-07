@@ -42,92 +42,142 @@
             </div>
 
         </div>
+
+        <!-- NEW LAYOUT -->
         <div class="row">
-            <div class="col">
-                <div class="wings_label"><span class="icon-feather-wing"></span> Wings in this hat:</div>
-                <div class="wing_row">
+            <div class="col" style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: start;">
+                <div>
+                    <table class="controls-table">
+                        <tr>
+                            <td>
+                                <div class="wings_label"><span class="icon-feather-wing"></span> Wings in this hat:</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                            <ng-select 
+                                name="wing_name_selector" 
+                                [clearable]="true" 
+                                [addTag]="addWingNameToList"
+                                [items]="wing_names"
+                                addTagText="Add wing name"
+                                (change)="wing_name_change($event)"
+                                [className]="'selector'"
+                                [(ngModel)]="active_wing_name">
+                                </ng-select>
+                            </td>
+                            <td>x</td>
+                            <td><input class="number_selector" type="number" #numberOfWings name="numberOfWings"></td>
+                        </tr>
+                        
+                        <tr>
+                            <td colspan="2"><div class="wings_label"><span class="icon-wall-bricks"></span> Wall material</div></td>
+                            <td><div  class="wings_label"><span class="icon-crown"></span> Crown material</div></td>
+                        </tr>
+                        <tr>
+                            <td  colspan="2">
+                                <div class="ng-autocomplete">
+                                    <ng-autocomplete 
+                                      [data]="raw_material_names"
+                                      placeholder="Add wall material"
+                                      [itemTemplate]="itemTemplate"
+                                      [(ngModel)]="hat.hat_material"
+                                      [className]="'form-control form-control-plaintext'"
+                                      name="hatmaterialName"
+                                      (inputChanged)="wall_material_changed($event)"
+                                      (selected)="wall_material_changed($event)"
+                                      (inputCleared)="wall_material_cleared()"
+                                      #hatmaterialName="ngModel">
+                                    </ng-autocomplete><!--
+                                                          (selected)='selectEvent($event)'
+                                      (inputChanged)='onChangeSearch($event)'
+                                      (inputFocused)='onFocused($event)'
+                                      (inputCleared)='onCleared($event)'
+                                    [notFoundTemplate]="notFoundTemplate"-->
+                                    
+                                    <ng-template #itemTemplate let-item>
+                                        <a [innerHTML]="item"></a>
+                                    </ng-template>
+                                    <!--
+                                    <ng-template #notFoundTemplate let-notFound>
+                                        <div [innerHTML]="notFound"></div>
+                                    </ng-template>-->
+                                </div>
+                            </td>
+                            <td>
+                                <div class="ng-autocomplete">
+                                    <ng-autocomplete 
+                                      [data]="raw_material_names"
+                                      placeholder="Add crown material"
+                                      [itemTemplate]="itemTemplate"
+                                      [(ngModel)]="hat.crown_material"
+                                      [className]="'form-control form-control-plaintext'"
+                                      name="crownmaterialName"
+                                      #crownmaterialName="ngModel">
+                                    </ng-autocomplete><!--
+                                                          (selected)='selectEvent($event)'
+                                      (inputChanged)='onChangeSearch($event)'
+                                      (inputFocused)='onFocused($event)'
+                                      (inputCleared)='onCleared($event)'
+                                    [notFoundTemplate]="notFoundTemplate"-->
+                                    
+                                    <ng-template #itemTemplate let-item>
+                                        <a [innerHTML]="item"></a>
+                                    </ng-template>
+                                    <!--
+                                    <ng-template #notFoundTemplate let-notFound>
+                                        <div [innerHTML]="notFound"></div>
+                                    </ng-template>-->
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    <!--
                     <div>
-                        <ng-select 
-                            name="wing_name_selector" 
-                            [clearable]="true" 
-                            [addTag]="addWingNameToList"
-                            [items]="wing_names"
-                            addTagText="Add wing name"
-                            (change)="wing_name_change($event)"
-                            [className]="'selector'"
-                            [(ngModel)]="active_wing_name">
-                        </ng-select>
+                        <div>
+                            
+                            <div class="wing_row">
+                                <div>
+
+                                </div>                            
+                            </div>
+                        </div>                        
                     </div>
                     <div>x</div>
-                    <div>
-                        <input class="number_selector" type="number" #numberOfWings name="numberOfWings">
-                    </div>
+                    <div></div>
+                -->
+
+                </div>
+                <div>
+                    <div class="upload-container">
+                        <!-- Drag & Drop Area -->
+                        <div 
+                          class="drop-area" 
+                          (dragover)="onDragOver($event)" 
+                          (dragleave)="onDragLeave($event)" 
+                          (drop)="onDrop($event)"
+                          [class.dragover]="isDragging"
+                        >
+                          <div *ngIf="!previewUrl">
+                            <div><img [attr.src]="no_hat_img" style="width: 50px;" /></div>
+                            <div>No hat photo</div>
+                            Drag & Drop an image here or <span (click)="fileInput.click()" class="browse-text">Browse</span>
+                          </div>
+                          <img *ngIf="previewUrl" [src]="previewUrl" class="preview-image" (click)="open_photo()" />
+                        </div>
+                        <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" hidden>
+                      
+                        <div class="button-group">
+                            <button class="btn btn-danger" style="display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: center; align-items: center;" (click)="clearImage()" *ngIf="selectedFile || previewUrl">
+                                <div class="btn-icon" style="margin-right: 10px;"><fa-icon [icon]="faRectangleXmark"></fa-icon></div>
+                                Clear image
+                            </button>
+                          </div>
+                      </div>
                 </div>
             </div>
         </div>
 
-        <div class="row materials-picker-container">
-            <div class="col-6">
-                <div class="wings_label"><span class="icon-wall-bricks"></span> Wall material</div>
-                <div class="ng-autocomplete">
-                    <ng-autocomplete 
-                      [data]="raw_material_names"
-                      placeholder="Add wall material"
-                      [itemTemplate]="itemTemplate"
-                      [(ngModel)]="hat.hat_material"
-                      [className]="'form-control form-control-plaintext'"
-                      name="hatmaterialName"
-                      (inputChanged)="wall_material_changed($event)"
-                      (selected)="wall_material_changed($event)"
-                      (inputCleared)="wall_material_cleared()"
-                      #hatmaterialName="ngModel">
-                    </ng-autocomplete><!--
-                                          (selected)='selectEvent($event)'
-                      (inputChanged)='onChangeSearch($event)'
-                      (inputFocused)='onFocused($event)'
-                      (inputCleared)='onCleared($event)'
-                    [notFoundTemplate]="notFoundTemplate"-->
-                    
-                    <ng-template #itemTemplate let-item>
-                        <a [innerHTML]="item"></a>
-                    </ng-template>
-                    <!--
-                    <ng-template #notFoundTemplate let-notFound>
-                        <div [innerHTML]="notFound"></div>
-                    </ng-template>-->
-                </div>
-        </div>
-            <div class="col-6">
-                <div  class="wings_label"><span class="icon-crown"></span> Crown material</div>
-                <div class="ng-autocomplete">
-                    <ng-autocomplete 
-                      [data]="raw_material_names"
-                      placeholder="Add crown material"
-                      [itemTemplate]="itemTemplate"
-                      [(ngModel)]="hat.crown_material"
-                      [className]="'form-control form-control-plaintext'"
-                      name="crownmaterialName"
-                      #crownmaterialName="ngModel">
-                    </ng-autocomplete><!--
-                                          (selected)='selectEvent($event)'
-                      (inputChanged)='onChangeSearch($event)'
-                      (inputFocused)='onFocused($event)'
-                      (inputCleared)='onCleared($event)'
-                    [notFoundTemplate]="notFoundTemplate"-->
-                    
-                    <ng-template #itemTemplate let-item>
-                        <a [innerHTML]="item"></a>
-                    </ng-template>
-                    <!--
-                    <ng-template #notFoundTemplate let-notFound>
-                        <div [innerHTML]="notFound"></div>
-                    </ng-template>-->
-                </div>
-                </div>
-
-
-
-            </div>
 
         <div class="row">
             <div class="col-12">
@@ -193,7 +243,6 @@
     </div>
 </form>
 
-
+</div>
 </div>
 
-</div>

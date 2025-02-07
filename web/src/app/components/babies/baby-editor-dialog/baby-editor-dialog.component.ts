@@ -90,6 +90,7 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
   }
 
   beforeClose(): Boolean {
+    console.log("beforeClose...");
     this.isSubmitted = true;
     this.babyFormEditor.markAsDirty();
     if(this.babyFormEditor.invalid || (this.length_picker.isLengthInvalid()))

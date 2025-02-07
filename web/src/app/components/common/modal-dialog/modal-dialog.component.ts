@@ -1,4 +1,4 @@
-import { Component, ContentChild, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, ContentChild, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { NgClass, NgIf } from '@angular/common';
 //import { ModalObjectEditor } from '../../../../types';
@@ -29,12 +29,14 @@ export class ModalDialogComponent implements ModalDialog {
   @Input() btnSaveClass: string = "btn-primary";
   @Input() btnCancelClass: string = "btn-secondary";
   @Input() modalSize: string = "m";
+  @Input() fullscreen: boolean = false;
 
   @Output() confirm = new EventEmitter<any>();
   @Output() cancel = new EventEmitter<void>();
   //@Input() editedItem: any;
   @Input() reverseButtons: boolean = false;
   modal_content_close_subscription:any;
+  isOpen : boolean = false;
 
   @ContentChild(ModalContentDirective) dialogContentComponent!: ModalContentDirective;
 
@@ -47,7 +49,8 @@ export class ModalDialogComponent implements ModalDialog {
   close: EventEmitter<any> = new EventEmitter<any>();
   
   public open() {
-    this.modalReference = this.modalService.open(this.content, { centered: true, size: this.modalSize });
+    //console.log(this.modalSize);
+    this.modalReference = this.modalService.open(this.content, { centered: true, size: this.modalSize, fullscreen: this.fullscreen });
     if(this.dialogContentComponent){
       this.dialogContentComponent.onOpen();
 
@@ -56,6 +59,7 @@ export class ModalDialogComponent implements ModalDialog {
           this.onConfirm();
         });
       }
+      this.isOpen = true;
     }
     /*
     if(this.dialog_content_component && this.dialog_content_component.onOpen){
@@ -67,6 +71,23 @@ export class ModalDialogComponent implements ModalDialog {
         this.onConfirm();
       });
     }*/
+  }
+
+
+  @HostListener('document:keyup.escape', ['$event']) onEscdownHandler(evt: KeyboardEvent) {
+    if(this.isOpen) {
+      evt.preventDefault();
+      console.log("ESC Caught");
+      this.onCancel();
+    }
+  }
+
+  @HostListener('document:keyup.enter', ['$event']) onEnterdownHandler(evt: KeyboardEvent) {
+    if(this.isOpen) {
+      evt.preventDefault();
+      console.log("Enter Caught");
+      this.onConfirm();
+    }
   }
 
   onConfirm() {
@@ -90,7 +111,10 @@ export class ModalDialogComponent implements ModalDialog {
       this.modal_content_close_subscription.unsubscribe();
       this.modal_content_close_subscription = null;
     }
-    this.modalReference.close();
+    if(this.modalReference && this.modalReference.close)
+      this.modalReference.close();
+
+    this.isOpen = false;
   }
 
   onCancel () {
@@ -99,6 +123,9 @@ export class ModalDialogComponent implements ModalDialog {
       this.modal_content_close_subscription.unsubscribe();
       this.modal_content_close_subscription = null;
     }
-    this.modalReference.close();
+    if(this.modalReference && this.modalReference.close)
+      this.modalReference.close();
+
+    this.isOpen = false;
   }
 }

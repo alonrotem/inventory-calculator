@@ -7,6 +7,139 @@ import { Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, Hat, Wing,
 export class HatsCalculatorService {
 
   constructor() { }
+
+  AlonsHatCalculator (
+    hat: Hat,   //hat has HatWing, which points to a specific wing by name
+    wing: Wing, //this is the actual wing with its babies (WingBaby),
+
+    customerBanks: Customer_Bank[], //with raw material name
+    workAllocations: Customer_Bank_Baby_Allocation[], //work allocation to match the bank
+    customerBabies: Customer_Baby[] // the babies in the allocation
+  ) : number{
+    
+    if(!hat || !wing || !customerBanks || !workAllocations || !customerBabies) {
+      return 0;
+     }
+
+    let maxHats = Infinity;
+
+    //This hat has no wings (basically should be 1)
+    if(hat.wings.length == 0) {
+      return 0;
+    }
+    
+    //-------- Aggregate the hat babies ----------
+    let numOfWingsInHat = hat.wings[0].wing_quantity;
+
+    // Map<length, quantity>
+    let hatWallBabies = wing.babies.filter(baby => !baby.position.startsWith("C"));
+    let hatCrownBabies = wing.babies.filter(baby => baby.position.startsWith("C"));
+
+    let hatWallBabiesByLength = this.aggregateAllBabiesInHat(hatWallBabies, numOfWingsInHat, false);
+    let hatCrownBabiesByLength = this.aggregateAllBabiesInHat(hatCrownBabies, numOfWingsInHat, true);
+
+    //-------- Find the banks with matched materials ----------
+    let customerBanksWithWallMaterial = customerBanks.filter(bank => bank.raw_material_name == hat.hat_material).map(bank => bank.id);
+    let customerBanksWithCrownMaterial = customerBanks.filter(bank => bank.raw_material_name == hat.crown_material).map(bank => bank.id);
+
+    let allocationsWithWallMaterial = workAllocations.filter(alloc => customerBanksWithWallMaterial.indexOf(alloc.customer_bank_id) >= 0).map(alloc => alloc.id);
+    let allocationsWithCrownMaterial = workAllocations.filter(alloc => customerBanksWithCrownMaterial.indexOf(alloc.customer_bank_id) >= 0).map(alloc => alloc.id);
+
+    //count how many walls and how many crowns can be made with those allocations
+    //walls
+    customerBabies.forEach(allocation_baby => {
+      //is this baby part of an allocation with the wall material?
+      if(allocationsWithWallMaterial.indexOf(allocation_baby.customer_banks_babies_id) >= 0) {
+        //
+        if(hatWallBabiesByLength.has(allocation_baby.length)) {
+          //how many babies we need with this length?
+          let required_babies_with_length = hatWallBabiesByLength.get(allocation_baby.length)?? 0;
+          //how many babies do we have with this length?
+          let number_of_babies_with_length = allocation_baby.quantity;
+          //how many are needed?
+          if(number_of_babies_with_length >= required_babies_with_length){
+            let numOfTimes = Math.floor(number_of_babies_with_length/required_babies_with_length);
+            //this limits the number of hats
+            maxHats = Math.min(numOfTimes, maxHats);
+          }
+          else {
+            maxHats = 0;
+          }
+        }
+      }
+
+      //is this baby part of an allocation with the crown material?
+      if(allocationsWithCrownMaterial.indexOf(allocation_baby.customer_banks_babies_id) >= 0) {
+        //
+        if(hatCrownBabiesByLength.has(allocation_baby.length)) {
+          //how many babies we need with this length?
+          let required_babies_with_length = hatCrownBabiesByLength.get(allocation_baby.length)?? 0;
+          //how many babies do we have with this length?
+          let number_of_babies_with_length = allocation_baby.quantity;
+          //how many are needed?
+          if(number_of_babies_with_length >= required_babies_with_length){
+            let numOfTimes = Math.floor(number_of_babies_with_length/required_babies_with_length);
+            //this limits the number of hats
+            maxHats = Math.min(numOfTimes, maxHats);
+          }
+          else {
+            maxHats = 0;
+          }
+        }
+      }
+    });
+
+    /*
+    Prerequisite:
+    - Which hat we are checking
+      -> material for wall
+      -> material for crown
+      -> which wing
+      -> number of wings
+    -> Wing spec (of the hat)
+      -> Babies: R, L, T, C
+
+    -> Customer bank(s)
+      -> Material
+      -> Bank Allocation
+      ->  Babies: x length & quantity
+    
+    -> Deviations:
+        How much can the top be shorter
+        How much can the crown be shorter
+
+    Algorithm:
+      Calculate/aggregate the babies of the hat: a map of all babies with their lengths x number of wings per hat
+      Match the bank material for crown or wall
+      Iterate the bank allocation matching the materials
+        Iterate the aggregated hat babies
+          Count how many times each baby in the customer's allocaion can duplicate for each hat baby
+          Keep the max possible according to the lowest match
+      
+      Calculate hats with deviations
+        Repeat the calculation
+    */
+
+    return maxHats == Infinity ? 0 : maxHats;
+  }
+
+  aggregateAllBabiesInHat(babies:WingBaby[], numOfWingsInHat: number, isCrown:boolean): Map<number, number>{
+    let babiesCollction = new Map<number, number>();
+    babies.filter(b => (isCrown)? b.position.startsWith("C") : !b.position.startsWith("C")).forEach(baby => {
+      if(babiesCollction.has(baby.length)) {
+        let curCount = babiesCollction.get(baby.length);
+        curCount = (curCount)? curCount : 0;
+        babiesCollction.set(baby.length, curCount + numOfWingsInHat);
+      }
+      else {
+        babiesCollction.set(baby.length, numOfWingsInHat);
+      }
+    });
+    return babiesCollction;
+  }
+
+//=============== END OF ALONS IMPLEMENTATION
+
   /*
   calculateMaxHats (
     hat:Hat,                                          //the hat has information about wing name, quantity and materials

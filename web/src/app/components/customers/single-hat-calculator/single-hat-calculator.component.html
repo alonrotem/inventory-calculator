@@ -1,0 +1,191 @@
+<app-allocation-picker
+  #allocation_picker
+/>
+<!--    [banks]="[bank]"
+    [banks_baby_allocations]="banks_baby_allocations"
+    [babies]="babies"
+    [instructions]="'Pick an allocation to merge into:'"
+    [confirmAction]="true"-->
+
+<div class="row">
+  <div class="col" style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: flex-start;">
+    <div style="flex-grow: 1;">
+      <ng-select
+        [items]="hats_info"
+        bindLabel="hat_name"
+        bindValue="hat_id"
+        placeholder="Select a hat"
+        (change)="hat_selected($event)"
+        ><!---->
+      </ng-select>
+    </div>    
+    <div *ngIf="active_hat">
+      <img 
+        [attr.src]="previewUrl"
+        [attr.title]="previeImgTitle" 
+        (click)="open_photo()"
+        style="height: 58px; cursor: pointer; margin-left:20px; border-radius: 7px;" />
+    </div>
+  </div>
+</div>
+
+<div *ngIf="active_hat != null">
+
+<!--------- NEW LAYOUT --------->
+<div class="row" style="margin-top: 20px; display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center;">
+  <div class="col-12 col-md-4">
+
+    <div class="hat-info-section">
+      <div><strong>Wall material:</strong></div>
+      <div>{{ active_hat? active_hat.hat_material: "(Please select a hat)" }}</div>
+      <div class="sub-info-section">
+        <strong>Material allocation:</strong>
+      </div>
+      <div *ngIf="num_of_allocations_with_wall_material > 0">
+        <div>
+          <div *ngIf="wall_alocation" class="text-success">
+            Allocation #{{ wall_alocation.id }}, {{ wall_alocation.quantity | number : '1.1-1' }} {{ wall_allocation_units }}
+          </div>
+          <div *ngIf="!wall_alocation">
+            <span class="text-danger">Choose an allocation</span>
+          </div>
+        </div>
+        <div class="section-btn-wrapper">
+          <button  
+            class="btn btn-success" 
+            style="padding: 0px 11px 1px 5px;" 
+            (click)="open_wall_material_allocation_picker(active_hat? active_hat.hat_material : '', 'wall')">
+            <fa-icon [icon]="faChartPie"></fa-icon>
+            Choose allocation
+          </button>
+        </div>
+      </div>
+      <div *ngIf="num_of_allocations_with_wall_material <= 0">
+        <span class="text-danger">No allocations with this material</span>
+      </div>
+    </div>
+
+    <div class="hat-info-section">
+      <div><strong>Crown material:</strong></div>
+      <div>{{ active_hat? active_hat.crown_material: "(Please select a hat)" }}</div>
+      <div *ngIf="num_of_allocations_with_crown_material > 0">
+        <div class="sub-info-section">
+          <strong>Material allocation:</strong>
+        </div>
+        <div>
+          <div *ngIf="crown_allocation" class="text-success">
+            Allocation #{{ crown_allocation.id }}, {{ crown_allocation.quantity | number : '1.1-1' }} {{ crown_allocation_units }}
+          </div>
+          <div *ngIf="!crown_allocation">
+            <span class="text-danger">Choose an allocation</span>
+          </div>
+        </div>
+        <div class="section-btn-wrapper">
+          <button  
+            class="btn btn-success" 
+            style="padding: 0px 11px 1px 5px;" 
+            (click)="open_wall_material_allocation_picker(active_hat? active_hat.crown_material : '', 'crown')">
+            <fa-icon [icon]="faChartPie"></fa-icon>
+            Choose allocation
+          </button>
+        </div>
+      </div>
+      <div *ngIf="num_of_allocations_with_crown_material <= 0">
+        <span class="text-danger">No allocations with this material</span>
+      </div>
+    </div>
+
+    <div class="hat-info-section">
+      <div><strong>Number of wings:</strong></div>
+      <div>{{ wing?.name }} x {{ active_hat? active_hat.wing_quantity: "(Please select a hat)" }}</div>
+    </div>  
+  </div>
+
+  <div class="col-12 col-md-8">
+    <div [className]="(this.wing)? '':'d-none'">
+      <app-wing-diagram
+          #diagram 
+          [scale]="0.7"
+          [lefts]="(this.wing)? (this.wing.babies | prefix: 'L' : true) : []"
+          [rights]="(this.wing)? (this.wing.babies | prefix: 'R' : true) : []"
+          [top_length]="(this.wing)? (this.wing.babies | prefix: 'TOP' : true) : []"
+          [crown]="(this.wing)? (this.wing.babies | prefix: 'C' : true) : []"
+          [width]="(this.wing)? (this.wing.width) : 0"
+      />
+      </div>
+      <div>
+  </div>
+</div>
+</div>
+<!---------/NEW LAYOUT --------->
+  
+<!-- Length, quantity, position -->
+<div>Total hats calculated: {{ total_num_of_possible_hats }}</div>
+<table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th scope="col">Baby length</th>
+        <th scope="col">Total qty per hat</th>
+        <th scope="col">Position(s)</th>
+        <th scope="col">In allocation</th>
+        <th scope="col">Hats</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!--
+        <tr>
+            <td colspan="4" style="background-color: var(--bs-info-bg-subtle); box-shadow: none;"><strong><span class="icon-wall-bricks"></span> Wall material: {{ active_hat? active_hat.hat_material: "(Please select a hat)" }}</strong></td>
+        </tr>
+        -->
+        <tr *ngFor="let item of hat_babies">
+          <td>{{ item.length | number : '1.1-1' }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>{{ item.position }}</td>
+          <td>{{ item.quantity_in_allocation }}</td>
+          <td>{{ item.possible_num_of_hats }}</td>
+        </tr>
+        <tr *ngFor="let item of crown_babies">
+          <td>{{ item.length | number : '1.1-1' }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>{{ item.position }}</td>
+          <td>{{ item.quantity_in_allocation }}</td>
+          <td>{{ item.possible_num_of_hats }}</td>
+        </tr>        
+          <!--
+          <tr>
+            <td colspan="4" style="background-color: var(--bs-info-bg-subtle); box-shadow: none;"><strong><span class="icon-crown"></span> Crown material: {{ active_hat? active_hat.crown_material: "(Please select a hat)" }}</strong></td>
+        </tr>
+        
+        <tr *ngFor="let item of hat_babies  | starts_with: 'position': 'C'">
+            <td>{{ item.length  | number : '1.1-1' }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.position }}</td>
+            <td>{{ item.quantity_in_allocation }}</td>
+          </tr>  
+        -->                  
+        <!-- 
+        <tr *ngFor="let key of sortedWallKeys">
+            <td>{{ key | number : '1.1-1' }} cm</td>
+            <td>{{ wall_babies_aggregated_by_length[key].quantity }}</td>
+            <td>{{ wall_babies_aggregated_by_length[key].position }}</td>
+        </tr>
+        <tr>
+            <td colspan="3" style="background-color: var(--bs-info-bg-subtle); box-shadow: none;"><strong><span class="icon-crown"></span> Crown material: {{ active_hat? active_hat.crown_material: "(Please select a hat)" }}</strong></td>
+        </tr>
+        <ng-container *ngIf="active_hat?.crown_material == active_hat?.hat_material">
+            <tr *ngFor="let key of sortedCrownKeys">
+                <td>{{ key | number : '1.1-1' }} cm</td>
+                <td>{{ crown_babies_aggregated_by_length[key].quantity }}</td>
+                <td>{{ crown_babies_aggregated_by_length[key].position }}</td>
+            </tr>    
+        </ng-container>
+    -->
+    </tbody>
+  </table>
+
+</div> <!-- end of active hat info-->
+
+<div *ngIf="!active_hat" style="display: flex;flex-direction: column;flex-wrap: nowrap;align-items: center;">
+  <div><img [attr.src]="no_hat_img" style="width: 200px;"></div>
+  <div>No hat selected. Choose a hat to calculate.</div>
+</div>

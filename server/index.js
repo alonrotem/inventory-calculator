@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const config = require("./config");
 
 const app = express();
 app.use(cors());
@@ -38,6 +39,9 @@ app.use("/customers", customersRouter);
 app.use("/transaction_history", transaction_historyRouter);
 app.use("/backup", backupRouter);
 app.use("/settings", settingsRouter);
+
+console.log(config.hatsUploadDir);
+app.use(config.hats_pictures_path, express.static(config.hatsUploadDir));
 
 /* Error handler middleware */
 app.use((err, req, res, next) => {

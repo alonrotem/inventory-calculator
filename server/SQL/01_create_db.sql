@@ -442,7 +442,8 @@ CREATE TABLE  IF NOT EXISTS transaction_history (
         'to_customer_bank', 
         'deleted_customer_bank',
         'customer_bank_allocate_to_Work',
-        'customer_bank_allocation_deleted'
+        'customer_bank_allocation_deleted',
+        'customer_bank_allocation_merged'
 	) NOT NULL,
     
     # involved banks in this transaction:
@@ -467,7 +468,8 @@ MODIFY COLUMN
         'to_customer_bank', 
         'deleted_customer_bank',
         'customer_bank_allocate_to_Work',
-        'customer_bank_allocation_deleted'
+        'customer_bank_allocation_deleted',
+        'customer_bank_allocation_merged'
     )
 NOT NULL;
 
@@ -511,6 +513,22 @@ CREATE TABLE  IF NOT EXISTS `hats`
   `crown_material` VARCHAR(255) NULL,
   PRIMARY KEY (`id`)
 );
+
+# -----------------------------------
+# Add column if doesn't exist...
+SET @col_exists = (
+    SELECT COUNT(*) 
+    FROM information_schema.COLUMNS 
+    WHERE TABLE_NAME = 'hats' 
+    AND COLUMN_NAME = 'photo' 
+    AND TABLE_SCHEMA = DATABASE()
+);
+SET @query = IF(@col_exists = 0, 'ALTER TABLE hats ADD COLUMN photo VARCHAR(255) null;', 'SELECT 1');
+PREPARE stmt FROM @query;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+# End: Add column if doesn't exist
+# -----------------------------------
 
 CREATE TABLE  IF NOT EXISTS `hats_wings`
 (

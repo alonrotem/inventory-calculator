@@ -220,8 +220,9 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     //if(changes["crown"]["currentValue"] != changes["crown"]["previousValue"])  rebuild = true;
     //if(changes["crown_length"]["currentValue"] != changes["crown_length"]["previousValue"])  rebuild = true;
 
-    if(rebuild)
+    if(rebuild){
       this.Rebuild();
+    }
   }
 
   setColors(theme:string){

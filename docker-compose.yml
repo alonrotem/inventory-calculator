@@ -25,6 +25,8 @@ services:
     restart: always
     depends_on:
       - db
+    volumes:
+      - ./server/uploads:/server/uploads
 
   db:
     build: ./server/SQL/

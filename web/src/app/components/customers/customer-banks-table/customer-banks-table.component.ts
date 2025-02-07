@@ -3,8 +3,7 @@ import { Baby, Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, Hat,
 import { RouterModule } from '@angular/router';
 import { DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
-import { BabiesTableComponent } from '../../babies/babies-table/babies-table.component';
-import { faChartPie, faPencil, faTrashCan, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faChartPie, faCodeMerge, faPencil, faTrashCan, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 import { BankAllocationDialogComponent } from '../bank-allocation-dialog/bank-allocation-dialog.component';
@@ -14,12 +13,16 @@ import { BankHistoryDialogComponent } from '../bank-history-dialog/bank-history-
 import { HatsService } from '../../../services/hats.service';
 import { HatsCalculatorService } from '../../../services/hats-calculator.service';
 import { WingsService } from '../../../services/wings.service';
+import { AllocationPickerComponent } from '../allocation-picker/allocation-picker.component';
+import { SumPipe } from '../../../utils/pipes/sum-pipe';
 
 @Component({
   selector: 'app-customer-banks-table',
   standalone: true,
   imports: [ RouterModule, NgFor, FilterPipe, NgIf, FaIconComponent, NgClass,
-    DecimalPipe, ConfirmationDialogComponent, BankAllocationDialogComponent, BabyEditorDialogComponent, SortPipe, BankHistoryDialogComponent ],
+    DecimalPipe, ConfirmationDialogComponent, BankAllocationDialogComponent, 
+    BabyEditorDialogComponent, SortPipe, BankHistoryDialogComponent, AllocationPickerComponent, SumPipe
+  ],
   templateUrl: './customer-banks-table.component.html',
   styleUrl: './customer-banks-table.component.scss'
 })
@@ -43,14 +46,17 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
   @ViewChild('allocation_dialog') allocation_dialog!: BankAllocationDialogComponent;
   @ViewChild('babies_picker') babies_picker!: BabyEditorDialogComponent;
   @ViewChild('history_dialog') history_dialog! : BankHistoryDialogComponent;
+  @ViewChild('allocation_picker') allocation_picker! : AllocationPickerComponent;
   faTriangleExclamation: IconDefinition = faTriangleExclamation;
   faPencil: IconDefinition = faPencil;
   faTrashCan: IconDefinition = faTrashCan;
   faChartPie: IconDefinition = faChartPie;
+  faCodeMerge: IconDefinition = faCodeMerge;
   newAllcoationCounter: number = -1;
   pendingAllocationIdAction: number = -999;
   pendingBabyAppendAllocation: number = -999;
   pendingBabyAppendBaby: number = -999;
+  pendingMergedSourceAllocationID: number = -999;
   newAllocationIdCounter = -1;
 
   hat: Hat | null = null;
@@ -60,8 +66,6 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
       private hatsService: HatsService,
       private wingsService: WingsService,
       private hatsCalculatorService: HatsCalculatorService) {
-       
-       
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -71,8 +75,16 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
         this.wing = wing;
         if(this.hat) {
           
+          /*
           let n = this.hatsCalculatorService.calculateMaxHats(this.hat,
             this.wing, this.babies, 0,0
+          );*/
+          let n = this.hatsCalculatorService.AlonsHatCalculator(
+            this.hat,
+            this.wing,
+            [this.bank],
+            this.banks_baby_allocations,
+            this.babies
           );
           //filter: 'customer_banks_babies_id' : bank_allocation.id
           console.log(n + " hats calculated");
@@ -97,6 +109,36 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
 
     this.allocation_dialog.dialogWrapper.modalTitle = "Manage allocation";
     this.allocation_dialog.dialogWrapper.confirm.subscribe(() => { this.allocation_dialog_closed(this.allocation_dialog.CurrentQuantity); });
+
+    this.allocation_picker.dialogWrapper.confirm.subscribe((target_allocation_id: number) => {
+      let babies_to_delete: number[] = [];
+      this.babies.filter(b => b.customer_banks_babies_id == this.pendingMergedSourceAllocationID).forEach(soure_baby => {
+        // find a baby with the destination allocation id
+        // if not exists, just change the current baby allocation id
+        // else, append the current quantity to the other baby. add the baby id to the deleted ones
+        let destination_baby_with_same_length = this.babies.find(
+          target_baby => 
+            target_baby.customer_banks_babies_id == target_allocation_id && 
+            target_baby.length == soure_baby.length);
+        if(destination_baby_with_same_length) {
+          destination_baby_with_same_length.quantity += soure_baby.quantity;
+          babies_to_delete.push(soure_baby.id);
+        }
+        else {
+          soure_baby.customer_banks_babies_id = target_allocation_id;
+        }
+      });
+      while(babies_to_delete.length > 0){
+        let id_to_remove = babies_to_delete.pop();
+        let index_of_baby_to_delete = this.babies.findIndex(b => b.id == id_to_remove);
+        console.log("poppin " + index_of_baby_to_delete);
+        if(index_of_baby_to_delete >= 0){
+          this.babies.splice(index_of_baby_to_delete, 1);
+        }
+      }
+      this.pendingMergedSourceAllocationID = -999;
+    });
+    this.allocation_picker.dialogWrapper.cancel.subscribe(() => { this.pendingMergedSourceAllocationID = -999; });
   }
 
   delete_allocation(allocationId:number){
@@ -312,5 +354,13 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
     this.history_dialog.raw_material_name = this.bank.raw_material_name;
     this.history_dialog.raw_material_id = this.bank.raw_material_id;
     this.history_dialog.open(this.bank.id);
+  }
+
+  openAllocationMergeDialog(sourceAllocationId: number){
+    this.pendingMergedSourceAllocationID = sourceAllocationId;
+    this.allocation_picker.dialogWrapper.modalTitle = "<span class='icon-merge'></span> Merge Allocation";
+    this.allocation_picker.dialogWrapper.btnSaveClass = "d-none";
+    this.allocation_picker.banks_baby_allocations = this.banks_baby_allocations.filter(a => a.id != sourceAllocationId);
+    this.allocation_picker.open(sourceAllocationId);
   }
 }

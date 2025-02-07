@@ -53,7 +53,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
     created_at: new Date(),
     purchase_quantity: 0,
     remaining_quantity: 0,
-    quantity_units: 'kg',
+    quantity_units: 'units',
     customer_banks: [],
     transaction_record: null,
     deleted_bank_records: []

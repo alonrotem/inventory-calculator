@@ -1,0 +1,58 @@
+.accordion-button {
+    padding: 10px;
+}
+
+.accordion {
+    margin: 15px 0px;
+}
+
+.bank-title {
+    font-weight: 500;
+    font-size: 18px;
+}
+
+.bank-picker {
+    border: 1px solid;
+    border-radius: 15px;
+    padding: 15px;
+    margin: 15px 0px;
+}
+
+.allocation:hover {
+    background-color: var(--bs-success-text-emphasis);
+    color: var(--bs-body-bg);
+    cursor: pointer;
+    transition: none;
+}
+
+.allocation:hover button {
+    background-color: var(--bs-warning-text-emphasis);
+    color: var(--bs-body-bg);
+    cursor: pointer;
+    transition: none;
+}
+
+.allocation button {
+    transition: none;
+}
+
+.tooltip {
+    position: absolute;
+    background-color: lightyellow;
+    border: 1px solid black;
+    display: block;
+    z-index: 999;
+    color: black;
+    font-size: 12px;
+    padding: 10px 20px;
+    text-align: center;
+    border-radius: 7px;
+    display:none;
+    opacity: 1;
+  }
+
+  .instructions {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 30px;
+  }

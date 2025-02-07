@@ -1,382 +1,408 @@
 {
   "selection": [
     {
+      "order": 0,
+      "prevSize": 32
+    },
+    {
+      "name": "line-chart",
+      "order": 0,
+      "prevSize": 28
+    },
+    {
+      "ligatures": "history, time",
+      "name": "history",
+      "order": 0,
+      "prevSize": 32
+    },
+    {
+      "name": "calculator1",
+      "order": 0,
+      "prevSize": 28
+    },
+    {
       "ligatures": "history, time",
       "name": "history1",
-      "order": 309,
+      "order": 0,
+      "prevSize": 32
+    },
+    {
+      "ligatures": "history, time",
+      "name": "history11",
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "leaf, nature",
       "name": "leaf1",
-      "order": 310,
+      "order": 0,
       "prevSize": 32
     },
     {
-      "order": 311,
+      "order": 0,
       "name": "wall-bricks",
       "prevSize": 32
     },
     {
-      "order": 312,
+      "order": 0,
       "name": "fox-hiding",
       "prevSize": 32
     },
     {
-      "order": 313,
+      "order": 0,
       "name": "leaf11",
       "prevSize": 32
     },
     {
-      "order": 314,
+      "order": 0,
       "name": "raw",
       "prevSize": 32
     },
     {
-      "order": 315,
+      "order": 0,
       "name": "baby",
       "prevSize": 32
     },
     {
-      "order": 316,
+      "order": 0,
       "name": "logo-light",
       "prevSize": 32
     },
     {
-      "order": 317,
+      "order": 0,
       "name": "hat",
       "prevSize": 32
     },
     {
-      "order": 318,
+      "order": 0,
       "name": "feather-wing",
       "prevSize": 32
     },
     {
-      "order": 319,
+      "order": 0,
       "prevSize": 32,
       "name": "feather-wing-r"
     },
     {
-      "order": 320,
+      "order": 0,
       "name": "crown",
       "prevSize": 32
     },
     {
-      "order": 321,
+      "order": 0,
       "name": "top",
       "prevSize": 32
     },
     {
       "ligatures": "home3, house3",
       "name": "home3",
-      "order": 322,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "pencil, write",
       "name": "pencil",
-      "order": 323,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "camera, photo",
       "name": "camera",
-      "order": 324,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "play, video",
       "name": "play",
-      "order": 325,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "connection, wifi",
       "name": "connection",
-      "order": 326,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "file-empty, file3",
       "name": "file-empty",
-      "order": 327,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "files-empty, files",
       "name": "files-empty",
-      "order": 328,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "file-text2, file4",
       "name": "file-text2",
-      "order": 329,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "file-picture, file5",
       "name": "file-picture",
-      "order": 330,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "file-zip, file9",
       "name": "file-zip",
-      "order": 331,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "copy, duplicate",
       "name": "copy",
-      "order": 332,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "paste, clipboard-file",
       "name": "paste",
-      "order": 333,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "folder, directory",
       "name": "folder",
-      "order": 334,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "folder-open, directory2",
       "name": "folder-open",
-      "order": 335,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "ticket, theater",
       "name": "ticket",
-      "order": 336,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "cart, purchase",
       "name": "cart",
-      "order": 337,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "credit-card, money5",
       "name": "credit-card",
-      "order": 338,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "calculator, compute",
-      "name": "calculator",
-      "order": 339,
+      "name": "calculator2",
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "phone, telephone",
       "name": "phone",
-      "order": 340,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "address-book, contact",
       "name": "address-book",
-      "order": 341,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "location2, map-marker2",
       "name": "location2",
-      "order": 342,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "alarm, time4",
       "name": "alarm",
-      "order": 343,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "calendar, date",
       "name": "calendar",
-      "order": 344,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "mobile, cell-phone",
       "name": "mobile",
-      "order": 345,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "download, save",
       "name": "download",
-      "order": 346,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "upload, load",
       "name": "upload",
-      "order": 347,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "floppy-disk, save2",
       "name": "floppy-disk",
-      "order": 348,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "spinner2, loading3",
       "name": "spinner2",
-      "order": 349,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "rocket, jet",
       "name": "rocket",
-      "order": 350,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "lab, beta",
       "name": "lab",
-      "order": 351,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "bin, trashcan",
       "name": "bin",
-      "order": 352,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "leaf, nature",
       "name": "leaf",
-      "order": 353,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "cloud, weather",
       "name": "cloud",
-      "order": 354,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "cloud-download, cloud2",
       "name": "cloud-download",
-      "order": 355,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "cloud-upload, cloud3",
       "name": "cloud-upload",
-      "order": 356,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "cloud-check, cloud4",
       "name": "cloud-check",
-      "order": 357,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "download2, save4",
       "name": "download2",
-      "order": 358,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "upload2, load2",
       "name": "upload2",
-      "order": 359,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "earth, globe2",
       "name": "earth",
-      "order": 360,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "enter, signin",
       "name": "enter",
-      "order": 361,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "exit, signout",
       "name": "exit",
-      "order": 362,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "facebook, brand10",
       "name": "facebook",
-      "order": 363,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "instagram, brand12",
       "name": "instagram",
-      "order": 364,
+      "order": 0,
       "prevSize": 32
     },
     {
       "name": "whatsapp",
       "ligatures": "whatsapp, brand13",
-      "order": 365,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "feed2, rss",
       "name": "rss",
-      "order": 366,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "deviantart, brand34",
       "name": "deviantart",
-      "order": 367,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "tumblr2, brand50",
       "name": "tumblr2",
-      "order": 368,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "apple, brand53",
       "name": "appleinc",
-      "order": 369,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "linkedin2, brand65",
       "name": "linkedin2",
-      "order": 370,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "firefox, browser2",
       "name": "firefox",
-      "order": 371,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "file-pdf, file10",
       "name": "file-pdf",
-      "order": 372,
+      "order": 0,
       "prevSize": 32
     },
     {
       "ligatures": "file-excel, file13",
       "name": "file-excel",
-      "order": 373,
+      "order": 0,
       "prevSize": 32
     }
   ],
@@ -389,11 +415,72 @@
     "url": "https://romtech.duckdns.org/",
     "designer": "Alon Rotem",
     "designerURL": "https://alonintheworld.com/",
-    "iconsHash": 1280008213
+    "iconsHash": 1335338630
   },
   "height": 1024,
   "prevSize": 32,
   "icons": [
+    {
+      "paths": [
+        "M634.496 240.48l-90.496 90.496 117.024 117.024h-213.024v-320h-320v128h192v512h-192v128h320v-320h213.024l-117.024 117.024 90.496 90.496 271.552-271.52-271.552-271.52z"
+      ],
+      "tags": [
+        "merge",
+        "connect",
+        "join"
+      ],
+      "grid": 16
+    },
+    {
+      "paths": [
+        "M1170.286 877.714v73.143h-1170.286v-877.714h73.143v804.571h1097.143zM1097.143 164.571v248.571c0 16-19.429 24.571-31.429 12.571l-69.143-69.143-361.714 361.714c-7.429 7.429-18.857 7.429-26.286 0l-133.143-133.143-237.714 237.714-109.714-109.714 334.286-334.286c7.429-7.429 18.857-7.429 26.286 0l133.143 133.143 265.143-265.143-69.143-69.143c-12-12-3.429-31.429 12.571-31.429h248.571c10.286 0 18.286 8 18.286 18.286z"
+      ],
+      "width": 1170.2857142857142,
+      "tags": [
+        "line-chart"
+      ],
+      "defaultCode": 61953,
+      "grid": 14
+    },
+    {
+      "paths": [
+        "M640 64c247.424 0 448 200.576 448 448s-200.576 448-448 448v-96c94.024 0 182.418-36.614 248.902-103.098s103.098-154.878 103.098-248.902c0-94.022-36.614-182.418-103.098-248.902s-154.878-103.098-248.902-103.098c-94.022 0-182.418 36.614-248.902 103.098-51.14 51.138-84.582 115.246-97.306 184.902h186.208l-224 256-224-256h164.57c31.060-217.102 217.738-384 443.43-384zM832 448v128h-256v-320h128v192z"
+      ],
+      "width": 1088,
+      "tags": [
+        "history",
+        "time",
+        "archive",
+        "past"
+      ],
+      "defaultCode": 59726,
+      "grid": 16
+    },
+    {
+      "paths": [
+        "M219.429 877.714c0-40.571-32.571-73.143-73.143-73.143s-73.143 32.571-73.143 73.143 32.571 73.143 73.143 73.143 73.143-32.571 73.143-73.143zM438.857 877.714c0-40.571-32.571-73.143-73.143-73.143s-73.143 32.571-73.143 73.143 32.571 73.143 73.143 73.143 73.143-32.571 73.143-73.143zM219.429 658.286c0-40.571-32.571-73.143-73.143-73.143s-73.143 32.571-73.143 73.143 32.571 73.143 73.143 73.143 73.143-32.571 73.143-73.143zM658.286 877.714c0-40.571-32.571-73.143-73.143-73.143s-73.143 32.571-73.143 73.143 32.571 73.143 73.143 73.143 73.143-32.571 73.143-73.143zM438.857 658.286c0-40.571-32.571-73.143-73.143-73.143s-73.143 32.571-73.143 73.143 32.571 73.143 73.143 73.143 73.143-32.571 73.143-73.143zM219.429 438.857c0-40.571-32.571-73.143-73.143-73.143s-73.143 32.571-73.143 73.143 32.571 73.143 73.143 73.143 73.143-32.571 73.143-73.143zM658.286 658.286c0-40.571-32.571-73.143-73.143-73.143s-73.143 32.571-73.143 73.143 32.571 73.143 73.143 73.143 73.143-32.571 73.143-73.143zM438.857 438.857c0-40.571-32.571-73.143-73.143-73.143s-73.143 32.571-73.143 73.143 32.571 73.143 73.143 73.143 73.143-32.571 73.143-73.143zM877.714 877.714v-219.429c0-40-33.143-73.143-73.143-73.143v0c-40 0-73.143 33.143-73.143 73.143v219.429c0 40 33.143 73.143 73.143 73.143v0c40 0 73.143-33.143 73.143-73.143zM658.286 438.857c0-40.571-32.571-73.143-73.143-73.143s-73.143 32.571-73.143 73.143 32.571 73.143 73.143 73.143 73.143-32.571 73.143-73.143zM877.714 256v-146.286c0-20-16.571-36.571-36.571-36.571h-731.429c-20 0-36.571 16.571-36.571 36.571v146.286c0 20 16.571 36.571 36.571 36.571h731.429c20 0 36.571-16.571 36.571-36.571zM877.714 438.857c0-40.571-32.571-73.143-73.143-73.143s-73.143 32.571-73.143 73.143 32.571 73.143 73.143 73.143 73.143-32.571 73.143-73.143zM950.857 73.143v877.714c0 40-33.143 73.143-73.143 73.143h-804.571c-40 0-73.143-33.143-73.143-73.143v-877.714c0-40 33.143-73.143 73.143-73.143h804.571c40 0 73.143 33.143 73.143 73.143z"
+      ],
+      "width": 950.8571428571428,
+      "tags": [
+        "calculator"
+      ],
+      "defaultCode": 61932,
+      "grid": 14
+    },
+    {
+      "paths": [
+        "M640 64c247.424 0 448 200.576 448 448s-200.576 448-448 448v-96c94.024 0 182.418-36.614 248.902-103.098s103.098-154.878 103.098-248.902c0-94.022-36.614-182.418-103.098-248.902s-154.878-103.098-248.902-103.098c-94.022 0-182.418 36.614-248.902 103.098-51.14 51.138-84.582 115.246-97.306 184.902h186.208l-224 256-224-256h164.57c31.060-217.102 217.738-384 443.43-384zM832 448v128h-256v-320h128v192z"
+      ],
+      "width": 1088,
+      "tags": [
+        "history",
+        "time",
+        "archive",
+        "past"
+      ],
+      "defaultCode": 59727,
+      "grid": 16
+    },
     {
       "paths": [
         "M640 64c247.424 0 448 200.576 448 448s-200.576 448-448 448v-96c94.024 0 182.418-36.614 248.902-103.098s103.098-154.878 103.098-248.902c0-94.022-36.614-182.418-103.098-248.902s-154.878-103.098-248.902-103.098c-94.022 0-182.418 36.614-248.902 103.098-51.14 51.138-84.582 115.246-97.306 184.902h186.208l-224 256-224-256h164.57c31.060-217.102 217.738-384 443.43-384zM832 448v128h-256v-320h128v192z"
