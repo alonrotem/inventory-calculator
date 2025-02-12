@@ -4,6 +4,10 @@
 
 # docker compose down; git pull;  rm -rf ./server/SQL/mysql/; docker compose up -d --build
 
+# -----------------------------------------
+# pull and run latest without seeding:
+# docker compose down; git pull; sudo rm -rf ./server/SQL/mysql; mv ./server/SQL/10_seed_data.sql ~/Desktop/;  docker compose up -d --build; mv ~/Desktop/10_seed_data.sql ./server/SQL/
+
 name: romtech
 
 services:
