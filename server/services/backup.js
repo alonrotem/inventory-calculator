@@ -35,9 +35,8 @@ function construct_inserts(table_name, table_info, records, keep_existing_record
         return insert_statement;
     }
     else {
-        if(!keep_existing_records) {
-            insert_statement += `DELETE FROM \`${table_name}\` where @delete_records=TRUE;\n\n`;
-        }        
+        insert_statement += `DELETE FROM \`${table_name}\` where @delete_records=TRUE;\n\n`;
+
         insert_statement += `INSERT INTO \`${table_name}\` (${ table_info.map((c) => `\`${c.Field}\``).join(", ") }) \nVALUES\n`;
         for(let row=0; row < records.length; row++)
         {

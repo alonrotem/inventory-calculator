@@ -113,12 +113,12 @@ router.post('/', upload.single('file'), async (req, res) => {
       }
   
       res.json({
-        message: "ZIP extracted successfully",
+        message: "Backup restored succesfully!",
         textContent: textFileContent, // Send text content in response if needed
       });
     } catch (error) {
-      console.error("Error extracting ZIP:", error);
-      res.status(500).json({ error: "Failed to process ZIP file" });
+      console.error("Error restoring backup:", error);
+      res.status(500).json({ error: "Error restoring backup!" });
     }
     //--------------
     return;

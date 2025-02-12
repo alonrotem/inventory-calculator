@@ -60,12 +60,14 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
   num_of_allocations_with_crown_material = 0;
   pending_allocation_area_selection = ""; // wall/crown
   faChartPie: IconDefinition = faChartPie;
+  console=console;
 
   @Input() banks: Customer_Bank[] = [];
   @Input() banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
   @Input() babies: Customer_Baby[] = [];
 
   total_num_of_possible_hats: number = 0;
+  highlight_lowest_number_in_table: boolean =  false;
 
   //wall_babies_aggregated_by_length: { [key: number]: { quantity: number; position: string }} [] = [];
   /*
@@ -120,10 +122,7 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
       let baby_in_allocation_with_length = babies_in_allocation.find(b => b.length == wingBaby.length);
       let allocation_quantity = (baby_in_allocation_with_length)? baby_in_allocation_with_length.quantity : 0;
       let quantity_in_wing = ((this.active_hat)? this.active_hat.wing_quantity : 0);
-      let how_many_hats = Math.floor((quantity_in_wing)? (allocation_quantity/quantity_in_wing) : 0);
-      if(how_many_hats < this.total_num_of_possible_hats) {
-        this.total_num_of_possible_hats = how_many_hats;
-      }
+
       if(append_to_item){
         let positions = append_to_item.position.split(", ");
         if(positions.indexOf(wingBaby.position) < 0){
@@ -131,17 +130,29 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
         }
         append_to_item.quantity += quantity_in_wing;
         append_to_item.position = positions.join(", ");
-        append_to_item.possible_num_of_hats = how_many_hats;
+        append_to_item.possible_num_of_hats = -1;
       }
       else {
-        babies_collection.push({
+        append_to_item = {
           length: wingBaby.length,
           quantity: quantity_in_wing,
           position: wingBaby.position,
           quantity_in_allocation: allocation_quantity,
-          possible_num_of_hats: how_many_hats
-        });
+          possible_num_of_hats: -1
+        };
+        babies_collection.push(append_to_item);
       }
+      let how_many_hats = Math.floor((append_to_item.quantity)? (allocation_quantity/append_to_item.quantity) : 0);
+      if(how_many_hats < this.total_num_of_possible_hats) {
+        //if the total number of hats has already been found, but we found a lower value of it
+        //or if the number of hats has dropped to 0
+        //this will be highlighted in the table, showing the lowest hat baby allocation
+        if(this.total_num_of_possible_hats < Infinity || how_many_hats == 0) {
+          this.highlight_lowest_number_in_table = true;
+        }
+        this.total_num_of_possible_hats = how_many_hats;
+      }
+      append_to_item.possible_num_of_hats = how_many_hats;
     }
 
   constructor(
