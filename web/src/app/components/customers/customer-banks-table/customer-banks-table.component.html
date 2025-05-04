@@ -5,6 +5,16 @@
   btnYesText="Delete"
   btnYesClass="btn-danger"
 />
+
+<app-confirmation-dialog #save_before_select
+  modalTitle="Save first!"
+  modalText="Save changes to the bank before selecting this allocation!"
+  [btnYesIcon]=faSave
+  btnYesText="Save"
+  btnYesClass="btn-success"
+  btnNoClass="d-none"
+/>
+
 <app-bank-allocation-dialog 
   #allocation_dialog
 />
@@ -73,34 +83,57 @@
 
 <!-- allocations from this bank -->
  <div *ngIf="(banks_baby_allocations | filter: 'customer_bank_id' : bank.id).length > 0">
-
  
  <ng-container *ngFor="let bank_allocation of banks_baby_allocations | filter: 'customer_bank_id' : bank.id">
  <hr  style="margin: 30px 0px;" />
- <div>
+ <div class="allocation-area">
       <div>
         <fa-icon [icon]="faChartPie" style="margin-right:10px;"></fa-icon>
         <strong>Allocated for work (#{{ bank_allocation.id }}):</strong>
         {{ bank_allocation.quantity }} {{ raw_material_quantity_units }}, {{ (babies | filter: "customer_banks_babies_id" : bank_allocation.id) | sum: 'quantity' }} babies 
-        <button class="btn btn-warning" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="open_allocation_dialog(bank_allocation.id)">
-          <fa-icon [icon]="faPencil"></fa-icon>
-          Edit
-        </button>
-        <button *ngIf="((this.banks_baby_allocations | filter: 'customer_bank_id' : bank.id).length > 1) && ((babies | filter: 'customer_banks_babies_id' : bank_allocation.id).length > 0)"  class="btn btn-success" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="openAllocationMergeDialog(bank_allocation.id)">
-          <span class="icon-merge"></span>
-          Merge this
-        </button>
-        <button class="btn btn-danger" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="delete_allocation(bank_allocation.id)">
-          <fa-icon [icon]="faTrashCan"></fa-icon>
-          Delete
-        </button>
+        <div>
+          <button class="btn btn-warning" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="open_allocation_dialog(bank_allocation.id)">
+            <fa-icon [icon]="faPencil"></fa-icon>
+            Edit
+          </button>
+          <button *ngIf="((this.banks_baby_allocations | filter: 'customer_bank_id' : bank.id).length > 1) && ((babies | filter: 'customer_banks_babies_id' : bank_allocation.id).length > 0)"  class="btn btn-success" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="openAllocationMergeDialog(bank_allocation.id)">
+            <span class="icon-merge"></span>
+            Merge this
+          </button>
+          <button class="btn btn-danger" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="delete_allocation(bank_allocation.id)">
+            <fa-icon [icon]="faTrashCan"></fa-icon>
+            Delete
+          </button>
+          <button *ngIf="selectable_allocatoin" class="btn btn-info btn-select-this" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="select_allocation(bank_allocation)">
+            <fa-icon [icon]="faCheck"></fa-icon>
+            Select this allocation
+          </button>
+          <span *ngIf="unsaved_changes" class="text-danger" style="margin-left: 10px;">* changed</span>        
+        </div>
+
+        <div> <!-- show/hide babies button -->
+          <button
+            *ngIf="(babies | filter: 'customer_banks_babies_id' : bank_allocation.id).length > 0"
+            [className]="'btn btn-outline-info btn-babies-toggle ' + ((((babies | filter: 'customer_banks_babies_id' : bank_allocation.id).length > 0) && collapsed_babies_lists)? 'collapsed' : '')" 
+            type="button" 
+            data-bs-toggle="collapse" 
+            [attr.data-bs-target]="'#collapseExample' + bank_allocation.id" [attr.aria-expanded]="!collapsed_babies_lists" 
+            [attr.aria-controls]="'collapseExample' + bank_allocation.id">
+            <span class="expanded-text"><span class="icon-chevron-up"></span> Hide babies</span>
+            <span class="collapsed-text"><span class="icon-chevron-down"></span> Show babies</span>
+          </button>
+        </div>
       </div>
-      <div *ngIf="(babies | filter: 'customer_banks_babies_id' : bank_allocation.id).length > 0"><!--show babies table-->
+      
+      <div 
+        [className]="'collapse ' + (((babies | filter: 'customer_banks_babies_id' : bank_allocation.id).length > 0) && (collapsed_babies_lists)? '' : 'show')" [id]="'collapseExample' + bank_allocation.id" 
+        *ngIf="(babies | filter: 'customer_banks_babies_id' : bank_allocation.id).length > 0">
         <table class="table table-responsive table-striped table-hover">
             <thead>
               <tr>
                 <th scope="col">Length</th>
                 <th scope="col">Quantity</th>
+                <th scope="col">In orders</th>
                 <th scope="col" class="text-center">Remove</th>
               </tr>
             </thead>
@@ -111,18 +144,20 @@
                 [queryParams]="{ id: customer.id }" role="button">-->
                 <td (click)="open_babies_dialog(bank_allocation.id, baby.length)">{{ baby.length | number : '1.1-1' }} cm</td>
                 <td (click)="open_babies_dialog(bank_allocation.id, baby.length)">{{ baby.quantity }}</td>
-                <td class="text-center" style="cursor: pointer;" title="Delete this baby"><fa-icon class="text-danger" [icon]="faTrashCan" (click)="delete_baby(baby.id)"></fa-icon></td>
+                <td (click)="open_babies_dialog(bank_allocation.id, baby.length)">{{ baby.quantity_in_pending_orders }}</td>
+                <td class="text-center" style="cursor: pointer;" [attr.title]="(baby.quantity_in_pending_orders == 0)? 'Delete this baby': 'Cannot delete this baby (included in orders)'"><fa-icon *ngIf="baby.quantity_in_pending_orders == 0" class="text-danger" [icon]="faTrashCan" (click)="delete_baby(baby.id)"></fa-icon></td>
               </tr>
                 </ng-container>
             </tbody>
           </table>
+
+          <div style="display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: center; align-items: center;">
+            <button class="btn btn-primary" style="width: 50%; padding: 2px 0px;" (click)="open_babies_dialog(bank_allocation.id, -999)">+ Add babies</button>
+          </div>          
       </div><!--/babies table-->
       <div *ngIf="(babies | filter: 'customer_banks_babies_id' : bank_allocation.id).length == 0" style="height: 120px; display: flex; flex-direction: column; flex-wrap: nowrap; justify-content: center; align-items: center;">
         <div><fa-icon [icon]="faTriangleExclamation" size="2x"></fa-icon></div>
         <div>No babies in this allocation</div>
-      </div>
-      <div style="display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: center; align-items: center;">
-        <button class="btn btn-primary" style="width: 50%; padding: 2px 0px;" (click)="open_babies_dialog(bank_allocation.id, -999)">+ Add babies</button>
       </div>
 </div>
 </ng-container>

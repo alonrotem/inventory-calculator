@@ -1,3 +1,8 @@
+.hat-name {
+  font-weight: 700;
+  font-size: 17px;
+}
+
 .hat-info-section {
     border: 1px solid;
     border-radius: 7px;
@@ -11,4 +16,184 @@
 
 .section-btn-wrapper {
     margin-top: 7px;
+}
+
+.babies-table {
+    margin-top: 30px;
+}
+
+.babies-table td:nth-child(1), 
+.babies-table td:nth-child(4), 
+.babies-table th:nth-child(1), 
+.babies-table th:nth-child(4),
+.babies-table .th-title  {
+    border-left: 1px solid var(--bs-warning);
+}
+.babies-table td:nth-child(6),
+.babies-table th:nth-child(6),
+.babies-table .th-title {
+    border-right: 1px solid var(--bs-warning);
+}
+
+.babies-table .th-title {
+    border-top: 1px solid var(--bs-warning);
+    color: var(--bs-warning);
+    text-align: center;
+}
+
+.table-message {
+  border-right: 1px solid var(--bs-warning);
+  border-bottom: 1px solid var(--bs-warning);
+}
+.table-message div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+/*
+.babies-table .th-title td {
+    border-radius: 10px;
+}*/
+
+.babies-table tr:last-child td {
+    border-bottom: 1px solid var(--bs-warning);
+}
+
+.ng-autocomplete {
+  border: var(--bs-border-width) solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+  margin-top: 10px;
+}
+
+.ng-autocomplete .form-control-plaintext {
+  padding: 5px 0px;
+}
+/*
+
+
+
+
+::ng-deep .ng-select-container {
+  height: auto !important;
+  min-width: 200px;
+  width: auto !important;
+}
+
+::ng-deep .autocomplete-container .input-container input,
+::ng-deep .autocomplete-container .input-container input::placeholder {
+  color: var(--bs-warning) !important;
+}
+
+::ng-deep .autocomplete-container.active {
+  z-index: 9999 !important;
+}
+
+::ng-deep .autocomplete-container .input-container input {
+  line-height: 25px !important;
+  height: 25px !important;
+}
+
+::ng-deep .autocomplete-container .suggestions-container ul:has(li) {
+  border: 1px solid;
+}
+  */
+
+  .ng-autocomplete {
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+}
+
+::ng-deep .autocomplete-container .input-container input {
+  height: 25px !important;
+}
+
+::ng-deep .autocomplete-container.active {
+    z-index: 9999 !important;
+}
+
+::ng-deep .ng-autocomplete {
+    width: auto !important;
+}
+
+::ng-deep .input-container input {
+    color: var(--bs-body-color) !important;
+    background-color: var(--bs-body-bg) !important;
+}
+
+::ng-deep .suggestions-container a {
+    color: var(--bs-body-color) !important;
+    background-color: var(--bs-body-bg) !important;
+}
+
+::ng-deep .suggestions-container a:hover {
+    color: var(--bs-body-bg) !important;
+    background-color: var(--bs-body-color) !important;
+}
+
+::ng-deep .autocomplete-container {
+    box-shadow: none !important;
+    height: auto !important;
+}
+
+::ng-deep .autocomplete-container .input-container .x i {
+    color: var(--bs-body-color) !important;
+}
+
+::ng-deep .autocomplete-container .not-found {
+    color: var(--bs-body-bg) !important;
+    background-color: var(--bs-body-color) !important;    
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+  margin: 15px 0px;
+}
+
+.toolbar .btn span[class^=icon-] {
+  font-size: 30px;
+}
+
+.toolbar .btn {
+  margin-right: 10px;
+  width: 80px;
+}
+
+// ----- sliders -----
+datalist {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  
+  option {
+    padding: 0;
+  }
+  
+  input[type="range"] {
+    margin: 0;
+  }
+  input[type="range"], datalist {
+    width: 100%;
+  }
+
+  .sliders .col .row {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    padding: 20px;
+  }
+
+  /*
+  .sliders .col .row .col {
+    padding: 15px 10px 0px 10px;
+  }
+*/
+  .sliders .col .row:not(:last-child) {
+    /*padding-bottom: 10px;*/
+    border-bottom: 1px solid;
 }

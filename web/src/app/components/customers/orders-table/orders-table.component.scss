@@ -37,5 +37,27 @@ h1 {
 }
 
 .infotitle {
-    margin: 1px 0px 6px 0px;
+    margin: 20px 0px 20px 0px;
 }
+
+/*
+::ng-deep .ng-input input {
+    color: var(--bs-body-color) !important;
+}
+
+::ng-deep .ng-select-container, ::ng-deep .ng-option
+{
+    background-color: var(--bs-body-bg) !important;
+    color: var(--bs-body-color) !important;
+}
+
+::ng-deep .ng-option:hover, ::ng-deep .ng-option-marked
+{
+    color: var(--bs-body-bg) !important;
+    background-color: var(--bs-body-color) !important;
+}
+
+::ng-deep .ng-select .ng-clear-wrapper:hover .ng-clear {
+    color: var(--bs-body-color) !important;
+}
+    */

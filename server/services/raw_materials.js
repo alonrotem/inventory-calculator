@@ -69,10 +69,13 @@ async function getMultiple(page = 1, perPage){
 
 async function getNames(){
   const result = await db.query(`
-    select distinct name from raw_materials union
-    select hat_material as name from hats union
-    select crown_material as name from hats 
+    select distinct name from raw_materials  
     order by name;`);
+    /*
+    union
+    select hat_material as name from hats union
+    select crown_material as name from hats   
+    */
   const data = helper.emptyOrRows(result).map(material => material.name);
   return (data);
 }

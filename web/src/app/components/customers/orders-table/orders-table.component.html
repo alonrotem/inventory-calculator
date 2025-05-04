@@ -1,0 +1,66 @@
+<div class="row justify-content-center"><div class="col-12 col-md-9">
+    <h1><fa-icon [icon]="faBasketShopping"></fa-icon> Orders</h1>
+    
+    <div id="loading_icon" [hidden]="!loading">
+      <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <div><fa-icon [icon]="faArrowsRotate" [spin]="true" size="3x"></fa-icon></div>
+        <div id="loading_message">Loading orders...</div>
+      </div>
+    </div>
+    
+    <div [hidden]="loading">
+      <!--<a id="btnNewRaw" class="btn btn-primary" routerLink="/inventory/customer/editor">+ New customer</a>-->
+    
+      <div style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start;">
+        <a [hidden]="this.customer_id <= 0" style="margin-right: 15px;" class="btn btn-warning" routerLink="/inventory/customer/hat-calculator" [queryParams]="{ id: this.customer_id}"><fa-icon [icon]="faArrowLeft"></fa-icon> Back to calculator</a>
+        <div class="infotitle" [hidden]="loading">
+            <div>
+                <span [hidden]="this.customer_id > 0"><strong>All orders.</strong></span>
+                <span [hidden]="this.customer_id <= 0"><strong>Orders for customer {{ this.customer_name }}.</strong></span>
+            </div>
+            <div [hidden]="this.orders.length <= 0">
+                Total: {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'order':'orders' }}
+            </div>
+        </div>
+      </div>
+    
+      <div [hidden]="loading || this.orders.length == 0">
+    <table class="table table-responsive table-striped table-hover">
+        <thead>
+          <tr>
+            <th scope="col">Customer</th>
+            <th scope="col"># hats</th>
+            <th scope="col">wings per hat</th>
+            <th scope="col">Status</th>
+            <th scope="col">Last updated</th>
+          </tr>
+        </thead>
+        <tbody>           
+          <tr 
+            *ngFor="let order of this.orders" 
+            role="button"> <!-- routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }"-->
+            <td>{{ order.customer_name }}</td>
+            <td>{{ order.num_of_hats }}</td>
+            <td>{{ order.wing_quantity }}</td>
+            <td>{{ order.order_status }}</td>
+            <td>{{ order.date | dateStr }}</td>
+          </tr>
+        </tbody>
+      </table>
+    
+      <app-paginator #paginator [pages]=4  (onPageChange)="pageChange($event)" />
+    </div>
+    
+      <div [hidden]="loading || (this.orders.length > 0)" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
+        <div *ngIf="this.customer_id <= 0">
+            No orders created.<br/>
+            They should be submitted by customers.
+        </div>
+        <div *ngIf="this.customer_id > 0">
+            You haven't created any orders yet.<br/>
+            <span><a href="" [routerLink]="'/inventory/customer/hat-calculator'" [queryParams]="{ id: this.customer_id}">Go to your hats calculator</a> to submit orders.</span>    
+        </div>
+      </div>
+    </div>
+    
+    </div>

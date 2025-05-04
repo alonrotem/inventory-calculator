@@ -1,0 +1,35 @@
+/*Toggle the show/hide babies button message*/
+.btn-babies-toggle {
+    padding: 0px 11px 1px 5px;
+    margin: 10px;
+    min-width: 50%;
+}
+
+.btn-babies-toggle.collapsed span.expanded-text {
+    display: none;
+}
+
+.btn-babies-toggle.collapsed span.collapsed-text {
+    display: block;
+}
+
+.btn-babies-toggle:not(.collapsed) span.expanded-text {
+    display: block;
+}
+
+.btn-babies-toggle:not(.collapsed) span.collapsed-text {
+    display: none;
+}
+
+.allocation-area {
+    border-radius: 5px;
+    padding: 10px 0px;
+}
+.allocation-area:has(.btn-select-this:hover), 
+.allocation-area:has(.btn-select-this:hover) td, 
+.allocation-area:has(.btn-select-this:hover) th,
+.allocation-area:has(.btn-select-this:hover) .btn-babies-toggle {
+    background-color: #66ff99 !important;
+    color: black !important;
+    border: 1px solid black;
+}

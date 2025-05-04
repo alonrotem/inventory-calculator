@@ -23,6 +23,8 @@ export class BabiesLengthPickerComponent implements OnInit, AfterViewInit {
   @Input() length: number = -999;
   @Input() show_invalid_message: boolean = true;
   @Output() lengthChange = new EventEmitter<number>();
+  @Output() confirm = new EventEmitter<number>();
+  @Output() cancel = new EventEmitter<void>();
   console = console;
   lengths : string[] = [];
   

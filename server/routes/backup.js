@@ -24,6 +24,7 @@ router.get('/zip', async function(req, res, next) {
 
     const zip = new JSZip();
     zip.file('backup.sql', inserts);
+    zip.file('hostname.txt', req.headers.host); //check if we are on prod or dev
 
     const fileList = fs.readdirSync(config.hatsUploadDir);
     fileList.forEach((file) => {

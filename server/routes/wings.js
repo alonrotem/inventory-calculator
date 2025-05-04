@@ -29,6 +29,15 @@ router.get('/', async function(req, res, next) {
     }
   });
 
+  router.get('/customer/:id', async function(req, res, next) {
+    try {
+      res.json(await wings.getWingsForCustomer(req.params.id));
+    } catch (err) {
+      console.error(`Error while getting wings per customer ${req.params.id} `, err.message);
+      next(err);
+    }
+  });
+
   router.get('/:id', async function(req, res, next) {
     try {
       res.json(await wings.getSingle(req.params.id));

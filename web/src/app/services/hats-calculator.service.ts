@@ -1,5 +1,20 @@
 import { Injectable } from '@angular/core';
-import { Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, Hat, Wing, WingBaby } from '../../types';
+import { Customer_Baby, Customer_Bank_Baby_Allocation, Wing, WingBaby } from '../../types';
+
+export interface aggregated_babies { 
+  length: number; 
+  quantity: number; 
+  position: string, 
+  quantity_in_allocation: number,
+  possible_num_of_hats: number,
+  remaining: number
+};
+
+export interface hats_calculated {
+  total_num_of_possible_hats: number,
+  hat_babies: aggregated_babies[],
+  crown_babies: aggregated_babies[]
+}
 
 @Injectable({
   providedIn: 'root'
@@ -8,273 +23,192 @@ export class HatsCalculatorService {
 
   constructor() { }
 
-  AlonsHatCalculator (
-    hat: Hat,   //hat has HatWing, which points to a specific wing by name
-    wing: Wing, //this is the actual wing with its babies (WingBaby),
+  //this function analyzes the hat and its wings, aggregates the wing's positions babies by length, 
+  //and sees how many matched babies the customer has in the allocation, and how many hats can be made.
+  aggregateHatBabiesAndMatchingAllocations(
+    wing: Wing | null, 
+    wall_alocation: Customer_Bank_Baby_Allocation | null, 
+    crown_allocation: Customer_Bank_Baby_Allocation | null,
+    wall_alocation_babies: Customer_Baby[],
+    crown_allocation_babies: Customer_Baby[],
+    wing_quantity_in_hat: number,
+    num_of_hats_to_order: number = -1) {
 
-    customerBanks: Customer_Bank[], //with raw material name
-    workAllocations: Customer_Bank_Baby_Allocation[], //work allocation to match the bank
-    customerBabies: Customer_Baby[] // the babies in the allocation
-  ) : number{
-    
-    if(!hat || !wing || !customerBanks || !workAllocations || !customerBabies) {
-      return 0;
-     }
+    let hats: hats_calculated = {
+      total_num_of_possible_hats: Infinity,
+      hat_babies: [],
+      crown_babies: []
+    };
 
-    let maxHats = Infinity;
+    hats.total_num_of_possible_hats = Infinity;
+    hats.hat_babies = [];
+    hats.crown_babies = [];
 
-    //This hat has no wings (basically should be 1)
-    if(hat.wings.length == 0) {
-      return 0;
-    }
-    
-    //-------- Aggregate the hat babies ----------
-    let numOfWingsInHat = hat.wings[0].wing_quantity;
-
-    // Map<length, quantity>
-    let hatWallBabies = wing.babies.filter(baby => !baby.position.startsWith("C"));
-    let hatCrownBabies = wing.babies.filter(baby => baby.position.startsWith("C"));
-
-    let hatWallBabiesByLength = this.aggregateAllBabiesInHat(hatWallBabies, numOfWingsInHat, false);
-    let hatCrownBabiesByLength = this.aggregateAllBabiesInHat(hatCrownBabies, numOfWingsInHat, true);
-
-    //-------- Find the banks with matched materials ----------
-    let customerBanksWithWallMaterial = customerBanks.filter(bank => bank.raw_material_name == hat.hat_material).map(bank => bank.id);
-    let customerBanksWithCrownMaterial = customerBanks.filter(bank => bank.raw_material_name == hat.crown_material).map(bank => bank.id);
-
-    let allocationsWithWallMaterial = workAllocations.filter(alloc => customerBanksWithWallMaterial.indexOf(alloc.customer_bank_id) >= 0).map(alloc => alloc.id);
-    let allocationsWithCrownMaterial = workAllocations.filter(alloc => customerBanksWithCrownMaterial.indexOf(alloc.customer_bank_id) >= 0).map(alloc => alloc.id);
-
-    //count how many walls and how many crowns can be made with those allocations
-    //walls
-    customerBabies.forEach(allocation_baby => {
-      //is this baby part of an allocation with the wall material?
-      if(allocationsWithWallMaterial.indexOf(allocation_baby.customer_banks_babies_id) >= 0) {
-        //
-        if(hatWallBabiesByLength.has(allocation_baby.length)) {
-          //how many babies we need with this length?
-          let required_babies_with_length = hatWallBabiesByLength.get(allocation_baby.length)?? 0;
-          //how many babies do we have with this length?
-          let number_of_babies_with_length = allocation_baby.quantity;
-          //how many are needed?
-          if(number_of_babies_with_length >= required_babies_with_length){
-            let numOfTimes = Math.floor(number_of_babies_with_length/required_babies_with_length);
-            //this limits the number of hats
-            maxHats = Math.min(numOfTimes, maxHats);
+    if(wing){
+      wing.babies.forEach((wingBaby: WingBaby) => {
+        let appended = false;
+        if(wingBaby.position.startsWith("C")){
+          //keep crown babies separate
+          if(crown_allocation?.id != wall_alocation?.id) {
+            hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.crown_babies, wingBaby, crown_allocation_babies, wing_quantity_in_hat, hats.total_num_of_possible_hats);
+            appended = true;
           }
           else {
-            maxHats = 0;
+            hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.hat_babies, wingBaby, wall_alocation_babies, wing_quantity_in_hat, hats.total_num_of_possible_hats);
+            appended = true;
           }
         }
-      }
-
-      //is this baby part of an allocation with the crown material?
-      if(allocationsWithCrownMaterial.indexOf(allocation_baby.customer_banks_babies_id) >= 0) {
-        //
-        if(hatCrownBabiesByLength.has(allocation_baby.length)) {
-          //how many babies we need with this length?
-          let required_babies_with_length = hatCrownBabiesByLength.get(allocation_baby.length)?? 0;
-          //how many babies do we have with this length?
-          let number_of_babies_with_length = allocation_baby.quantity;
-          //how many are needed?
-          if(number_of_babies_with_length >= required_babies_with_length){
-            let numOfTimes = Math.floor(number_of_babies_with_length/required_babies_with_length);
-            //this limits the number of hats
-            maxHats = Math.min(numOfTimes, maxHats);
-          }
-          else {
-            maxHats = 0;
-          }
+        if(!appended) {
+          hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.hat_babies, wingBaby, wall_alocation_babies, wing_quantity_in_hat, hats.total_num_of_possible_hats);
         }
-      }
-    });
-
-    /*
-    Prerequisite:
-    - Which hat we are checking
-      -> material for wall
-      -> material for crown
-      -> which wing
-      -> number of wings
-    -> Wing spec (of the hat)
-      -> Babies: R, L, T, C
-
-    -> Customer bank(s)
-      -> Material
-      -> Bank Allocation
-      ->  Babies: x length & quantity
-    
-    -> Deviations:
-        How much can the top be shorter
-        How much can the crown be shorter
-
-    Algorithm:
-      Calculate/aggregate the babies of the hat: a map of all babies with their lengths x number of wings per hat
-      Match the bank material for crown or wall
-      Iterate the bank allocation matching the materials
-        Iterate the aggregated hat babies
-          Count how many times each baby in the customer's allocaion can duplicate for each hat baby
-          Keep the max possible according to the lowest match
-      
-      Calculate hats with deviations
-        Repeat the calculation
-    */
-
-    return maxHats == Infinity ? 0 : maxHats;
-  }
-
-  aggregateAllBabiesInHat(babies:WingBaby[], numOfWingsInHat: number, isCrown:boolean): Map<number, number>{
-    let babiesCollction = new Map<number, number>();
-    babies.filter(b => (isCrown)? b.position.startsWith("C") : !b.position.startsWith("C")).forEach(baby => {
-      if(babiesCollction.has(baby.length)) {
-        let curCount = babiesCollction.get(baby.length);
-        curCount = (curCount)? curCount : 0;
-        babiesCollction.set(baby.length, curCount + numOfWingsInHat);
-      }
-      else {
-        babiesCollction.set(baby.length, numOfWingsInHat);
-      }
-    });
-    return babiesCollction;
-  }
-
-//=============== END OF ALONS IMPLEMENTATION
-
-  /*
-  calculateMaxHats (
-    hat:Hat,                                          //the hat has information about wing name, quantity and materials
-    wing: Wing,                                       //the actual wing contains babies
-    customerBanks: Customer_Bank[],                      //customer bank has information about material and an id for allocations
-    customer_bank_allocation: Customer_Bank_Baby_Allocation[],
-    allocation_babies: Customer_Baby[]
-  ){
-    // which babies are required for this hat?
-    //hat has wings:HatWing[] -> HatWing has wing_name, Wing can be found by name, has babies:WingBaby[] with length and position
-    
-    let banks_with_wall_material = customerBanks.filter(b => b.raw_material_name == hat.hat_material);
-    let banks_with_crown_material = customerBanks.filter(b => b.raw_material_name == hat.crown_material);
-
-    let number_of_wings = hat.wings[0].wing_quantity;
-    //key: lenfth, value: quantity
-    let aggregatedHatBabiesForWall = new Map<number, number>();
-    let aggregatedHatBabiesForCrown = new Map<number, number>();
-  
-    wing.babies.filter(b => !b.position.startsWith("C")).forEach((baby:WingBaby) => {
-      if(!aggregatedHatBabiesForWall.has(baby.length)) {
-        aggregatedHatBabiesForWall.set(baby.length, number_of_wings);
-      } 
-      else {
-        let babies_at_curr_len = aggregatedHatBabiesForWall.get(baby.length);
-        aggregatedHatBabiesForWall.set(baby.length, ((babies_at_curr_len)? babies_at_curr_len: 0) +  number_of_wings);
-      }
-
-    });
-*/
-    /*
-    Find banks matching the material
-    Find allocations of the banks
-    Aggregate babies
-
-    Aggregate babies needed for hat
-    Loop over babies in the hat, for each:
-      count how many times the customer can duplicate
-      keep max count. if the baby is lower than the max, adjust the max
-
-    Caculate hats with shorter crown, and hats with shorter tops and both
-    Count hats with shorter crown/top
-
-  }    */
-    calculateMaxHats(
-      hat: Hat,
-      wing: Wing,
-      customerBabies: Customer_Baby[],
-      maxTopFlexibility: number = 0, // Flexibility for the TOP baby
-      maxCrownFlexibility: number = 0 // Flexibility for Crown babies
-    ): number {
-      const requiredBabies: Map<number, number> = new Map();
-    
-      // Step 1: Calculate Required Babies for One Hat
-      hat.wings.forEach((hatWing) => {
-        const wingQuantity = hatWing.wing_quantity;
-    
-        // Group babies by position
-        const topBaby = wing.babies.find((baby) => baby.position === "TOP");
-        const crownBabies = wing.babies.filter((baby) => baby.position.startsWith("C"));
-        const rightBabies = wing.babies
-          .filter((baby) => baby.position.startsWith("R"))
-          .sort((a, b) => parseInt(a.position.slice(1)) - parseInt(b.position.slice(1))); // Sort R1, R2, ...
-        const leftBabies = wing.babies
-          .filter((baby) => baby.position.startsWith("L"))
-          .sort((a, b) => parseInt(a.position.slice(1)) - parseInt(b.position.slice(1))); // Sort L1, L2, ...
-    
-        // TOP Baby Calculation
-        if (topBaby) {
-          // Add original length
-          const topLength = topBaby.length;
-          const currentTopCount = requiredBabies.get(topLength) || 0;
-          requiredBabies.set(topLength, currentTopCount + wingQuantity);
-    
-          // Add flexibility for shorter top
-          if (maxTopFlexibility > 0) {
-            const shorterTopLength = topLength - maxTopFlexibility;
-            const currentShorterTopCount = requiredBabies.get(shorterTopLength) || 0;
-            requiredBabies.set(shorterTopLength, currentShorterTopCount + wingQuantity);
-    
-            // Adjust R and L babies based on the shorter top
-            this.adjustSideBabies(rightBabies, shorterTopLength, wingQuantity, requiredBabies);
-            this.adjustSideBabies(leftBabies, shorterTopLength, wingQuantity, requiredBabies);
-          }
-        }
-    
-        // Crown Babies Calculation
-        crownBabies.forEach((crownBaby) => {
-          // Add original crown length
-          const crownLength = crownBaby.length;
-          const currentCrownCount = requiredBabies.get(crownLength) || 0;
-          requiredBabies.set(crownLength, currentCrownCount + wingQuantity);
-    
-          // Add flexibility for shorter crown
-          if (maxCrownFlexibility > 0) {
-            const shorterCrownLength = crownLength - maxCrownFlexibility;
-            const currentShorterCrownCount = requiredBabies.get(shorterCrownLength) || 0;
-            requiredBabies.set(shorterCrownLength, currentShorterCrownCount + wingQuantity);
-          }
-        });
-      });
-    
-      // Step 2: Check Available Quantities
-      let maxHats = Infinity;
-    
-      requiredBabies.forEach((requiredQuantity, length) => {
-        const customerBaby = customerBabies.find((baby) => baby.length === length);
-        if (!customerBaby || customerBaby.quantity < requiredQuantity) {
-          maxHats = 0; // Not enough materials
-        } else {
-          const possibleHats = Math.floor(customerBaby.quantity / requiredQuantity);
-          maxHats = Math.min(maxHats, possibleHats);
-        }
-      });
-    
-      return maxHats;
-    }
-    
-    // Helper Function to Adjust R/L Babies
-    adjustSideBabies(
-      sideBabies: WingBaby[],
-      shorterTopLength: number,
-      wingQuantity: number,
-      requiredBabies: Map<number, number>
-    ) {
-      let prevLength = shorterTopLength;
-      sideBabies.forEach((baby) => {
-        const babyLength = prevLength - 0.5; // Each subsequent baby is shorter by 0.5
-        if (babyLength < 5) return; // Ignore if length falls below the minimum
-    
-        const currentCount = requiredBabies.get(babyLength) || 0;
-        requiredBabies.set(babyLength, currentCount + wingQuantity);
-    
-        prevLength = babyLength; // Update for next baby
       });
     }
-    
+    //after scanning and appending all, we have the max number of hats possible.
+    //now it's possible to calculate for each baby length how many will be left for this number of hats.
+    //The remaining is calculated by the order, which should not exceed the number of possible hats.
+    if(num_of_hats_to_order <= 0 || num_of_hats_to_order > hats.total_num_of_possible_hats) {
+      num_of_hats_to_order = hats.total_num_of_possible_hats;
+    }
+
+    hats.hat_babies.forEach(b => {
+      b.remaining = b.quantity_in_allocation - (num_of_hats_to_order * b.quantity);
+    });
+    hats.crown_babies.forEach(b => {
+      b.remaining = b.quantity_in_allocation - (num_of_hats_to_order * b.quantity);
+    });      
+    hats.hat_babies.sort((a,b) => {return b.length - a.length});
+    hats.crown_babies.sort((a,b) => {return b.length - a.length});
+
+    return hats;
   }
+
+  // 9 options
+  // reduce crown by  | reduce top by
+  //      0.0         |       0.0
+  //      0.5         |       0.0
+  //      1.0         |       0.0
+  //      0.0         |       0.5
+  //      0.5         |       0.5
+  //      1.0         |       0.5
+  //      0.0         |       1.0
+  //      0.5         |       1.0
+  //      1.0         |       1.0
+  adjustWingToShortenedTCrownOrTop(wing: Wing | null, reduce_top_by: number, reduce_crown_by: number) {
+    if(wing){
+      let modified_wing = (JSON.parse(JSON.stringify(wing)));
+      //shorten top
+      if(reduce_top_by > 0){
+        let top: WingBaby = modified_wing.babies.find((b: WingBaby) => b.position.toUpperCase() == "TOP");
+        if(top){
+          top.length = top.length - reduce_top_by;
+        }
+        //adjust other babies as needed, to keep the top higher by at least 0.5 cm
+        let sorted_L = this.get_sorted_wing_babies_by_position(modified_wing, "L");
+        let sorted_R = this.get_sorted_wing_babies_by_position(modified_wing, "R");
+
+        this.shorten_babies_according_to_top(modified_wing, sorted_L, top);
+        this.shorten_babies_according_to_top(modified_wing, sorted_R, top);
+      }
+
+      //shorten crown
+      if(reduce_crown_by > 0){
+        let crowns = modified_wing.babies.filter((b: WingBaby) => b.position.toUpperCase().startsWith("C"));
+        if(crowns){
+          crowns.forEach((crown_baby: WingBaby) => {
+            crown_baby.length = crowns[0].length - reduce_crown_by;
+          });
+        }
+      }
+
+      return modified_wing;
+    }
+    else {
+      return null;
+    } 
+  }
+
+  //returns the wing babies of a specific position (L, R) sorted by position, descending
+  //(e.g. L4, L3, L2, L1)
+  private get_sorted_wing_babies_by_position(wing: Wing | null, base_pos: string) {
+    if(!wing){
+      return null;
+    }
+    return wing?.babies.filter(b => b.position.toUpperCase().startsWith(base_pos)).sort((x,y) => {
+      let rx=/[^0-9]*([0-9]*)/;
+      let x_num = parseInt(rx.exec(x.position)![1]);
+      let y_num = parseInt(rx.exec(y.position)![1]);
+      return y_num - x_num;
+    });
+  }
+
+
+  //this function collects babies from the wing, grouping them by location, 
+  //and checking how many matching babies' lengths the customer has in their allocation
+  private append_to_babies_collection(
+    babies_collection: aggregated_babies[], //collection to append the baby to
+    wingBaby: WingBaby,                     //the baby to append
+    alocation_babies: Customer_Baby[],      //the allocation of the baby (for quantity)
+    wing_quantity: number,
+    cur_max_hats: number)
+  {
+    let append_to_item = babies_collection.find(baby => baby.length == wingBaby.length);
+    let baby_in_allocation_with_length = alocation_babies.find(b => b.length == wingBaby.length);
+    let allocation_quantity = (baby_in_allocation_with_length)? baby_in_allocation_with_length.quantity : 0;
+
+    if(append_to_item){
+      let positions = append_to_item.position.split(", ");
+      if(positions.indexOf(wingBaby.position) < 0){
+        positions.push(wingBaby.position);
+      }
+      append_to_item.quantity += wing_quantity;
+      append_to_item.position = positions.join(", ");
+      append_to_item.possible_num_of_hats = -1;
+      append_to_item.remaining = 0;
+    }
+    else {
+      append_to_item = {
+        length: wingBaby.length,
+        quantity: wing_quantity,
+        position: wingBaby.position,
+        quantity_in_allocation: allocation_quantity,
+        possible_num_of_hats: -1,
+        remaining: 0
+        //(baby_in_allocation_with_length)? (baby_in_allocation_with_length.quantity - allocation_quantity) : 0
+      };
+      babies_collection.push(append_to_item);
+    }
+    let how_many_hats = Math.floor((append_to_item.quantity)? (allocation_quantity/append_to_item.quantity) : 0);
+    if(how_many_hats < cur_max_hats) {
+      //if the total number of hats has already been found, but we found a lower value of it
+      //or if the number of hats has dropped to 0
+      //this will be highlighted in the table, showing the lowest hat baby allocation
+      if(cur_max_hats < Infinity || how_many_hats == 0) {
+        //this.highlight_lowest_number_in_table = true;
+      }
+      cur_max_hats = how_many_hats;
+    }
+    append_to_item.possible_num_of_hats = how_many_hats;
+    return cur_max_hats;
+  }
+
+  // - If there were manual changes made, they will be lost, in case the top has to shorten other babies
+  private shorten_babies_according_to_top(wing: Wing | null, sorted_babies_collection: WingBaby[] | null, top: WingBaby | undefined){
+    let previous_baby_in_line = top;
+    sorted_babies_collection?.forEach(unchanged_baby => {
+      let display_baby = wing?.babies.find(b => b.position.toUpperCase() == unchanged_baby.position.toUpperCase());
+      if(display_baby) {
+        // if the display_baby is longer than the previous_baby_in_line, shorten it (min 5cm)
+        // if the display_baby is shorter or equel to the previous_baby_in_line, do nothing
+
+        if((previous_baby_in_line) && (unchanged_baby.length >= previous_baby_in_line?.length)){  
+            let corrected_length = previous_baby_in_line.length - 0.5;
+            display_baby.length = Math.max(corrected_length, 5);
+        }
+        else {
+          display_baby.length = unchanged_baby.length;
+        }
+      }
+      previous_baby_in_line = display_baby;
+    });
+  }
+}

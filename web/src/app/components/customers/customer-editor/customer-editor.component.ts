@@ -210,7 +210,6 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
 
     this.customersService.saveCustomer(this.customerItem).subscribe(
     {
-      
       next:(data) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoCustomersList(data['message'], false); },//this.getRawMaterials(this.current_page); },
       error:(error) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoCustomersList(error, true); }
     });
@@ -263,6 +262,10 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
   }
 
   openHatsCalculator() {
+    this. router.navigate(['/inventory/customer/hat-calculator'], {queryParamsHandling:'preserve'});
+    //this.router.navigate([, this.customerItem.id]);
+    /*
+    this.hats_calculator.customer = this.customerItem;
     this.hats_calculator.dialog.btnSaveClass="d-none" ;
     this.hats_calculator.dialog.btnCancelClass="btn-primary m-auto";
     this.hats_calculator.dialog.modalTitle="<span class='icon-calculator1'></span> Hats Calculator";
@@ -271,5 +274,6 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     this.hats_calculator.banks_baby_allocations = this.customerItem.banks_baby_allocations;
     this.hats_calculator.babies = this.customerItem.babies;
     this.hats_calculator.open();
+    */
   }
 }

@@ -159,7 +159,7 @@ export class BabiesTableComponent implements OnInit, AfterViewInit, AfterViewChe
         this.dialogMode = DialogMode.Add;
         this.babyEditorDialog.editedObject = {
           id: 0, raw_material_parent_id: 0,  raw_material: '',
-          length: 0, quantity: 0,
+          length: 0, quantity: 0, quantity_in_pending_orders: 0,
           created_at: new Date(), updated_at: new Date(),
           created_by: 1, updated_by: 1
         };

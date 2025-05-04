@@ -1,29 +1,33 @@
 <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
     <div class="container-fluid">
       <a class="navbar-brand" routerLink=""><div class="navbar-logo"></div></a>
-      <app-hamburger />
-      <!--
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      -->
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <app-hamburger #hamburger />
+      <div class="collapse navbar-collapse" id="navbarSupportedContent" #navbarToggler>
         <ul class="ms-auto navbar-nav mb-2 mb-lg-0">
           <li class="nav-item">
-            <a class="nav-link" aria-current="page" routerLink=""  [ngClass]="(currentUrl == '/' || currentUrl == '') ? 'active': ''"><span class="icon-home"></span> Home</a> <!--active-->
+            <a class="nav-link" aria-current="page" routerLink="inventory/raw"  [ngClass]="(currentUrl.indexOf('/inventory/raw') >= 0) ? 'active': ''"><span class="icon-home"></span> Raw materials</a>
           </li>
+          <!--
+          <li class="nav-item">
+            <a class="nav-link" aria-current="page" routerLink="inventory/customers"  [ngClass]="(currentUrl.indexOf('/inventory/customers') >= 0) ? 'active': ''"><span class="icon-home"></span> Customers</a>
+          </li>
+          -->
+          
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" [ngClass]="(currentUrl.indexOf('/inventory/') >= 0) ? 'active': ''">
-              Inventory
+              Sales
             </a>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" routerLink="inventory/customers" [ngClass]="(currentUrl.indexOf('/inventory/customers') >= 0) ? 'active': ''"><span class="icon-address-book"></span> Customers</a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" routerLink="inventory/raw" [ngClass]="(currentUrl.indexOf('/inventory/raw') >= 0) ? 'active': ''"><span class="icon-leaf"></span> Raw materials</a></li>
-              <!--<li><a class="dropdown-item" routerLink="inventory/babies" [ngClass]="(currentUrl.indexOf('/inventory/babies') >= 0) ? 'active': ''"><span class="icon-baby"></span> Babies</a></li>-->
+              <!--<li><hr class="dropdown-divider"></li>-->
+              <li><a class="dropdown-item" [routerLink]="'inventory/customer/orders'" [ngClass]="(currentUrl.indexOf('/inventory/customer/orders') >= 0) ? 'active': ''"><fa-icon [icon]="faBasketShopping"></fa-icon> Orders</a></li>
             </ul>
           </li>          
-          
+
+          <li class="nav-item">
+            <a class="nav-link" aria-current="page" routerLink="templates/wings"  [ngClass]="(currentUrl.indexOf('/templates/wings') >= 0) ? 'active': ''"><span class="icon-home"></span> Wings</a>
+          </li>
+          <!--
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" [ngClass]="(currentUrl.indexOf('/templates/') >= 0) ? 'active': ''">
               Templates
@@ -36,6 +40,7 @@
               <li><a class="dropdown-item" href="#">Something else here</a></li>
             </ul>
           </li>
+          -->
           <li class="nav-item">
             <a class="nav-link" aria-current="page" routerLink="/settings"  [ngClass]="(currentUrl.indexOf('/settings/') >= 0) ? 'active': ''"><span class="icon-home"></span> Settings</a> <!--active-->
           </li>

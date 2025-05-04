@@ -5,7 +5,7 @@ const config = require('../config');
 
 async function getSingle(id){
     const rows = await db.query(
-      `SELECT  id, raw_material_parent_id, length, quantity, 
+      `SELECT  id, raw_material_parent_id, length, quantity, quantity_in_pending_orders,
         created_at, updated_at, created_by, updated_by
       FROM babies WHERE id=${id}`
     );
@@ -22,7 +22,7 @@ async function getMultiple(page = 1, perPage){
   }
   const rows = await db.query(
     `select m.name raw_material, b.id, b.raw_material_parent_id, b.length, b.quantity, 
-	    b.created_at, b.updated_at, b.created_by, b.updated_by 
+	   b.quantity_in_pending_orders, b.created_at, b.updated_at, b.created_by, b.updated_by 
     from babies b inner join raw_materials m  on b.raw_material_parent_id = m.id
     ORDER BY m.name, b.length desc ${subset}`
   );
@@ -34,10 +34,15 @@ async function getMultiple(page = 1, perPage){
   const quantity = await db.query(
     `select sum(quantity) as quantity from babies;`
   );
+  const quantity_in_orders = await db.query(
+    `select sum(quantity_in_pending_orders) as quantity from babies;`
+  );
+  
   const sum_quantity = quantity[0]['quantity'];
+  const sum_in_orders = quantity_in_orders[0]['quantity'];
   const total_pages = Math.ceil(total_records / perPage);
   const data = helper.emptyOrRows(rows);
-  const meta = {page, total_records, sum_quantity, total_pages};
+  const meta = {page, total_records, sum_quantity, sum_in_orders, total_pages};
 
   return {
     data,
@@ -52,7 +57,7 @@ async function getMultipleByRawMaterial(raw_material_id, page = 1, perPage){
     const offset = helper.getOffset(page, perPage);
     subset = `LIMIT ${offset},${perPage}`
   }
-  const q = `select m.name raw_material, b.id, b.raw_material_parent_id, b.length, b.quantity, 
+  const q = `select m.name raw_material, b.id, b.raw_material_parent_id, b.length, b.quantity, b.quantity_in_pending_orders
       b.created_at, b.updated_at, b.created_by, b.updated_by 
     from babies b inner join raw_materials m on b.raw_material_parent_id = m.id
     where b.raw_material_parent_id=${raw_material_id}
@@ -66,11 +71,15 @@ async function getMultipleByRawMaterial(raw_material_id, page = 1, perPage){
   const quantity = await db.query(
     `select sum(quantity) as quantity from babies where raw_material_parent_id=${raw_material_id}`
   );
+  const quantity_in_orders = await db.query(
+    `select sum(quantity_in_pending_orders) as quantity from babies where raw_material_parent_id=${raw_material_id}`
+  );
   const sum_quantity = quantity[0]['quantity'];
+  const sum_quantity_in_orders = quantity_in_orders[0]['quantity'];
 
   const total_pages = Math.ceil(total_records / perPage);
   const data = helper.emptyOrRows(rows);
-  const meta = {page, total_records, sum_quantity, total_pages};
+  const meta = {page, total_records, sum_quantity, sum_quantity_in_orders, total_pages};
 
   return {
     data,
@@ -81,14 +90,15 @@ async function getMultipleByRawMaterial(raw_material_id, page = 1, perPage){
 async function create(baby){
     const result = await db.query(
       `INSERT INTO babies 
-      (raw_material_parent_id, length, quantity, 
+      (raw_material_parent_id, length, quantity, quantity_in_pending_orders,
         created_at, updated_at, created_by, updated_by) 
       VALUES 
-      ((?), (?), (?), (?), (?), (?), (?))`,
+      ((?), (?), (?), (?), (?), (?), (?), (?))`,
       [
         baby.raw_material_parent_id,
         baby.length,
         baby.quantity,
+        baby.quantity_in_pending_orders,
         helper.nowDateStr(),
         helper.nowDateStr(),
         baby.created_by, 

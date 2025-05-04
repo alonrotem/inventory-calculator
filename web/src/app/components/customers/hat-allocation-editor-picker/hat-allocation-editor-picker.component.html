@@ -1,0 +1,17 @@
+<app-modal-dialog #dialog [btnCancelText]="'Cancel'" [modalSize]="'xl'">
+    <div modalContent>
+        <app-customer-banks-table 
+            #banks_table
+            *ngFor="let bank of banks"
+            [customer]="customer"
+            [bank]="bank"
+            [banks_baby_allocations]="banks_baby_allocations"
+            [babies]="babies"
+            [raw_material_quantity_units]="bank.raw_material_quantity_units"
+            [collapsed_babies_lists]="true"
+            [selectable_allocatoin]="true"
+            (afterViewInit)="banks_table_init()"
+            (allocation_selected)="allocation_clicked($event)"
+        /><!--(bank_changed)="recalculateBanks()"-->
+    </div>
+</app-modal-dialog>

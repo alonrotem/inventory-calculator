@@ -32,7 +32,7 @@ export class ModalDialogComponent implements ModalDialog {
   @Input() fullscreen: boolean = false;
 
   @Output() confirm = new EventEmitter<any>();
-  @Output() cancel = new EventEmitter<void>();
+  @Output("cancel") cancel = new EventEmitter<void>();
   //@Input() editedItem: any;
   @Input() reverseButtons: boolean = false;
   modal_content_close_subscription:any;
@@ -51,6 +51,7 @@ export class ModalDialogComponent implements ModalDialog {
   public open() {
     //console.log(this.modalSize);
     this.modalReference = this.modalService.open(this.content, { centered: true, size: this.modalSize, fullscreen: this.fullscreen });
+    console.log("openning " +this.dialogContentComponent);
     if(this.dialogContentComponent){
       this.dialogContentComponent.onOpen();
 
@@ -123,9 +124,9 @@ export class ModalDialogComponent implements ModalDialog {
       this.modal_content_close_subscription.unsubscribe();
       this.modal_content_close_subscription = null;
     }
-    if(this.modalReference && this.modalReference.close)
+    if(this.modalReference && this.modalReference.close) {
       this.modalReference.close();
-
+    }
     this.isOpen = false;
   }
 }

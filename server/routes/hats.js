@@ -96,6 +96,7 @@ router.post('/', async function(req, res, next) {
         --data "{  \"name\":\"Alon's\",  \"purchased_at\": \"2024-05-01\", \"weight\": 100, \"updated_by\": 4 }" \
         http://localhost:3000/babies/12
   */
+ /*
   router.put('/', upload.single('photo'), async function(req, res, next) {
     try {
       const hatData = JSON.parse(req.body.data);
@@ -107,6 +108,21 @@ router.post('/', async function(req, res, next) {
       next(err);
     }
   });
+  */
+  router.put('/', async function(req, res, next) {
+    console.log("saving hat");
+    try {
+      //const hatData = JSON.parse(req.body.data);
+
+      //const hatPhoto = (req.file)? req.file : null;
+
+      res.json(await hats.save(req.body/*, hatPhoto*/));
+    } catch (err) {
+      console.error(`Error while saving hat `, err.message);
+      next(err);
+    }
+  });
+
 
 /* DELETE baby */
 /*

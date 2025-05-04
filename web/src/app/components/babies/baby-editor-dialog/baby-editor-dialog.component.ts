@@ -35,6 +35,7 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
     raw_material: '',
     length: 0,
     quantity: 0,
+    quantity_in_pending_orders: 0,
     created_at: new Date(),
     updated_at: new Date(),
     created_by: 1,
@@ -53,8 +54,8 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
   isSubmitted : boolean = false;
 
   constructor(private fb: FormBuilder, private toastService: ToastService) {
-
   }
+
   close: EventEmitter<any> = new EventEmitter<Baby>();
 
   ngAfterViewInit(): void {
@@ -87,6 +88,13 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
       }
     }
     */
+    console.log("subscribing...");
+    this.dialogWrapper.cancel.subscribe({next: () => {
+      console.log("CAUCHT CLOSE");
+    },
+  error: (error: any)=> {
+    alert(error);
+  }});   
   }
 
   beforeClose(): Boolean {

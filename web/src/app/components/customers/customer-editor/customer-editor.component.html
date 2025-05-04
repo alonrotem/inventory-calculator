@@ -99,9 +99,9 @@
 
 <div class="row" style="margin: 20px 0px;">
     <div class="col" style="display: flex; flex-direction: column; flex-wrap: nowrap; justify-content: center; align-items: center;">
-        <button class="btn btn-info btn-hats-calculator" (click)="openHatsCalculator()">
+        <button class="btn btn-success btn-hats-calculator" (click)="openHatsCalculator()">
             <span class='icon-calculator1'></span>
-            <div>Hats calculator</div>
+            <div>Calculate &amp; order</div>
         </button>
     </div>
 </div>
@@ -121,6 +121,7 @@
                     [banks_baby_allocations]="customerItem.banks_baby_allocations"
                     [babies]="customerItem.babies"
                     [raw_material_quantity_units]="bank.raw_material_quantity_units"
+                    [collapsed_babies_lists]="false"
                     (bank_changed)="recalculateBanks()"
                 />
             </div>

@@ -1,35 +1,123 @@
+<app-confirmation-dialog 
+    #reset_confirmation 
+    modalTitle="Reset customizations"
+    modalText="Are you sure you want to reset the changes made to this wing?"
+    [btnYesIcon]=faArrowsRotate
+    btnYesText="Reset"
+    btnYesClass="btn-danger">
+</app-confirmation-dialog>
+
+<app-confirmation-dialog 
+    #order_confirmation 
+    modalTitle="Order confirmation"
+    modalText="This will issue an order of {{ order_amount }} {{ order_amount == 1 ? 'hat' : 'hats' }}.<br/>Quota will be reduced from your banks.<br/>Are you sure?"
+    [btnYesIcon]=faBasketShopping
+    btnYesText="Place order!"
+    btnYesClass="btn-success"
+    btnNoText="Cancel">
+</app-confirmation-dialog>
+
+<!--
 <app-allocation-picker
   #allocation_picker
 />
-<!--    [banks]="[bank]"
-    [banks_baby_allocations]="banks_baby_allocations"
-    [babies]="babies"
-    [instructions]="'Pick an allocation to merge into:'"
-    [confirmAction]="true"-->
+-->
+<app-hat-allocation-editor-picker #allocation_picker />
 
+<app-baby-length-modal 
+  #length_editor 
+  (length_changed)="modal_length_Changed($event)" 
+  (confirm)="length_editor_closed($event)" 
+  /><!--[crown_units]="crown_units" -->
+
+  <div class="row justify-content-center">
+    <div class="col-xl-9 col-lg-11">
+
+<!--
+<div class="row"><div class="col"><input type="text" [(ngModel)]="customerHat.name" class="form-control hat-name" /></div></div>
 <div class="row">
-  <div class="col" style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: flex-start;">
-    <div style="flex-grow: 1;">
-      <ng-select
-        [items]="hats_info"
-        bindLabel="hat_name"
-        bindValue="hat_id"
-        placeholder="Select a hat"
-        (change)="hat_selected($event)"
-        ><!---->
-      </ng-select>
-    </div>    
-    <div *ngIf="active_hat">
-      <img 
-        [attr.src]="previewUrl"
-        [attr.title]="previeImgTitle" 
-        (click)="open_photo()"
-        style="height: 58px; cursor: pointer; margin-left:20px; border-radius: 7px;" />
+  <div class="col toolbar">
+    <div>
+      <button #btn_new class="btn btn-outline-warning" type="submit">
+        <div class="btn-icon"><span class="icon-new-hat"></span></div>
+        <div>New</div>
+      </button>
+    </div>
+    <div>
+      <button #btn_open class="btn btn-outline-primary" type="submit">
+        <div class="btn-icon"><span class="icon-folder-open-o"></span></div>
+        <div>Open</div>
+      </button>
+    </div>
+    <div>
+      <button #btn_save class="btn btn-outline-success" type="submit">
+        <div class="btn-icon"><span class="icon-save"></span></div>
+        <div>Save</div>
+      </button>
+    </div>
+    <div>
+      <button #btn_saveas class="btn btn-outline-success" type="submit">
+        <div class="btn-icon"><span class="icon-save-as"></span></div>
+        <div>Save as</div>
+      </button>
+    </div>
+    <div>
+      <button #btn_delete class="btn btn-outline-danger" type="submit">
+        <div class="btn-icon"><span class="icon-bin"></span></div>
+        <div>Delete</div>
+      </button>
+    </div>
+    <div>
+      <button #btn_save class="btn btn-outline-primary" type="submit">
+        <div class="btn-icon"><span class="icon-menu"></span></div>
+        <div>Manage</div>
+      </button>
     </div>
   </div>
 </div>
+-->
+<div class="row">
+  <div class="col" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-top: 13px;">
+    <button class="btn btn-warning" [routerLink]="'/inventory/customer/editor'" [queryParams]="{ id: this.customer.id }">
+      <div><fa-icon [icon]="faArrowLeft"></fa-icon> Back to customer's page</div>
+    </button>
+    <button class="btn btn-success" (click)="go_to_orders()">
+      <div><fa-icon [icon]="faBasketShopping"></fa-icon> Your orders</div>
+    </button>
+  </div>
+</div>
 
-<div *ngIf="active_hat != null">
+<div class="row">
+  <div class="col" style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; border: 1px solid; border-radius: 10px; margin: 20px 0px;padding: 20px;">
+    <div style="margin-right: 10px;">
+      Choose a wing design
+    </div>
+    <div style="margin-right: 10px;"><!--flex-grow: 1;-->
+      <ng-select
+        #wing_selector
+        placeholder="Select a wing"
+        (change)="wing_selected($event)"
+        >
+        <!--
+        [items]="wings"
+        bindLabel="name"
+        bindValue="id"
+        -->
+        @for (wing of wings; track wing) {
+          <ng-option [value]="wing.id"><span [className]="(wing.customer_id)? 'text-primary' : ''">{{ wing.name }} {{ (wing.customer_id)?' (private)':'' }}</span></ng-option>
+        }
+      </ng-select>
+    </div>
+    <div *ngIf="is_wing_customized"style="margin-right: 10px;">
+      <span class="text-danger" style="margin-right: 10px;">* Wing customized</span>
+      <button class="btn btn-warning" (click)="confirm_reset()">
+        <fa-icon [icon]="faArrowsRotate"></fa-icon>
+        Reset
+      </button>
+    </div>
+</div>
+
+<div [className]="(this.customerHat.wing)? '':'d-none'"><!-- *ngIf="wing && wing.id != 0"-->
 
 <!--------- NEW LAYOUT --------->
 <div class="row" style="margin-top: 20px; display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center;">
@@ -37,7 +125,25 @@
 
     <div class="hat-info-section">
       <div><strong>Wall material:</strong></div>
-      <div>{{ active_hat? active_hat.hat_material: "(Please select a hat)" }}</div>
+      <!--<div>{{ active_hat? active_hat.hat_material: "(Please select a hat)" }}</div>-->
+      <div class="ng-autocomplete">
+      <ng-autocomplete 
+        [data]="raw_material_names"
+        placeholder="Select wall material"
+        [itemTemplate]="itemTemplate"
+        [(ngModel)]="customerHat.hat_material"
+        [className]="'form-control form-control-plaintext'"
+        name="hatmaterialName"
+        (inputChanged)="wall_material_changed($event)"
+        (selected)="wall_material_changed($event)"
+        (inputCleared)="wall_material_cleared()"
+        #hatmaterialName="ngModel">
+      </ng-autocomplete>
+        <ng-template #itemTemplate let-item>
+          <a [innerHTML]="item"></a>
+      </ng-template>
+      </div>
+
       <div class="sub-info-section">
         <strong>Material allocation:</strong>
       </div>
@@ -54,7 +160,7 @@
           <button  
             class="btn btn-success" 
             style="padding: 0px 11px 1px 5px;" 
-            (click)="open_wall_material_allocation_picker(active_hat? active_hat.hat_material : '', 'wall')">
+            (click)="open_material_allocation_picker(customerHat.hat_material, 'wall')">
             <fa-icon [icon]="faChartPie"></fa-icon>
             Choose allocation
           </button>
@@ -67,11 +173,31 @@
 
     <div class="hat-info-section">
       <div><strong>Crown material:</strong></div>
-      <div>{{ active_hat? active_hat.crown_material: "(Please select a hat)" }}</div>
-      <div *ngIf="num_of_allocations_with_crown_material > 0">
-        <div class="sub-info-section">
+
+      <!--<div>{{ active_hat? active_hat.crown_material: "(Please select a hat)" }}</div>-->
+      <div class="ng-autocomplete">
+        <ng-autocomplete 
+          [data]="raw_material_names"
+          placeholder="Select crown material"
+          [itemTemplate]="itemTemplate"
+          [(ngModel)]="customerHat.crown_material"
+          [className]="'form-control form-control-plaintext'"
+          name="crownmaterialName"
+          (inputChanged)="crown_material_changed($event)"
+          (selected)="crown_material_changed($event)"
+          (inputCleared)="crown_material_cleared()"
+          #crownmaterialName="ngModel">
+        </ng-autocomplete>
+        <ng-template #itemTemplate let-item>
+          <a [innerHTML]="item"></a>
+        </ng-template>
+      </div>
+      
+      <div class="sub-info-section">
           <strong>Material allocation:</strong>
-        </div>
+      </div>
+      <div *ngIf="num_of_allocations_with_crown_material > 0">
+
         <div>
           <div *ngIf="crown_allocation" class="text-success">
             Allocation #{{ crown_allocation.id }}, {{ crown_allocation.quantity | number : '1.1-1' }} {{ crown_allocation_units }}
@@ -84,7 +210,7 @@
           <button  
             class="btn btn-success" 
             style="padding: 0px 11px 1px 5px;" 
-            (click)="open_wall_material_allocation_picker(active_hat? active_hat.crown_material : '', 'crown')">
+            (click)="open_material_allocation_picker(customerHat.crown_material, 'crown')">
             <fa-icon [icon]="faChartPie"></fa-icon>
             Choose allocation
           </button>
@@ -97,37 +223,79 @@
 
     <div class="hat-info-section">
       <div><strong>Number of wings:</strong></div>
-      <div>{{ wing?.name }} x {{ active_hat? active_hat.wing_quantity: "(Please select a hat)" }}</div>
+      <div>{{ (customerHat.wing)? customerHat.wing.name : 'Loading wing' }} x <input type="number" [(ngModel)]="customerHat.wing_quantity" style="width: 70px; text-align: center;" (change)="num_of_wings_changed()" (keyup)="num_of_wings_changed()" /> </div><!--{{ active_hat? active_hat.wing_quantity: "(Please select a hat)" }}-->
     </div>  
   </div>
 
   <div class="col-12 col-md-8">
-    <div [className]="(this.wing)? '':'d-none'">
+    <div [className]="(this.customerHat.wing)? '':'d-none'">
       <app-wing-diagram
           #diagram 
           [scale]="0.7"
-          [lefts]="(this.wing)? (this.wing.babies | prefix: 'L' : true) : []"
-          [rights]="(this.wing)? (this.wing.babies | prefix: 'R' : true) : []"
-          [top_length]="(this.wing)? (this.wing.babies | prefix: 'TOP' : true) : []"
-          [crown]="(this.wing)? (this.wing.babies | prefix: 'C' : true) : []"
-          [width]="(this.wing)? (this.wing.width) : 0"
+          [lefts]="(this.customerHat.wing)? (this.customerHat.wing.babies | prefix: 'L' : true) : []"
+          [rights]="(this.customerHat.wing)? (this.customerHat.wing.babies | prefix: 'R' : true) : []"
+          [top_length]="(this.customerHat.wing)? (this.customerHat.wing.babies | prefix: 'TOP' : true) : []"
+          [crown]="(this.customerHat.wing)? (this.customerHat.wing.babies | prefix: 'C' : true) : []"
+          [width]="(this.customerHat.wing)? (this.customerHat.wing.width) : 0"
+          (babyClicked)="diagram_baby_clicked($event)"
       />
       </div>
       <div>
   </div>
 </div>
 </div>
+
+
+
+
+<div class="row hat-info-section sliders">
+  <div class="col">
+    <div class="row">
+      <div class="col">
+        <label for="tempB">Shorten top by:</label> {{ customerHat.shorten_top_by | number : '1.1-1' }} cm<br />
+      </div>
+      <div class="col">
+        <input type="range" id="margin_top" name="margin_top" [(ngModel)]="customerHat.shorten_top_by" list="values" min="{{baby_margin_min}}" max="{{baby_margin_max}}" step="{{baby_margin_step}}" (change)="margins_changed()"/>
+        <datalist id="values">
+          <ng-container *ngFor="let margin_length of baby_margins_list">
+            <option value="{{ margin_length }}" label="{{ margin_length | number : '1.1-1' }}"></option>
+          </ng-container>
+        </datalist>
+      </div>
+      <div style="flex: 0 0 0%;">cm</div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <label for="tempB">Shorten crown by:</label>  {{ customerHat.shorten_crown_by | number : '1.1-1' }} cm<br />
+      </div>
+      <div class="col">
+        <input type="range" id="margin_crown" name="margin_crown" [(ngModel)]="customerHat.shorten_crown_by" list="crown_values" min="{{baby_margin_min}}" max="{{baby_margin_max}}" step="{{baby_margin_step}}" (change)="margins_changed()" />
+        <datalist id="crown_values">
+          <ng-container *ngFor="let margin_length of baby_margins_list">
+            <option value="{{ margin_length }}" label="{{ margin_length | number : '1.1-1' }}"></option>
+          </ng-container>
+        </datalist>
+      </div>
+      <div style="flex: 0 0 0%;">cm</div>
+    </div>
+  </div>
+</div>
 <!---------/NEW LAYOUT --------->
   
 <!-- Length, quantity, position -->
-<table class="table table-striped table-hover">
+<table class="table table-striped table-hover babies-table">
     <thead>
+      <tr>
+        <th class="th-title" colspan="3">Hat Specs</th>
+        <th class="th-title" colspan="3">Bank Allocation</th>
+      </tr>
       <tr>
         <th scope="col">Baby length</th>
         <th scope="col">Total qty per hat</th>
         <th scope="col">Position(s)</th>
         <th scope="col">In allocation</th>
         <th scope="col">Hats</th>
+        <th scope="col">Remaining</th>
       </tr>
     </thead>
     <tbody>
@@ -135,20 +303,28 @@
         <tr>
             <td colspan="4" style="background-color: var(--bs-info-bg-subtle); box-shadow: none;"><strong><span class="icon-wall-bricks"></span> Wall material: {{ active_hat? active_hat.hat_material: "(Please select a hat)" }}</strong></td>
         </tr>
-        -->
-        <tr *ngFor="let item of hat_babies">
+        -->     
+        <!--<td [attr.rowspan]="(hat_babies.length + crown_babies.length)">Message</td>-->
+        <tr *ngFor="let item of hat_babies; index as i">
           <td>{{ item.length | number : '1.1-1' }} cm</td>
           <td>{{ item.quantity }}</td>
           <td>{{ item.position }}</td>
-          <td>{{ item.quantity_in_allocation }}</td>
-          <td [className]="(item.possible_num_of_hats == total_num_of_possible_hats)? 'text-danger' : ''">{{ item.possible_num_of_hats }}</td>
+
+          <td class="table-message" *ngIf="i==0 && summary_table_instructions" colspan="3" [attr.rowspan]="(hat_babies.length + crown_babies.length)">
+            <div>{{ summary_table_instructions }}</div>
+          </td>
+
+          <td *ngIf="!summary_table_instructions">{{ item.quantity_in_allocation }}</td>
+          <td *ngIf="!summary_table_instructions" [className]="(item.possible_num_of_hats == total_num_of_possible_hats)? 'text-danger' : ''">{{ order_amount }} (max {{ item.possible_num_of_hats }})</td>
+          <td *ngIf="!summary_table_instructions">{{ item.remaining }}</td>
         </tr>
         <tr *ngFor="let item of crown_babies">
           <td>{{ item.length | number : '1.1-1' }} cm</td>
           <td>{{ item.quantity }}</td>
           <td>{{ item.position }}</td>
-          <td>{{ item.quantity_in_allocation }}</td>
-          <td [className]="(item.possible_num_of_hats == total_num_of_possible_hats)? 'text-danger' : ''">{{ item.possible_num_of_hats }}</td>
+          <td *ngIf="!summary_table_instructions">{{ item.quantity_in_allocation }}</td>
+          <td *ngIf="!summary_table_instructions" [className]="(item.possible_num_of_hats == total_num_of_possible_hats)? 'text-danger' : ''">{{ order_amount }} (max {{ item.possible_num_of_hats }})</td>
+          <td *ngIf="!summary_table_instructions">{{ item.remaining }}</td>
         </tr>        
           <!--
           <tr>
@@ -182,11 +358,43 @@
     </tbody>
   </table>
 
-  <div><h3>Total hats calculated: {{ total_num_of_possible_hats }}</h3></div>
+  <div><h6>Max hats calculated: {{ total_num_of_possible_hats }}</h6></div>
+
+  <div style="border: 1px solid; border-radius: 10px; margin: 20px 0px;padding: 20px;">
+    <div><h3>Place an order</h3></div>
+    <div *ngIf="total_num_of_possible_hats > 0">
+      <div>Submit an order for
+        <input type="number" min="0" [attr.max]="total_num_of_possible_hats" [(ngModel)]="order_amount"  (change)="order_amount_changed()" />
+          {{ order_amount == 1 ? 'hat' : 'hats' }}
+        <button 
+          [ngClass]="{'btn btn-success': true, 'disabled': (order_amount <= 0 || order_amount > total_num_of_possible_hats)}"
+          (click)="placeOrder()">
+          <fa-icon [icon]="faBasketShopping"></fa-icon>
+          Order
+        </button>
+      </div>
+      <div class="text-danger" *ngIf="order_amount <= 0">
+        Please enter a valid quantity to order
+      </div>
+      <div class="text-danger" *ngIf="order_amount > total_num_of_possible_hats">
+        Your max allocation is limited to a max of {{ total_num_of_possible_hats }} hats
+      </div>
+    </div>
+    <div *ngIf="total_num_of_possible_hats <= 0">
+      No sufficient quota to order hats
+    </div>
+    <div>
+      <a href="javascript:void(0)" (click)="go_to_orders()">See all your orders</a>
+    </div>
+  </div>
 
 </div> <!-- end of active hat info-->
 
-<div *ngIf="!active_hat" style="display: flex;flex-direction: column;flex-wrap: nowrap;align-items: center;">
-  <div><img [attr.src]="no_hat_img" style="width: 200px;"></div>
-  <div>No hat selected. Choose a hat to calculate.</div>
+<div *ngIf="!customerHat.wing" style="display: flex;flex-direction: column;flex-wrap: nowrap;align-items: center; height: 100%; justify-content: center;">
+  <div><span class="icon-feather-wing" style="font-size: 80px;"></span><!--<img [attr.src]="no_hat_img" style="width: 200px;">--></div>
+  <div>No wing selected. Choose a wing to calculate.</div>
+  <div>Or load a previously saved setup</div>
 </div>
+
+
+</div></div></div>

@@ -87,6 +87,7 @@ export interface Baby {
     raw_material: string;
     length: number;
     quantity: number;
+    quantity_in_pending_orders: number;
     created_at: Date;
     updated_at: Date;
     created_by: number;
@@ -101,6 +102,7 @@ export interface WingsListItem {
     Top: number;
     Right: number;
     Crown: number;
+    customer_id: number;
 }
 
 export interface WingsList {
@@ -125,7 +127,7 @@ export interface WingBaby{
     length: number;
     position: string;
 }
-
+/*
 export interface HatListItem {
     id: number;
     name: string;
@@ -164,12 +166,18 @@ export interface HatBasicInfo {
     wing_name: string;
     wing_quantity:number;
 }
-
-export interface HatWing {
+*/
+export interface CustomerHat {
     id: number;
-    parent_hat_id: number; 
-    wing_name: string; 
+	hat_material: string;
+	crown_material: string;
     wing_quantity: number;
+    customer_id: number;
+    shorten_top_by: number;
+    shorten_crown_by: number;
+    wing: Wing | null;
+    wall_allocation_id: number;
+    crown_allocation_id: number;
 }
 
 export interface PaginationParams {
@@ -244,9 +252,8 @@ export class Point {
     banks: Customer_Bank[];
     banks_baby_allocations: Customer_Bank_Baby_Allocation[];
     babies: Customer_Baby[];
-
-    
 }
+
 export interface CustomerListItem {
     id: number;
     name: string;
@@ -363,4 +370,44 @@ export interface HistoryReportRecord {
 export interface nameIdPair {
     name: string;
     id: number;
+}
+
+export interface Order {
+    id: number;
+    customer_hat: CustomerHat;
+    num_of_hats: number;
+    status: OrderStatus;
+}
+
+export enum Status {
+    new = "new",
+    updated = "updated",
+    processing = "processing",
+    completed = "completed",
+    cancelled = "cancelled",
+    deleted = "deleted",
+}
+
+export interface OrderStatus {
+    id: number;
+    date: Date;
+    order_status: Status;
+}
+
+export interface OrderListItem {
+    id: number;
+    customer_name: string;
+    num_of_hats: number;
+    wing_quantity: number;
+    order_status: Status
+    date: Date;
+}
+
+export interface OrdersList {
+    data: OrderListItem[];
+    meta: { 
+        page: number;
+        total_records: number;
+        total_pages: number;
+    };
 }

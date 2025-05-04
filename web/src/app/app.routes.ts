@@ -6,8 +6,6 @@ import { BabiesTableComponent } from './components/babies/babies-table/babies-ta
 import { PagenotfoundComponent } from './components/common/pagenotfound/pagenotfound.component';
 import { WingsTableComponent } from './components/wings/wings-table/wings-table.component';
 import { WingsEditorComponent } from './components/wings/wings-editor/wings-editor.component';
-import { HatsTableComponent } from './components/hats/hats-table/hats-table.component';
-import { HatsEditorComponent } from './components/hats/hats-editor/hats-editor.component';
 import { UnsavedChangesGuard } from './guards/unsaved-changes-guard';
 import { CustomersTableComponent } from './components/customers/customers-table/customers-table.component';
 import { CustomerEditorComponent } from './components/customers/customer-editor/customer-editor.component';
@@ -15,6 +13,8 @@ import { SettingsAlertsComponent } from './components/settings/settings-alerts/s
 import { BackupDownloadComponent } from './components/backup/backup-download/backup-download.component';
 import { SettingsNotificationsComponent } from './components/settings/settings-notifications/settings-notifications.component';
 import { SettingsMainComponent } from './components/settings/settings-main/settings-main.component';
+import { SingleHatCalculatorComponent } from './components/customers/single-hat-calculator/single-hat-calculator.component';
+import { OrdersTableComponent } from './components/customers/orders-table/orders-table.component';
 
 export const routes: Routes = [
     {
@@ -44,15 +44,6 @@ export const routes: Routes = [
         canDeactivate: [UnsavedChangesGuard]
     },
     {
-        path: 'templates/hats',
-        component: HatsTableComponent
-    },
-    {
-        path: 'templates/hats/editor',
-        component: HatsEditorComponent,
-        canDeactivate: [UnsavedChangesGuard]
-    },
-    {
         path: 'inventory/customers',
         component: CustomersTableComponent
     },
@@ -61,6 +52,14 @@ export const routes: Routes = [
         component: CustomerEditorComponent,
         canDeactivate: [UnsavedChangesGuard]
     },
+    {
+        path: 'inventory/customer/hat-calculator',
+        component: SingleHatCalculatorComponent
+    },
+    {
+        path: 'inventory/customer/orders',
+        component: OrdersTableComponent
+    },    
     {
         path: 'settings/alerts',
         component: SettingsAlertsComponent,

@@ -1,9 +1,9 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { Baby, Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, Hat, HistoryReportRecord, TransactionRecord, TransactionType, Wing } from '../../../../types';
+import { Baby, Customer, Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, HistoryReportRecord, TransactionRecord, TransactionType, Wing } from '../../../../types';
 import { RouterModule } from '@angular/router';
 import { DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
-import { faChartPie, faCodeMerge, faPencil, faTrashCan, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faChartPie, faCheck, faCodeMerge, faPencil, faSave, faTrashCan, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 import { BankAllocationDialogComponent } from '../bank-allocation-dialog/bank-allocation-dialog.component';
@@ -11,10 +11,10 @@ import { BabyEditorDialogComponent } from '../../babies/baby-editor-dialog/baby-
 import { SortPipe } from '../../../utils/pipes/sort-pipe';
 import { BankHistoryDialogComponent } from '../bank-history-dialog/bank-history-dialog.component';
 import { HatsService } from '../../../services/hats.service';
-import { HatsCalculatorService } from '../../../services/hats-calculator.service';
 import { WingsService } from '../../../services/wings.service';
 import { AllocationPickerComponent } from '../allocation-picker/allocation-picker.component';
 import { SumPipe } from '../../../utils/pipes/sum-pipe';
+import { CustomersService } from '../../../services/customers.service';
 
 @Component({
   selector: 'app-customer-banks-table',
@@ -27,6 +27,11 @@ import { SumPipe } from '../../../utils/pipes/sum-pipe';
   styleUrl: './customer-banks-table.component.scss'
 })
 export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
+  @Input() customer: Customer = {
+    id: 0, name: '', business_name: '', email: '', phone: '',  tax_id: '', 
+    created_at: new Date(), updated_at: new Date(),  created_by: 0, updated_by: 0, 
+    banks: [], banks_baby_allocations: [], babies: []
+  };    
   @Input() bank: Customer_Bank = {
     raw_material_name: '',
     id: 0,
@@ -40,9 +45,14 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
   @Input() banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
   @Input() babies: Customer_Baby[] = [];
   @Input() raw_material_quantity_units: string = "";
+  @Input() collapsed_babies_lists: boolean = true;
+  @Input() selectable_allocatoin: boolean = false; 
   @Output() bank_changed = new EventEmitter<void>();
+  @Output() allocation_selected = new EventEmitter<Customer_Bank_Baby_Allocation>();
+  @Output() afterViewInit = new EventEmitter<void>();
   @ViewChild('delete_allocation_dialog') delete_allocation_dialog!: ConfirmationDialogComponent;
   @ViewChild('not_enough_material') not_enough_material!: ConfirmationDialogComponent;
+  @ViewChild('save_before_select') save_before_select!: ConfirmationDialogComponent;
   @ViewChild('allocation_dialog') allocation_dialog!: BankAllocationDialogComponent;
   @ViewChild('babies_picker') babies_picker!: BabyEditorDialogComponent;
   @ViewChild('history_dialog') history_dialog! : BankHistoryDialogComponent;
@@ -52,33 +62,29 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
   faTrashCan: IconDefinition = faTrashCan;
   faChartPie: IconDefinition = faChartPie;
   faCodeMerge: IconDefinition = faCodeMerge;
+  faCheck: IconDefinition = faCheck;
+  faSave: IconDefinition = faSave;
   newAllcoationCounter: number = -1;
   pendingAllocationIdAction: number = -999;
   pendingBabyAppendAllocation: number = -999;
   pendingBabyAppendBaby: number = -999;
   pendingMergedSourceAllocationID: number = -999;
   newAllocationIdCounter = -1;
-
-  hat: Hat | null = null;
-  wing: Wing | null = null;
+  unsaved_changes: boolean = false;
 
   constructor(
-      private hatsService: HatsService,
-      private wingsService: WingsService,
-      private hatsCalculatorService: HatsCalculatorService) {
+      private customerService: CustomersService) {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    /*
     this.hatsService.getHat(1).subscribe(hat => {
       this.hat = hat;
       this.wingsService.getWing(1).subscribe(wing => {
         this.wing = wing;
         if(this.hat) {
           
-          /*
-          let n = this.hatsCalculatorService.calculateMaxHats(this.hat,
-            this.wing, this.babies, 0,0
-          );*/
+
           let n = this.hatsCalculatorService.AlonsHatCalculator(
             this.hat,
             this.wing,
@@ -93,6 +99,7 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
       });
     });
     //this.hatsCalculatorService.calculateMaxHatsWithFlexibility()
+    */
   }
  
   ngAfterViewInit(): void {
@@ -139,6 +146,22 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
       this.pendingMergedSourceAllocationID = -999;
     });
     this.allocation_picker.dialogWrapper.cancel.subscribe(() => { this.pendingMergedSourceAllocationID = -999; });
+
+    this.save_before_select.confirm.subscribe(() => { 
+      this.customerService.saveCustomer(this.customer).subscribe(
+        {
+          next:(data) => { 
+            let alloc = this.banks_baby_allocations.find(alloc => alloc.id == this.pendingAllocationIdAction);
+            this.pendingAllocationIdAction = -999;
+            this.unsaved_changes = false;
+            if(alloc){
+              this.select_allocation_confirmed(alloc);
+            }
+          },
+          error:(error) => { this.pendingAllocationIdAction = -999; }
+        });
+    });
+    this.afterViewInit.emit();
   }
 
   delete_allocation(allocationId:number){
@@ -205,8 +228,10 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
     }
 
     console.dir(this.bank.transaction_history);
-    if(deleted)
+    if(deleted) {
       this.bank_changed.emit();
+      this.unsaved_changes = true;
+    }
   }
 
   /*
@@ -300,6 +325,7 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
     console.dir(this.bank.transaction_history);
     this.pendingAllocationIdAction = -999;
     this.bank_changed.emit();
+    this.unsaved_changes = true;
   }
 
   delete_baby(baby_id: number) {
@@ -309,6 +335,7 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
       this.babies.splice(babyIndex, 1);
     }
     this.bank_changed.emit();
+    this.unsaved_changes = true;
   }
 
   open_babies_dialog(bank_allocation_id: number, baby_length: number) {
@@ -321,6 +348,7 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
       raw_material: '',
       length: 0,
       quantity: 0,
+      quantity_in_pending_orders: 0,
       created_at: new Date(),
       updated_at: new Date(),
       created_by: 1,
@@ -348,6 +376,7 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
     }
     this.pendingBabyAppendAllocation = -999;
     this.pendingBabyAppendBaby = -999;
+    this.unsaved_changes = true;
   }
 
   openHistoryDialog(){
@@ -362,5 +391,19 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
     this.allocation_picker.dialogWrapper.btnSaveClass = "d-none";
     this.allocation_picker.banks_baby_allocations = this.banks_baby_allocations.filter(a => a.id != sourceAllocationId);
     this.allocation_picker.open(sourceAllocationId);
+  }
+
+  select_allocation(allocation: Customer_Bank_Baby_Allocation){
+    console.dir(this.bank);
+    if(this.unsaved_changes){
+      this.pendingAllocationIdAction = allocation.id;
+      this.save_before_select.open();
+    }
+    else {
+      this.select_allocation_confirmed(allocation);
+    };
+  }
+  select_allocation_confirmed(allocation: Customer_Bank_Baby_Allocation){
+    this.allocation_selected.emit(allocation);
   }
 }

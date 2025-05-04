@@ -15,6 +15,7 @@ export class ModalContentDirective implements ModalDialog {
     editedObject: any;
   
     onOpen() {
+      console.log("directive on open");
       if (this.host?.onOpen) {
         this.host.onOpen(); // Call the component's implementation if provided
       } 
@@ -24,7 +25,6 @@ export class ModalContentDirective implements ModalDialog {
     }
     
     beforeClose(): Boolean {
-      console.log(this.host);
       if (this.host?.beforeClose) {
         return this.host.beforeClose(); // Call the component's implementation if provided
       } 

@@ -4,6 +4,7 @@ const config = require('../config');
 const { raw } = require('mysql2');
 const path = require('path');
 const fs = require('fs');
+const wings = require('./wings');
 
 async function getSingle(id){
     const rows = await db.query(`select id, name, hat_material, crown_material, photo from hats where id=${id}`);
@@ -66,6 +67,40 @@ async function getMultiple(page = 1, perPage){
   }
 }
 
+async function save(hatData){
+  let wing_id = -1;
+  if(hatData.wing) {
+    let wing_info =  await wings.save(hatData.wing);
+    wing_id = wing_info.wing_id;
+  }
+  console.log("customer id: " + hatData.customer_id);
+  const result = await db.query(
+    `INSERT INTO customer_hats (
+      id, name, hat_material, crown_material, wing_id, wing_quantity, 
+      customer_id, shorten_top_by, shorten_crown_by, wall_allocation_id, crown_allocation_id
+    )
+    VALUES 
+    ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_hats
+    ON DUPLICATE KEY UPDATE
+      id=new_hats.id, name=new_hats.name, hat_material=new_hats.hat_material, 
+      crown_material=new_hats.crown_material, wing_id=new_hats.wing_id, 
+      wing_quantity=new_hats.wing_quantity, customer_id=new_hats.customer_id, 
+      shorten_top_by=new_hats.shorten_top_by, shorten_crown_by=new_hats.shorten_crown_by,
+      wall_allocation_id=new_hats.wall_allocation_id, crown_allocation_id=new_hats.crown_allocation_id`,
+    [ hatData.id, hatData.name, hatData.hat_material, hatData.crown_material, wing_id,
+      hatData.wing_quantity, hatData.customer_id, hatData.shorten_top_by, hatData.shorten_crown_by,
+      hatData.wall_allocation_id, hatData.crown_allocation_id ]
+  );
+  let hat_id = (hatData.id == 0)? result.insertId : hatData.id;
+
+  let message = 'Error saving hat.';
+
+  if (result.affectedRows) {
+    message = 'Hat \'' + hatData.name + '\' saved successfully.';
+  }
+}
+
+/*
 async function save(hatData, newHatPhotoFile){
   //remove previous photo, if existed
   const previous_hat_photo_url = await db.query(`select photo from hats where id=${hatData.id};`);
@@ -113,7 +148,7 @@ async function save(hatData, newHatPhotoFile){
   //console.log(message);
   return {message};
 }
-
+*/
 
 //add/remove/update babies for raw material
 //gets the current state of babies per raw material.

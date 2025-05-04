@@ -92,6 +92,19 @@ function var_to_bool(value){
   }
 }
 
+async function check_if_table_exists(table_name) {
+    const table_count = await db.query(`SELECT COUNT(*) num
+        FROM information_schema.tables 
+        WHERE table_schema = DATABASE() 
+        AND table_name = '${table_name}'`);
+    const rec = emptyOrSingle(table_count);
+    if(!isEmptyObj(rec)){
+        return (parseInt(rec['num']) > 0);
+    }
+    return false;
+}
+
+
 module.exports = {
   getOffset,
   emptyOrSingle,
@@ -101,5 +114,6 @@ module.exports = {
   dateStr,
   isEmptyObj,
   getEnumValues,
-  var_to_bool
+  var_to_bool,
+  check_if_table_exists
 }

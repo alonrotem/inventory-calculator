@@ -1,0 +1,25 @@
+* Mbile nav, collapses on click of an item or outside the menu
+* Changed menu layout, removed hats and flattened drop-downs
+* Calculator:
+    * The customer chooses materials, wing number, allocations and customized top/crown
+    * Highlight raw material names
+    * Show remaining babies column in calculation table, and next to the diagram
+    * Allow creating custom wing based on the one displayed, and modified
+    * Allow editing allocation from the calculator
+
+TODO
+* Loading screens for info pages
+* View/edit modes
+* Clear the calculator on open
+* Add Remaining column to the calculation table
+* Warn before saving a hat/wing with an existing name
+* Calculator:
+    * Save hat to customer
+    * Order button saves an order and reduces allocation quantities
+* Warn before opening hats calculator, or before leaving the customer page if all changes are not saved first
+* Remove Save wing & hat
+* Babies popup: Save & next
+* Babies popup: remove the Saved toster (since it's not saved yet)
+* Bug: adding babies with existing length doesn't merge the babies in the table (customer)
+* Bug: allocation edit screen: if you type the number that fills the allocation, the remaining appears negative and not 0
+

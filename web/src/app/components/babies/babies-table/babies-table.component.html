@@ -32,6 +32,7 @@
           <th scope="col" [hidden]="!this.show_material_col">Raw Mateial</th>
           <th scope="col">Length</th>
           <th scope="col" class="text-center">Quantity</th>
+          <th scope="col" class="text-center">In active orders</th>
           <th scope="col">Last update</th>
           <th scope="col">Last update by</th>
           <th scope="col" class="text-center" *ngIf="!readOnly">Remove</th>
@@ -45,6 +46,7 @@
           <td [hidden]="!this.show_material_col"><a [attr.href]="'/inventory/raw/editor?id=' + baby.raw_material_parent_id"><span class="icon-leaf"></span> {{ baby.raw_material }}</a></td>
           <td>{{ baby.length | number : '1.1-1' }} cm</td>
           <td class="text-center">{{ baby.quantity }}</td>
+          <td class="text-center">{{ baby.quantity_in_pending_orders }}</td>
           <td>{{ baby.updated_at | dateStr }}</td>
           <td>{{ baby.updated_by }}</td>
           <td *ngIf="!readOnly" class="text-center" (click)="deleteBaby(baby)"><fa-icon class="text-danger" [icon]="faTrashCan"></fa-icon></td>

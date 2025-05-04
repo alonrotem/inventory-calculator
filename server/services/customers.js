@@ -32,7 +32,7 @@ async function getSingle(id){
 
       const customer_baby_recs =  await db.query(
         `select 
-	b.id, b.customer_banks_babies_id, b.length, b.quantity
+	b.id, b.customer_banks_babies_id, b.length, b.quantity, quantity_in_pending_orders
 from babies b 
 where b.customer_banks_babies_id in (select cbb.id
 from customer_banks_babies cbb where cbb.customer_bank_id in (select cb.id from customer_banks cb where cb.customer_id=${id}));;`);
@@ -279,19 +279,21 @@ async function save_customer_bank (customer, bank_id){
             (baby.id < 0)? 0 : baby.id,
             new_allocation_id,
             baby.length,
-            baby.quantity
+            baby.quantity,
+            baby.quantity_in_pending_orders
           ]
         ).flat(1);
         let placeholder = Array(babies_to_save.length).fill("(" + Array(babies_to_save_arr.length / babies_to_save.length).fill("?").join(",") + ")").join(",");
 
         const babiesResult = await db.query(
-          `INSERT INTO babies (id, customer_banks_babies_id, length, quantity)
+          `INSERT INTO babies (id, customer_banks_babies_id, length, quantity, quantity_in_pending_orders)
           VALUES ${placeholder}
           as new_babies
           ON DUPLICATE KEY UPDATE
           customer_banks_babies_id=new_babies.customer_banks_babies_id,
           length=new_babies.length,
-          quantity=new_babies.quantity`, babies_to_save_arr);
+          quantity=new_babies.quantity,
+          quantity_in_pending_orders=new_babies.quantity_in_pending_orders`, babies_to_save_arr);
       }
     }
     //save transaction records for deleted allocations
@@ -485,11 +487,90 @@ async function sync_banks_for_raw_material(banks, raw_material_id)
   return {message};
 }
 
+async function moveBabiesToOrder(
+  num_of_hats, wing_id, wing_quantity, wall_allocation_id, crown_allocation_id
+) 
+{
+  console.log(`select distinct length, count(length) * ${wing_quantity} * ${num_of_hats} count
+      from wings_babies where parent_wing_id=${wing_id} and position not like 'C%'
+    group by length`);
+  const wall_babies_records = await db.query(
+    `select distinct length, count(length) * ${wing_quantity} * ${num_of_hats} count
+      from wings_babies where parent_wing_id=${wing_id} and position not like 'C%'
+    group by length`
+  );
+  
+  const wall_babies_lengths_and_count_for_the_hat = helper.emptyOrRows(wall_babies_records);
+
+  const crown_babies_records = await db.query(
+    `select distinct length, count(length) * ${wing_quantity} * ${num_of_hats} count
+      from wings_babies where parent_wing_id=${wing_id} and position like 'C%'
+    group by length`
+  );
+  const crown_babies_lengths_and_count_for_the_hat = helper.emptyOrRows(crown_babies_records);
+
+  /*
+  construct the query to dynamically update the allocation.
+  Example structure:
+
+  update babies set 
+    quantity = case length
+      when 12 then quantity-1
+      when 11 then quantity-3
+    end,
+      quantity_in_pending_orders = case length 
+        when 12 then quantity_in_pending_orders+1
+        when 11 then quantity_in_pending_orders+3
+    end
+  where length in (12, 11) and customer_banks_babies_id=2;
+*/
+  let wall_babies_quantity_update = "";
+  let wall_babies_quantity_in_orders_update = "";
+  let wall_babies_lengths = wall_babies_records.map(b => b["length"]).join(",");
+
+  for(let b of wall_babies_lengths_and_count_for_the_hat) {
+    wall_babies_quantity_update += `when ${b["length"]} then quantity - ${b["count"]} `;
+    wall_babies_quantity_in_orders_update += `when ${b["length"]} then quantity_in_pending_orders + ${b["count"]} `;
+  }
+  let query_update_wall_allocation = `
+      update babies set 
+      quantity = case length
+        ${wall_babies_quantity_update}
+      end,
+        quantity_in_pending_orders = case length 
+          ${wall_babies_quantity_in_orders_update}
+      end
+      where length in (${wall_babies_lengths}) and customer_banks_babies_id=${wall_allocation_id};`;
+
+
+  let crown_babies_quantity_update = "";
+  let crown_babies_quantity_in_orders_update = "";
+  let crown_babies_lengths = crown_babies_records.map(b => b["length"]).join(",");
+
+  for(let b of crown_babies_lengths_and_count_for_the_hat) {
+    crown_babies_quantity_update += `when ${b["length"]} then quantity - ${b["count"]} `;
+    crown_babies_quantity_in_orders_update += `when ${b["length"]} then quantity_in_pending_orders + ${b["count"]} `;
+  }
+  let query_update_crown_allocation = `
+      update babies set 
+      quantity = case length
+        ${crown_babies_quantity_update}
+      end,
+        quantity_in_pending_orders = case length 
+          ${crown_babies_quantity_in_orders_update}
+      end
+      where length in (${crown_babies_lengths}) and customer_banks_babies_id=${crown_allocation_id};`;
+
+    await db.query(query_update_wall_allocation);
+    await db.query(query_update_crown_allocation);
+}
+
 module.exports = {
     save,
     getSingle,
     getMultiple,
     remove,
     getNames,
-    sync_banks_for_raw_material
+    sync_banks_for_raw_material,
+    moveBabiesToOrder
 }

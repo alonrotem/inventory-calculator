@@ -38,15 +38,24 @@ async function getSingleWingByName(name){
   return data;
 }
 
-async function getMultiple(page = 1, perPage){
+async function getMultiple(page = 1, perPage, customer_id){
   let subset =  '';
+  let customer_filter = ''
   if(page && perPage)
   {
     const offset = helper.getOffset(page, perPage);
     subset = `LIMIT ${offset},${perPage}`
   }
+  if(customer_id && customer_id > 0) {
+    customer_filter = `where ch.customer_id=${customer_id}`;
+  }
+  else {
+    customer_filter = `where ch.customer_id is null`;
+  }
+  
   const rows = await db.query(
-    `select w.id, w.name, w.width,
+    `select 
+      w.id, w.name, w.width, ch.customer_id,
       (SELECT COUNT(*) FROM wings_babies wb
               WHERE wb.parent_wing_id = w.id and wb.position like'L%') as 'Left',
       (SELECT COUNT(*) FROM wings_babies wb
@@ -55,34 +64,13 @@ async function getMultiple(page = 1, perPage){
               WHERE wb.parent_wing_id = w.id and wb.position like'T%') as 'Top',
       (SELECT COUNT(*) FROM wings_babies wb
               WHERE wb.parent_wing_id = w.id and wb.position like'C%') as 'Crown'
-      from wings w order by w.name ${subset};`
-    /*
-    `SELECT 
-        w.id AS id,
-        w.name AS name,
-        SUM(CASE WHEN b.position_id = wp1.id THEN 1 ELSE 0 END) AS \`Left\`,
-        SUM(CASE WHEN b.position_id = wp2.id THEN 1 ELSE 0 END) AS \`Top\`,
-        SUM(CASE WHEN b.position_id = wp3.id THEN 1 ELSE 0 END) AS \`Right\`,
-        SUM(CASE WHEN b.position_id = wp4.id THEN 1 ELSE 0 END) AS \`Crown\`
-    FROM 
-        wings w
-    LEFT JOIN 
-        wings_babies b ON w.id = b.parent_wing_id
-    LEFT JOIN 
-        wing_positions wp1 ON b.position_id = wp1.id AND wp1.name = 'Left'
-    LEFT JOIN 
-        wing_positions wp2 ON b.position_id = wp2.id AND wp2.name = 'Top'
-    LEFT JOIN 
-        wing_positions wp3 ON b.position_id = wp3.id AND wp3.name = 'Right'
-    LEFT JOIN 
-        wing_positions wp4 ON b.position_id = wp4.id AND wp4.name = 'Crown'
-    GROUP BY 
-        w.id, w.name
-        order by name ${subset}`
-    */
+      from 
+        wings w left join customer_hats ch on w.id=ch.wing_id 
+      ${customer_filter}
+      order by w.name ${subset};`
   );
   const total = await db.query(
-    `SELECT count(*) as count FROM wings`
+    `select count(w.id) as count from wings w left join customer_hats ch on w.id=ch.wing_id ${customer_filter}`
   );
   const total_records = total[0].count;
   const total_pages = Math.ceil(total_records / perPage);
@@ -95,29 +83,38 @@ async function getMultiple(page = 1, perPage){
   }
 }
 
+async function getWingsForCustomer(customerId) {
+  return await getMultiple(undefined, 0, customerId);
+}
+
 async function save(wing){
+  //if this is a new wing, all babies should be saved as new too (for example, duplicated for a customer)
+  let isNewWing = wing.id <= 0;
+  if(isNewWing && wing.babies){
+    wing.babies.forEach(b => b.id = 0);
+  }
   const result = await db.query(
     `INSERT INTO wings (id, name, width) 
       VALUES ((?), (?), (?)) as new_wing
       ON DUPLICATE KEY UPDATE
-      name=new_wing.name, width=new_wing.width
-      `, [ wing.id, wing.name, wing.width ]
+      name=new_wing.name, width=new_wing.width`, 
+      [ wing.id, wing.name, wing.width, wing.customer_id ]
   );
 
-  let message = 'Error creating raw material';
+  let message = 'Error saving wing';
   //console.log("New wing ID: " + result.insertId + " ("+ wing.name +")");
 
   if (result.affectedRows) {
     message = 'Wing \'' + wing.name + '\' saved successfully';
   }
-
+  let wing_id = (wing.id)? wing.id : result.insertId;
+  
   if(wing.babies)
   {
-    let wing_id = (wing.id)? wing.id : result.insertId;
     await sync_babies_for_wing(wing.babies, wing_id);
   }
-  //console.log(message);
-  return {message};
+  console.log({ message: message, wing_id: wing_id });
+  return {message, wing_id};
 }
 /*
 async function getWingBabyPositions(){
@@ -126,10 +123,20 @@ async function getWingBabyPositions(){
   return data;
 }*/
 
-async function getWingNames(){
-  const result = await db.query(`
-    select distinct name from wings order by name;
-  `);
+async function getWingNames(customer_id){
+  
+  if(customer_id && customer_id > 0) {
+    customer_filter = `where ch.customer_id=${customer_id}`;
+  }
+  else {
+    customer_filter = `where ch.customer_id is null`;
+  }
+
+  const result = await db.query(
+    `select distinct w.name 
+      from wings w left join customer_hats ch on w.id=ch.wing_id 
+    ${customer_filter} 
+    order by w.name;`);
   const data = helper.emptyOrRows(result).map(wing => wing.name);
   return (data);
 }
@@ -258,6 +265,6 @@ module.exports = {
   getMultiple,
   //update,
   remove,
-  //getWingBabyPositions,
+  getWingsForCustomer,
   getWingNames
 }
