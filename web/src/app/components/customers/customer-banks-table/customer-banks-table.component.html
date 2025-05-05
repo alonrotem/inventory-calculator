@@ -46,10 +46,18 @@
     [confirmAction]="true"
 />
 
+<div>
+  <app-order-advisor 
+    [banks_baby_allocations]="this.banks_baby_allocations"
+    [babies]="this.babies"
+  />
+</div>
+
 <div style="border: 1px solid; padding: 20px; border-radius: 20px; margin: 20px 0px;">
 <div>
     <div style="display:flex; flex-direction: row; justify-content: space-between;">
-      <h5 style="display: inline-block; margin-right: 10px;" title="Click to go to raw material ({{ bank.raw_material_name }})">
+      <span>
+        <h5 style="display: inline-block; margin-right: 10px;" title="Click to go to raw material ({{ bank.raw_material_name }})">
           <span 
               class="hover-warning" 
               role="button"
@@ -57,7 +65,9 @@
               <span class="icon-leaf" style="margin-right: 10px;"></span>
               Raw Material Bank: {{ bank.raw_material_name }}
           </span>
-      </h5>
+        </h5>
+        <span *ngIf="unsaved_changes" class="text-danger" style="margin-left: 10px;">* Unsaved changes</span>
+      </span>
       <span>
         <span class="icon-history" (click)="openHistoryDialog()" style="font-size: 23px; margin-left: 14px; cursor:pointer;" title="History records"></span>
       </span>
@@ -96,19 +106,29 @@
             <fa-icon [icon]="faPencil"></fa-icon>
             Edit
           </button>
-          <button *ngIf="((this.banks_baby_allocations | filter: 'customer_bank_id' : bank.id).length > 1) && ((babies | filter: 'customer_banks_babies_id' : bank_allocation.id).length > 0)"  class="btn btn-success" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="openAllocationMergeDialog(bank_allocation.id)">
-            <span class="icon-merge"></span>
-            Merge this
-          </button>
-          <button class="btn btn-danger" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="delete_allocation(bank_allocation.id)">
-            <fa-icon [icon]="faTrashCan"></fa-icon>
-            Delete
-          </button>
+          <span [attr.title]="((babies | filter: 'customer_banks_babies_id' : bank_allocation.id | filter: 'quantity_in_pending_orders' : 0 : true).length > 0)? 'Cannot merge this allocation&#10;(some babies in pending orders)':'Merge this allocation to another one'">
+            <button 
+              [disabled]="(babies | filter: 'customer_banks_babies_id' : bank_allocation.id | filter: 'quantity_in_pending_orders' : 0 : true).length > 0"
+              *ngIf="((this.banks_baby_allocations | filter: 'customer_bank_id' : bank.id).length > 1) && ((babies | filter: 'customer_banks_babies_id' : bank_allocation.id).length > 0)"  
+              class="btn btn-success" 
+              style="padding: 0px 11px 1px 5px; margin-left: 10px;" 
+              (click)="openAllocationMergeDialog(bank_allocation.id)">
+              <span class="icon-merge"></span>
+              Merge this
+            </button>
+          </span>
+          <span [attr.title]="((babies | filter: 'customer_banks_babies_id' : bank_allocation.id | filter: 'quantity_in_pending_orders' : 0 : true).length > 0)? 'Cannot delete this allocation&#10;(some babies in pending orders)':'Delete this'">
+            <button 
+              [disabled]="(babies | filter: 'customer_banks_babies_id' : bank_allocation.id | filter: 'quantity_in_pending_orders' : 0 : true).length > 0"
+              class="btn btn-danger" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="delete_allocation(bank_allocation.id)">
+              <fa-icon [icon]="faTrashCan"></fa-icon>
+              Delete
+            </button>
+          </span>
           <button *ngIf="selectable_allocatoin" class="btn btn-info btn-select-this" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="select_allocation(bank_allocation)">
             <fa-icon [icon]="faCheck"></fa-icon>
             Select this allocation
           </button>
-          <span *ngIf="unsaved_changes" class="text-danger" style="margin-left: 10px;">* changed</span>        
         </div>
 
         <div> <!-- show/hide babies button -->

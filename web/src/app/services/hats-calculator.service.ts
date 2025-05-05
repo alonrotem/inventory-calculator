@@ -93,7 +93,7 @@ export class HatsCalculatorService {
   //      0.0         |       1.0
   //      0.5         |       1.0
   //      1.0         |       1.0
-  adjustWingToShortenedTCrownOrTop(wing: Wing | null, reduce_top_by: number, reduce_crown_by: number) {
+  adjustWingToShortenedTCrownOrTop(wing: Wing | null, reduce_top_by: number, reduce_crown_by: number): Wing | null {
     if(wing){
       let modified_wing = (JSON.parse(JSON.stringify(wing)));
       //shorten top

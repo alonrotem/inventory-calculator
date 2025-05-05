@@ -1,4 +1,9 @@
-<app-modal-dialog #dialog [btnCancelText]="'Cancel'" [modalSize]="'xl'">
+<app-modal-dialog #dialog 
+    [btnCancelText]="'Cancel &amp; close'" 
+    [btnCancelClass]="'btn-warning'"
+    [modalSize]="'xl'"
+    [btnSaveClass]="'d-none'"
+    (cancel)="cancel_changes()">
     <div modalContent>
         <app-customer-banks-table 
             #banks_table

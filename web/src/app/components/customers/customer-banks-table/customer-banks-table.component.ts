@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { Baby, Customer, Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, HistoryReportRecord, TransactionRecord, TransactionType, Wing } from '../../../../types';
+import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Baby, Customer, Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, HistoryReportRecord, TransactionRecord, TransactionType, Wing, WingCalculationItem } from '../../../../types';
 import { RouterModule } from '@angular/router';
 import { DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
@@ -15,18 +15,19 @@ import { WingsService } from '../../../services/wings.service';
 import { AllocationPickerComponent } from '../allocation-picker/allocation-picker.component';
 import { SumPipe } from '../../../utils/pipes/sum-pipe';
 import { CustomersService } from '../../../services/customers.service';
+import { OrderAdvisorComponent } from "../order-advisor/order-advisor.component";
 
 @Component({
   selector: 'app-customer-banks-table',
   standalone: true,
-  imports: [ RouterModule, NgFor, FilterPipe, NgIf, FaIconComponent, NgClass,
-    DecimalPipe, ConfirmationDialogComponent, BankAllocationDialogComponent, 
-    BabyEditorDialogComponent, SortPipe, BankHistoryDialogComponent, AllocationPickerComponent, SumPipe
-  ],
+  imports: [RouterModule, NgFor, FilterPipe, NgIf, FaIconComponent, NgClass,
+    DecimalPipe, ConfirmationDialogComponent, BankAllocationDialogComponent,
+    BabyEditorDialogComponent, SortPipe, BankHistoryDialogComponent, AllocationPickerComponent, 
+    SumPipe, OrderAdvisorComponent],
   templateUrl: './customer-banks-table.component.html',
   styleUrl: './customer-banks-table.component.scss'
 })
-export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
+export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() customer: Customer = {
     id: 0, name: '', business_name: '', email: '', phone: '',  tax_id: '', 
     created_at: new Date(), updated_at: new Date(),  created_by: 0, updated_by: 0, 
@@ -44,6 +45,15 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
   };
   @Input() banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
   @Input() babies: Customer_Baby[] = [];
+
+  //Saving the original data in order to be able to reset changes
+  unchanged_bank: Customer_Bank = {
+    raw_material_name: '', raw_material_quantity_units: '', id: 0,
+    customer_id: 0, raw_material_id: 0, quantity: 0, remaining_quantity: 0, transaction_history: []
+  };
+  unchanged_banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
+  unchanged_babies: Customer_Baby[] = [];
+
   @Input() raw_material_quantity_units: string = "";
   @Input() collapsed_babies_lists: boolean = true;
   @Input() selectable_allocatoin: boolean = false; 
@@ -73,7 +83,10 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
   unsaved_changes: boolean = false;
 
   constructor(
-      private customerService: CustomersService) {
+      private customerService: CustomersService, private wingsService: WingsService) {
+  }
+  ngOnInit(): void {
+
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -101,8 +114,22 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
     //this.hatsCalculatorService.calculateMaxHatsWithFlexibility()
     */
   }
+
+  undo_changes(){
+    //Saving the original data in order to be able to reset changes
+    this.bank = (JSON.parse(JSON.stringify(this.unchanged_bank)));
+    this.banks_baby_allocations = (JSON.parse(JSON.stringify(this.unchanged_banks_baby_allocations)));
+    this.babies = (JSON.parse(JSON.stringify(this.unchanged_babies)));
+    this.bank = (JSON.parse(JSON.stringify(this.unchanged_bank)));
+    this.unsaved_changes = false;
+  }
  
   ngAfterViewInit(): void {
+    //Saving the original data in order to be able to reset changes
+    this.unchanged_bank = (JSON.parse(JSON.stringify(this.bank)));
+    this.unchanged_banks_baby_allocations = (JSON.parse(JSON.stringify(this.banks_baby_allocations)));
+    this.unchanged_babies = (JSON.parse(JSON.stringify(this.babies)));
+    this.unchanged_bank = (JSON.parse(JSON.stringify(this.bank)));
 
     this.delete_allocation_dialog.confirm.subscribe((response:any) => {
       if(this.pendingAllocationIdAction != -999) {
@@ -406,4 +433,13 @@ export class CustomerBanksTableComponent implements AfterViewInit, OnChanges {
   select_allocation_confirmed(allocation: Customer_Bank_Baby_Allocation){
     this.allocation_selected.emit(allocation);
   }
+
+  /*
+  getdata() {
+    this.wingsService.getAllNonCustomerWingsAndBabies().subscribe({
+      next: (data: WingCalculationItem[]) => {
+        alert(data);
+      }
+    });
+  }*/
 }

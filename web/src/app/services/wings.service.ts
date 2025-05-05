@@ -1,13 +1,15 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
-import { Observable } from 'rxjs';
-import { PaginationParams, Wing, WingsList, WingsListItem,  } from '../../types';
+import { lastValueFrom, Observable, of } from 'rxjs';
+import { PaginationParams, Wing, WingCalculationItem, WingsList, WingsListItem,  } from '../../types';
 import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WingsService {
+
+  allWingsAndBabiesCache: WingCalculationItem[] = [];
 
   constructor(private apiService: ApiService) { }
 
@@ -52,10 +54,35 @@ export class WingsService {
   };
 */
   saveWing = (wing: Wing): Observable<any> => {
+    this.invalidateWingsCache();
     return this.apiService.put(`${environment.serverUrl}/wings/`, wing, { });
   };
 
   deleteWing = (id: number): Observable<any> => {
+    this.invalidateWingsCache();
     return this.apiService.delete(`${environment.serverUrl}/wings/${id}`, { });
   };
+
+   getAllNonCustomerWingsAndBabies = (): Observable<WingCalculationItem[]> => {
+    if(this.allWingsAndBabiesCache.length == 0) {
+      let request_observable = this.apiService.get(`${environment.serverUrl}/wings/allwingsandbabies`, { responseType: 'json' }) as Observable<WingCalculationItem[]>;
+      request_observable.subscribe(
+      {
+        next: (data: WingCalculationItem[]) => {
+          this.allWingsAndBabiesCache = data;
+        },
+        error: (error) => {
+          console.log(error);
+        }
+      });
+      return request_observable;
+    }
+    else {
+      return of(this.allWingsAndBabiesCache);
+    }
+  }
+
+  invalidateWingsCache() {
+    this.allWingsAndBabiesCache = [];
+  }
 }

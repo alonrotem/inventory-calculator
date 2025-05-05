@@ -18,6 +18,7 @@ import { CustomerBanksTableComponent } from '../customer-banks-table/customer-ba
 import { HatsCalculatorDialogComponent } from '../hats-calculator-dialog/hats-calculator-dialog.component';
 import { AllocationPickerComponent } from '../allocation-picker/allocation-picker.component';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
+import { WingsService } from '../../../services/wings.service';
 
 @Component({
   selector: 'app-customer-editor',
@@ -74,7 +75,7 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     private customersService: CustomersService, 
     private activatedRoute: ActivatedRoute,
     private router: Router, 
-    private toastService: ToastService,
+    private toastService: ToastService
     ) { 
   }
 

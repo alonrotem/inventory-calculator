@@ -411,3 +411,14 @@ export interface OrdersList {
         total_pages: number;
     };
 }
+
+//this is used to receive information of all wings and babies in the sytesm
+//for calculations and suggestions to the user
+//properties are shortened by name to reduce traffic
+export interface WingCalculationItem {
+    w_id: number;       //wing id
+    w_n: string;        //wing name
+    b_id: number;       //baby id
+    p: string;          //baby position
+    l: number;          //baby length
+}

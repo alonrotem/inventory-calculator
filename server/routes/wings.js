@@ -23,16 +23,28 @@ router.get('/', async function(req, res, next) {
   router.get('/names', async function(req, res, next) {
     try {
       res.json(await wings.getWingNames());
-    } catch (err) {
+    } 
+    catch (err) {
       console.error(`Error while getting wing names `, err.message);
       next(err);
     }
   });
 
+  router.get('/allwingsandbabies', async function(req, res, next) {
+    try {
+      res.json(await wings.getAllNonCustomerWingsAndBabies());
+    } 
+    catch (err) {
+      console.error(`Error while getting all wings & babies `, err.message);
+      next(err);
+    }    
+  })
+
   router.get('/customer/:id', async function(req, res, next) {
     try {
       res.json(await wings.getWingsForCustomer(req.params.id));
-    } catch (err) {
+    } 
+    catch (err) {
       console.error(`Error while getting wings per customer ${req.params.id} `, err.message);
       next(err);
     }

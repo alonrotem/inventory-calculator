@@ -87,6 +87,18 @@ async function getWingsForCustomer(customerId) {
   return await getMultiple(undefined, 0, customerId);
 }
 
+//column names are shortened, to reduce traffic
+async function getAllNonCustomerWingsAndBabies() {
+  const rows = await db.query(
+    `select w.id w_id, w.name w_n, wb.id b_id, wb.position p, wb.length l 
+      from wings w 
+      left join customer_hats ch on ch.wing_id=w.id
+      left join wings_babies wb on wb.parent_wing_id=w.id
+      where ch.customer_id is null
+      order by w.id, wb.position`);
+  return helper.emptyOrRows(rows);
+}
+
 async function save(wing){
   //if this is a new wing, all babies should be saved as new too (for example, duplicated for a customer)
   let isNewWing = wing.id <= 0;
@@ -266,5 +278,6 @@ module.exports = {
   //update,
   remove,
   getWingsForCustomer,
-  getWingNames
+  getWingNames,
+  getAllNonCustomerWingsAndBabies
 }

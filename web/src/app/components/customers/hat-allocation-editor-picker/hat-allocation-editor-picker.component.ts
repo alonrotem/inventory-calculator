@@ -55,6 +55,10 @@ export class HatAllocationEditorPickerComponent implements ModalContentDirective
     }
   }
 
+  cancel_changes(){
+    this.banks_table.undo_changes();
+  }
+
   beforeClose(): Boolean {
     return true;
   }
