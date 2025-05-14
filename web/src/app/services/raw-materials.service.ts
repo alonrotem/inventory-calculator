@@ -24,8 +24,8 @@ export class RawMaterialsService {
     });
   };
 
-  getRawMaterialNames = (): Observable<string[]> => {
-    return this.apiService.get(`${environment.serverUrl}/raw_materials/names/`, {
+  getRawMaterialNames = (customer_id: number=-1): Observable<string[]> => {
+    return this.apiService.get(`${environment.serverUrl}/raw_materials/names/${customer_id}`, {
       responseType: 'json'
     });
   };

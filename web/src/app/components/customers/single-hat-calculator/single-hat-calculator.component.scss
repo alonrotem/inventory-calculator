@@ -69,6 +69,12 @@
 .ng-autocomplete .form-control-plaintext {
   padding: 5px 0px;
 }
+::ng-deep .ng-select-container {
+  height: auto !important;
+  min-width: 200px;
+  width: auto !important;
+}
+
 /*
 
 
@@ -94,10 +100,11 @@
   height: 25px !important;
 }
 
-::ng-deep .autocomplete-container .suggestions-container ul:has(li) {
-  border: 1px solid;
-}
+
   */
+  ::ng-deep .autocomplete-container .suggestions-container ul:has(li) {
+    border: 1px solid;
+  }
 
   .ng-autocomplete {
     border: var(--bs-border-width) solid var(--bs-border-color);

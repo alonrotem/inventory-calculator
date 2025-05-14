@@ -34,16 +34,30 @@ async function getInfo(){
     );
     const total_wings = wings_records[0]['wings_recs'];  
 
+    const orders_records = await db.query(
+      `select 
+        count(o.id) num_of_orders, 
+        sum(o.num_of_hats) total_hats
+      from orders o 
+        left join orders_status 
+        os on o.id = os.order_id 
+      where order_status='new';`
+    );
+    const num_of_orders = orders_records[0]['num_of_orders'];  
+    const total_hats = orders_records[0]['total_hats'];  
+    //;
+    /*
     const hats_records = await db.query(
       `select count(*) as hat_recs from hats;`
     );
     const total_hats = hats_records[0]['hat_recs'];  
-
+    */
   return  {
     raw_material_records,
     total_baby_records,
     total_babies,
     total_wings,
+    num_of_orders,
     total_hats,
     cur_raw_material_quantity_kg,
     cur_raw_material_remaining_kg,

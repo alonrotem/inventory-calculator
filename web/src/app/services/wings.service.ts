@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { lastValueFrom, Observable, of } from 'rxjs';
-import { PaginationParams, Wing, WingCalculationItem, WingsList, WingsListItem,  } from '../../types';
+import { PaginationParams, Wing, ShortWingsInfo, WingsList, WingsListItem,  } from '../../types';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -9,7 +9,7 @@ import { environment } from '../../environments/environment';
 })
 export class WingsService {
 
-  allWingsAndBabiesCache: WingCalculationItem[] = [];
+  allWingsAndBabiesCache: ShortWingsInfo[] = [];
 
   constructor(private apiService: ApiService) { }
 
@@ -63,12 +63,12 @@ export class WingsService {
     return this.apiService.delete(`${environment.serverUrl}/wings/${id}`, { });
   };
 
-   getAllNonCustomerWingsAndBabies = (): Observable<WingCalculationItem[]> => {
+   getAllNonCustomerWingsAndBabies = (): Observable<ShortWingsInfo[]> => {
     if(this.allWingsAndBabiesCache.length == 0) {
-      let request_observable = this.apiService.get(`${environment.serverUrl}/wings/allwingsandbabies`, { responseType: 'json' }) as Observable<WingCalculationItem[]>;
+      let request_observable = this.apiService.get(`${environment.serverUrl}/wings/allwingsandbabies`, { responseType: 'json' }) as Observable<ShortWingsInfo[]>;
       request_observable.subscribe(
       {
-        next: (data: WingCalculationItem[]) => {
+        next: (data: ShortWingsInfo[]) => {
           this.allWingsAndBabiesCache = data;
         },
         error: (error) => {

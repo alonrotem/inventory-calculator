@@ -33,9 +33,9 @@ router.get('/single/:id', async function(req, res, next) {
     }
   });
 
-  router.get('/names', async function(req, res, next) {
+  router.get('/names/:customer_id', async function(req, res, next) {
     try {
-      res.json(await raw_materials.getNames());
+      res.json(await raw_materials.getNames(req.params.customer_id));
     } catch (err) {
       console.error(`Error while getting raw material names `, err.message);
       next(err);

@@ -1,1 +1,62 @@
-<p>order-advisor works!</p>
+<app-modal-dialog 
+    #advisor_dialog
+    [btnSaveClass]="'d-none'"
+    [btnCancelText]="'Close'"
+    [modalSize]="'xl'"
+    [modalTitle]="'Hats Advisor'">
+    <div class="">
+        <table class="table table-responsiver">
+            <tbody>
+            <ng-container *ngFor="let suggestion of suggestions.wing_suggestions">
+            <tr>
+                <td [attr.rowspan]="suggestion.alternatives.length + 1">
+                    <strong>{{ suggestion.wing_name }}</strong><br/>
+                    Up to {{ suggestion.max_num_of_hats }} hats
+                </td>
+            </tr>
+            <tr *ngFor="let alternative of suggestion.alternatives">
+                <td >
+                    {{alternative.descriptive_string}}
+                </td>
+                <td>
+                    <button 
+                        class="btn btn-success" 
+                        (click)="goToCalculator(suggestion.wing_id, suggestions.wall_allocation_id, suggestions.crown_allocation_id, alternative.shorten_top, alternative.shorten_crown)">
+                        Order!
+                    </button>
+                </td>
+            </tr>
+            <tr><td class="spacer" colspan="3"></td></tr>
+            </ng-container>
+        </tbody>
+    </table>
+    </div>
+</app-modal-dialog>
+
+<div class="advisor">
+    <div class="advisor-content" *ngIf="calculating">
+        <div>
+            <fa-icon [icon]="faArrowsRotate" [spin]="true"></fa-icon>
+        </div>
+        <div>
+            Calculating...
+        </div>
+    </div>
+    <div class="advisor-content" *ngIf="!calculating && suggestions.max_num_of_hats > 0">
+        <div>
+            <fa-icon class="text-warning" [icon]="faLightbulb" size="2x"></fa-icon>
+        </div>
+        <div class="message">
+            <div>With this allocation you can make up to {{ suggestions.max_num_of_hats }} {{ (suggestions.max_num_of_hats == 1)? 'hat': 'hats' }} of type <strong>{{ suggestions.max_hat_wing_name }}</strong></div>
+            <div><button class="btn btn-success" (click)="openAdviseTable()">Show me!</button></div>
+        </div>
+    </div>
+    <div class="advisor-content" *ngIf="!calculating && suggestions.max_num_of_hats <= 0">
+        <div>
+            <fa-icon class="text-danger" [icon]="faTriangleExclamation"></fa-icon>
+        </div>
+        <div>
+            You don't have the capatity to make hats with this allocation
+        </div>
+    </div>
+</div>

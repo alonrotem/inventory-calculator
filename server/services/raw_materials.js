@@ -67,10 +67,23 @@ async function getMultiple(page = 1, perPage){
   }
 }
 
-async function getNames(){
-  const result = await db.query(`
+async function getNames(for_customer_id){
+
+  //get all material names in the system
+  let query = `
     select distinct name from raw_materials  
-    order by name;`);
+    order by name;`;
+
+  //or get just ones which are in bank(s) of a specific customer
+  if(for_customer_id && for_customer_id > 0){
+    query = `
+      select distinct rm.name 
+        from raw_materials rm left join customer_banks cb 
+        on rm.id = cb.raw_material_id 
+        where cb.customer_id=${for_customer_id};`;
+  }
+
+  const result = await db.query(query);
     /*
     union
     select hat_material as name from hats union

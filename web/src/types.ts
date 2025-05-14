@@ -213,6 +213,7 @@ export interface Stats {
     total_baby_records: number,
     total_babies: number,
     total_wings: number,
+    num_of_orders: number,
     total_hats: number,
     cur_raw_material_quantity_kg: number,
     cur_raw_material_remaining_kg: number,
@@ -415,10 +416,34 @@ export interface OrdersList {
 //this is used to receive information of all wings and babies in the sytesm
 //for calculations and suggestions to the user
 //properties are shortened by name to reduce traffic
-export interface WingCalculationItem {
+export interface ShortWingsInfo {
     w_id: number;       //wing id
     w_n: string;        //wing name
     b_id: number;       //baby id
     p: string;          //baby position
     l: number;          //baby length
+}
+
+export interface OrderAdvisorHatsSuggestion {
+    wing_id: number;
+    wing_name: string;
+    num_of_wings_per_hat: number;
+    max_num_of_hats: number;
+    alternatives: OrderAdvisorHatsSuggestionAlternative[];
+}
+
+export interface OrderAdvisorHatsSuggestionAlternative {
+    shorten_top: number;
+    shorten_crown: number;
+    max_num_of_hats: number;
+    descriptive_string: string;
+}
+
+export interface OrderAdvisorWingOverall {
+    wing_suggestions: OrderAdvisorHatsSuggestion[];
+    max_num_of_hats: number;
+    max_hat_wing_name: string;
+    max_hat_wing_id: number;
+    wall_allocation_id: number;
+    crown_allocation_id: number;
 }

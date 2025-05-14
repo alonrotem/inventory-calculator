@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { InfoService } from '../../../services/info.service';
 import { Stats } from '../../../../types';
 import { DecimalPipe, NgClass } from '@angular/common';
-import { faArrowsRotate, faTrashCan, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faArrowsRotate, faBasketShopping, faTrashCan, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
 @Component({
@@ -18,6 +18,7 @@ export class SummaryCardComponent implements OnInit {
   total_baby_records: number = 0;
   total_babies: number = 0;
   total_wings: number = 0;
+  num_of_orders: number = 0;
   total_hats: number = 0;
   raw_material_kg: number = 0;
   raw_material_remaining_kg: number = 0;
@@ -26,6 +27,7 @@ export class SummaryCardComponent implements OnInit {
 
   loading: boolean = true;
   faArrowsRotate: IconDefinition = faArrowsRotate;
+  faBasketShopping: IconDefinition = faBasketShopping;
 
   constructor(private infoService: InfoService) {
   }
@@ -33,10 +35,12 @@ export class SummaryCardComponent implements OnInit {
   ngOnInit(): void {
     this.infoService.getStatistics().subscribe({
       next: (stats: Stats) => {
+        console.dir(stats);
         this.raw_material_records = stats.raw_material_records;
         this.total_baby_records = stats.total_baby_records;
         this.total_babies = stats.total_babies;
         this.total_wings = stats.total_wings;
+        this.num_of_orders = stats.num_of_orders;
         this.total_hats = stats.total_hats;
         this.raw_material_kg = stats.cur_raw_material_quantity_kg;
         this.raw_material_remaining_kg = stats.cur_raw_material_remaining_kg;

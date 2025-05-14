@@ -46,13 +46,6 @@
     [confirmAction]="true"
 />
 
-<div>
-  <app-order-advisor 
-    [banks_baby_allocations]="this.banks_baby_allocations"
-    [babies]="this.babies"
-  />
-</div>
-
 <div style="border: 1px solid; padding: 20px; border-radius: 20px; margin: 20px 0px;">
 <div>
     <div style="display:flex; flex-direction: row; justify-content: space-between;">
@@ -99,7 +92,7 @@
  <div class="allocation-area">
       <div>
         <fa-icon [icon]="faChartPie" style="margin-right:10px;"></fa-icon>
-        <strong>Allocated for work (#{{ bank_allocation.id }}):</strong>
+        <strong>Work allocation #{{ bank_allocation.id }}:</strong>
         {{ bank_allocation.quantity }} {{ raw_material_quantity_units }}, {{ (babies | filter: "customer_banks_babies_id" : bank_allocation.id) | sum: 'quantity' }} babies 
         <div>
           <button class="btn btn-warning" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="open_allocation_dialog(bank_allocation.id)">
@@ -114,7 +107,7 @@
               style="padding: 0px 11px 1px 5px; margin-left: 10px;" 
               (click)="openAllocationMergeDialog(bank_allocation.id)">
               <span class="icon-merge"></span>
-              Merge this
+              Merge
             </button>
           </span>
           <span [attr.title]="((babies | filter: 'customer_banks_babies_id' : bank_allocation.id | filter: 'quantity_in_pending_orders' : 0 : true).length > 0)? 'Cannot delete this allocation&#10;(some babies in pending orders)':'Delete this'">
@@ -127,7 +120,7 @@
           </span>
           <button *ngIf="selectable_allocatoin" class="btn btn-info btn-select-this" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="select_allocation(bank_allocation)">
             <fa-icon [icon]="faCheck"></fa-icon>
-            Select this allocation
+            Select this
           </button>
         </div>
 
@@ -143,6 +136,7 @@
             <span class="collapsed-text"><span class="icon-chevron-down"></span> Show babies</span>
           </button>
         </div>
+
       </div>
       
       <div 
@@ -179,6 +173,14 @@
         <div><fa-icon [icon]="faTriangleExclamation" size="2x"></fa-icon></div>
         <div>No babies in this allocation</div>
       </div>
+      <div *ngIf="show_hat_advisor">
+        <app-order-advisor 
+          [bank]="this.bank"
+          [banks_baby_allocations]="[bank_allocation]"
+          [babies]="this.babies"
+        />
+      </div>
+
 </div>
 </ng-container>
 </div>

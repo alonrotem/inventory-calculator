@@ -103,6 +103,7 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
 
   order_amount: number = -1;
   faBasketShopping:IconDefinition = faBasketShopping;
+  selected_wing_name:string = "";
   //==================== old stuff below====================
 
   //server_url: string = environment.serverUrl;
@@ -129,6 +130,7 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
   pending_allocation_area_selection = ""; // wall/crown
   faChartPie: IconDefinition = faChartPie;
   console=console;
+  selected_wing_id: number | null = null;
 
   /*
   @Input() banks: Customer_Bank[] = [];
@@ -151,11 +153,7 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
     private ordersService: OrdersService,
     private toastService: ToastService
   ) {
-    this.rawMaterialsService.getRawMaterialNames().subscribe({
-      next: (names)=> {
-        this.raw_material_names = names;
-      }
-    });
+
 
     this.globalsService.themeChanged.subscribe((theme: string) => {
       this.no_hat_img = `/assets/images/no-hat-picture-${theme}.png`;
@@ -165,15 +163,24 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.wingsService.getWings_for_customer(this.customer.id).subscribe(wingsListInfo => {
-      this.wings = wingsListInfo.data;
-    });
-
-    const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
-    this.getCustomer(id);
+ 
   }
 
   ngAfterViewInit(): void {
+    this.wingsService.getWings_for_customer(this.customer.id).subscribe(wingsListInfo => {
+      this.wings = wingsListInfo.data;
+      let selected_wing_id = Number(this.activatedRoute.snapshot.queryParamMap.get('wing_id'));
+      if(selected_wing_id > 0) {
+        this.selected_wing_id = selected_wing_id;
+        this.wing_selected(selected_wing_id);
+      }
+      else {
+        this.selected_wing_id = null;
+      }
+      const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
+      this.getCustomer(id);
+    });
+
     this.no_hat_img = `/assets/images/no-hat-picture-${this.globalsService.currentTheme()}.png`;
     this.previeImgTitle = this.no_hat_message;
 
@@ -209,8 +216,44 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
 
         this.customer = customer;
         this.customerHat.customer_id = this.customer.id;
-        //this.cacheCustomerBanksInitialData();
-        //this.recalculateBanks();
+
+        this.rawMaterialsService.getRawMaterialNames(id).subscribe({
+          next: (names)=> {
+            this.raw_material_names = names;
+          }
+        });          
+
+        let hat_material = this.activatedRoute.snapshot.queryParamMap.get('w_mat');
+        if(hat_material) {
+          this.customerHat.hat_material = hat_material;
+          this.wall_material_changed(hat_material);
+        }
+        let crown_material = this.activatedRoute.snapshot.queryParamMap.get('c_mat');
+        if(crown_material) {
+          this.customerHat.crown_material = crown_material;
+          this.crown_material_changed(crown_material);
+        }
+        let hat_allocation = Number(this.activatedRoute.snapshot.queryParamMap.get('w_aloc'));
+        if(hat_allocation) {
+          this.pending_allocation_area_selection = "wall";
+          this.allocation_selected(hat_allocation);
+        }
+        let crown_allocation = Number(this.activatedRoute.snapshot.queryParamMap.get('c_aloc'));
+        if(crown_allocation) {
+          this.pending_allocation_area_selection = "crown";
+          this.allocation_selected(crown_allocation);
+        }
+        let shorten_top = Number(this.activatedRoute.snapshot.queryParamMap.get('s_t'));
+        if(shorten_top) {
+          this.customerHat.shorten_top_by = shorten_top;
+        }
+        let shorten_crown = Number(this.activatedRoute.snapshot.queryParamMap.get('s_c'));
+        if(shorten_crown) {
+          this.customerHat.shorten_crown_by = shorten_crown;
+        }
+        if(shorten_top || shorten_crown) {
+          this.margins_changed();
+        }
       },
       error: (error) => {
         console.log(error);
@@ -292,24 +335,34 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
     this.order_amount = this.total_num_of_possible_hats;
   }
 
-  wing_selected(selectedWingId:number) {
+  generate_unique_hat_name(){
+    let timestamp = new Date();
+    if(this.customerHat && this.customerHat.wing) {
+      return this.customerHat.wing.name + 
+        timestamp.getFullYear() + 
+        timestamp.getMonth().toString().padStart(2, "0") +  
+        timestamp.getDate().toString().padStart(2, "0") +
+        timestamp.getHours().toString().padStart(2, "0") +
+        timestamp.getMinutes().toString().padStart(2, "0") +
+        timestamp.getSeconds().toString().padStart(2, "0");
+    }
+    else {
+      return "";
+    }
+  }
+
+  wing_selected(selectedWingId:number | null) {
+    this.console.dir(selectedWingId);
     this.hat_babies = [];
     if(selectedWingId) {
       this.wingsService.getWing(selectedWingId).subscribe((w:Wing) => {
         //once the customer selects a wing, it gets copied into a new wing which can be customized
         //also given a new name, and will be saved under the hat of the customer.
         //the order won't be affected if the parent wing itself changes.
+        this.selected_wing_name = w.name;
         this.customerHat.wing = w;
         this.customerHat.wing.id = 0;
-        let timestamp = new Date();
-        this.customerHat.wing.name = 
-          this.customerHat.wing.name + 
-          timestamp.getFullYear() + 
-          timestamp.getMonth().toString().padStart(2, "0") +  
-          timestamp.getDate().toString().padStart(2, "0") +
-          timestamp.getHours().toString().padStart(2, "0") +
-          timestamp.getMinutes().toString().padStart(2, "0") +
-          timestamp.getSeconds().toString().padStart(2, "0");
+        this.customerHat.wing.name = this.generate_unique_hat_name();
         this.wing_original = (JSON.parse(JSON.stringify(w)));
         this.wing_unchanged = (JSON.parse(JSON.stringify(w)));
         this.is_wing_customized = false;
@@ -349,6 +402,7 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
   }
 
   reload_allocations(){
+    this.console.dir(this.customer.banks);
     let banks_with_wall_materials = this.customer.banks.filter(b => b.raw_material_name == this.customerHat.hat_material).map(b => b.id);
     let banks_with_crown_materials = this.customer.banks.filter(b => b.raw_material_name == this.customerHat.crown_material).map(b => b.id);
     this.num_of_allocations_with_wall_material = this.customer.banks_baby_allocations.filter(a => banks_with_wall_materials.indexOf(a.customer_bank_id) >= 0).length;
@@ -420,7 +474,6 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
       this.customerHat.shorten_crown_by);
     this.customerHat.wing = (JSON.parse(JSON.stringify(adjustedWing)));
 
-    
     this.check_for_wing_changes();
     this.aggregateHatBabiesAndMatchingAllocations();
     this.order_amount = this.total_num_of_possible_hats;
@@ -435,6 +488,7 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
     this.wing_unchanged = (JSON.parse(JSON.stringify(this.wing_original)));
     this.customerHat.shorten_top_by = 0;
     this.customerHat.shorten_crown_by = 0;
+    this.margins_changed();
     this.check_for_wing_changes();
   }
 
@@ -517,6 +571,10 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
           });
           this.aggregateHatBabiesAndMatchingAllocations();
           this.order_amount = this.total_num_of_possible_hats;
+          if(this.customerHat && this.customerHat.wing){
+            this.customerHat.wing.id = 0;
+            this.customerHat.wing.name = this.generate_unique_hat_name();
+          }
         },
         error:(error) => { 
           this.toastService.showError("Failed to issue order");
@@ -526,11 +584,6 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
   }
 
   go_to_orders(){
-    /*
-    const navigationExtras: NavigationExtras = {state: { name: this.customer.name }};
-    this.console.dir(navigationExtras);
-    this.router.navigate(['/inventory/customer/orders'], navigationExtras);
-*/
     this.router.navigate(['/inventory/customer/orders'], {
       queryParams: {
         customer_id: this.customer.id
@@ -541,6 +594,5 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
         }
       },
     });
-
   }
 }

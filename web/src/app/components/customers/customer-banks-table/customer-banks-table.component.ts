@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { Baby, Customer, Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, HistoryReportRecord, TransactionRecord, TransactionType, Wing, WingCalculationItem } from '../../../../types';
+import { Baby, Customer, Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, HistoryReportRecord, TransactionRecord, TransactionType, Wing, ShortWingsInfo } from '../../../../types';
 import { RouterModule } from '@angular/router';
 import { DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
@@ -60,6 +60,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   @Output() bank_changed = new EventEmitter<void>();
   @Output() allocation_selected = new EventEmitter<Customer_Bank_Baby_Allocation>();
   @Output() afterViewInit = new EventEmitter<void>();
+  @Input() show_hat_advisor: boolean = true;
   @ViewChild('delete_allocation_dialog') delete_allocation_dialog!: ConfirmationDialogComponent;
   @ViewChild('not_enough_material') not_enough_material!: ConfirmationDialogComponent;
   @ViewChild('save_before_select') save_before_select!: ConfirmationDialogComponent;

@@ -1,27 +1,13 @@
 :host {
-    /*
-    display: flex;
-    flex-grow: 1;
-    justify-content: center;
-    */
     flex: 1 1 auto;
     position: relative;
 }
 
 #loading_icon {
-    /* align-self: center; */
-    /* display: flex; */
-    /* flex-direction: column; */
-    /* align-items: center; */
-    /* padding-top: 50%; */
-    /* flex-grow: 1; */
-    /* min-height: 100%; */
-    /*background: yellow;*/
-    /* height: 100%; */
-    width: 100%;
-    position: absolute;
-    top: 0;
-    bottom: 0;
+    height: 100vh !important;
+    margin-top: -193px;
+    margin-bottom: -85px;
+    padding-top: 85px;
 }
 
 #loading_message {
