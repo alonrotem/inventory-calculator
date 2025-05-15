@@ -130,8 +130,8 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
           //this.wall_allocation.forEach((allocation: Customer_Bank_Baby_Allocation) => {
           this.suggestions.wall_allocation_id = (this.wall_allocation) ? this.wall_allocation.id : 0;
           this.suggestions.crown_allocation_id = (this.crown_allocation) ? this.crown_allocation.id : 0;
-          let wall_babies = this.wall_babies.filter(b => b.customer_banks_babies_id == (this.wall_allocation!.id ?? 0));
-          let crown_babies = this.wall_babies.filter(b => b.customer_banks_babies_id == (this.crown_allocation!.id ?? 0));
+          let wall_babies = this.wall_babies.filter(b => b.customer_banks_babies_id == ((this.wall_allocation) ? this.wall_allocation.id : 0));
+          let crown_babies = this.wall_babies.filter(b => b.customer_banks_babies_id == ((this.crown_allocation) ? this.crown_allocation.id : 0));
             this.systemWings.forEach((systemWing:Wing) => {
 
             /**
@@ -317,7 +317,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
           this.suggestions.max_hat_wing_name = wing.name;
         }
       }
-      if(this.try_to_exceed > 0) {
+      if(this.try_to_exceed >= 0) {
         if(this.wing_id > 0 && this.suggestions.max_num_of_hats > this.try_to_exceed){
           let current_wing_alternatives = this.suggestions.wing_suggestions.find(s => s.wing_id == this.wing_id);
           if(current_wing_alternatives) {
@@ -325,7 +325,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
             this.exceed_number_of_hats_message = `Get ${highest_alternative?.max_num_of_hats} hats, if you ` + 
             ((highest_alternative?.shorten_top && highest_alternative?.shorten_top > 0)? `reduce the top by ${ highest_alternative?.shorten_top.toFixed(1) }cm` : `set the top to 0`) + 
             `, and ` + 
-            ((highest_alternative?.shorten_crown && highest_alternative?.shorten_crown > 0)? `reduce the corown by ${ highest_alternative?.shorten_crown.toFixed(1) }cm` : `set the crown to 0`);
+            ((highest_alternative?.shorten_crown && highest_alternative?.shorten_crown > 0)? `reduce the crown by ${ highest_alternative?.shorten_crown.toFixed(1) }cm` : `set the crown to 0`);
 
             this.exceed_number_shorten_top = highest_alternative?.shorten_top ?? -1;
             this.exceed_number_shorten_crown = highest_alternative?.shorten_crown ?? -1;

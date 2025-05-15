@@ -99,6 +99,7 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
 
   ngOnInit(): void {
     this.is_new_customer = !this.activatedRoute.snapshot.queryParamMap.has('id');
+    console.dir(this.activatedRoute.snapshot.queryParamMap);
     if(!this.is_new_customer)
     {
       this.title = "Edit Customer";

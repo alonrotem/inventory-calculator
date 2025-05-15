@@ -207,6 +207,9 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
   }
 
   getCustomer(id: number){
+    if(id == 0)
+      return;
+    
     this.customersService.getCustomer(id).subscribe(
     {
       next: (customer: Customer) => {
