@@ -137,23 +137,11 @@ async function get_backup(keep_existing_records) {
     let inserts =
         "use inventory;\nSET @delete_records=" + (!(Boolean(keep_existing_records))).toString().toUpperCase() + ";\n\n";
     
-    tables.forEach(async (table) => {
-        inserts += await create_table_backup_statement(table, keep_existing_records);
-    });
-        /*
-        await create_table_backup_statement('customers', keep_existing_records) +
-        await create_table_backup_statement('raw_materials', keep_existing_records) +
-        await create_table_backup_statement('customer_banks', keep_existing_records) +
-        await create_table_backup_statement('customer_banks_babies', keep_existing_records) +
-        await create_table_backup_statement('babies', keep_existing_records) +
-        await create_table_backup_statement('transaction_history', keep_existing_records) +
-        await create_table_backup_statement('wings', keep_existing_records) +
-        await create_table_backup_statement('wings_babies', keep_existing_records) +
-        await create_table_backup_statement('customer_hats', keep_existing_records) +
-        await create_table_backup_statement('hats_wings', keep_existing_records) +
-        await create_table_backup_statement('settings', keep_existing_records)
-        */
-    ;
+    for (const table of tables) {
+        let statements = await create_table_backup_statement(table, keep_existing_records);
+        inserts += statements;
+    }   
+
     return inserts;
 }
 
