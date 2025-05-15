@@ -30,9 +30,9 @@ router.get('/', async function(req, res, next) {
     }
   });
 
-  router.get('/allwingsandbabies', async function(req, res, next) {
+  router.get('/allwingsandbabies/:wing_id', async function(req, res, next) {
     try {
-      res.json(await wings.getAllNonCustomerWingsAndBabies());
+      res.json(await wings.getAllNonCustomerWingsAndBabies(req.params.wing_id));
     } 
     catch (err) {
       console.error(`Error while getting all wings & babies `, err.message);

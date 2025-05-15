@@ -63,23 +63,32 @@ export class WingsService {
     return this.apiService.delete(`${environment.serverUrl}/wings/${id}`, { });
   };
 
-   getAllNonCustomerWingsAndBabies = (): Observable<ShortWingsInfo[]> => {
+   getAllNonCustomerWingsAndBabies = (wing_id_filter: number=0): Observable<ShortWingsInfo[]> => {
+    return this.apiService.get(`${environment.serverUrl}/wings/allwingsandbabies/${wing_id_filter}`, { responseType: 'json' }) as Observable<ShortWingsInfo[]>;
+    /*
+    let wing_data: ShortWingsInfo[] = [];
     if(this.allWingsAndBabiesCache.length == 0) {
-      let request_observable = this.apiService.get(`${environment.serverUrl}/wings/allwingsandbabies`, { responseType: 'json' }) as Observable<ShortWingsInfo[]>;
+      let request_observable = this.apiService.get(`${environment.serverUrl}/wings/allwingsandbabies/0`, { responseType: 'json' }) as Observable<ShortWingsInfo[]>;
       request_observable.subscribe(
       {
         next: (data: ShortWingsInfo[]) => {
           this.allWingsAndBabiesCache = data;
+          if(wing_id_filter) {
+            wing_data = this.allWingsAndBabiesCache.filter(w => w.w_id == wing_id_filter);
+          }
+          else {
+            wing_data = data;
+          }
+          return of(wing_data);
         },
         error: (error) => {
           console.log(error);
         }
       });
-      return request_observable;
+      //return request_observable;
     }
-    else {
-      return of(this.allWingsAndBabiesCache);
-    }
+    return of(wing_data);
+    */
   }
 
   invalidateWingsCache() {

@@ -54,6 +54,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   unchanged_banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
   unchanged_babies: Customer_Baby[] = [];
 
+  @Input() wing_id: number = 0;
   @Input() raw_material_quantity_units: string = "";
   @Input() collapsed_babies_lists: boolean = true;
   @Input() selectable_allocatoin: boolean = false; 
@@ -61,6 +62,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   @Output() allocation_selected = new EventEmitter<Customer_Bank_Baby_Allocation>();
   @Output() afterViewInit = new EventEmitter<void>();
   @Input() show_hat_advisor: boolean = true;
+  @Input() advisor_show_options_button: boolean = true;
   @ViewChild('delete_allocation_dialog') delete_allocation_dialog!: ConfirmationDialogComponent;
   @ViewChild('not_enough_material') not_enough_material!: ConfirmationDialogComponent;
   @ViewChild('save_before_select') save_before_select!: ConfirmationDialogComponent;

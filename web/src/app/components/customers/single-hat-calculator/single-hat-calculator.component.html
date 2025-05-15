@@ -364,6 +364,19 @@
 
   <div><h6>Max hats calculated: {{ total_num_of_possible_hats }}</h6></div>
 
+  <div>
+    <app-order-advisor
+      [wing_id]="selected_wing_id ?? 0"
+      [wall_allocation]="this.wall_alocation"
+      [crown_allocation]="this.crown_allocation"
+      [wall_babies]="customer.babies"
+      [crown_babies]="customer.babies"
+      [show_options_button]="false"
+      [try_to_exceed]="total_num_of_possible_hats"
+      (fetchExceedInstructions)="exceedNumOfHats($event)"
+    />
+  </div> 
+
   <div style="border: 1px solid; border-radius: 10px; margin: 20px 0px;padding: 20px;">
     <div><h3>Place an order</h3></div>
     <div *ngIf="total_num_of_possible_hats > 0">
@@ -387,6 +400,7 @@
     <div *ngIf="total_num_of_possible_hats <= 0">
       No sufficient quota to order hats
     </div>
+   
     <div>
       <a href="javascript:void(0)" (click)="go_to_orders()">See all your orders</a>
     </div>

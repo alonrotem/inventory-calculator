@@ -88,13 +88,17 @@ async function getWingsForCustomer(customerId) {
 }
 
 //column names are shortened, to reduce traffic
-async function getAllNonCustomerWingsAndBabies() {
+async function getAllNonCustomerWingsAndBabies(wing_id_filter) {
+  let wing_filter = "";
+  if(wing_id_filter && wing_id_filter > 0) {
+    wing_filter = `and w.id=${ wing_id_filter }`;
+  }
   const rows = await db.query(
     `select w.id w_id, w.name w_n, wb.id b_id, wb.position p, wb.length l 
       from wings w 
       left join customer_hats ch on ch.wing_id=w.id
       left join wings_babies wb on wb.parent_wing_id=w.id
-      where ch.customer_id is null
+      where ch.customer_id is null ${wing_filter}
       order by w.id, wb.position`);
   return helper.emptyOrRows(rows);
 }

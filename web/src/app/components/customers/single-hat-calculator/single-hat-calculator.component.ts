@@ -25,6 +25,7 @@ import { CustomersService } from '../../../services/customers.service';
 import { ActivatedRoute, NavigationExtras, Router, RouterLink } from '@angular/router';
 import { OrdersService } from '../../../services/orders.service';
 import { ToastService } from '../../../services/toast.service';
+import { OrderAdvisorComponent } from "../order-advisor/order-advisor.component";
 
 /*
 sohortening top/crown with slider:
@@ -47,12 +48,13 @@ apply the sliders after the load
 @Component({
   selector: 'app-single-hat-calculator',
   standalone: true,
-  imports: [ 
+  imports: [
     NgSelectModule, FormsModule, NgFor, NgIf, DecimalPipe, NgClass,
     WingDiagramComponent, PrefixPipe, FilterPipe, StartsWithPipe, LightboxModule,
     AllocationPickerComponent, FaIconComponent, AutocompleteLibModule, BabyLengthModalComponent,
-    FaIconComponent, ConfirmationDialogComponent, HatAllocationEditorPickerComponent, RouterLink
-  ],
+    FaIconComponent, ConfirmationDialogComponent, HatAllocationEditorPickerComponent, RouterLink,
+    OrderAdvisorComponent
+],
   templateUrl: './single-hat-calculator.component.html',
   styleUrl: './single-hat-calculator.component.scss'
 })
@@ -416,8 +418,10 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
     this.allocation_picker.banks_baby_allocations = this.customer.banks_baby_allocations;
     this.allocation_picker.babies = this.customer.babies;
     this.allocation_picker.customer = this.customer;
+    this.allocation_picker.wing_id = (this.selected_wing_id)?? 0;
+    this.console.log("oopening picker with ID " + this.allocation_picker.wing_id);
     this.pending_allocation_area_selection = area;
-   this.allocation_picker.dialogWrapper.open();
+    this.allocation_picker.dialogWrapper.open();
   }
 
   diagram_baby_clicked(baby_position:string){
@@ -581,6 +585,21 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
          }
       }
     );
+  }
+
+  exceedNumOfHats(margin_instructions: any){
+    let change: boolean = false;
+    if(margin_instructions.top >= 0){
+      this.customerHat.shorten_top_by = margin_instructions.top;
+      change = true;
+    }
+    if(margin_instructions.crown >= 0){
+      this.customerHat.shorten_crown_by = margin_instructions.crown;
+      change = true;
+    }
+    if(change) {
+      this.margins_changed();
+    }
   }
 
   go_to_orders(){

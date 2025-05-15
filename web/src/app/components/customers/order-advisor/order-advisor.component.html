@@ -42,21 +42,24 @@
             Calculating...
         </div>
     </div>
-    <div class="advisor-content" *ngIf="!calculating && suggestions.max_num_of_hats > 0">
-        <div>
-            <fa-icon class="text-warning" [icon]="faLightbulb" size="2x"></fa-icon>
-        </div>
+    <div class="advisor-content" *ngIf="!calculating && suggestions.max_num_of_hats > 0 && try_to_exceed <= 0">
         <div class="message">
-            <div>With this allocation you can make up to {{ suggestions.max_num_of_hats }} {{ (suggestions.max_num_of_hats == 1)? 'hat': 'hats' }} of type <strong>{{ suggestions.max_hat_wing_name }}</strong></div>
-            <div><button class="btn btn-success" (click)="openAdviseTable()">Show me!</button></div>
+            <div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon> With this allocation you can make up to {{ suggestions.max_num_of_hats }} {{ (suggestions.max_num_of_hats == 1)? 'hat': 'hats' }} of type <strong>{{ suggestions.max_hat_wing_name }}</strong></div>
+            <div *ngIf="show_options_button"><button class="btn btn-success" (click)="openAdviseTable()">Show me!</button></div>
         </div>
     </div>
-    <div class="advisor-content" *ngIf="!calculating && suggestions.max_num_of_hats <= 0">
+    <div class="advisor-content" *ngIf="!calculating && suggestions.max_num_of_hats <= 0 && try_to_exceed <= 0">
         <div>
-            <fa-icon class="text-danger" [icon]="faTriangleExclamation"></fa-icon>
+            <fa-icon class="text-danger" [icon]="faTriangleExclamation" size="1x"></fa-icon>
         </div>
         <div>
-            You don't have the capatity to make hats with this allocation
+            You don't have the capatity to make {{ (wing_id > 0)? 'this hat': 'hats' }} with {{ (wall_allocation && crown_allocation && wall_allocation.id == crown_allocation.id)?'this allocation':'these allocations' }}
+        </div>
+    </div>
+    <div class="advisor-content" *ngIf="!calculating && try_to_exceed > 0">
+        <div class="message">
+            <div><div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon>{{ exceed_number_of_hats_message }}</div>
+            <div *ngIf="!already_at_max_num_of_hats" style="display: flex; justify-content: center;"><button class="btn btn-warning" (click)="emit_exceed_operation()">Make this change!</button></div>
         </div>
     </div>
 </div>

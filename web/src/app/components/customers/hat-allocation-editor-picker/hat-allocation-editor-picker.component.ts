@@ -30,7 +30,8 @@ export class HatAllocationEditorPickerComponent implements ModalContentDirective
     id: 0, name: '', business_name: '', email: '', phone: '',  tax_id: '', 
     created_at: new Date(), updated_at: new Date(),  created_by: 0, updated_by: 0, 
     banks: [], banks_baby_allocations: [], babies: []
-  };  
+  };
+  @Input() wing_id: number = 0;
   @Input() banks: Customer_Bank[] = [];
   @Input() banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
   @Input() babies: Customer_Baby[] = [];
@@ -43,9 +44,10 @@ export class HatAllocationEditorPickerComponent implements ModalContentDirective
   }
 
   onOpen(): void {
-    console.log(this.banks_table);
+    console.log("picker says: wing id is " + this.wing_id);
     if(this.banks_table){
       this.banks_table.collapsed_babies_lists = true;
+      this.banks_table.wing_id = this.wing_id;
     }
   }
 
