@@ -1,17 +1,19 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { WingsService } from '../../../services/wings.service';
-import { HatsCalculatorService } from '../../../services/hats-calculator.service';
+import { aggregated_babies, HatsCalculatorService } from '../../../services/hats-calculator.service';
 import { Customer_Baby, Customer_Bank_Baby_Allocation, Wing, WingBaby, ShortWingsInfo, OrderAdvisorWingOverall, OrderAdvisorHatsSuggestionAlternative, Customer_Bank } from '../../../../types';
 import { Router, withEnabledBlockingInitialNavigation } from '@angular/router';
-import { NgFor, NgIf } from '@angular/common';
+import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { faArrowsRotate, faLightbulb, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.component";
+import { NgSelectModule } from '@ng-select/ng-select';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-order-advisor',
   standalone: true,
-  imports: [NgIf, NgFor, FaIconComponent, ModalDialogComponent ],
+  imports: [NgIf, NgFor, FaIconComponent, ModalDialogComponent, NgSelectModule, FormsModule, DecimalPipe ],
   templateUrl: './order-advisor.component.html',
   styleUrl: './order-advisor.component.scss'
 })
@@ -22,11 +24,16 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() wing_id: number = 0;
   @Input() wall_allocation: Customer_Bank_Baby_Allocation | null = null;
   @Input() crown_allocation: Customer_Bank_Baby_Allocation | null = null;
-  @Input() wall_babies: Customer_Baby[] = [];
-  @Input() crown_babies: Customer_Baby[] = [];
+  @Input() customer_wall_babies: Customer_Baby[] = [];
+  @Input() customer_crown_babies: Customer_Baby[] = [];
   @Input() show_options_button: boolean = true;
   @Input() try_to_exceed: number = -1;
   @ViewChild("advisor_dialog") advisor_dialog!: ModalDialogComponent;
+  @ViewChild("hat_creation_assistant") hat_creation_assistant!: ModalDialogComponent;
+
+  allocation_wall_babies: Customer_Baby[] = [];
+  allocation_crown_babies: Customer_Baby[] = [];
+
   calculating: boolean = false;
   systemWings: Wing[] = [];
   suggestions: OrderAdvisorWingOverall = {
@@ -41,11 +48,20 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   faTriangleExclamation: IconDefinition = faTriangleExclamation;
   faArrowsRotate: IconDefinition = faArrowsRotate;
 
+  //Exceed calculator (to improve the wing selection)
   exceed_number_of_hats_message: string = "";
   already_at_max_num_of_hats: boolean = false;
   exceed_number_shorten_top: number = -1;
   exceed_number_shorten_crown: number = -1;
   @Output() fetchExceedInstructions = new EventEmitter<any>();
+
+  //wing construction assistant
+  assistant_selected_wing_id: number  | null= null;
+  assistant_wing_quantity: number = 44;
+  assistant_num_of_hats: number = 0;
+  assistant_aggregated_hat_babies: aggregated_babies[] = []; //containing aggregated babies with length, quantity and num of hats
+  assistant_aggregated_crown_babies: aggregated_babies[] = []; //crown_babies are used only if the allocations are split between hat and crown  
+  @Output() assistantAutoAddBabies = new EventEmitter<any>();
 
   constructor(
     private wingsSerice: WingsService, 
@@ -63,6 +79,9 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     //console.log("ngOnChanges:");
     //console.dir(changes);
+    this.allocation_wall_babies = this.customer_wall_babies.filter(b => b.customer_banks_babies_id == ((this.wall_allocation) ? this.wall_allocation.id : 0));
+    this.allocation_crown_babies = this.customer_crown_babies.filter(b => b.customer_banks_babies_id == ((this.crown_allocation) ? this.crown_allocation.id : 0));
+
     this.runCalculations();
   }
 
@@ -130,8 +149,6 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
           //this.wall_allocation.forEach((allocation: Customer_Bank_Baby_Allocation) => {
           this.suggestions.wall_allocation_id = (this.wall_allocation) ? this.wall_allocation.id : 0;
           this.suggestions.crown_allocation_id = (this.crown_allocation) ? this.crown_allocation.id : 0;
-          let wall_babies = this.wall_babies.filter(b => b.customer_banks_babies_id == ((this.wall_allocation) ? this.wall_allocation.id : 0));
-          let crown_babies = this.wall_babies.filter(b => b.customer_banks_babies_id == ((this.crown_allocation) ? this.crown_allocation.id : 0));
             this.systemWings.forEach((systemWing:Wing) => {
 
             /**
@@ -154,10 +171,10 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               systemWing,
               0, //reduce top
               0, //reduce crown
-              this.wall_allocation!,  //wall
-              wall_babies,            //wall
-              this.crown_allocation!,  //crown
-              crown_babies,            //crown
+              this.wall_allocation!,        //wall
+              this.allocation_wall_babies,  //wall
+              this.crown_allocation!,       //crown
+              this.allocation_crown_babies, //crown
               numOfWingsPerHat
             );
 
@@ -166,10 +183,10 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               systemWing,
               0, //reduce top
               0.5, //reduce crown
-              this.wall_allocation!,  //wall
-              wall_babies,            //wall
-              this.crown_allocation!,  //crown
-              crown_babies,            //crown
+              this.wall_allocation!,        //wall
+              this.allocation_wall_babies,  //wall
+              this.crown_allocation!,       //crown
+              this.allocation_crown_babies, //crown
               numOfWingsPerHat
             );
 
@@ -178,10 +195,10 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               systemWing,
               0, //reduce top
               1, //reduce crown
-              this.wall_allocation!,  //wall
-              wall_babies,            //wall
-              this.crown_allocation!,  //crown
-              crown_babies,            //crown
+              this.wall_allocation!,        //wall
+              this.allocation_wall_babies,  //wall
+              this.crown_allocation!,       //crown
+              this.allocation_crown_babies, //crown
               numOfWingsPerHat
             );
 
@@ -190,10 +207,10 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               systemWing,
               0.5, //reduce top
               0, //reduce crown
-              this.wall_allocation!,  //wall
-              wall_babies,            //wall
-              this.crown_allocation!,  //crown
-              crown_babies,            //crown
+              this.wall_allocation!,        //wall
+              this.allocation_wall_babies,  //wall
+              this.crown_allocation!,       //crown
+              this.allocation_crown_babies, //crown
               numOfWingsPerHat
             );
 
@@ -202,10 +219,10 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               systemWing,
               0.5, //reduce top
               0.5, //reduce crown
-              this.wall_allocation!,  //wall
-              wall_babies,            //wall
-              this.crown_allocation!,  //crown
-              crown_babies,            //crown
+              this.wall_allocation!,        //wall
+              this.allocation_wall_babies,  //wall
+              this.crown_allocation!,       //crown
+              this.allocation_crown_babies, //crown
               numOfWingsPerHat
             );
 
@@ -214,10 +231,10 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               systemWing,
               0.5, //reduce top
               1, //reduce crown
-              this.wall_allocation!,  //wall
-              wall_babies,            //wall
-              this.crown_allocation!,  //crown
-              crown_babies,            //crown
+              this.wall_allocation!,        //wall
+              this.allocation_wall_babies,  //wall
+              this.crown_allocation!,       //crown
+              this.allocation_crown_babies, //crown
               numOfWingsPerHat
             );
 
@@ -226,10 +243,10 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               systemWing,
               1, //reduce top
               0, //reduce crown
-              this.wall_allocation!,  //wall
-              wall_babies,            //wall
-              this.crown_allocation!,  //crown
-              crown_babies,            //crown
+              this.wall_allocation!,        //wall
+              this.allocation_wall_babies,  //wall
+              this.crown_allocation!,       //crown
+              this.allocation_crown_babies, //crown
               numOfWingsPerHat
             );
 
@@ -238,10 +255,10 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               systemWing,
               1, //reduce top
               0.5, //reduce crown
-              this.wall_allocation!,  //wall
-              wall_babies,            //wall
-              this.crown_allocation!,  //crown
-              crown_babies,            //crown
+              this.wall_allocation!,        //wall
+              this.allocation_wall_babies,  //wall
+              this.crown_allocation!,       //crown
+              this.allocation_crown_babies, //crown
               numOfWingsPerHat
             );
 
@@ -250,12 +267,15 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               systemWing,
               1, //reduce top
               1, //reduce crown
-              this.wall_allocation!,  //wall
-              wall_babies,            //wall
-              this.crown_allocation!,  //crown
-              crown_babies,            //crown
+              this.wall_allocation!,        //wall
+              this.allocation_wall_babies,  //wall
+              this.crown_allocation!,       //crown
+              this.allocation_crown_babies, //crown
               numOfWingsPerHat
             );
+
+            console.log("calculating wing " + systemWing.name);
+            console.log("Max hats: " + this.suggestions.max_num_of_hats);
           });
           //});
 
@@ -377,7 +397,57 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
       });
     }
 
+    helpCreateHat(){
+      this.assistant_selected_wing_id = null;
+      this.assistant_wing_quantity = 44;
+      this.assistant_num_of_hats = 0;
+      this.hat_creation_assistant.open();
+    }
+
+    assistant_recalculate () {
+      if(this.assistant_selected_wing_id && this.assistant_selected_wing_id > 0){
+        let wing = this.systemWings.find(w => w.id == this.assistant_selected_wing_id);
+        if(wing){
+          let aggregation = this.hatsCalculatorService.aggregateHatBabiesAndMatchingAllocations(
+            wing, 
+            this.wall_allocation, 
+            this.crown_allocation, 
+            this.allocation_wall_babies, 
+            this.allocation_crown_babies, 
+            this.assistant_wing_quantity, 
+            this.assistant_num_of_hats);
+          console.dir(aggregation);
+
+          this.assistant_aggregated_hat_babies = aggregation.hat_babies;
+          this.assistant_aggregated_crown_babies = aggregation.crown_babies;
+          this.assistant_aggregated_hat_babies.forEach(wing_baby_info => {
+            let total_needed_per_hat = wing_baby_info.quantity //number of babies in this length required per hat
+            let total_for_all_hats = total_needed_per_hat * this.assistant_num_of_hats;
+            wing_baby_info.remaining = Math.max(total_for_all_hats - wing_baby_info.quantity_in_allocation, 0);
+          });
+          this.assistant_aggregated_crown_babies.forEach(wing_baby_info => {
+            let total_needed_per_hat = wing_baby_info.quantity //number of babies in this length required per hat
+            let total_for_all_hats = total_needed_per_hat * this.assistant_num_of_hats;
+            wing_baby_info.remaining = Math.max(total_for_all_hats - wing_baby_info.quantity_in_allocation, 0);
+          });
+        }
+      }      
+    }
+
+    assistant_add_babies() {
+      
+      this.assistantAutoAddBabies.emit({
+        hat_alloc_id: ((this.wall_allocation) ? this.wall_allocation.id : 0),
+        crown_alloc_id: ((this.crown_allocation) ? this.crown_allocation.id : 0),
+        hat: this.assistant_aggregated_hat_babies,
+        crown: this.assistant_aggregated_crown_babies
+      });
+    }
+
     emit_exceed_operation(){
-      this.fetchExceedInstructions.emit({ top: this.exceed_number_shorten_top, crown: this.exceed_number_shorten_crown});
+      this.fetchExceedInstructions.emit({ 
+        top: this.exceed_number_shorten_top, 
+        crown: this.exceed_number_shorten_crown
+      });
     }
 }

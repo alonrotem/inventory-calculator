@@ -294,6 +294,7 @@ export interface Customer_Baby {
     customer_banks_babies_id: number;
     length: number;
     quantity: number;
+    quantity_in_pending_orders: number;
     
     /*
     id: number;

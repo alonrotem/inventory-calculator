@@ -16,6 +16,7 @@ import { AllocationPickerComponent } from '../allocation-picker/allocation-picke
 import { SumPipe } from '../../../utils/pipes/sum-pipe';
 import { CustomersService } from '../../../services/customers.service';
 import { OrderAdvisorComponent } from "../order-advisor/order-advisor.component";
+import { aggregated_babies } from '../../../services/hats-calculator.service';
 
 @Component({
   selector: 'app-customer-banks-table',
@@ -70,6 +71,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   @ViewChild('babies_picker') babies_picker!: BabyEditorDialogComponent;
   @ViewChild('history_dialog') history_dialog! : BankHistoryDialogComponent;
   @ViewChild('allocation_picker') allocation_picker! : AllocationPickerComponent;
+  @ViewChild('order_advisor') order_advisor! : OrderAdvisorComponent;
   faTriangleExclamation: IconDefinition = faTriangleExclamation;
   faPencil: IconDefinition = faPencil;
   faTrashCan: IconDefinition = faTrashCan;
@@ -257,7 +259,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
       deleted = true;
     }
 
-    console.dir(this.bank.transaction_history);
+    //console.dir(this.bank.transaction_history);
     if(deleted) {
       this.bank_changed.emit();
       this.unsaved_changes = true;
@@ -352,7 +354,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     if(pushNewTransationRecord) {
       this.bank.transaction_history.push(transactionrec);
     }
-    console.dir(this.bank.transaction_history);
+    //console.dir(this.bank.transaction_history);
     this.pendingAllocationIdAction = -999;
     this.bank_changed.emit();
     this.unsaved_changes = true;
@@ -401,7 +403,8 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
         id: 0,
         customer_banks_babies_id: this.pendingBabyAppendAllocation,
         length: baby.length,
-        quantity: baby.quantity
+        quantity: baby.quantity,
+        quantity_in_pending_orders: 0
       });
     }
     this.pendingBabyAppendAllocation = -999;
@@ -435,6 +438,54 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   }
   select_allocation_confirmed(allocation: Customer_Bank_Baby_Allocation){
     this.allocation_selected.emit(allocation);
+  }
+
+  assistant_auto_add_babies(aggregatedBabies: any){
+    let changes_made = false;
+    let wall_babies = this.babies.filter(b => b.customer_banks_babies_id == aggregatedBabies.hat_alloc_id);
+    let crown_babies = this.babies.filter(b => b.customer_banks_babies_id == aggregatedBabies.crown_alloc_id);
+    (aggregatedBabies.hat as aggregated_babies[]).forEach(baby_to_append => {
+      if(baby_to_append.remaining > 0){
+        let baby_with_same_length = wall_babies.find(baby_in_customer_bank => baby_in_customer_bank.length == baby_to_append.length);
+        if(baby_with_same_length) {
+          baby_with_same_length.quantity += baby_to_append.remaining;
+        }
+        else {
+          this.babies.push({
+            id: 0,
+            customer_banks_babies_id: aggregatedBabies.hat_alloc_id,
+            length: baby_to_append.length,
+            quantity: baby_to_append.remaining,
+            quantity_in_pending_orders: 0
+          });
+        }
+        changes_made = true;
+      }
+    });
+    (aggregatedBabies.crown as aggregated_babies[]).forEach(baby_to_append => {
+      if(baby_to_append.remaining > 0){
+        let baby_with_same_length = crown_babies.find(baby_in_customer_bank => baby_in_customer_bank.length == baby_to_append.length);
+        if(baby_with_same_length) {
+          baby_with_same_length.quantity += baby_to_append.remaining;
+        }
+        else {
+          this.babies.push({
+            id: 0,
+            customer_banks_babies_id: aggregatedBabies.crown_alloc_id,
+            length: baby_to_append.length,
+            quantity: baby_to_append.remaining,
+            quantity_in_pending_orders: 0
+          });
+        }
+        changes_made = true;
+      }
+    });
+
+   if(changes_made) {
+      this.order_advisor.runCalculations();
+      this.bank_changed.emit();
+      this.unsaved_changes = true;  
+    }
   }
 
   /*

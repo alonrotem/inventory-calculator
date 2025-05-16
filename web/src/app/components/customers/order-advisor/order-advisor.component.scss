@@ -32,3 +32,27 @@ table tr td.spacer {
     padding-top: 10px;
     background-color: transparent;
   }
+
+.assistant_table tr td:nth-child(2){
+    display: flex;
+}
+
+.assistant_table tr td:nth-child(2) input {
+    min-width: 200px;
+}
+
+.assistant_info {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    margin: 50px 0;
+    line-height: 30px;
+}
+
+::ng-deep .ng-select-container {
+    height: auto !important;
+    min-width: 200px;
+    width: auto !important;
+}

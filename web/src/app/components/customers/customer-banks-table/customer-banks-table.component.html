@@ -174,18 +174,19 @@
         <div>No babies in this allocation</div>
       </div>
       <div *ngIf="show_hat_advisor">
-        alloc #{{ bank_allocation.id }}
         <app-order-advisor 
+          #order_advisor
           [show_options_button]="advisor_show_options_button"
           [wing_id]="wing_id"
 
           [wall_bank]="this.bank"
           [wall_allocation]="bank_allocation"
-          [wall_babies]="this.babies"
+          [customer_wall_babies]="this.babies"
 
           [crown_bank]="this.bank"
           [crown_allocation]="bank_allocation"
-          [crown_babies]="this.babies"
+          [customer_crown_babies]="this.babies"
+          (assistantAutoAddBabies)="assistant_auto_add_babies($event)"
 
         />
       </div>

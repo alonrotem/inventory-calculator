@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit,ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit,QueryList,ViewChild, ViewChildren } from '@angular/core';
 import { NgFor, NgIf } from '@angular/common';
 import { Customer, TransactionType } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
@@ -70,6 +70,7 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
   @ViewChild('navigate_confirmation') navigate_confirmation!: ConfirmationDialogComponent;
   @ViewChild('hats_calculator') hats_calculator!: HatsCalculatorDialogComponent;
   @ViewChild("btn_save", { read: ElementRef }) btn_save!: ElementRef;
+  @ViewChildren('customer_banks_tables') customer_banks_tables!: QueryList<CustomerBanksTableComponent>;
  
   constructor(
     private customersService: CustomersService, 
@@ -80,7 +81,8 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
   }
 
   hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
-    if(!this.customer_form.pristine) {
+    let banksUnsaved = this.customer_banks_tables.find(t => t.unsaved_changes);
+    if(!this.customer_form.pristine || banksUnsaved) {
       return new Promise((resolve) => {
         this.confirmResult = null;
         // Ensure this refers to the component's instance using an arrow function
@@ -142,7 +144,6 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
 
   save()
   {
-    console.log("save");
     this.customer_form.form.markAllAsTouched();
     if(this.customer_form.form.valid)
     {
@@ -212,7 +213,9 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
 
     this.customersService.saveCustomer(this.customerItem).subscribe(
     {
-      next:(data) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoCustomersList(data['message'], false); },//this.getRawMaterials(this.current_page); },
+      next:(data) => { 
+        this.customer_banks_tables.forEach(b => { b.unsaved_changes = false });
+        this.btn_save.nativeElement.classList.remove("disabled"); this.gotoCustomersList(data['message'], false); },//this.getRawMaterials(this.current_page); },
       error:(error) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoCustomersList(error, true); }
     });
   }
