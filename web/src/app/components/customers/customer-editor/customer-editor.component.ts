@@ -13,12 +13,13 @@ import { AutocompleteLibModule } from 'angular-ng-autocomplete';
 import { ToastService } from '../../../services/toast.service';
 import { CustomersService } from '../../../services/customers.service';
 import { HasUnsavedChanges } from '../../../guards/unsaved-changes-guard';
-import { Observable } from 'rxjs';
+import { first, Observable } from 'rxjs';
 import { CustomerBanksTableComponent } from '../customer-banks-table/customer-banks-table.component';
 import { HatsCalculatorDialogComponent } from '../hats-calculator-dialog/hats-calculator-dialog.component';
 import { AllocationPickerComponent } from '../allocation-picker/allocation-picker.component';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
 import { WingsService } from '../../../services/wings.service';
+import { StateService } from '../../../services/state.service';
 
 @Component({
   selector: 'app-customer-editor',
@@ -76,10 +77,56 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     private customersService: CustomersService, 
     private activatedRoute: ActivatedRoute,
     private router: Router, 
-    private toastService: ToastService
+    private toastService: ToastService,
+    private stateService: StateService
     ) { 
   }
 
+
+  hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
+    const banksUnsaved = this.customer_banks_tables.find(t => t.unsaved_changes);
+  
+    if (!this.customer_form.pristine || banksUnsaved) {
+      // Wrap the confirmation and follow-up call in a single Observable
+      return new Observable<boolean>((observer) => {
+        this.confirmResult = null;
+        this.navigate_confirmation.open();
+  
+        const sub = this.navigate_confirmation.confirm
+          .pipe(first()) // take the first result only
+          .subscribe((confirmed: boolean) => {
+            this.confirmResult = confirmed;
+            setTimeout(() => this.confirmResult = null, 0);
+  
+            if (confirmed) {
+              // 👇 call your HTTP service here
+              this.customersService.saveCustomer(this.customerItem).subscribe({
+                next: (serviceResult) => {
+                  console.dir(serviceResult);
+                  this.stateService.setState({ message: serviceResult.message, isError: false });
+                  observer.next(serviceResult);
+                  observer.complete();
+                },
+                error: () => {
+                  this.stateService.setState({ message: "Error saving customer data", isError: true });
+                  observer.next(false);
+                  observer.complete();
+                }
+              });
+            } else {
+              observer.next(false);
+              observer.complete();
+            }
+          });
+  
+        // Optional: clean up subscription if needed
+        return () => sub.unsubscribe();
+      });
+    }
+    return true;
+  }
+
+  /*
   hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
     let banksUnsaved = this.customer_banks_tables.find(t => t.unsaved_changes);
     if(!this.customer_form.pristine || banksUnsaved) {
@@ -98,6 +145,7 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     }
     return true;
   }
+    */
 
   ngOnInit(): void {
     this.is_new_customer = !this.activatedRoute.snapshot.queryParamMap.has('id');

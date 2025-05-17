@@ -109,7 +109,7 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
     //this.editedObject.length =  this.babyFormEditor.get('length')!.value ?? 0;
     //this.editedObject.length = this.length_picker.get_length();
     this.editedObject.quantity =  this.babyFormEditor.get('quantity')!.value ?? 0;
-    this.toastService.showSuccess("Saved");
+    this.toastService.showSuccess("Applied");
     return true;
   }
 

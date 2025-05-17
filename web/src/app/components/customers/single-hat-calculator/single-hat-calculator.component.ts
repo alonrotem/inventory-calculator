@@ -26,6 +26,7 @@ import { ActivatedRoute, NavigationExtras, Router, RouterLink } from '@angular/r
 import { OrdersService } from '../../../services/orders.service';
 import { ToastService } from '../../../services/toast.service';
 import { OrderAdvisorComponent } from "../order-advisor/order-advisor.component";
+import { StateService } from '../../../services/state.service';
 
 /*
 sohortening top/crown with slider:
@@ -153,9 +154,38 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
     private activatedRoute: ActivatedRoute,
     private router: Router,
     private ordersService: OrdersService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private stateService: StateService
   ) {
 
+    let nav = this.router.getCurrentNavigation();
+    if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {
+      let info = nav.extras.state['info']['textInfo'];
+      let isError = nav.extras.state['info']['isError'];
+      if(isError)
+      {
+        this.toastService.showError(info);
+      }
+      else
+      {
+        this.toastService.showSuccess(info);
+      }
+      
+    }
+    else
+    {
+      //alert("empty");
+      const state = this.stateService.getState();
+      if(state && state.message){
+        if(!state.isError) {
+          this.toastService.showSuccess(state.message);
+        }
+        else {
+          this.toastService.showError(state.message);
+        }
+      }
+      this.stateService.clearState();
+    }    
 
     this.globalsService.themeChanged.subscribe((theme: string) => {
       this.no_hat_img = `/assets/images/no-hat-picture-${theme}.png`;

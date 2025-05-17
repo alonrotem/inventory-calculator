@@ -15,6 +15,7 @@ import { ToastComponent } from '../../common/toast/toast.component';
 import { ToastService } from '../../../services/toast.service';
 import { CustomersService } from '../../../services/customers.service';
 import { SingleHatCalculatorComponent } from '../single-hat-calculator/single-hat-calculator.component';
+import { StateService } from '../../../services/state.service';
 
 @Component({
   selector: 'app-customers-table',
@@ -25,7 +26,7 @@ import { SingleHatCalculatorComponent } from '../single-hat-calculator/single-ha
 })
 export class CustomersTableComponent implements OnInit {
   
-  constructor(private customersService: CustomersService, private modalService: NgbModal, private router: Router) {
+  constructor(private customersService: CustomersService, private modalService: NgbModal, private router: Router, private stateService:StateService) {
     let nav = this.router.getCurrentNavigation();
     if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {
       let info = nav.extras.state['info']['textInfo'];
@@ -43,6 +44,16 @@ export class CustomersTableComponent implements OnInit {
     else
     {
       //alert("empty");
+      const state = this.stateService.getState();
+      if(state && state.message){
+        if(!state.isError) {
+          this.toastService.showSuccess(state.message);
+        }
+        else {
+          this.toastService.showError(state.message);
+        }
+      }
+      this.stateService.clearState();
     }
   }
   current_page = 1;
