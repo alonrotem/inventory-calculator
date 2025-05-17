@@ -77,15 +77,28 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    //console.log("ngOnChanges:");
-    //console.dir(changes);
+    console.log("ngOnChanges:");
+    console.dir(changes);
     this.allocation_wall_babies = this.customer_wall_babies.filter(b => b.customer_banks_babies_id == ((this.wall_allocation) ? this.wall_allocation.id : 0));
     this.allocation_crown_babies = this.customer_crown_babies.filter(b => b.customer_banks_babies_id == ((this.crown_allocation) ? this.crown_allocation.id : 0));
 
     this.runCalculations();
   }
 
+  updateBabies(new_wall_babies: Customer_Baby[], new_crown_babies: Customer_Baby[] ) {
+    this.customer_wall_babies = new_wall_babies;
+    this.customer_crown_babies = new_crown_babies;
+    this.allocation_wall_babies = this.customer_wall_babies.filter(b => b.customer_banks_babies_id == ((this.wall_allocation) ? this.wall_allocation.id : 0));
+    this.allocation_crown_babies = this.customer_crown_babies.filter(b => b.customer_banks_babies_id == ((this.crown_allocation) ? this.crown_allocation.id : 0));
+    console.log("advisor updated " + this.wall_allocation!.id);
+    console.dir(this.allocation_wall_babies);
+    this.runCalculations();
+  }
+
   runCalculations() {
+    console.log("runCalculations: ");
+    console.dir(this.wall_allocation)
+
     this.calculating = true;
     this.calculate().then((data: OrderAdvisorWingOverall) => {
       this.calculating = false;
@@ -435,7 +448,8 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     assistant_add_babies() {
-      
+      console.log("emitting: ");
+      console.dir(this.wall_allocation)
       this.assistantAutoAddBabies.emit({
         hat_alloc_id: ((this.wall_allocation) ? this.wall_allocation.id : 0),
         crown_alloc_id: ((this.crown_allocation) ? this.crown_allocation.id : 0),

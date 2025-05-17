@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnInit, Output, QueryList, SimpleChanges, ViewChild, ViewChildren } from '@angular/core';
 import { Baby, Customer, Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, HistoryReportRecord, TransactionRecord, TransactionType, Wing, ShortWingsInfo } from '../../../../types';
 import { RouterModule } from '@angular/router';
 import { DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
@@ -62,6 +62,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   @Output() bank_changed = new EventEmitter<void>();
   @Output() allocation_selected = new EventEmitter<Customer_Bank_Baby_Allocation>();
   @Output() afterViewInit = new EventEmitter<void>();
+  @Output() babies_updated = new EventEmitter<any>();
   @Input() show_hat_advisor: boolean = true;
   @Input() advisor_show_options_button: boolean = true;
   @ViewChild('delete_allocation_dialog') delete_allocation_dialog!: ConfirmationDialogComponent;
@@ -71,7 +72,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   @ViewChild('babies_picker') babies_picker!: BabyEditorDialogComponent;
   @ViewChild('history_dialog') history_dialog! : BankHistoryDialogComponent;
   @ViewChild('allocation_picker') allocation_picker! : AllocationPickerComponent;
-  @ViewChild('order_advisor') order_advisor! : OrderAdvisorComponent;
+  @ViewChildren('order_advisor') order_advisors!: QueryList<OrderAdvisorComponent>;
   faTriangleExclamation: IconDefinition = faTriangleExclamation;
   faPencil: IconDefinition = faPencil;
   faTrashCan: IconDefinition = faTrashCan;
@@ -364,7 +365,9 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     let babyIndex = this.babies.findIndex(b => b.id == baby_id);
     if(babyIndex >= 0)
     {
+      let allocation_id = this.babies[babyIndex].customer_banks_babies_id;
       this.babies.splice(babyIndex, 1);
+      this.update_advisor_babies(allocation_id);
     }
     this.bank_changed.emit();
     this.unsaved_changes = true;
@@ -407,9 +410,14 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
         quantity_in_pending_orders: 0
       });
     }
+
+    //---
+    this.update_advisor_babies(this.pendingBabyAppendAllocation);
+
     this.pendingBabyAppendAllocation = -999;
     this.pendingBabyAppendBaby = -999;
     this.unsaved_changes = true;
+
   }
 
   openHistoryDialog(){
@@ -440,60 +448,49 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     this.allocation_selected.emit(allocation);
   }
 
+  update_advisor_babies(allocation_id:number){
+    let origin_advisor = this.order_advisors.find((advisor: OrderAdvisorComponent) => {
+      return advisor.wall_allocation?.id == allocation_id;
+    });
+    if(origin_advisor) {
+      console.log("updating the advisor");
+      console.dir(this.babies);
+      origin_advisor.updateBabies(this.babies, this.babies);
+    }
+  }
+
   assistant_auto_add_babies(aggregatedBabies: any){
+    console.dir(aggregatedBabies);
     let changes_made = false;
-    let wall_babies = this.babies.filter(b => b.customer_banks_babies_id == aggregatedBabies.hat_alloc_id);
-    let crown_babies = this.babies.filter(b => b.customer_banks_babies_id == aggregatedBabies.crown_alloc_id);
     (aggregatedBabies.hat as aggregated_babies[]).forEach(baby_to_append => {
-      if(baby_to_append.remaining > 0){
-        let baby_with_same_length = wall_babies.find(baby_in_customer_bank => baby_in_customer_bank.length == baby_to_append.length);
-        if(baby_with_same_length) {
-          baby_with_same_length.quantity += baby_to_append.remaining;
+      if(baby_to_append.remaining > 0){  
+        let wall_baby_with_same_length = this.babies.find(
+          baby_in_customer_bank => 
+            baby_in_customer_bank.length == baby_to_append.length && baby_in_customer_bank.customer_banks_babies_id == aggregatedBabies.hat_alloc_id
+        );
+        if(wall_baby_with_same_length){
+          wall_baby_with_same_length.quantity += baby_to_append.remaining;
+          this.babies = this.babies.map(baby => baby.id == wall_baby_with_same_length.id? { ...baby, ...wall_baby_with_same_length}: baby)
         }
         else {
-          this.babies.push({
+          this.babies = [...this.babies, {
             id: 0,
             customer_banks_babies_id: aggregatedBabies.hat_alloc_id,
             length: baby_to_append.length,
             quantity: baby_to_append.remaining,
             quantity_in_pending_orders: 0
-          });
+          }];
         }
-        changes_made = true;
-      }
-    });
-    (aggregatedBabies.crown as aggregated_babies[]).forEach(baby_to_append => {
-      if(baby_to_append.remaining > 0){
-        let baby_with_same_length = crown_babies.find(baby_in_customer_bank => baby_in_customer_bank.length == baby_to_append.length);
-        if(baby_with_same_length) {
-          baby_with_same_length.quantity += baby_to_append.remaining;
-        }
-        else {
-          this.babies.push({
-            id: 0,
-            customer_banks_babies_id: aggregatedBabies.crown_alloc_id,
-            length: baby_to_append.length,
-            quantity: baby_to_append.remaining,
-            quantity_in_pending_orders: 0
-          });
-        }
+        this.customer = {...this.customer, babies: [...this.babies]};
         changes_made = true;
       }
     });
 
    if(changes_made) {
-      this.order_advisor.runCalculations();
+      this.update_advisor_babies(aggregatedBabies.hat_alloc_id);
       this.bank_changed.emit();
+      this.babies_updated.emit(this.babies);
       this.unsaved_changes = true;  
     }
   }
-
-  /*
-  getdata() {
-    this.wingsService.getAllNonCustomerWingsAndBabies().subscribe({
-      next: (data: WingCalculationItem[]) => {
-        alert(data);
-      }
-    });
-  }*/
 }

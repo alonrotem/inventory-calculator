@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, OnInit,QueryList,ViewChild, ViewChildren } from '@angular/core';
 import { NgFor, NgIf } from '@angular/common';
-import { Customer, TransactionType } from '../../../../types';
+import { Customer, Customer_Baby, TransactionType } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -210,7 +210,8 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
   saveCustomer()
   {
     this.btn_save.nativeElement.classList.add("disabled");
-
+    console.log("saving customer:");
+    console.dir(this.customerItem);
     this.customersService.saveCustomer(this.customerItem).subscribe(
     {
       next:(data) => { 
@@ -264,6 +265,11 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
       let allocated = this.customerItem.banks_baby_allocations.filter(alloc => alloc.customer_bank_id == bank.id).reduce((acc, cur) => acc + cur.quantity, 0);
       bank.remaining_quantity -= allocated;
     });
+  }
+
+  customer_bank_babies_updated(newBabies: Customer_Baby[]){
+    this.customerItem.babies = newBabies;
+    this.recalculateBanks();
   }
 
   openHatsCalculator() {
