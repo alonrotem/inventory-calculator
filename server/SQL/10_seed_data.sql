@@ -1,5 +1,5 @@
 use inventory;
-SET @delete_records=FALSE;
+SET @delete_records=TRUE;
 
 # CUSTOMERS
 # -----------
@@ -326,7 +326,6 @@ VALUES
 (1, 'Demo wing 1', 6.5, null),
 (2, 'RT70', 10, null),
 (3, 'RT85', 10, null),
-(4, 'RT85', 10, null),
 (5, 'תותח על', 10, null),
 (6, 'RT100 H', 11, null),
 (7, 'RT100', 11, null),
@@ -385,21 +384,6 @@ VALUES
 (66, 2, 'C1', 7),
 (67, 1, 'C1', 8),
 (68, 1, 'C2', 8),
-(69, 4, 'L1', 5.5),
-(70, 4, 'L2', 6),
-(71, 4, 'L3', 6.5),
-(72, 4, 'L4', 7),
-(73, 4, 'L5', 7.5),
-(74, 4, 'L6', 8),
-(75, 4, 'R1', 5.5),
-(76, 4, 'R2', 6),
-(77, 4, 'R3', 6.5),
-(78, 4, 'R4', 7),
-(79, 4, 'R5', 7.5),
-(80, 4, 'R6', 8),
-(81, 4, 'TOP', 8.5),
-(82, 4, 'C1', 10),
-(83, 4, 'C2', 10),
 (84, 3, 'L1', 5.5),
 (85, 3, 'L2', 6),
 (86, 3, 'L3', 6.5),
@@ -629,3 +613,5 @@ ON DUPLICATE KEY UPDATE
 PREPARE stmt FROM @sql;
 EXECUTE stmt; #USING @value1, @value2;
 DEALLOCATE PREPARE stmt;
+    
+
