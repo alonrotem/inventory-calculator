@@ -1,69 +1,82 @@
 const express = require('express');
 const router = express.Router();
 const wings = require('../services/wings');
+const { logger } =  require('../logger');
 
 router.get('/', async function(req, res, next) {
-    try {
-      res.json(await wings.getMultiple(req.query.page, req.query.perPage));
-    } catch (err) {
-      console.error(`Error while getting wings `, err.message);
-      next(err);
-    }
-  });
-/*
-  router.get('/positions', async function(req, res, next) {
-    try {
-      res.json(await wings.getWingBabyPositions());
-    } catch (err) {
-      console.error(`Error while getting wing positions `, err.message);
-      next(err);
-    }
-  });
-*/
+  logger.info(`get /wings/ page=${req.query.page}, perPage=${req.query.perPage}`);
+  try {
+    const response = await wings.getMultiple(req.query.page, req.query.perPage);
+    logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+    res.json(response);
+  } 
+  catch (err) {
+    logger.error(`Error getting wings: ${err.message}`);
+    next(err);
+  }
+});
+
   router.get('/names', async function(req, res, next) {
+    logger.info(`get /wings/names`);
     try {
-      res.json(await wings.getWingNames());
+      const response = await wings.getWingNames();
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);
     } 
     catch (err) {
-      console.error(`Error while getting wing names `, err.message);
+      logger.error(`Error getting wing names ${err.message}`);
       next(err);
     }
   });
 
   router.get('/allwingsandbabies/:wing_id', async function(req, res, next) {
+    logger.info(`get /wings/allwingsandbabies/${req.params.wing_id}`);
     try {
-      res.json(await wings.getAllNonCustomerWingsAndBabies(req.params.wing_id));
+      const response = await wings.getAllNonCustomerWingsAndBabies(req.params.wing_id);
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);
     } 
     catch (err) {
-      console.error(`Error while getting all wings & babies `, err.message);
+      logger.error(`Error getting all wings & babies for wing_id ${req.params.wing_id}: ${err.message}`);
       next(err);
     }    
   })
 
   router.get('/customer/:id', async function(req, res, next) {
+    logger.info(`get /wings/customer/${req.params.id}`);
     try {
-      res.json(await wings.getWingsForCustomer(req.params.id));
+      const response = await wings.getWingsForCustomer(req.params.id);
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);
     } 
     catch (err) {
-      console.error(`Error while getting wings per customer ${req.params.id} `, err.message);
+      logger.error(`Error getting wings for customer ${req.params.id}: ${err.message}`);
       next(err);
     }
   });
 
   router.get('/:id', async function(req, res, next) {
+    logger.info(`get /wings/${req.params.id}`);
     try {
-      res.json(await wings.getSingle(req.params.id));
-    } catch (err) {
-      console.error(`Error while getting wing with ID ${ req.params.id }`, err.message);
+      const response = await wings.getSingle(req.params.id);
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);
+    } 
+    catch (err) {
+      logger.error(`Error getting wing with ID ${ req.params.id }: ${err.message}`);
       next(err);
     }
   });
 
   router.get('/names/:name', async function(req, res, next) {
+    logger.info(`get /wings/names/${req.params.name}`);
     try {
-      res.json(await wings.getSingleWingByName(req.params.name));
-    } catch (err) {
-      console.error(`Error while getting wing with name ${ req.params.name }`, err.message);
+      const response = await wings.getSingleWingByName(req.params.name);
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);
+    } 
+    catch (err) {
+      logger.error(`Error getting wing with name ${ req.params.name }: ${err.message}`);
       next(err);
     }
   });
@@ -78,19 +91,28 @@ router.get('/', async function(req, res, next) {
   });
 */
   router.put('/', async function(req, res, next) {
+    logger.info(`put /wings/`);
     try {
-      res.json(await wings.save(req.body));
-    } catch (err) {
-      console.error(`Error while updating ging `, err.message);
+      logger.debug(`Body: ${ JSON.stringify(req.body) }`)
+      const response = await wings.save(req.body);
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);
+    } 
+    catch (err) {
+      console.error(`Error saving wing: ${err.message}`);
       next(err);
     }
   });
 
   router.delete('/:id', async function(req, res, next) {
+    logger.info(`delete /wings/${req.params.id}`);
     try {
-      res.json(await wings.remove(req.params.id));
-    } catch (err) {
-      console.error(`Error while deleting wing `, err.message);
+      const response = await wings.remove(req.params.id);
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);
+    } 
+    catch (err) {
+      consolelogger.error(`Error deleting wing ${err.message}`);
       next(err);
     }
   });

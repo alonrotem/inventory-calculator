@@ -8,6 +8,7 @@ const multer = require('multer');
 const config = require('../config');
 const path = require('path');
 const fs = require("fs");
+const { logger } =  require('../logger');
 
 // Set up multer for file upload (store in memory or disk)
 const storage = multer.memoryStorage(); // Store file in memory buffer
@@ -15,6 +16,8 @@ const upload = multer({ storage: storage });
 
 router.get('/zip', async function(req, res, next) {
   try {
+    logger.info(`get /backup/zip/filename=${filename}&keep_existing_records=${req.query.keep_existing_records}`);
+
     let backup_file_name = (req.query.filename)? req.query.filename : helper.dateStr(new Date()) + "-db-backup.zip";
     if(!backup_file_name.endsWith(".zip")){
       backup_file_name += ".zip";
@@ -38,7 +41,7 @@ router.get('/zip', async function(req, res, next) {
         zip.file(pathInZip, fileData); // Add to ZIP
       } 
       catch (err) {
-        console.error(`Error reading ${file}:`, err);
+        logger.error(`Error reading ${file}: ${err}`);
       }
     });
     const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
@@ -50,15 +53,15 @@ router.get('/zip', async function(req, res, next) {
     res.end(); 
   } 
   catch (err) {
-    console.error(`creating backup `, err.message);
+    logger.error(`Error creating zipped backup ${err.message}`);
     next(err);
   }
 });
 
 
 router.post('/', upload.single('file'), async (req, res) => {
-  
-  
+  logger.info(`post /backup/`);
+
   try {
     const parsedData = JSON.parse(req.body.data);
     const confirm_delete_records = parsedData.conf_del_all;  
@@ -69,21 +72,14 @@ router.post('/', upload.single('file'), async (req, res) => {
     // Check if the uploaded file is a ZIP file
     const fileType = req.file.mimetype; // Get the MIME type of the uploaded file
     if (fileType !== 'application/zip' && fileType !== 'application/x-zip-compressed') {
+      logger.error("No zip backup file sent");
       return res.status(400).json({ message: 'Expecting a backup zip file' });
     }
     //--------------
     try {
       const zip = await JSZip.loadAsync(req.file.buffer); // Load ZIP buffer
       let textFileContent = ""; // To store text file content
-      /*
-      const outputFolder = config.hatsUploadDir; // Folder for binary files
-  
-      // Ensure the output folder exists
-      if (!fs.existsSync(outputFolder)) {
-        fs.mkdirSync(outputFolder, { recursive: true });
-      }
-        */
-  
+
       // Extract files
       for (const filename of Object.keys(zip.files)) {
         const file = zip.files[filename];
@@ -117,44 +113,14 @@ router.post('/', upload.single('file'), async (req, res) => {
         message: "Backup restored succesfully!",
         textContent: textFileContent, // Send text content in response if needed
       });
-    } catch (error) {
-      console.error("Error restoring backup:", error);
+    } 
+    catch (error) {
+      logger.error(`Error restoring backup: ${error}`);
       res.status(500).json({ error: "Error restoring backup!" });
     }
-    //--------------
-    return;
-
-    let backup_file_content = "";
-
-    // Check if the uploaded file is a ZIP file
-    //const fileType = req.file.mimetype; // Get the MIME type of the uploaded file
-    if (fileType === 'application/zip' || fileType === 'application/x-zip-compressed') {
-      //console.log('Processing ZIP file...');
-
-      // Extract the ZIP file content
-      const zip = new JSZip(req.file.buffer, { base64: false, checkCRC32: true });
-
-      // Iterate through the files in the ZIP archive
-      for (const fileName in zip.files) {
-        if (Object.prototype.hasOwnProperty.call(zip.files, fileName)) {
-          const file = zip.files[fileName];
-          backup_file_content = file.asText(); // Get file content as text
-        }
-      }
-    }
-    else {
-      // Read the file content (text file)
-      backup_file_content = req.file.buffer.toString('utf-8'); // Convert buffer to string
-    }
-
-    if(backup_file_content) {
-      //await backup.restore_backup(backup_file_content, confirm_delete_records);
-    }
-
-    res.status(200).json({ message: 'Backup restored successfully' });
   } 
   catch (error) {
-    console.error('Error processing file:', error);
+    logger.error(`Error processing file: ${error}`);
     res.status(500).json({ message: 'Error processing file' });
   }
 });

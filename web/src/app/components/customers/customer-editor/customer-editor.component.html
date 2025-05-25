@@ -100,7 +100,7 @@
 
 <div class="row" style="margin: 20px 0px;">
     <div class="col" style="display: flex; flex-direction: column; flex-wrap: nowrap; justify-content: center; align-items: center;">
-        <button class="btn btn-success btn-hats-calculator" (click)="openHatsCalculator()">
+        <button class="btn btn-success btn-hats-calculator" (click)="openHatsCalculator()" [disabled]="customerItem.banks.length == 0">
             <span class='icon-calculator1'></span>
             <div>Calculate &amp; order</div>
         </button>

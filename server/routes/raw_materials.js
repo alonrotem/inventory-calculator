@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const raw_materials = require('../services/raw_materials');
+const { logger } =  require('../logger');
 
 /* GET raw materials */
 /* curl -i -X GET \
@@ -9,10 +10,14 @@ const raw_materials = require('../services/raw_materials');
         http://localhost:3000/raw_materials/
 */
 router.get('/', async function(req, res, next) {
+  logger.info(`get /raw_materials/ page=${req.query.page}, perPage=${req.query.perPage}`);
   try {
-    res.json(await raw_materials.getMultiple(req.query.page, req.query.perPage));
-  } catch (err) {
-    console.error(`Error while getting raw materials `, err.message);
+    const response = await raw_materials.getMultiple(req.query.page, req.query.perPage);
+    logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+    res.json(response);
+  } 
+  catch (err) {
+    logger.error(`Error getting raw materials ${err.message}`);
     next(err);
   }
 });
@@ -25,49 +30,43 @@ curl -i -X GET \
         http://localhost:3000/raw_materials/10
 */
 router.get('/single/:id', async function(req, res, next) {
+    logger.info(`get /raw_materials/single/${req.params.id}`);
     try {
-      res.json(await raw_materials.getSingle(req.params.id));
-    } catch (err) {
-      console.error(`Error while getting raw material with ID ${ req.params.id }`, err.message);
+      const response = await raw_materials.getSingle(req.params.id);
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);
+    } 
+    catch (err) {
+      logger.error(`Error getting raw material with ID ${ req.params.id }: ${err.message}`);
       next(err);
     }
   });
 
   router.get('/names/:customer_id', async function(req, res, next) {
+    logger.info(`get /raw_materials/names/${req.params.id}`);
     try {
-      res.json(await raw_materials.getNames(req.params.customer_id));
-    } catch (err) {
-      console.error(`Error while getting raw material names `, err.message);
+      const response = await raw_materials.getNames(req.params.customer_id);
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);
+    } 
+    catch (err) {
+      logger.error(`Error getting raw material names for customer ID ${req.params.id}:  ${err.message}`, );
       next(err);
     }
   });
 
   router.get('/quantity_units', async function(req, res, next) {
+    logger.info(`get /raw_materials/quantity_units`);
     try {
-      res.json(await raw_materials.getQuantityUnitTypes());
-    } catch (err) {
-      console.error(`Error while getting quantity units `, err.message);
+      const response = await raw_materials.getQuantityUnitTypes();
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);
+    } 
+    catch (err) {
+      logger.error(`Error getting quantity units: ${err.message}`);
       next(err);
     }
   });
-
-/* POST: create raw material */
-/*
-curl -i -X POST \
-    -H 'Accept: application/json' \
-    -H 'Content-type: application/json' \
-    --data "{  \"name\":\"Test's material\",  \"purchased_at\": \"2024-05-01\", \"weight\": 100, \"created_by\": 2 }" \
-        http://localhost:3000/raw_materials/
-
-router.post('/', async function(req, res, next) {
-    try {
-      res.json(await raw_materials.save_material(req.body));
-    } catch (err) {
-      console.error(`Error while creating raw material`, err.message);
-      next(err);
-    }
-  });
-  */
 
   // PUT -> save (create/update) raw material
   /*
@@ -79,10 +78,15 @@ router.post('/', async function(req, res, next) {
         http://localhost:3000/raw_materials/12
   */
   router.put('/', async function(req, res, next) {
+    logger.info(`pug /raw_materials`);
     try {
-      res.json(await raw_materials.save_material(req.body));
-    } catch (err) {
-      console.error(`Error while saving raw material`, err.message);
+      logger.debug(`Body: ${ JSON.stringify(req.body) }`)
+      const response = await raw_materials.save_material(req.body);
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);
+    } 
+    catch (err) {
+      logger.error(`Error saving raw material: ${err.message}`);
       next(err);
     }
   });
@@ -95,12 +99,16 @@ curl -i -X DELETE \
         http://localhost:3000/raw_materials/10
 */
 router.delete('/:id', async function(req, res, next) {
-    try {
-      res.json(await raw_materials.remove(req.params.id));
-    } catch (err) {
-      console.error(`Error while deleting raw material`, err.message);
-      next(err);
-    }
-  });
+  logger.info(`delete /raw_materials/${req.params.id}`);
+  try {
+    const response = await raw_materials.remove(req.params.id);
+    logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+    res.json(response);
+  } 
+  catch (err) {
+    logger.error(`Error deleting raw material: ${err.message}`);
+    next(err);
+  }
+});
 
 module.exports = router;

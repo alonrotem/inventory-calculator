@@ -1,0 +1,70 @@
+.log-preview {
+    font-family: 'Courier New', monospace;
+    background-color: white;
+    color: black;
+    font-size: 14px;
+    flex-grow: 1;
+}
+
+ .log-preview .preview-content {
+    height: 100%;
+    margin-top: 36px;
+ }
+ 
+.log-preview .centered {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+ }
+
+.preview_bar {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    margin-bottom: 10px;
+
+    position: fixed;
+    left: 16px;
+    right: 33px;
+    background: var(--bs-modal-bg);
+    padding: 10px 5px;
+    top: 67px;    
+}
+/*
+@media only screen and (min-width: 1003px) {
+.preview_bar {
+    top: 68.5px;
+  }
+}
+*/
+
+.preview_bar button {
+    width: 15px;
+    height: 25px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 14px;
+    margin-left: 10px;
+}
+
+.preview_bar .loading_preview {
+    margin-left: 10px;
+}
+
+::ng-deep .log-preview .timestamp {
+    color: blueviolety;
+}
+
+::ng-deep .log-preview { word-wrap: break-word; }
+::ng-deep .log-preview .level_ERROR    { color: #E53935; }  /* vivid red */
+::ng-deep .log-preview .level_WARN      { color: #FB8C00; }  /* bright orange */
+::ng-deep .log-preview .level_INFO     { color: #1E88E5; }  /* royal blue */
+::ng-deep .log-preview .level_HTTP     { color: #00ACC1; }  /* cyan */
+::ng-deep .log-preview .level_VERBOSE  { color: #5E35B1; }  /* indigo */
+::ng-deep .log-preview .level_DEBUG    { color: #424242; }  /* dark gray */
+::ng-deep .log-preview .level_SILLY    { color: #90A4AE; }  /* soft gray-blue */

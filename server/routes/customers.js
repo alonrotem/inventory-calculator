@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const customers = require('../services/customers');
+const { logger } =  require('../logger');
 
 /* GET customers */
 /* curl -i -X GET \
@@ -10,9 +11,13 @@ const customers = require('../services/customers');
 */
 router.get('/', async function(req, res, next) {
   try {
-      res.json(await customers.getMultiple(req.query.page, req.query.perPage));
-  } catch (err) {
-    console.error(`Error while getting customers `, err.message);
+    logger.info(`get /customers/ page=${req.query.page}, perPage=${req.query.perPage}`);
+    let response = await customers.getMultiple(req.query.page, req.query.perPage);
+    logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+    res.json(response);
+  } 
+  catch (err) {
+    logger.error(`Error getting all customers: ${err.message}`);
     next(err);
   }
 });
@@ -26,18 +31,25 @@ curl -i -X GET \
 */
 router.get('/single/:id', async function(req, res, next) {
     try {
-      res.json(await customers.getSingle(req.params.id));
+      logger.info(`get /customers/single/${req.params.id}`);
+
+      let response = await customers.getSingle(req.params.id);
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);
     } catch (err) {
-      console.error(`Error while getting customer with ID ${ req.params.id }`, err.message);
+      logger.error(`Error getting customer with ID ${ req.params.id }`, err.message);
       next(err);
     }
   });
 
   router.get('/names', async function(req, res, next) {
     try {
-      res.json(await customers.getNames());
+      logger.info(`get /customers/names/`);
+      let response = await customers.getNames();
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);
     } catch (err) {
-      console.error(`Error while getting customers names `, err.message);
+      logger.error(`Error getting customers names: ${err.message}`);
       next(err);
     }
   });
@@ -70,9 +82,14 @@ router.post('/', async function(req, res, next) {
   */
   router.put('/', async function(req, res, next) {
     try {
-      res.json(await customers.save(req.body));
+      logger.info(`put /customers/`);
+      logger.debug(JSON.stringify(req.body));
+
+      let response = await customers.save(req.body);
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);     
     } catch (err) {
-      console.error(`Error while updating customer `, err.message);
+      logger.error(`Error updating customer ${ err.message }`);
       next(err);
     }
   });
@@ -86,9 +103,12 @@ curl -i -X DELETE \
 */
 router.delete('/:id', async function(req, res, next) {
     try {
-      res.json(await customers.remove(req.params.id));
+      logger.info(`delete /customers/${id}`);
+      let response = await customers.remove(req.params.id);
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);
     } catch (err) {
-      console.error(`Error while deleting customer `, err.message);
+      console.error(`Error deleting customer ${err.message}`);
       next(err);
     }
   });

@@ -149,7 +149,7 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
 
   ngOnInit(): void {
     this.is_new_customer = !this.activatedRoute.snapshot.queryParamMap.has('id');
-    console.dir(this.activatedRoute.snapshot.queryParamMap);
+    //console.dir(this.activatedRoute.snapshot.queryParamMap);
     if(!this.is_new_customer)
     {
       this.title = "Edit Customer";
@@ -265,7 +265,12 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
       next:(data) => { 
         this.customer_banks_tables.forEach(b => { b.unsaved_changes = false });
         this.btn_save.nativeElement.classList.remove("disabled"); this.gotoCustomersList(data['message'], false); },//this.getRawMaterials(this.current_page); },
-      error:(error) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoCustomersList(error, true); }
+      error:(error) => { 
+        console.log("ERRRR:"); console.dir(error.error.message);
+        this.btn_save.nativeElement.classList.remove("disabled"); 
+        this.toastService.showError("Server error saving customer");
+        //this.gotoCustomersList(error, true); 
+      }
     });
   }
 

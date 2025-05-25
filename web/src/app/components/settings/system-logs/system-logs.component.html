@@ -1,0 +1,82 @@
+<app-confirmation-dialog #confirm_delete_logs
+  modalTitle="Clear system logs"
+  modalText="Are you sure you want to delete all the system logs?"
+  [btnYesIcon]=faTrash
+  btnYesText="Clear 'em!"
+  btnYesClass="btn-danger"
+  btnNoText="Cancel"
+/>
+<app-modal-dialog 
+    #log_preview
+    [btnSaveClass]="'d-none'"
+    [btnCancelText]="'close'"
+    [modalSize]="'modal-fullscreen'"
+    [fullscreen]="true"
+    [modalTitle]="preview_filename"
+    [modalBodyClass]="'d-flex flex-column'">
+    <div class="preview_bar">
+      <div><strong>File size:</strong> {{ preview_filesize | filesize}}.</div>
+      <div>
+        <button class="btn btn-secondary" (click)="load_preview(preview_filename, preview_filesize)"><fa-icon [icon]="faArrowsRotate"></fa-icon></button>
+      </div>
+      <div *ngIf="preview_loading" class="loading_preview text-info">* Loading...</div>
+    </div>
+    <div class="log-preview">
+      <div *ngIf="log_content.length > 0" class="preview-content">
+        <div *ngFor="let line of log_content" [innerHTML]="line"></div>
+      </div>
+      <div *ngIf="log_content.length == 0"  class="preview-content centered">
+        <div><fa-icon [icon]="faTriangleExclamation" size="2x"></fa-icon></div>
+        <div>Log file is empty</div>
+      </div>
+    </div>
+</app-modal-dialog>
+
+<div class="row justify-content-center"><div class="col-12">
+    <div style="display: flex; flex-direction: row; align-items: center; margin-bottom: 10px;">
+      <h1><span class="icon-folder-open"></span> System log files </h1>
+      <button class="btn btn-secondary" style="margin-left: 10px;" (click)="loadLogFilesList()"><fa-icon [icon]="faArrowsRotate"></fa-icon></button>
+    </div>
+    <div id="loading_icon" [hidden]="!loading">
+      <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <div><fa-icon [icon]="faArrowsRotate" [spin]="true" size="3x"></fa-icon></div>
+        <div id="loading_message">Loading log files...</div>
+      </div>
+    </div>
+    
+    <div [hidden]="loading">
+      
+      <a class="btn btn-warning" (click)="downloadallLogs()"><span class="icon-cloud-download"></span> Fetch all logs</a>
+      <a class="btn btn-danger" (click)="deleteAllLogs()" style="margin-left: 20px;"><span class="icon-bin"></span> Clear logs</a>
+      <div [hidden]="loading || this.logFiles.length == 0">
+    <table class="table table-responsive table-striped table-hover">
+        <thead>
+          <tr>
+            <th scope="col">File</th>
+            <th scope="col">Size</th>
+            <th scope="col" class="text-center">Last modified</th>
+            <th></th>
+            <th></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr 
+            *ngFor="let log of this.logFiles" role="button">
+            <td>{{ log.filename }}</td>
+            <td>{{ log.size | filesize}}</td>
+            <td class="text-center">{{ log.date  | dateStr }}</td>
+            <td (click)="viewLogFile(log.filename, log.size)"><span class="icon-eye"></span></td>
+            <td (click)="downloadLogFile(log.filename)"><span class="icon-save"></span></td>
+            <td (click)="clearLogFile(log.filename)"><span class="icon-bin"></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+      <div [hidden]="loading || this.logFiles.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
+        Log files found on the server.<br/>
+      </div>
+    </div>
+    
+    </div>

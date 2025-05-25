@@ -23,8 +23,15 @@ export interface TransactionRecord {
     cur_banks_babies_allocation_quantity: number;
 }
 */
-async function create_history_record(history){
-    const result = await db.query(
+async function create_history_record(history, active_connection=null){
+  //check if there is an active connection called from another function, or this call is a standalone
+  let self_executing = false;
+  if(!active_connection) {
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
+  }
+  try {    
+    const result = await db.transaction_query(
         `INSERT INTO transaction_history 
         (id, date, added_by, transaction_quantity, transaction_type, raw_material_id, customer_id, customer_bank_id, customer_banks_babies_id, cur_raw_material_quantity, cur_customer_bank_quantity, cur_banks_babies_allocation_quantity)
         VALUES 
@@ -54,15 +61,31 @@ async function create_history_record(history){
             history.cur_raw_material_quantity, 
             history.cur_customer_bank_quantity, 
             history.cur_banks_babies_allocation_quantity
-        ]
+        ],
+        active_connection
     );
-    let message = 'Error adding history record';
+    //let message = 'Error adding history record';
 
     let action_taken = (history.id <= 0)? "created" : "updated";
     if (result.affectedRows) {
         message = 'History record \'' + history.transaction_type + '\' ' + action_taken + ' successfully';
     }
+    if(self_executing) {
+      await db.transaction_commit(active_connection);
+    }    
     return {message};
+}
+  catch(error){
+    if(self_executing) {
+      await db.transaction_rollback(active_connection);
+    }
+    throw(error);
+  }
+  finally {
+    if(self_executing) {
+        await db.transaction_release(active_connection);
+    }
+  }
 }
 
 async function get_enum_values(table, column){

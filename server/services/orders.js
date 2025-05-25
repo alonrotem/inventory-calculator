@@ -6,8 +6,17 @@ const path = require('path');
 const fs = require('fs');
 const wings = require('./wings');
 const customers = require('./customers');
+const { logger } = require("../logger");
 
-async function create(orderData){
+async function create(orderData, active_connection=null){
+  //check if there is an active connection called from another function, or this call is a standalone
+  let self_executing = false;
+  if(!active_connection) {
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
+  }
+  try {
+     
 
     let wing_id = -1;
     let hat_id = -1;
@@ -15,7 +24,7 @@ async function create(orderData){
 
     // save the wing specs & babies
     if(orderData.customer_hat.wing) {
-        let wing_info =  await wings.save(orderData.customer_hat.wing);
+        let wing_info =  await wings.save(orderData.customer_hat.wing, active_connection);
         wing_id = wing_info.wing_id;
 
         //reduce the material from the customer's banks
@@ -24,13 +33,14 @@ async function create(orderData){
             wing_id,
             orderData.customer_hat.wing_quantity,
             orderData.customer_hat.wall_allocation_id,
-            orderData.customer_hat.crown_allocation_id
+            orderData.customer_hat.crown_allocation_id,
+            active_connection
         );
     }
 
     // save the hat specs
     if(orderData.customer_hat){
-        const hat_save = await db.query(
+        const hat_save = await db.transaction_query(
             `INSERT INTO customer_hats (
                 id, hat_material, crown_material, wing_id, wing_quantity,
                 customer_id, shorten_top_by, shorten_crown_by, wall_allocation_id,
@@ -54,12 +64,13 @@ async function create(orderData){
                 wing_id, orderData.customer_hat.wing_quantity, orderData.customer_hat.customer_id,
                 orderData.customer_hat.shorten_top_by, orderData.customer_hat.shorten_crown_by,
                 orderData.customer_hat.wall_allocation_id, orderData.customer_hat.crown_allocation_id
-            ]
+            ],
+            active_connection
         );
         hat_id = (orderData.customer_hat.id == 0)? hat_save.insertId : orderData.customer_hat.id;
 
         // save the order
-        const order_save = await db.query(
+        const order_save = await db.transaction_query(
             `INSERT INTO orders (
                 id, customer_hat_id, num_of_hats
             )
@@ -71,12 +82,13 @@ async function create(orderData){
                 num_of_hats=new_orders.num_of_hats`,
             [ 
                 orderData.id, hat_id, orderData.num_of_hats
-            ]
+            ],
+            active_connection
         );
         order_id = (orderData.id == 0)? order_save.insertId : orderData.id;
 
         // save the new order status
-        const order_status_save = await db.query(
+        const order_status_save = await db.transaction_query(
             `INSERT INTO orders_status (
                 id, order_id, date, order_status
             )
@@ -92,12 +104,29 @@ async function create(orderData){
                 order_id, 
                 helper.nowDateStr(),
                 orderData.status.order_status
-            ]
+            ],
+            active_connection
         );
 
         message = 'Order placed successfully successfully.';
+        if(self_executing) {
+        await db.transaction_commit(active_connection);
+        }        
         return {message};
     }
+  }
+  catch(error){
+    logger.error(error.message);
+    if(self_executing) {
+      await db.transaction_rollback(active_connection);
+    }
+    throw(error);
+  }
+  finally {
+    if(self_executing) {
+      await db.transaction_release(active_connection);
+    }
+  }  
 }
 
 async function get_orders_list(page = 1, perPage, customer_id){

@@ -47,15 +47,17 @@ export class HatsCalculatorService {
     if(wing){
       wing.babies.forEach((wingBaby: WingBaby) => {
         let appended = false;
-        if(wingBaby.position.startsWith("C")){
-          //keep crown babies separate
-          if(crown_allocation?.id != wall_alocation?.id) {
-            hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.crown_babies, wingBaby, crown_allocation_babies, wing_quantity_in_hat, hats.total_num_of_possible_hats);
-            appended = true;
-          }
-          else {
-            hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.hat_babies, wingBaby, wall_alocation_babies, wing_quantity_in_hat, hats.total_num_of_possible_hats);
-            appended = true;
+        if(wingBaby && wingBaby.position) {
+          if(wingBaby.position.startsWith("C")){
+            //keep crown babies separate
+            if(crown_allocation?.id != wall_alocation?.id) {
+              hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.crown_babies, wingBaby, crown_allocation_babies, wing_quantity_in_hat, hats.total_num_of_possible_hats);
+              appended = true;
+            }
+            else {
+              hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.hat_babies, wingBaby, wall_alocation_babies, wing_quantity_in_hat, hats.total_num_of_possible_hats);
+              appended = true;
+            }
           }
         }
         if(!appended) {
@@ -98,7 +100,7 @@ export class HatsCalculatorService {
       let modified_wing = (JSON.parse(JSON.stringify(wing)));
       //shorten top
       if(reduce_top_by > 0){
-        let top: WingBaby = modified_wing.babies.find((b: WingBaby) => b.position.toUpperCase() == "TOP");
+        let top: WingBaby = modified_wing.babies.find((b: WingBaby) => b && b.position && b.position.toUpperCase() == "TOP");
         if(top){
           top.length = top.length - reduce_top_by;
         }
@@ -112,7 +114,7 @@ export class HatsCalculatorService {
 
       //shorten crown
       if(reduce_crown_by > 0){
-        let crowns = modified_wing.babies.filter((b: WingBaby) => b.position.toUpperCase().startsWith("C"));
+        let crowns = modified_wing.babies.filter((b: WingBaby) => b && b.position && b.position.toUpperCase().startsWith("C"));
         if(crowns){
           crowns.forEach((crown_baby: WingBaby) => {
             crown_baby.length = crowns[0].length - reduce_crown_by;
@@ -133,7 +135,7 @@ export class HatsCalculatorService {
     if(!wing){
       return null;
     }
-    return wing?.babies.filter(b => b.position.toUpperCase().startsWith(base_pos)).sort((x,y) => {
+    return wing?.babies.filter(b => b && b.position && b.position.toUpperCase().startsWith(base_pos)).sort((x,y) => {
       let rx=/[^0-9]*([0-9]*)/;
       let x_num = parseInt(rx.exec(x.position)![1]);
       let y_num = parseInt(rx.exec(y.position)![1]);

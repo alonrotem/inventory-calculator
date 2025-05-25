@@ -100,66 +100,63 @@ async function getQuantityUnitTypes() {
 }
 
 //create or update
-async function save_material(rawMaterial){
-  const isNew = rawMaterial.id <= 0;
-  /*
-  if(isNew){
-    transaction_history.create_history_record({
-      raw_material_id: 0,
-      customer_id: 0,
-      customer_bank_id: 0,
-      customer_banks_babies_id: 0,
-      quantity: 0,
-      transaction_type:'',
-      added_by: 0
-    });
-  }*/
-  const result = await db.query(
-    `INSERT INTO raw_materials 
-    (id, name, purchased_at, purchase_quantity, remaining_quantity, 
-	    quantity_units, units_per_kg, vendor_name, origin_country, price, 
-      currency, notes, created_at, updated_at, created_by, updated_by) 
-    VALUES 
-    ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?))
-    as new_raw_materials
-    ON DUPLICATE KEY UPDATE
-    name=new_raw_materials.name, purchase_quantity=new_raw_materials.purchase_quantity, remaining_quantity=new_raw_materials.remaining_quantity,
-    quantity_units=new_raw_materials.quantity_units, units_per_kg=new_raw_materials.units_per_kg, vendor_name=new_raw_materials.vendor_name, 
-    origin_country=new_raw_materials.origin_country, price=new_raw_materials.price, currency=new_raw_materials.currency, created_by=new_raw_materials.created_by, updated_by=new_raw_materials.updated_by`,
-    [
-      rawMaterial.id, 
-      rawMaterial.name, 
-      helper.formatDate(rawMaterial.purchased_at), 
-      rawMaterial.purchase_quantity, 
-      rawMaterial.remaining_quantity, 
-	    rawMaterial.quantity_units, 
-      rawMaterial.units_per_kg, 
-      rawMaterial.vendor_name, 
-      rawMaterial.origin_country, 
-      rawMaterial.price, 
-      rawMaterial.currency, 
-      rawMaterial.notes, 
-      (isNew)? helper.nowDateStr(): helper.formatDate(rawMaterial.created_at), 
-      helper.nowDateStr(), 
-      rawMaterial.created_by, 
-      rawMaterial.updated_by
-    ]
+async function save_material(rawMaterial, active_connection=null){
+  //check if there is an active connection called from another function, or this call is a standalone
+  let self_executing = false;
+  if(!active_connection) {
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
+  }
+  try {  
+    const isNew = rawMaterial.id <= 0;
+
+    const result = await db.transaction_query(
+      `INSERT INTO raw_materials 
+      (id, name, purchased_at, purchase_quantity, remaining_quantity, 
+        quantity_units, units_per_kg, vendor_name, origin_country, price, 
+        currency, notes, created_at, updated_at, created_by, updated_by) 
+      VALUES 
+      ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?))
+      as new_raw_materials
+      ON DUPLICATE KEY UPDATE
+      name=new_raw_materials.name, purchase_quantity=new_raw_materials.purchase_quantity, remaining_quantity=new_raw_materials.remaining_quantity,
+      quantity_units=new_raw_materials.quantity_units, units_per_kg=new_raw_materials.units_per_kg, vendor_name=new_raw_materials.vendor_name, 
+      origin_country=new_raw_materials.origin_country, price=new_raw_materials.price, currency=new_raw_materials.currency, created_by=new_raw_materials.created_by, updated_by=new_raw_materials.updated_by`,
+      [
+        rawMaterial.id, 
+        rawMaterial.name, 
+        helper.formatDate(rawMaterial.purchased_at), 
+        rawMaterial.purchase_quantity, 
+        rawMaterial.remaining_quantity, 
+        rawMaterial.quantity_units, 
+        rawMaterial.units_per_kg, 
+        rawMaterial.vendor_name, 
+        rawMaterial.origin_country, 
+        rawMaterial.price, 
+        rawMaterial.currency, 
+        rawMaterial.notes, 
+        (isNew)? helper.nowDateStr(): helper.formatDate(rawMaterial.created_at), 
+        helper.nowDateStr(), 
+        rawMaterial.created_by, 
+        rawMaterial.updated_by
+      ],
+      active_connection
   );
 
   let id = (isNew)? result.insertId : rawMaterial.id;
   if(rawMaterial.transaction_record) {
     rawMaterial.transaction_record.raw_material_id = id;
-    await transaction_history.create_history_record(rawMaterial.transaction_record);
+    await transaction_history.create_history_record(rawMaterial.transaction_record, active_connection);
   }
   if(rawMaterial.deleted_bank_records) {
     for(let r = 0; r < rawMaterial.deleted_bank_records.length; r++){
       rawMaterial.deleted_bank_records[r].raw_material_id = id;
       //console.dir(rawMaterial.deleted_bank_records[r]);
-      await transaction_history.create_history_record(rawMaterial.deleted_bank_records[r]);
+      await transaction_history.create_history_record(rawMaterial.deleted_bank_records[r], active_connection);
     }
   }
 
-  let message = 'Error creating raw material';
+  //let message = 'Error creating raw material';
   //console.log("New material ID: " + result.insertId + " ("+ rawMaterial.name +")");
   let action_taken = (isNew)? "created" : "updated";
   if (result.affectedRows) {
@@ -168,121 +165,62 @@ async function save_material(rawMaterial){
 
   if(rawMaterial.customer_banks) {
       
-      let additional_message = await customers.sync_banks_for_raw_material(rawMaterial.customer_banks, id);
+      let additional_message = await customers.sync_banks_for_raw_material(rawMaterial.customer_banks, id, active_connection);
       message += additional_message.message;
-      //await babies.sync_babies_for_raw_material(rawMaterial.babies, id);
     }
-  /*
-  if(rawMaterial.babies)
-  {
-    await babies.sync_babies_for_raw_material(rawMaterial.babies, result.insertId);
-  }
-    */
-  //console.log(message);
-  return {message};
-}
-/*
-async function create(rawMaterial){
-  return await save_material(rawMaterial);
-  const result = await db.query(
-    `INSERT INTO raw_materials 
-    (name, purchased_at, weight, units, units_per_kg, vendor_name, origin_country,
-      price, currency, notes, created_at, updated_at, created_by, updated_by) 
-    VALUES 
-    ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?))`,
-    [
-      rawMaterial.name, 
-      helper.formatDate(rawMaterial.purchased_at), 
-      rawMaterial.weight, 
-      rawMaterial.units,
-      rawMaterial.units_per_kg,
-      rawMaterial.vendor_name,
-      rawMaterial.origin_country,
-      rawMaterial.price,
-      rawMaterial.currency,
-      rawMaterial.notes,
-      helper.nowDateStr(),
-      helper.nowDateStr(),
-      rawMaterial.created_by, 
-      rawMaterial.updated_by
-      ]
-  );
-
-  let message = 'Error creating raw material';
-  //console.log("New material ID: " + result.insertId + " ("+ rawMaterial.name +")");
-
-  if (result.affectedRows) {
-    message = 'Raw material \'' + rawMaterial.name + '\' created successfully';
-  }
-
-  if(rawMaterial.customer_banks)
-    {
-      let additional_message = await customers.sync_banks_for_raw_material(rawMaterial.customer_banks, id);
-      message += additional_message.message;
-      //await babies.sync_babies_for_raw_material(rawMaterial.babies, id);
-    }
-  /*
-  if(rawMaterial.babies)
-  {
-    await babies.sync_babies_for_raw_material(rawMaterial.babies, result.insertId);
-  }
-    *//*
-  //console.log(message);
-  return {message};
-}*/
-/*
-async function update(rawMaterial){
-  return await save_material(rawMaterial);
-    const result = await db.query(
-      `UPDATE raw_materials 
-      SET name=(?), purchased_at=(?), weight=(?), units=(?), units_per_kg=(?), vendor_name=(?), origin_country=(?),
-        price=(?), currency=(?), notes=(?), updated_at=(?), updated_by=(?)
-      WHERE id=${id}`,
-      [
-        rawMaterial.name, 
-        helper.formatDate(rawMaterial.purchased_at),
-        rawMaterial.weight, 
-        rawMaterial.units,
-        rawMaterial.units_per_kg,
-        rawMaterial.vendor_name,
-        rawMaterial.origin_country,
-        rawMaterial.price,
-        rawMaterial.currency,
-        rawMaterial.notes,
-        helper.nowDateStr(),
-        rawMaterial.updated_by
-      ]
-    );
-    //console.log("Updated material ID: " + id + " ("+ rawMaterial.name +")");
-    let message = 'Error in updating raw material';
-  
-    if (result.affectedRows) {
-      message = 'Raw material \''+rawMaterial.name +'\' updated successfully';
-    }
-    
-    if(rawMaterial.customer_banks)
-    {
-      let additional_message = await customers.sync_banks_for_raw_material(rawMaterial.customer_banks, id);
-      //message += additional_message.message;
-    }
-    
+    if(self_executing) {
+      await db.transaction_commit(active_connection);
+    }    
     return {message};
-}*/
+  }
+  catch(error){
+    if(self_executing) {
+      await db.transaction_rollback(active_connection);
+    }
+    throw(error);
+  }
+  finally {
+    if(self_executing) {
+      await db.transaction_release(active_connection);
+    }
+  }  
+}
 
-async function remove(id){
-    //const result0 = await db.query(`DELETE from babies where customer_bank_id in (select id from customer_banks where raw_material_id=${id});`);
-    const result0 = await db.query(`DELETE from transaction_history where raw_material_id=${id};`);
-    const result1 = await db.query(`DELETE from customer_banks where raw_material_id=${id};`);
-    const result2 = await db.query(`DELETE FROM raw_materials WHERE id=${id}`);
+
+async function remove(id, active_connection=null){
+  //check if there is an active connection called from another function, or this call is a standalone
+  let self_executing = false;
+  if(!active_connection) {
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
+  }
+  try {
+    const result0 = await db.transaction_query(`DELETE from transaction_history where raw_material_id=${id};`, [], active_connection);
+    const result1 = await db.transaction_query(`DELETE from customer_banks where raw_material_id=${id};`, [], active_connection);
+    const result2 = await db.transaction_query(`DELETE FROM raw_materials WHERE id=${id}`, [], active_connection);
   
-    let message = 'Error in deleting raw material';
+    let message = '';
   
     if (result2.affectedRows) {
       message = 'Raw material deleted successfully';
     }
-  
+    if(self_executing) {
+      await db.transaction_commit(active_connection);
+    }    
     return {message};
   }
+  catch(error){
+    if(self_executing) {
+      await db.transaction_rollback(active_connection);
+    }
+    throw(error);
+  }
+  finally {
+    if(self_executing) {
+      await db.transaction_release(active_connection);
+    }
+  }   
+}
 
 module.exports = {
     getSingle,

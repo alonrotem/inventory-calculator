@@ -1,7 +1,6 @@
 const db = require('./db');
 const mysql = require('mysql2');
 const helper = require('../helper');
-const raw_materials_service = require("./raw_materials");
 
 const tables = [
     'customers',
@@ -28,26 +27,10 @@ async function get_table_info(table_name){
 
 async function get_table_records(table_name){
     const rows = await db.query(`SELECT * FROM ${table_name};`);
-    //console.dir(rows);
     return helper.emptyOrRows(rows);
 }
-/*
-async function check_if_table_exists(table_name) {
-    const table_count = await db.query(`SELECT COUNT(*) num
-        FROM information_schema.tables 
-        WHERE table_schema = DATABASE() 
-        AND table_name = '${table_name}'`);
-    const rec = helper.emptyOrSingle(table_count);
-    if(!helper.isEmptyObj(rec)){
-        return (parseInt(rec['num']) > 0);
-    }
-    return false;
-}
-    */
 
 function construct_inserts(table_name, table_info, records, keep_existing_records){
-    //console.log(`Table conlumns: ${table_info.length}`);
-    //console.log(`Table records: ${records.length}\n`);
     let title = `# ${table_name.toUpperCase()}\n# ${"-".repeat(table_name.length + 2)}\n`;
     let values = "";
     let delete_statement = wrap_statement_if_table_exists(`DELETE FROM \`${table_name}\` where @delete_records=TRUE;`, table_name) + ``;
@@ -105,15 +88,14 @@ function construct_inserts(table_name, table_info, records, keep_existing_record
 
 function wrap_statement_if_table_exists(sql_statement, table_name){
     return `
--- Check if the table exists
-SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = '${table_name}');
--- Prepare the INSERT statement only if the table exists
-SET @sql = IF(@table_exists > 0, "${sql_statement}", 'SELECT \\\'Table ${table_name} does not exist\\\'');
--- Execute the prepared statement
-PREPARE stmt FROM @sql;
-EXECUTE stmt; #USING @value1, @value2;
-DEALLOCATE PREPARE stmt;
-    `;
+        -- Check if the table exists
+        SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = '${table_name}');
+        -- Prepare the INSERT statement only if the table exists
+        SET @sql = IF(@table_exists > 0, "${sql_statement}", 'SELECT \\\'Table ${table_name} does not exist\\\'');
+        -- Execute the prepared statement
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt; #USING @value1, @value2;
+        DEALLOCATE PREPARE stmt;`;
 }
 
 async function create_table_backup_statement(table_name, keep_existing_records=false){

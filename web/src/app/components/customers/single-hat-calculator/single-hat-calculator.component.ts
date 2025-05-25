@@ -1,7 +1,6 @@
 import { AfterViewInit, Component, Input, OnInit, viewChild, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
-import { HatsService } from '../../../services/hats.service';
 import { WingsService } from '../../../services/wings.service';
 import { Baby, Customer, Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, CustomerHat, nameIdPair, Status, Wing, WingBaby, WingsListItem } from '../../../../types';
 import { DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
@@ -145,7 +144,6 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
 
   constructor(
     private customersService: CustomersService,
-    private hatsService: HatsService, 
     private wingsService:WingsService, 
     private lightbox: Lightbox,
     private globalsService: GlobalsService,
@@ -554,21 +552,6 @@ export class SingleHatCalculatorComponent implements OnInit, AfterViewInit {
         }
       }
     }
-  }
-
-  save_hat() {
-    /*
-    this.console.log("saving...");
-    let customer_hat_to_save = (JSON.parse(JSON.stringify(this.customerHat)));
-    customer_hat_to_save.customer_id = this.customer.id;
-    customer_hat_to_save.wing = this.wing_unchanged;
-    this.hatsService.saveHat(customer_hat_to_save).subscribe({
-      next:(data) => { 
-        this.console.log(data);
-      },
-      error:(error) => this.console.log(error)
-  });
-  */
   }
 
   order_amount_changed() {

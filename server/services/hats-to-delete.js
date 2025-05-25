@@ -7,6 +7,7 @@ const fs = require('fs');
 const wings = require('./wings');
 
 async function getSingle(id){
+  /*
     const rows = await db.query(`select id, name, hat_material, crown_material, photo from hats where id=${id}`);
     const data = helper.emptyOrSingle(rows);
     if(!helper.isEmptyObj(data))
@@ -16,14 +17,18 @@ async function getSingle(id){
         data.wings = wings;
     }
     return data;
+    */
 }
 
 async function geHatNames(){
+  /*
   const rows = await db.query(`select distinct(name),id from hats order by name;`);
   return helper.emptyOrRows(rows);
-}
+  */
+  }
 
 async function geHatBasicInfo() {
+  /*
   const rows = await db.query(`
     select 
       distinct(h.name) hat_name, 
@@ -38,10 +43,12 @@ async function geHatBasicInfo() {
       hats h join hats_wings hw 
       on h.id= hw.parent_hat_id 
     order by h.name;`);
+
   return helper.emptyOrRows(rows);
+  */
 }
 
-async function getMultiple(page = 1, perPage){
+async function getMultiple(page = 1, perPage){/*
   let subset =  '';
   if(page && perPage)
   {
@@ -65,39 +72,65 @@ async function getMultiple(page = 1, perPage){
     data,
     meta
   }
+    */
 }
 
-async function save(hatData){
-  let wing_id = -1;
-  if(hatData.wing) {
-    let wing_info =  await wings.save(hatData.wing);
-    wing_id = wing_info.wing_id;
+async function save(hatData, active_connection=null){
+  //check if there is an active connection called from another function, or this call is a standalone
+  let self_executing = false;
+  if(!active_connection) {
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
   }
-  console.log("customer id: " + hatData.customer_id);
-  const result = await db.query(
-    `INSERT INTO customer_hats (
-      id, name, hat_material, crown_material, wing_id, wing_quantity, 
-      customer_id, shorten_top_by, shorten_crown_by, wall_allocation_id, crown_allocation_id
-    )
-    VALUES 
-    ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_hats
-    ON DUPLICATE KEY UPDATE
-      id=new_hats.id, name=new_hats.name, hat_material=new_hats.hat_material, 
-      crown_material=new_hats.crown_material, wing_id=new_hats.wing_id, 
-      wing_quantity=new_hats.wing_quantity, customer_id=new_hats.customer_id, 
-      shorten_top_by=new_hats.shorten_top_by, shorten_crown_by=new_hats.shorten_crown_by,
-      wall_allocation_id=new_hats.wall_allocation_id, crown_allocation_id=new_hats.crown_allocation_id`,
-    [ hatData.id, hatData.name, hatData.hat_material, hatData.crown_material, wing_id,
-      hatData.wing_quantity, hatData.customer_id, hatData.shorten_top_by, hatData.shorten_crown_by,
-      hatData.wall_allocation_id, hatData.crown_allocation_id ]
-  );
-  let hat_id = (hatData.id == 0)? result.insertId : hatData.id;
+  try {
+      
+    let wing_id = -1;
+    if(hatData.wing) {
+      let wing_info =  await wings.save(hatData.wing, active_connection);
+      wing_id = wing_info.wing_id;
+    }
+    const result = await db.transaction_query(
+      `INSERT INTO customer_hats (
+        id, name, hat_material, crown_material, wing_id, wing_quantity, 
+        customer_id, shorten_top_by, shorten_crown_by, wall_allocation_id, crown_allocation_id
+      )
+      VALUES 
+      ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_hats
+      ON DUPLICATE KEY UPDATE
+        id=new_hats.id, name=new_hats.name, hat_material=new_hats.hat_material, 
+        crown_material=new_hats.crown_material, wing_id=new_hats.wing_id, 
+        wing_quantity=new_hats.wing_quantity, customer_id=new_hats.customer_id, 
+        shorten_top_by=new_hats.shorten_top_by, shorten_crown_by=new_hats.shorten_crown_by,
+        wall_allocation_id=new_hats.wall_allocation_id, crown_allocation_id=new_hats.crown_allocation_id`,
+      [ hatData.id, hatData.name, hatData.hat_material, hatData.crown_material, wing_id,
+        hatData.wing_quantity, hatData.customer_id, hatData.shorten_top_by, hatData.shorten_crown_by,
+        hatData.wall_allocation_id, hatData.crown_allocation_id ],
+      active_connection
+    );
+    let hat_id = (hatData.id == 0)? result.insertId : hatData.id;
 
-  let message = 'Error saving hat.';
+    let message = 'Error saving hat.';
 
-  if (result.affectedRows) {
-    message = 'Hat \'' + hatData.name + '\' saved successfully.';
+    if (result.affectedRows) {
+      message = 'Hat \'' + hatData.name + '\' saved successfully.';
+    }
+
+    if(self_executing) {
+      await db.transaction_commit(active_connection);
+    }
+    return {message};    
   }
+  catch(error){
+    if(self_executing) {
+      await db.transaction_rollback(active_connection);
+    }
+    throw(error);
+  }
+  finally {
+    if(self_executing) {
+      await db.transaction_release(active_connection);
+    }
+  }  
 }
 
 /*

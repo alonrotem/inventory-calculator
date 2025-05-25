@@ -62,8 +62,8 @@
                     [show_invalid_message]="false"
                     [title]="'Select the width of this wing:'"
                     [(length)]="wing.width"
-                    [min_length]=5
-                    [max_length]=11
+                    [min_length]=4
+                    [max_length]=12.5
                     (lengthChange)="babies_length_clicked()"
                  />
             </div>
@@ -181,12 +181,14 @@
                         <div>Save Wing</div>
                     </button>
                 </div>
+                <!--
                 <div class="col-12 d-flex justify-content-center {{ this.is_new_wing? 'col-md-4':'col-md-3' }}">
                     <button #btn_save class="btn btn-primary" type="submit" (click)="save(true)">
                         <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon> + <span class="icon-hat"></span></div>
                         <div>Save & Hat!</div>
                     </button>
                 </div>
+                -->
                 <div class="col-12 d-flex justify-content-center col-md-3" *ngIf="!this.is_new_wing">
                     <button class="btn btn-danger" (click)="confirm_delete()">
                         <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>

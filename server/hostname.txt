@@ -1,1 +1,1 @@
-localhost:3000
+romtech-server.duckdns.org

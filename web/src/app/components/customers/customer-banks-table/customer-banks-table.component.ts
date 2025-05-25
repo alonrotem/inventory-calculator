@@ -10,7 +10,6 @@ import { BankAllocationDialogComponent } from '../bank-allocation-dialog/bank-al
 import { BabyEditorDialogComponent } from '../../babies/baby-editor-dialog/baby-editor-dialog.component';
 import { SortPipe } from '../../../utils/pipes/sort-pipe';
 import { BankHistoryDialogComponent } from '../bank-history-dialog/bank-history-dialog.component';
-import { HatsService } from '../../../services/hats.service';
 import { WingsService } from '../../../services/wings.service';
 import { AllocationPickerComponent } from '../allocation-picker/allocation-picker.component';
 import { SumPipe } from '../../../utils/pipes/sum-pipe';
@@ -96,29 +95,6 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    /*
-    this.hatsService.getHat(1).subscribe(hat => {
-      this.hat = hat;
-      this.wingsService.getWing(1).subscribe(wing => {
-        this.wing = wing;
-        if(this.hat) {
-          
-
-          let n = this.hatsCalculatorService.AlonsHatCalculator(
-            this.hat,
-            this.wing,
-            [this.bank],
-            this.banks_baby_allocations,
-            this.babies
-          );
-          //filter: 'customer_banks_babies_id' : bank_allocation.id
-          console.log(n + " hats calculated");
-          
-        }
-      });
-    });
-    //this.hatsCalculatorService.calculateMaxHatsWithFlexibility()
-    */
   }
 
   undo_changes(){
@@ -144,8 +120,8 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
       }
     });
     this.babies_picker.dialogWrapper.modalTitle = "Modify babies in allocation";
-    this.babies_picker.dialogWrapper.btnSaveText = "Save";
     this.babies_picker.dialogWrapper.confirm.subscribe((baby: Baby) => { this.babies_dialog_closed(baby); });
+    this.babies_picker.appendBaby.subscribe((baby: Baby) => { this.babies_dialog_closed(baby); });
 
     this.allocation_dialog.dialogWrapper.modalTitle = "Manage allocation";
     this.allocation_dialog.dialogWrapper.confirm.subscribe(() => { this.allocation_dialog_closed(this.allocation_dialog.CurrentQuantity); });
@@ -392,16 +368,32 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     if(baby_to_edit){
       this.babies_picker.editedObject.quantity = baby_to_edit.quantity;
       this.babies_picker.editedObject.length = baby_to_edit.length;
+      this.babies_picker.babyEditMode = true;
+      this.babies_picker.dialogWrapper.btnSaveText = "Update baby";
+    }
+    else {
+      this.babies_picker.babyEditMode = false;
+      this.babies_picker.dialogWrapper.btnSaveText = "Add + Next >";
     }
     this.babies_picker.dialogWrapper.open();
   }
 
   babies_dialog_closed(baby: Baby) {
+    console.log("Received:");
+    console.dir(baby);
     let baby_to_edit = this.babies.find(b => b.length == baby.length && b.customer_banks_babies_id == this.pendingBabyAppendAllocation);
     if(baby_to_edit) {
-      baby_to_edit.quantity = baby.quantity;
+      if(this.babies_picker.babyEditMode) {
+        console.log("Setting baby with length " + baby.length + "quantity to " + baby.quantity);
+        baby_to_edit.quantity = baby.quantity;
+      }
+      else {
+        console.log("Increasing baby with length " + baby.length + "quantity from " + baby_to_edit.quantity +  " to " + (baby_to_edit.quantity + baby.quantity));
+        baby_to_edit.quantity += baby.quantity;
+      }
     }
     else {
+      console.log("Adding new baby " + baby.length + "quantity " + baby.quantity);
       this.babies.push({
         id: 0,
         customer_banks_babies_id: this.pendingBabyAppendAllocation,
@@ -414,8 +406,8 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     //---
     this.update_advisor_babies(this.pendingBabyAppendAllocation);
 
-    this.pendingBabyAppendAllocation = -999;
-    this.pendingBabyAppendBaby = -999;
+    //this.pendingBabyAppendAllocation = -999;
+    //this.pendingBabyAppendBaby = -999;
     this.unsaved_changes = true;
 
   }

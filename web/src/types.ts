@@ -448,3 +448,9 @@ export interface OrderAdvisorWingOverall {
     wall_allocation_id: number;
     crown_allocation_id: number;
 }
+
+export interface LogfileListItem {
+    filename: string;
+    size: number;
+    date: Date;
+}

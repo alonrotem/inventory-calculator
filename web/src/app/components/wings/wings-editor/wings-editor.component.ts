@@ -227,7 +227,7 @@ export class WingsEditorComponent implements OnInit, AfterViewInit,/*, OnDestroy
             this.gotoWingsList(data['message'], false);
           }
         },
-        error:(error) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoWingsList(error, true); }
+        error:(error) => { this.btn_save.nativeElement.classList.remove("disabled");  ; this.toastService.showError(error.error["message"]); }
       }
     );
   }

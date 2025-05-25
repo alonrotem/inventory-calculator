@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const countries = require('../services/countries');
+const { logger } =  require('../logger');
 
 /* GET countries */
 /* curl -i -X GET \
@@ -9,12 +10,14 @@ const countries = require('../services/countries');
         http://localhost:3000/countries/
 */
 router.get('/', async function(req, res, next) {
-    try {
-      res.json(await countries.getMultiple(req.query.page, req.query.perPage));
-    } catch (err) {
-      console.error(`Error while getting countries `, err.message);
-      next(err);
-    }
-  });
+  logger.info(`get /countries/ page=${req.query.page}, perPage=${req.query.perPage}`);
+  try {
+    res.json(await countries.getMultiple(req.query.page, req.query.perPage));
+  } 
+  catch (err) {
+    logger.error(`Error getting countries: ${err.message}`);
+    next(err);
+  }
+});
 
   module.exports = router;

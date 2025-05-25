@@ -30,6 +30,7 @@ export class ModalDialogComponent implements ModalDialog {
   @Input() btnCancelClass: string = "btn-secondary";
   @Input() modalSize: string = "m";
   @Input() fullscreen: boolean = false;
+  @Input() modalBodyClass: string = "";
 
   @Output() confirm = new EventEmitter<any>();
   @Output("cancel") cancel = new EventEmitter<void>();

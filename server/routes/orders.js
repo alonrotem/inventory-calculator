@@ -4,22 +4,31 @@ const orders = require('../services/orders');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { logger } =  require('../logger');
 
   router.put('/', async function(req, res, next) {
-    console.log("saving order");
+    logger.info(`put /orders/`);
     try {
-      res.json(await orders.create(req.body));
-    } catch (err) {
-      console.error(`Error while saving hat `, err.message);
+      logger.debug(req.body);
+      const response = await orders.create(req.body);
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);
+    } 
+    catch (err) {
+      logger.error(`Error while saving order ${err.message}`);
       next(err);
     }
   });
 
   router.get('/', async function(req, res, next) {
+     logger.info(`get /orders/ page=${req.query.page}, perPage=${req.query.perPage}, customer_id=${req.query.customer_id}`);
     try {
-        res.json(await orders.get_orders_list(req.query.page, req.query.perPage, req.query.customer_id));
-    } catch (err) {
-      console.error(`Error while getting orders `, err.message);
+        const response = await orders.get_orders_list(req.query.page, req.query.perPage, req.query.customer_id);
+        logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+        res.json(response);
+    } 
+    catch (err) {
+      logger.error(`Error getting orders: ${err.message}`);
       next(err);
     }
   });

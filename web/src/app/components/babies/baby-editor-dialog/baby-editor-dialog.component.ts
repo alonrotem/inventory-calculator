@@ -41,6 +41,7 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
     created_by: 1,
     updated_by: 1
   }
+  appendBaby: EventEmitter<any> = new EventEmitter<Baby>();
 
   babyFormEditor = this.fb.group({
     /*
@@ -52,6 +53,7 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
     ]]
   });
   isSubmitted : boolean = false;
+  babyEditMode: boolean = false; // babyEditmode: editing an existing baby. Otherwise in add mode
 
   constructor(private fb: FormBuilder, private toastService: ToastService) {
   }
@@ -109,8 +111,17 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
     //this.editedObject.length =  this.babyFormEditor.get('length')!.value ?? 0;
     //this.editedObject.length = this.length_picker.get_length();
     this.editedObject.quantity =  this.babyFormEditor.get('quantity')!.value ?? 0;
+    this.appendBaby.emit(this.editedObject);
     this.toastService.showSuccess("Applied");
-    return true;
+
+    //reset the form and don't close
+    this.length_picker.reset();
+    this.babyFormEditor.get('quantity')!.setValue(0);
+    this.babyFormEditor.markAsPristine();
+    this.babyFormEditor.markAsUntouched();
+    this.quantity.nativeElement.focus();
+
+    return this.babyEditMode;
   }
 
   sendit(event:any){

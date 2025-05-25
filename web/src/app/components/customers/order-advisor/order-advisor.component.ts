@@ -77,8 +77,8 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log("ngOnChanges:");
-    console.dir(changes);
+    //console.log("ngOnChanges:");
+    //console.dir(changes);
     this.allocation_wall_babies = this.customer_wall_babies.filter(b => b.customer_banks_babies_id == ((this.wall_allocation) ? this.wall_allocation.id : 0));
     this.allocation_crown_babies = this.customer_crown_babies.filter(b => b.customer_banks_babies_id == ((this.crown_allocation) ? this.crown_allocation.id : 0));
 
@@ -90,14 +90,14 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
     this.customer_crown_babies = new_crown_babies;
     this.allocation_wall_babies = this.customer_wall_babies.filter(b => b.customer_banks_babies_id == ((this.wall_allocation) ? this.wall_allocation.id : 0));
     this.allocation_crown_babies = this.customer_crown_babies.filter(b => b.customer_banks_babies_id == ((this.crown_allocation) ? this.crown_allocation.id : 0));
-    console.log("advisor updated " + this.wall_allocation!.id);
-    console.dir(this.allocation_wall_babies);
+    //console.log("advisor updated " + this.wall_allocation!.id);
+    //console.dir(this.allocation_wall_babies);
     this.runCalculations();
   }
 
   runCalculations() {
-    console.log("runCalculations: ");
-    console.dir(this.wall_allocation)
+    //console.log("runCalculations: ");
+    //console.dir(this.wall_allocation)
 
     this.calculating = true;
     this.calculate().then((data: OrderAdvisorWingOverall) => {
@@ -132,6 +132,18 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   calculate(numOfWingsPerHat:number=44) : Promise<OrderAdvisorWingOverall> {
+    if(!this.wall_allocation || !this.crown_allocation) {
+      return new Promise((resolve, reject ) => { resolve({
+            wing_suggestions: [],
+            max_num_of_hats: 0,
+            max_hat_wing_name: '',
+            max_hat_wing_id: 0,
+            wall_allocation_id: 0,
+            crown_allocation_id: 0
+        })
+      });
+    }
+    
     this.exceed_number_of_hats_message = "";
     this.already_at_max_num_of_hats = false;
     return new Promise((resolve, reject) => {
@@ -287,8 +299,8 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               numOfWingsPerHat
             );
 
-            console.log("calculating wing " + systemWing.name);
-            console.log("Max hats: " + this.suggestions.max_num_of_hats);
+            //console.log("calculating wing " + systemWing.name);
+            //console.log("Max hats: " + this.suggestions.max_num_of_hats);
           });
           //});
 
@@ -429,7 +441,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
             this.allocation_crown_babies, 
             this.assistant_wing_quantity, 
             this.assistant_num_of_hats);
-          console.dir(aggregation);
+            //console.dir(aggregation);
 
           this.assistant_aggregated_hat_babies = aggregation.hat_babies;
           this.assistant_aggregated_crown_babies = aggregation.crown_babies;
@@ -448,8 +460,8 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     assistant_add_babies() {
-      console.log("emitting: ");
-      console.dir(this.wall_allocation)
+      //console.log("emitting: ");
+      //console.dir(this.wall_allocation)
       this.assistantAutoAddBabies.emit({
         hat_alloc_id: ((this.wall_allocation) ? this.wall_allocation.id : 0),
         crown_alloc_id: ((this.crown_allocation) ? this.crown_allocation.id : 0),

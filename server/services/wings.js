@@ -2,6 +2,7 @@ const db = require('./db');
 const helper = require('../helper');
 const config = require('../config');
 const { raw } = require('mysql2');
+const { logger } = require('../logger')
 
 async function getSingle(id){
     const rows = await db.query(
@@ -103,34 +104,64 @@ async function getAllNonCustomerWingsAndBabies(wing_id_filter) {
   return helper.emptyOrRows(rows);
 }
 
-async function save(wing){
-  //if this is a new wing, all babies should be saved as new too (for example, duplicated for a customer)
-  let isNewWing = wing.id <= 0;
-  if(isNewWing && wing.babies){
-    wing.babies.forEach(b => b.id = 0);
+async function save(wing, active_connection=null){
+  //check if there is an active connection called from another function, or this call is a standalone
+  let self_executing = false;
+  if(!active_connection) {
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
   }
-  const result = await db.query(
-    `INSERT INTO wings (id, name, width) 
-      VALUES ((?), (?), (?)) as new_wing
-      ON DUPLICATE KEY UPDATE
-      name=new_wing.name, width=new_wing.width`, 
-      [ wing.id, wing.name, wing.width, wing.customer_id ]
-  );
+  try {
+    const wings_by_name = await db.query(`select * from wings where name=(?)`, [wing.name]);
+    const rec = helper.emptyOrSingle(wings_by_name);
+    if(rec && rec['name'] &&rec['name'].toUpperCase() == wing.name.toUpperCase() && (wing.id <= 0 || wing.id != rec['id'])){
+      throw(`A wing with the name ${wing.name} already exists`);
+    }
 
-  let message = 'Error saving wing';
-  //console.log("New wing ID: " + result.insertId + " ("+ wing.name +")");
+    //if this is a new wing, all babies should be saved as new too (for example, duplicated for a customer)
+    let isNewWing = wing.id <= 0;
+    if(isNewWing && wing.babies){
+      wing.babies.forEach(b => b.id = 0);
+    }
+    const result = await db.transaction_query(
+      `INSERT INTO wings (id, name, width) 
+        VALUES ((?), (?), (?)) as new_wing
+        ON DUPLICATE KEY UPDATE
+        name=new_wing.name, width=new_wing.width`, 
+        [ wing.id, wing.name, wing.width, wing.customer_id ],
+        active_connection
+    );
 
-  if (result.affectedRows) {
-    message = 'Wing \'' + wing.name + '\' saved successfully';
+    let message = '';
+    //console.log("New wing ID: " + result.insertId + " ("+ wing.name +")");
+
+    if (result.affectedRows) {
+      message = 'Wing \'' + wing.name + '\' saved successfully';
+    }
+    let wing_id = (wing.id)? wing.id : result.insertId;
+    
+    if(wing.babies)
+    {
+      await sync_babies_for_wing(wing.babies, wing_id, active_connection);
+    }
+    //console.log({ message: message, wing_id: wing_id });
+    if(self_executing) {
+      await db.transaction_commit(active_connection);
+    }
+    return {message, wing_id};
   }
-  let wing_id = (wing.id)? wing.id : result.insertId;
-  
-  if(wing.babies)
-  {
-    await sync_babies_for_wing(wing.babies, wing_id);
+  catch(error){
+    if(self_executing) {
+      await db.transaction_rollback(active_connection);
+    }
+      logger.error(error);
+      throw(error);
   }
-  console.log({ message: message, wing_id: wing_id });
-  return {message, wing_id};
+  finally {
+    if(self_executing) {
+      await db.transaction_release(active_connection);
+    }
+  }  
 }
 /*
 async function getWingBabyPositions(){
@@ -174,105 +205,104 @@ async function update(id, wing){
     return {message};
 }*/
 
-async function sync_babies_for_wing(babies, wing_id)
-{
-  let message = "";
-  const deletion_result = await db.query(`DELETE FROM wings_babies WHERE parent_wing_id=${ wing_id }`);
-  let babies_arr = babies.map(baby => 
-    [
-      baby.id,
-      wing_id,
-      baby.position,
-      baby.length
-    ]
-  ).flat(1);
-  let placeholder = Array(babies.length).fill("(" + Array(babies_arr.length / babies.length).fill("?").join(",") + ")").join(",");
-  //console.log("====================");
-  //console.dir(babies_arr);
-  //console.log("====================");
-  if(babies.length > 0){
-    const update_result = await db.query(
-      `INSERT INTO wings_babies 
-      (id, parent_wing_id, position, length) 
-      VALUES 
-      ${placeholder} as new_wings_babies
-      ON DUPLICATE KEY UPDATE
-      parent_wing_id=new_wings_babies.parent_wing_id, position=new_wings_babies.position, length=new_wings_babies.length`,
-      babies_arr
-    );
-    message +=  update_result.affectedRows + " wing babies added/updated";
+async function sync_babies_for_wing(babies, wing_id, active_connection=null) {
+  //check if there is an active connection called from another function, or this call is a standalone
+  let self_executing = false;
+  if(!active_connection) {
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
   }
-  else
-  {
-    message += ", no wing babies to add/update";
-  }
-  return {message};
-
-  /*
-    console.dir(babies[0], { depth:10 })
+  try {
     let message = "";
-    //id of babies that should be existing (have IDs)
-    let baby_ids_to_keep = babies.filter(baby => baby.id != 0).map(baby => baby.id).join(",");
-    console.log("baby_ids_to_keep: " + baby_ids_to_keep);
-    if(baby_ids_to_keep.length > 0)
-    {
-    //remove irrelevant ones
-    const deletion_result = await db.query(
-        `DELETE FROM wings_babies WHERE parent_wing_id=${ wing_id } and id not in (${ baby_ids_to_keep })`
+    const deletion_result = await db.transaction_query(`DELETE FROM wings_babies WHERE parent_wing_id=${ wing_id }`,
+      [],
+      active_connection
     );
-        message += deletion_result.affectedRows + " + wing babies removed";
+    //console.log("====================");
+    //console.dir(babies_arr);
+    //console.log("====================");
+    if(babies.length > 0){
+      let babies_arr = babies.map(baby => 
+        [
+          baby.id,
+          wing_id,
+          baby.position,
+          baby.length
+        ]
+      ).flat(1);
+      let placeholder = Array(babies.length).fill("(" + Array(babies_arr.length / babies.length).fill("?").join(",") + ")").join(",");
+
+      const update_result = await db.transaction_query(
+        `INSERT INTO wings_babies 
+        (id, parent_wing_id, position, length) 
+        VALUES 
+        ${placeholder} as new_wings_babies
+        ON DUPLICATE KEY UPDATE
+        parent_wing_id=new_wings_babies.parent_wing_id, position=new_wings_babies.position, length=new_wings_babies.length`,
+        babies_arr,
+        active_connection
+      );
+      message +=  update_result.affectedRows + " wing babies added/updated";
     }
     else
     {
-        message += "No wing babies to remove"
+      message += ", no wing babies to add/update";
     }
-
-    if(babies.length > 0)
-        {
-          // add or update existing ones
-          //"INSERT INTO table_test (name , last_name , year) VALUES ?"
-          let babies_arr = babies.map(baby => 
-            [
-              baby.id,
-              wing_id,
-              baby.position,
-              baby.length
-            ]
-          ).flat(1);
-          console.log("babiesarr");
-          console.log(babies_arr);
-          let placeholder = Array(babies.length).fill("(" + Array(5).fill("?").join(",") + ")").join(",");
-          //VALUES (?, ?), (?,?)
-      
-          const update_result = await db.query(
-            `REPLACE INTO wings_babies 
-            (id, parent_wing_id, position, length) 
-            VALUES 
-            ${placeholder}`,
-            babies_arr
-          );
-          message += ", " + update_result.affectedRows + " wing babies added/updated";
-        }
-        else
-        {
-          message += ", no wing babies to add/update";
-        }
-        return {message};*/
+    if(self_executing) {
+      await db.transaction_commit(active_connection);
+    }    
+    return {message};
+  }
+  catch(error){
+    if(self_executing) {
+      await db.transaction_rollback(active_connection);
+    }
+    throw(error);
+  }
+  finally {
+    if(self_executing) {
+      await db.transaction_release(active_connection);
+    }
+  }  
 }
 
-async function remove(id){
-    const result = await db.query(
-      `DELETE FROM wings WHERE id=${id}`
+async function remove(id, active_connection=null){
+  //check if there is an active connection called from another function, or this call is a standalone
+  let self_executing = false;
+  if(!active_connection) {
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
+  }
+  try {
+        
+    const result = await db.transaction_query(
+      `DELETE FROM wings WHERE id=${id}`,
+      [],
+      active_connection
     );
   
-    let message = 'Error in deleting wing';
+    let message = '';
   
     if (result.affectedRows) {
       message = 'Wing deleted successfully';
     }
-  
+    if(self_executing) {
+      await db.transaction_commit(active_connection);
+    }  
     return {message};
   }
+  catch(error){
+    if(self_executing) {
+      await db.transaction_rollback(active_connection);
+    }
+    throw(error);
+  }
+  finally {
+    if(self_executing) {
+      await db.transaction_release(active_connection);
+    }
+  }  
+}
 
 module.exports = {
   save,
