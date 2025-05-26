@@ -16,17 +16,21 @@ import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.com
 import { ToastService } from '../../../services/toast.service';
 import { HasUnsavedChanges } from '../../../guards/unsaved-changes-guard';
 import { Observable } from 'rxjs';
+import { UnsavedChangesDialogComponent } from '../../common/unsaved-changes-dialog/unsaved-changes-dialog.component';
+import { UnsavedNavigationConfirmationService } from '../../../services/unsaved-navigation-confirmation.service';
+import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
+import { StateService } from '../../../services/state.service';
 
 @Component({
   selector: 'app-wings-editor',
   standalone: true,
-  imports: [ ConfirmationDialogComponent, FormsModule, NgIf, NgFor, FaIconComponent, WingsBabiesTableComponent, WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent, BabyLengthModalComponent, ModalDialogComponent],
+  imports: [ ConfirmationDialogComponent, FormsModule, NgIf, NgFor, FaIconComponent, WingsBabiesTableComponent, WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent, BabyLengthModalComponent, UnsavedChangesDialogComponent],
   templateUrl: './wings-editor.component.html',
   styleUrl: './wings-editor.component.scss',/*
   changeDetection: ChangeDetectionStrategy.OnPush*/
   
 })
-export class WingsEditorComponent implements OnInit, AfterViewInit,/*, OnDestroy*/ HasUnsavedChanges {
+export class WingsEditorComponent extends NavigatedMessageComponent implements OnInit, AfterViewInit,/*, OnDestroy*/ HasUnsavedChanges {
 
   faSave: IconDefinition = faSave;
   faTrashAlt:IconDefinition = faTrashAlt;
@@ -43,9 +47,9 @@ export class WingsEditorComponent implements OnInit, AfterViewInit,/*, OnDestroy
   @ViewChild("wingName", { read: ElementRef }) wingName!: ElementRef;
   @ViewChild('wingForm') wingForm!: NgForm;
   @ViewChild('delete_confirmation') delete_confirmation!: ConfirmationDialogComponent;
-  @ViewChild('navigate_confirmation') navigate_confirmation!: ConfirmationDialogComponent;
   @ViewChild("btn_save", { read: ElementRef }) btn_save!: ElementRef;
   @ViewChild("top_picker") top_picker!: BabiesLengthPickerComponent;
+  @ViewChild('unsaved_changes_dialog') unsaved_changes_dialog!: UnsavedChangesDialogComponent;
   //@ViewChild("length_editor") length_editor! :ModalDialogComponent;
   @ViewChild("length_editor") length_editor! :BabyLengthModalComponent;
 
@@ -67,40 +71,28 @@ export class WingsEditorComponent implements OnInit, AfterViewInit,/*, OnDestroy
   // for opening the unsave changes dialog
   private confirmResult: boolean | null = null;
 
-  constructor(private wingsService: WingsService, private activatedRoute: ActivatedRoute, private router: Router, private toastService: ToastService, private _location: PlatformLocation){
-    let nav = this.router.getCurrentNavigation();
-    if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {
-      let info = nav.extras.state['info']['textInfo'];
-      let isError = nav.extras.state['info']['isError'];
-      let wingName = nav.extras.state['info']['wingName'];
-      if(isError)
-      {
-        this.toastService.showError(info);
-      }
-      else
-      {
-        this.toastService.showSuccess(info);
-      }
-      this.wing.name = wingName;
-    }
+  constructor(
+    private wingsService: WingsService, 
+    private activatedRoute: ActivatedRoute, 
+    private _location: PlatformLocation,
+    private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService,
+    router: Router, 
+    stateService: StateService,
+    toastService: ToastService    
+  ){
+      super(toastService, stateService, router);
+      this.showNavigationToastIfMessagePending();
   }
 
   hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
-    if(!this.wingForm.pristine) {
-      return new Promise((resolve) => {
-        this.confirmResult = null;
-        // Ensure this refers to the component's instance using an arrow function
-        this.navigate_confirmation.open(); // Open the modal dialog
-    
-        // Use arrow function to preserve `this` context
-        this.navigate_confirmation.confirm.subscribe((result: boolean) => {
-          this.confirmResult = result;
-          setTimeout(() => this.confirmResult = null, 0); 
-          resolve(result);  // Resolve the promise based on user confirmation
-        });
-      });
-    }
-    return true;
+    return this.unsavedNavigationConfirmationService.handle({
+      hasChanges: () =>
+        (!this.wingForm.pristine),
+
+      saveFn: () => this.wingsService.saveWing(this.wing),
+
+      confirmationDialog: this.unsaved_changes_dialog
+    });
   }
 
   ngOnInit(): void {

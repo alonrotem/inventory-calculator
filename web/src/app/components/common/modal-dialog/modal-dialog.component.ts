@@ -22,6 +22,7 @@ export class ModalDialogComponent implements ModalDialog {
   // @ContentChild("modalContent") dialog_content_component!: ModalObjectEditor;
   @Input() btnText: string = "Open!";
   @Input() showOpenButton: boolean = false;
+  @Input() hide_buttons: boolean = false;
   @Input() modalTitle: string = "Modal";
   @Input() btnSaveText: string = "Save changes";
   @Input() btnCancelText: string = "Close";
@@ -52,7 +53,7 @@ export class ModalDialogComponent implements ModalDialog {
   public open() {
     //console.log(this.modalSize);
     this.modalReference = this.modalService.open(this.content, { centered: true, size: this.modalSize, fullscreen: this.fullscreen });
-    console.log("openning " +this.dialogContentComponent);
+    //console.log("openning " +this.dialogContentComponent);
     if(this.dialogContentComponent){
       this.dialogContentComponent.onOpen();
 

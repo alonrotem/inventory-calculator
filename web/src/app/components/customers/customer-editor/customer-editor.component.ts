@@ -20,13 +20,15 @@ import { AllocationPickerComponent } from '../allocation-picker/allocation-picke
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
 import { WingsService } from '../../../services/wings.service';
 import { StateService } from '../../../services/state.service';
+import { UnsavedNavigationConfirmationService } from '../../../services/unsaved-navigation-confirmation.service';
+import { UnsavedChangesDialogComponent } from "../../common/unsaved-changes-dialog/unsaved-changes-dialog.component";
 
 @Component({
   selector: 'app-customer-editor',
   standalone: true,
-  imports: [ RouterModule, FormsModule, NgSelectModule, DateStrPipe, 
-    FaIconComponent, NgIf, NgFor, ConfirmationDialogComponent, AutocompleteLibModule, 
-    CustomerBanksTableComponent, HatsCalculatorDialogComponent, AllocationPickerComponent, FilterPipe ],
+  imports: [RouterModule, FormsModule, NgSelectModule, DateStrPipe,
+    FaIconComponent, NgIf, NgFor, ConfirmationDialogComponent, AutocompleteLibModule,
+    CustomerBanksTableComponent, HatsCalculatorDialogComponent, AllocationPickerComponent, FilterPipe, UnsavedChangesDialogComponent],
   templateUrl: './customer-editor.component.html',
   styleUrl: './customer-editor.component.scss'
 })
@@ -68,7 +70,7 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
   @ViewChild("customerName", { read: ElementRef }) customerName! :ElementRef;
   @ViewChild('customer_form') customer_form!: NgForm;
   @ViewChild('delete_confirmation') delete_confirmation!: ConfirmationDialogComponent;
-  @ViewChild('navigate_confirmation') navigate_confirmation!: ConfirmationDialogComponent;
+  @ViewChild('unsaved_changes_dialog') unsaved_changes_dialog!: UnsavedChangesDialogComponent;
   @ViewChild('hats_calculator') hats_calculator!: HatsCalculatorDialogComponent;
   @ViewChild("btn_save", { read: ElementRef }) btn_save!: ElementRef;
   @ViewChildren('customer_banks_tables') customer_banks_tables!: QueryList<CustomerBanksTableComponent>;
@@ -78,11 +80,25 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     private activatedRoute: ActivatedRoute,
     private router: Router, 
     private toastService: ToastService,
-    private stateService: StateService
+    private stateService: StateService,
+    private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService
     ) { 
+  }
+  
+  hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
+    return this.unsavedNavigationConfirmationService.handle({
+      hasChanges: () =>
+        !this.customer_form.pristine || this.customer_banks_tables.some(t => t.unsaved_changes),
+
+      saveFn: () => this.customersService.saveCustomer(this.customerItem),
+
+      confirmationDialog: this.unsaved_changes_dialog
+    });
   }
 
 
+  
+/*
   hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
     const banksUnsaved = this.customer_banks_tables.find(t => t.unsaved_changes);
   
@@ -125,27 +141,7 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     }
     return true;
   }
-
-  /*
-  hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
-    let banksUnsaved = this.customer_banks_tables.find(t => t.unsaved_changes);
-    if(!this.customer_form.pristine || banksUnsaved) {
-      return new Promise((resolve) => {
-        this.confirmResult = null;
-        // Ensure this refers to the component's instance using an arrow function
-        this.navigate_confirmation.open(); // Open the modal dialog
-    
-        // Use arrow function to preserve `this` context
-        this.navigate_confirmation.confirm.subscribe((result: boolean) => {
-          this.confirmResult = result;
-          setTimeout(() => this.confirmResult = null, 0); 
-          resolve(result);  // Resolve the promise based on user confirmation
-        });
-      });
-    }
-    return true;
-  }
-    */
+*/
 
   ngOnInit(): void {
     this.is_new_customer = !this.activatedRoute.snapshot.queryParamMap.has('id');

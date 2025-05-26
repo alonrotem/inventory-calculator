@@ -4,3 +4,4 @@ default_character_set           = utf8
 # charset and collation
 character_set_server            = utf8
 collation_server                = utf8_general_ci
+innodb_lock_wait_timeout        = 120

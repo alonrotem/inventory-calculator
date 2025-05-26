@@ -16,6 +16,7 @@ import { ToastService } from '../../../services/toast.service';
 import { CustomersService } from '../../../services/customers.service';
 import { SingleHatCalculatorComponent } from '../single-hat-calculator/single-hat-calculator.component';
 import { StateService } from '../../../services/state.service';
+import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 
 @Component({
   selector: 'app-customers-table',
@@ -24,38 +25,18 @@ import { StateService } from '../../../services/state.service';
   templateUrl: './customers-table.component.html',
   styleUrl: './customers-table.component.scss'
 })
-export class CustomersTableComponent implements OnInit {
+export class CustomersTableComponent extends NavigatedMessageComponent implements OnInit {
   
-  constructor(private customersService: CustomersService, private modalService: NgbModal, private router: Router, private stateService:StateService) {
-    let nav = this.router.getCurrentNavigation();
-    if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {
-      let info = nav.extras.state['info']['textInfo'];
-      let isError = nav.extras.state['info']['isError'];
-      if(isError)
-      {
-        this.toastService.showError(info);
-      }
-      else
-      {
-        this.toastService.showSuccess(info);
-      }
-      
-    }
-    else
-    {
-      //alert("empty");
-      const state = this.stateService.getState();
-      if(state && state.message){
-        if(!state.isError) {
-          this.toastService.showSuccess(state.message);
-        }
-        else {
-          this.toastService.showError(state.message);
-        }
-      }
-      this.stateService.clearState();
-    }
+  constructor(
+    private customersService: CustomersService, 
+    private modalService: NgbModal, 
+    router: Router, 
+    stateService: StateService,
+    toastService: ToastService) {
+      super(toastService, stateService, router);
+      this.showNavigationToastIfMessagePending();
   }
+
   current_page = 1;
   rowsPerPage:number = 5;
   customers: CustomerListItem[] = [];
@@ -65,7 +46,6 @@ export class CustomersTableComponent implements OnInit {
   totalRecords: number = 0;
 
   selectedCar: number=1;
-  toastService = inject(ToastService);
 
   getCustomers(page: number){
     this.customersService.getCustomers({ page: page, perPage:this.rowsPerPage }).subscribe(

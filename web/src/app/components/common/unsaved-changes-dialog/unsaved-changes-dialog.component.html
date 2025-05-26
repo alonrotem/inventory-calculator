@@ -1,0 +1,15 @@
+
+
+<app-modal-dialog 
+    #dialog 
+        [hide_buttons]="true" 
+        [modalTitle]="modalTitle">
+    <div #modalContent style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center;">
+        <div class="dialog-content" [innerHTML]="modalText"></div>
+    </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-success" (click)="save()"><fa-icon [icon]="faSave" ></fa-icon> Save &amp; continue</button>
+        <button type="button" class="btn btn-warning" (click)="discard()"><fa-icon [icon]="faArrowLeft" ></fa-icon> Discard changes</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="cancel()">Cancel</button>
+      </div>
+</app-modal-dialog>

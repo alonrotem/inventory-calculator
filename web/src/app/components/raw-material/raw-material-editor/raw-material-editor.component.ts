@@ -20,18 +20,22 @@ import { RawMaterialCustomerTableComponent } from '../raw-material-customer-tabl
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { RawMaterialQuantityDialogComponent } from '../raw-material-quantity-dialog/raw-material-quantity-dialog.component';
 import { RawMaterialHistoryDialogComponent } from '../raw-material-history-dialog/raw-material-history-dialog.component';
+import { UnsavedChangesDialogComponent } from "../../common/unsaved-changes-dialog/unsaved-changes-dialog.component";
+import { StateService } from '../../../services/state.service';
+import { UnsavedNavigationConfirmationService } from '../../../services/unsaved-navigation-confirmation.service';
 
 
 @Component({
   selector: 'app-raw-material-editor',
   standalone: true,
-  imports: [ 
-    RouterModule, FormsModule, 
-    DatePipe, NgSelectModule, DateStrPipe, 
-    FaIconComponent, NgIf, ConfirmationDialogComponent, AutocompleteLibModule, 
+  imports: [
+    RouterModule, FormsModule,
+    DatePipe, NgSelectModule, DateStrPipe,
+    FaIconComponent, NgIf, ConfirmationDialogComponent, AutocompleteLibModule,
     RawMaterialCustomerTableComponent, RawMaterialQuantityDialogComponent,
-    RawMaterialHistoryDialogComponent, NgClass
-  ],
+    RawMaterialHistoryDialogComponent, NgClass,
+    UnsavedChangesDialogComponent
+],
   templateUrl: './raw-material-editor.component.html',
   styleUrl: './raw-material-editor.component.scss'
 })
@@ -90,7 +94,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
   @ViewChild("purchasedAt", { read: ElementRef }) purchase_date!: ElementRef;
   @ViewChild('raw_material_form') raw_material_form!: NgForm;
   @ViewChild('delete_confirmation') delete_confirmation!: ConfirmationDialogComponent;
-  @ViewChild('navigate_confirmation') navigate_confirmation!: ConfirmationDialogComponent;
+  @ViewChild('unsaved_changes_dialog') unsaved_changes_dialog!: UnsavedChangesDialogComponent;
   @ViewChild("btn_save", { read: ElementRef }) btn_save!: ElementRef;
   @ViewChild("price", { read: ElementRef }) price!: ElementRef;
   @ViewChild("currency") currency!: NgSelectComponent;
@@ -98,7 +102,15 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
   @ViewChild('quantityDialog') quantityDialog!: RawMaterialQuantityDialogComponent
   @ViewChild('history_dialog') history_dialog!: RawMaterialHistoryDialogComponent;
   
-  constructor(private rawMaterialsService: RawMaterialsService, private infoService: InfoService, private location: Location, private activatedRoute: ActivatedRoute, private router: Router, private toastService: ToastService) { 
+  constructor(
+    private rawMaterialsService: RawMaterialsService, 
+    private infoService: InfoService, 
+    private location: Location, 
+    private activatedRoute: ActivatedRoute, 
+    private router: Router,
+    private toastService: ToastService,
+    private stateService: StateService,
+    private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService) { 
     this.rawMaterialsService.getRawMaterialNames().subscribe({
       next: (names)=> {
         this.raw_material_names = names;
@@ -134,21 +146,14 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
   }
 
   hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
-    if(!this.raw_material_form.pristine) {
-      return new Promise((resolve) => {
-        this.confirmResult = null;
-        // Ensure this refers to the component's instance using an arrow function
-        this.navigate_confirmation.open();
-    
-        // Use arrow function to preserve `this` context
-        this.navigate_confirmation.confirm.subscribe((result: boolean) => {
-          this.confirmResult = result;
-          setTimeout(() => this.confirmResult = null, 0); 
-          resolve(result);
-        });
-      });
-    }
-    return true;
+    return this.unsavedNavigationConfirmationService.handle({
+      hasChanges: () =>
+        (!this.raw_material_form.pristine),
+
+      saveFn: () => this.rawMaterialsService.save(this.rawMaterialItem),
+
+      confirmationDialog: this.unsaved_changes_dialog
+    });
   }
 
   ngOnInit(): void {

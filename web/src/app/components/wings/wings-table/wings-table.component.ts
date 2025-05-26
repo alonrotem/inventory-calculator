@@ -8,6 +8,8 @@ import { Router, RouterModule } from '@angular/router';
 import { DecimalPipe, NgFor } from '@angular/common';
 import { FaIconComponent, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ToastService } from '../../../services/toast.service';
+import { StateService } from '../../../services/state.service';
+import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 
 @Component({
   selector: 'app-wings-table',
@@ -16,7 +18,7 @@ import { ToastService } from '../../../services/toast.service';
   templateUrl: './wings-table.component.html',
   styleUrl: './wings-table.component.scss'
 })
-export class WingsTableComponent implements OnInit {
+export class WingsTableComponent extends NavigatedMessageComponent implements OnInit {
 
   current_page = 1;
   rowsPerPage:number = 5;
@@ -28,25 +30,14 @@ export class WingsTableComponent implements OnInit {
   totalbabies: number = 0;
   
 
-  constructor(private wingsService: WingsService, private toastService: ToastService, private router: Router) {
-    let nav = this.router.getCurrentNavigation();
-    if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {
-      let info = nav.extras.state['info']['textInfo'];
-      let isError = nav.extras.state['info']['isError'];
-      if(isError)
-      {
-        this.toastService.showError(info);
-      }
-      else
-      {
-        this.toastService.showSuccess(info);
-      }
-      
-    }
-    else
-    {
-      //alert("empty");
-    }
+  constructor(
+    private wingsService: WingsService, 
+    router: Router, 
+    stateService: StateService,
+    toastService: ToastService  
+  ) {
+      super(toastService, stateService, router);
+      this.showNavigationToastIfMessagePending();
   }
 
   getWings (page: number){

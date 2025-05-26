@@ -7,14 +7,7 @@
     btnYesClass="btn-danger">
 </app-confirmation-dialog>
 
-<app-confirmation-dialog 
-    #navigate_confirmation 
-    modalTitle="Leaving so quickly?"
-    modalText="<strong>Your unsaved changed will be lost!</strong><br/>Are you sure you want to navigate away?"
-    [btnYesIcon]=faArrowLeft
-    btnYesText="Yes"
-    btnYesClass="btn-warning">
-</app-confirmation-dialog>
+<app-unsaved-changes-dialog #unsaved_changes_dialog></app-unsaved-changes-dialog>
 
 <app-raw-material-history-dialog #history_dialog />
 

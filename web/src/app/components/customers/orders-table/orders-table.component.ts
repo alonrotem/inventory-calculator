@@ -14,6 +14,8 @@ import { faArrowLeft, faArrowsRotate, faBasketShopping, IconDefinition } from '@
 import { OrdersService } from '../../../services/orders.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ToastService } from '../../../services/toast.service';
+import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
+import { StateService } from '../../../services/state.service';
 
 @Component({
   selector: 'app-orders-table',
@@ -22,7 +24,7 @@ import { ToastService } from '../../../services/toast.service';
   templateUrl: './orders-table.component.html',
   styleUrl: './orders-table.component.scss'
 })
-export class OrdersTableComponent implements OnInit {
+export class OrdersTableComponent extends NavigatedMessageComponent implements OnInit {
   current_page = 1;
   rowsPerPage:number = 5;
   orders: OrderListItem[] = [];
@@ -32,29 +34,19 @@ export class OrdersTableComponent implements OnInit {
   faArrowLeft: IconDefinition = faArrowLeft;
   loading: boolean = true;
   totalRecords: number = 0;
-  toastService = inject(ToastService);
   customer_id:number = 0;
   customer_name: string = '';
 
-  constructor(private ordersService: OrdersService, private modalService: NgbModal, private router: Router, private activatedRoute: ActivatedRoute) {
-      let nav = this.router.getCurrentNavigation();
-      if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {
-        let info = nav.extras.state['info']['textInfo'];
-        let isError = nav.extras.state['info']['isError'];
-        if(isError)
-        {
-          this.toastService.showError(info);
-        }
-        else
-        {
-          this.toastService.showSuccess(info);
-        }
-        
-      }
-      else
-      {
-        //alert("empty");
-      }
+  constructor(
+    private ordersService: OrdersService, 
+    private modalService: NgbModal, 
+    router: Router, 
+    stateService: StateService,
+    toastService: ToastService,
+    private activatedRoute: ActivatedRoute) {
+      let nav = router.getCurrentNavigation();
+      super(toastService, stateService, router);
+      this.showNavigationToastIfMessagePending();
 
       if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['customer_name']){
         this.customer_name = nav.extras.state['info']['customer_name'];

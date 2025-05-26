@@ -7,15 +7,7 @@
     btnYesClass="btn-danger">
 </app-confirmation-dialog>
 
-<app-confirmation-dialog 
-    #navigate_confirmation 
-    modalTitle="Leaving so quickly?"
-    modalText="<strong>Your unsaved changed will be lost!</strong><br/>Would you like to save our changes?"
-    [btnYesIcon]=faSave
-    btnYesText="Save changes and continue"
-    btnYesClass="btn-success"
-    btnNoText="Cancel">
-</app-confirmation-dialog>
+<app-unsaved-changes-dialog #unsaved_changes_dialog></app-unsaved-changes-dialog>
 
 <app-hats-calculator-dialog #hats_calculator />
 

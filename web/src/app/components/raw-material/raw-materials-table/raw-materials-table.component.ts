@@ -14,6 +14,8 @@ import { FormsModule } from '@angular/forms';
 import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { ToastComponent } from '../../common/toast/toast.component';
 import { ToastService } from '../../../services/toast.service';
+import { StateService } from '../../../services/state.service';
+import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 
 @Component({
     selector: 'app-raw-materials-table',
@@ -27,27 +29,17 @@ import { ToastService } from '../../../services/toast.service';
     ]
 })
 
-export class RawMaterialsTableComponent implements OnInit {
+export class RawMaterialsTableComponent extends NavigatedMessageComponent implements OnInit {
   
-  constructor(private rawMaterialsService: RawMaterialsService, private modalService: NgbModal, private router: Router) {
-    let nav = this.router.getCurrentNavigation();
-    if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {
-      let info = nav.extras.state['info']['textInfo'];
-      let isError = nav.extras.state['info']['isError'];
-      if(isError)
-      {
-        this.toastService.showError(info);
-      }
-      else
-      {
-        this.toastService.showSuccess(info);
-      }
-      
-    }
-    else
-    {
-      //alert("empty");
-    }
+  constructor(
+    private rawMaterialsService: RawMaterialsService, 
+    private modalService: NgbModal, 
+    router: Router, 
+    stateService: StateService,
+    toastService: ToastService
+    ) {
+      super(toastService, stateService, router);
+      this.showNavigationToastIfMessagePending();
   }
   current_page = 1;
   rowsPerPage:number = 5;
@@ -58,7 +50,6 @@ export class RawMaterialsTableComponent implements OnInit {
   totalRecords: number = 0;
   
   selectedCar: number=1;
-  toastService = inject(ToastService);
 
   getRawMaterials(page: number){
     this.rawMaterialsService.getRawMaterials({ page: page, perPage:this.rowsPerPage }).subscribe(
