@@ -16,7 +16,7 @@ const upload = multer({ storage: storage });
 
 router.get('/zip', async function(req, res, next) {
   try {
-    logger.info(`get /backup/zip/filename=${filename}&keep_existing_records=${req.query.keep_existing_records}`);
+    logger.info(`get /backup/zip/filename=${req.query.filename}&keep_existing_records=${req.query.keep_existing_records}`);
 
     let backup_file_name = (req.query.filename)? req.query.filename : helper.dateStr(new Date()) + "-db-backup.zip";
     if(!backup_file_name.endsWith(".zip")){
