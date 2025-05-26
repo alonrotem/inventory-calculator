@@ -2,7 +2,7 @@ const db = require('./db');
 const helper = require('../helper');
 const transaction_history = require('./transaction_history');
 const { raw } = require('mysql2');
-const logger = require('../logger');
+const { logger } = require('../logger');
 
 async function getSingle(id){
   const rows = await db.query(
@@ -87,6 +87,7 @@ async function getNames(){
 
 async function save(customer){
   //console.dir(customer);
+  // logger.info("transaction start 1");
   let connection = await db.trasnaction_start();
   try {
     const isNew = customer.id <= 0;
@@ -133,6 +134,7 @@ async function delete_all_customer_banks(where_rule, force=false, active_connect
   //check if there is an active connection called from another function, or this call is a standalone
   let self_executing = false;
   if(!active_connection) {
+    // logger.info("transaction start 2");
     active_connection = await db.trasnaction_start();
     self_executing = true;
   }
@@ -186,6 +188,7 @@ async function save_customer_bank (customer, bank_id, active_connection){
   //check if there is an active connection called from another function, or this call is a standalone
   let self_executing = false;
   if(!active_connection) {
+    // logger.info("transaction start 3");
     active_connection = await db.trasnaction_start();
     self_executing = true;
   }
@@ -380,10 +383,11 @@ async function save_customer_bank (customer, bank_id, active_connection){
   }    
 }
 
-async function sync_customer_banks(customer, active_connection=null){
+async function sync_customer_banks(customer, active_connection){
   //check if there is an active connection called from another function, or this call is a standalone
   let self_executing = false;
   if(!active_connection) {
+    // logger.info("transaction start 4");
     active_connection = await db.trasnaction_start();
     self_executing = true;
   }
@@ -407,7 +411,7 @@ async function sync_customer_banks(customer, active_connection=null){
       }
     }
     for(bank of customer.banks){
-      await save_customer_bank(customer, bank.id);
+      await save_customer_bank(customer, bank.id, active_connection);
     }
     //await customer.banks.forEach(b => save_customer_bank(customer, b.id));
     //existing_banks.forEach(b => save_customer_bank(customer, b.id));
@@ -445,6 +449,7 @@ async function remove(id, active_connection=null){
   //check if there is an active connection called from another function, or this call is a standalone
   let self_executing = false;
   if(!active_connection) {
+    // logger.info("transaction start 5");
     active_connection = await db.trasnaction_start();
     self_executing = true;
   }
@@ -494,6 +499,7 @@ async function sync_banks_for_raw_material(banks, raw_material_id, active_connec
     //check if there is an active connection called from another function, or this call is a standalone
     let self_executing = false;
     if(!active_connection) {
+      // logger.info("transaction start 6");
       active_connection = await db.trasnaction_start();
       self_executing = true;
     }
@@ -646,6 +652,7 @@ async function moveBabiesToOrder(
   //check if there is an active connection called from another function, or this call is a standalone
   let self_executing = false;
   if(!active_connection) {
+    // logger.info("transaction start 7");
     active_connection = await db.trasnaction_start();
     self_executing = true;
   }

@@ -9,6 +9,7 @@
 # select * from raw_materials;
 
 FROM mysql:latest
+# FROM mysql:8.0.37 # dev env
 
 #RUN apt-install update && apt-install -y mysql-client
 ENV MYSQL_USER=youruser
