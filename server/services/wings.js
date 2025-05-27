@@ -115,7 +115,7 @@ async function save(wing, active_connection=null){
     const wings_by_name = await db.query(`select * from wings where name=(?)`, [wing.name]);
     const rec = helper.emptyOrSingle(wings_by_name);
     if(rec && rec['name'] &&rec['name'].toUpperCase() == wing.name.toUpperCase() && (wing.id <= 0 || wing.id != rec['id'])){
-      throw(`A wing with the name ${wing.name} already exists`);
+      throw new Error(`A wing with the name ${wing.name} already exists`);
     }
 
     //if this is a new wing, all babies should be saved as new too (for example, duplicated for a customer)

@@ -27,6 +27,7 @@ export class SystemLogsComponent implements OnInit, AfterViewInit {
   preview_filename: string = "Log preview";
   preview_filesize: number = 0;
   preview_loading: boolean = false;
+  previewing: boolean = false;
   log_content: string[] = [];
   pending_clear_file: string = "";
   @ViewChild("confirm_delete_logs") confirm_delete_logs!: ConfirmationDialogComponent;
@@ -46,6 +47,9 @@ export class SystemLogsComponent implements OnInit, AfterViewInit {
       else {
         this.deleteAllLogs_confirm();
       }
+    });
+    this.log_preview.cancel.subscribe(() => {
+      this.previewing = false;
     });
   }
 
@@ -89,6 +93,7 @@ export class SystemLogsComponent implements OnInit, AfterViewInit {
 
   viewLogFile(logfilename: string, size: number) {
     this.load_preview(logfilename, size);
+    this.previewing = true;
     this.log_preview.open();
   }
 
@@ -147,6 +152,9 @@ export class SystemLogsComponent implements OnInit, AfterViewInit {
           this.logFiles = logs.sort((f1, f2) => { return new Date(f2.date).getTime() - new Date(f1.date).getTime() });
           this.loading = false;
           this.pending_clear_file = "";
+          if(this.previewing) {
+            this.load_preview(logfilename, this.preview_filesize);
+          }
         },
         error: (err: any) => {
           this.toastService.showError("Failed to load log files");

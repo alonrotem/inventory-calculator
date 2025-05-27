@@ -19,6 +19,12 @@
       <div>
         <button class="btn btn-secondary" (click)="load_preview(preview_filename, preview_filesize)"><fa-icon [icon]="faArrowsRotate"></fa-icon></button>
       </div>
+      <div>
+        <button class="btn btn-secondary" (click)="downloadLogFile(preview_filename)"><span class="icon-save"></span></button>
+      </div>  
+      <div>
+        <button class="btn btn-secondary" (click)="clearLogFile(preview_filename)"><span class="icon-bin"></span></button>
+      </div>           
       <div *ngIf="preview_loading" class="loading_preview text-info">* Loading...</div>
     </div>
     <div class="log-preview">
@@ -63,9 +69,9 @@
         <tbody>
           <tr 
             *ngFor="let log of this.logFiles" role="button">
-            <td>{{ log.filename }}</td>
-            <td>{{ log.size | filesize}}</td>
-            <td class="text-center">{{ log.date  | dateStr }}</td>
+            <td (click)="viewLogFile(log.filename, log.size)">{{ log.filename }}</td>
+            <td (click)="viewLogFile(log.filename, log.size)">{{ log.size | filesize}}</td>
+            <td (click)="viewLogFile(log.filename, log.size)" class="text-center">{{ log.date  | dateStr }}</td>
             <td (click)="viewLogFile(log.filename, log.size)"><span class="icon-eye"></span></td>
             <td (click)="downloadLogFile(log.filename)"><span class="icon-save"></span></td>
             <td (click)="clearLogFile(log.filename)"><span class="icon-bin"></span></td>
