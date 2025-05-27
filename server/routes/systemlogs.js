@@ -20,15 +20,18 @@ router.get('/', async function(req, res, next) {
 });
 
 router.get('/getlog/:filename', function(req, res){
+    let host = req.headers.host.split(":")[0];
     const filename = req.params.filename;
-    const filepath = path.join(logFilesPath, req.params.filename);
+    const filepath = path.join(logFilesPath, filename);
+    const downloadfile = path.parse(filename);
+    const downloadfilename = `${downloadfile.name}-${host}${downloadfile.ext}`
 
     if (fs.existsSync(filepath)) {
         logger.info(`get /getlog/${filename}`);
-        res.setHeader('Content-disposition', 'attachment; filename=' + filename);
+        res.setHeader('Content-disposition', 'attachment; filename=' + downloadfilename);
         res.setHeader('Content-type', 'text/plain');
         res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
-        res.download(filepath);
+        res.download(filepath, downloadfilename);
     }
     else {
         res.status(404).json({ message: `Log file "${filename}" not found` });
@@ -37,7 +40,8 @@ router.get('/getlog/:filename', function(req, res){
 });
 
 router.get('/getall/', async function(req, res){
-    let logs_archive_file_name = helper.dateStr(new Date()) + "-logs.zip";
+    let host = req.headers.host.split(":")[0];
+    let logs_archive_file_name = helper.dateStr(new Date()) + `-${host}-logs.zip`;
     const zipBuffer = await systemlogs.getAllFilesZipped();
     if(zipBuffer){
         res.setHeader('Content-disposition', 'attachment; filename=' + logs_archive_file_name);

@@ -17,8 +17,8 @@ const upload = multer({ storage: storage });
 router.get('/zip', async function(req, res, next) {
   try {
     logger.info(`get /backup/zip/filename=${req.query.filename}&keep_existing_records=${req.query.keep_existing_records}`);
-
-    let backup_file_name = (req.query.filename)? req.query.filename : helper.dateStr(new Date()) + "-db-backup.zip";
+    let host = req.headers.host.split(":")[0];
+    let backup_file_name = (req.query.filename)? req.query.filename : helper.dateStr(new Date()) + `-${host}-db-backup.zip`;
     if(!backup_file_name.endsWith(".zip")){
       backup_file_name += ".zip";
     }
@@ -27,7 +27,7 @@ router.get('/zip', async function(req, res, next) {
 
     const zip = new JSZip();
     zip.file('backup.sql', inserts);
-    zip.file('hostname.txt', req.headers.host); //check if we are on prod or dev
+    zip.file('hostname.txt', host); //check if we are on prod or dev
 
     const fileList = fs.readdirSync(config.hatsUploadDir);
     fileList.forEach((file) => {
