@@ -180,6 +180,7 @@
     <div class="row">
         <div class="col col-12 banks-container">
             <app-raw-material-customer-table 
+                #customer_table
                 [banks]="rawMaterialItem.customer_banks"
                 [parent_raw_material]="rawMaterialItem"
                 (banksChanged)="recalculateRemaining()"
@@ -191,7 +192,7 @@
             <div class="col-12 d-flex justify-content-center {{ this.is_new_material? 'col-md-6':'col-md-4' }}">
                 <button class="btn btn-warning" (click)="gotoMaterialsList()">
                     <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>
-                    <div>Cancel Chages</div>
+                    <div>Back</div>
                 </button>
             </div>
             <div class="col-12 d-flex justify-content-center {{ this.is_new_material? 'col-md-6':'col-md-4' }}">

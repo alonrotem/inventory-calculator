@@ -14,7 +14,7 @@ import { RawMaterialQuantityDialogComponent } from '../raw-material-quantity-dia
   selector: 'app-raw-material-customer-table',
   standalone: true,
   imports: [
-    FaIconComponent, RouterModule, NgFor, 
+    FaIconComponent, RouterModule, NgFor, NgIf,
     ConfirmationDialogComponent, 
     RawMaterialCustomerDialogComponent, RawMaterialQuantityDialogComponent ],
   templateUrl: './raw-material-customer-table.component.html',
@@ -36,6 +36,7 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   @Input() banks: RawMaterialCustomerBank[] = [];
   @Input() parent_raw_material: RawMaterial | null = null;
   @Output() banksChanged: EventEmitter<void> = new EventEmitter();
+  @Output() unsaved_changes: boolean = false;
 
   pending_delete_index:number = -1;
   banks_summary_string = "";
@@ -56,6 +57,7 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
       this.pending_delete_index = -1;
       this.recalculateSums();
       this.banksChanged.emit();
+      this.unsaved_changes = true;
     });
 
     this.delete_confirmation.cancel.subscribe(() => {
@@ -76,7 +78,8 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
       }
       this.topped_up_bank = null;
       this.recalculateSums();
-      this.banksChanged.emit();      
+      this.banksChanged.emit();
+      this.unsaved_changes = true;
     });
   }
 
@@ -166,6 +169,7 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
     this.banks.sort((a, b) => { return (a.name.toUpperCase() < b.name.toUpperCase())?-1:1; });
     this.recalculateSums();
     this.banksChanged.emit();
+    this.unsaved_changes = true;
   }
 
   top_up(bank :RawMaterialCustomerBank) {

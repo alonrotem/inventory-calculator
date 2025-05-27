@@ -21,7 +21,10 @@
 
 <app-raw-material-quantity-dialog #top_up_dialog />
 
-<h4><fa-icon [icon]="faMoneyCheckDollar"></fa-icon> Customer banks</h4>
+<div class="d-flex flex-row align-items-center">
+  <h4><fa-icon [icon]="faMoneyCheckDollar"></fa-icon> Customer banks</h4>
+  <div *ngIf="unsaved_changes" class="text-danger" style="margin-left: 15px;">* Unsaved changes</div>
+</div>
 
 <div>
  <div class="addbtn_container">

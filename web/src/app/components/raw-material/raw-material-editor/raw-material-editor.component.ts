@@ -101,6 +101,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
   @ViewChild("tooltip", { read: ElementRef }) tooltip!: ElementRef;
   @ViewChild('quantityDialog') quantityDialog!: RawMaterialQuantityDialogComponent
   @ViewChild('history_dialog') history_dialog!: RawMaterialHistoryDialogComponent;
+  @ViewChild('customer_table') customer_table!: RawMaterialCustomerTableComponent;
   
   constructor(
     private rawMaterialsService: RawMaterialsService, 
@@ -148,7 +149,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
   hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
     return this.unsavedNavigationConfirmationService.handle({
       hasChanges: () =>
-        (!this.raw_material_form.pristine),
+        (!this.raw_material_form.pristine || this.customer_table.unsaved_changes),
 
       saveFn: () => this.rawMaterialsService.save(this.rawMaterialItem),
 
