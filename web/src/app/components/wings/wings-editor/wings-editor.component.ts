@@ -221,7 +221,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
         },
         error:(error) => { 
           this.btn_save.nativeElement.classList.remove("disabled");  
-          console.dir(error); 
+          //console.dir(error); 
           this.toastService.showError(error.error["message"]); }
       }
     );

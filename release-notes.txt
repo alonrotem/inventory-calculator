@@ -6,14 +6,6 @@
     * Show remaining babies column in calculation table, and next to the diagram
     * Allow creating custom wing based on the one displayed, and modified
     * Allow editing allocation from the calculator
-
-TODO
-* Loading screens for info pages
-* View/edit modes
-* Clear the calculator on open
-* Add Remaining column to the calculation table
-* Warn before saving a hat/wing with an existing name
-* Calculator:
     * Save hat to customer
     * Order button saves an order and reduces allocation quantities
 * Warn before opening hats calculator, or before leaving the customer page if all changes are not saved first
@@ -21,5 +13,30 @@ TODO
 * Babies popup: Save & next
 * Babies popup: remove the Saved toster (since it's not saved yet)
 * Bug: adding babies with existing length doesn't merge the babies in the table (customer)
+
+[x] Hats calculator as a page
+[x] Placing an order:
+    [x] Warn the user
+    [x] Reduce in allocations
+    [x] Save allocations and order
+[ ] Reset and clean up
+[x] When making an order, reset the wing id and name for the next oreders
+
+[x] Order list
+[x] Navigate back to customer
+[x] Making a change in a bank from hats calculator prompts to save changes
+[ ] Order details screen
+[x] Calculation advisor
+[x] Do not allow deleting/moving/reducing an allocation which is part of an order
+[x] Don't allow to reduce babies quantity in bank below used in orders
+
+BUGS
+[x] Duplicate wing names should not be allowed
+[x] Unsaved changes dialog should have an option to [Save and continue] [Discard changes and continue] [Stay on page]
+[x] Put the Unsaved changes dialog + stateService on other pages
+
+TODO
+* View/edit modes
+* Clear the calculator on open
 * Bug: allocation edit screen: if you type the number that fills the allocation, the remaining appears negative and not 0
 
