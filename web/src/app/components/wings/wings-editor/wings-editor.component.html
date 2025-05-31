@@ -49,15 +49,21 @@
         </div>
         <div class="row">
             <div class="col">
+                <div class="d-flex align-items-center">
+                    <span class="icon-knife" style="font-size: 30px; margin-right: 10px;"></span> Select the knife for this wing:
+                </div>
                 <app-babies-length-picker
                     #wing_width
                     [show_invalid_message]="false"
-                    [title]="'Select the width of this wing:'"
-                    [(length)]="wing.width"
+                    [title]="''"
+                    [(length)]="wing.knife"
                     [min_length]=4
                     [max_length]=12.5
                     (lengthChange)="babies_length_clicked()"
                  />
+                 <div class="d-flex align-items-center" style="margin-top:15px;">
+                    <span class="icon-wing-size" style="font-size: 40px; margin-right: 15px;"></span>Total wing height: {{ total_wing_height | number : '1.1-1' }} cm
+                 </div>
             </div>
         </div>
         <div class="row">
@@ -68,7 +74,7 @@
                         [rights]="this.wing.babies | prefix: 'R' : true"
                         [top_length]="this.wing.babies | prefix: 'TOP' : true"
                         [crown]="this.wing.babies | prefix: 'C' : true"
-                        [width]="wing.width"
+                        [knife]="wing.knife"
                         (babyClicked)="this.diagram_babyClicked($event)"
                         [scale]="1"
                  />
@@ -81,7 +87,7 @@
                             [rights]="this.wing.babies | prefix: 'R' : true"
                             [top_length]="this.wing.babies | prefix: 'TOP' : true"
                             [crown]="this.wing.babies | prefix: 'C' : true"
-                            [width]="wing.width"
+                            [knife]="wing.knife"
                             [scale]=".3"
                             [show_tooltips]="false"
                             [highlight_mouseover_baby]="false"

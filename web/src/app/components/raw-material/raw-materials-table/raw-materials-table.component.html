@@ -28,7 +28,10 @@
         *ngFor="let rawMaterial of this.rawMaterials" 
         routerLink="/inventory/raw/editor" 
         [queryParams]="{ id: rawMaterial.id }" role="button">
-        <td>{{ rawMaterial.name }}</td>
+        <td>
+          <span [className]="'color color-' + rawMaterial.color.toLowerCase().replace(' ', '-')"></span>
+          {{ rawMaterial.name }} - {{ rawMaterial.color }}
+        </td>
         <td>{{ rawMaterial.purchased_at | dateStr }}</td>
         <td>
           {{ rawMaterial.purchase_quantity }} {{ rawMaterial.quantity_units }} ({{rawMaterial.remaining_quantity}} left)

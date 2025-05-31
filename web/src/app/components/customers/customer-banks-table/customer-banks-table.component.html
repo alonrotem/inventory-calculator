@@ -56,7 +56,8 @@
               role="button"
               routerLink="/inventory/raw/editor" [queryParams]="{ id: bank.raw_material_id }">
               <span class="icon-leaf" style="margin-right: 10px;"></span>
-              Raw Material Bank: {{ bank.raw_material_name }}
+              Raw Material Bank: {{ bank.raw_material_name }} - {{ bank.raw_material_color }}
+              <span [className]="'color color-' + bank.raw_material_color.toLowerCase().replace(' ', '-')"></span>
           </span>
         </h5>
         <span *ngIf="unsaved_changes" class="text-danger" style="margin-left: 10px;">* Unsaved changes</span>

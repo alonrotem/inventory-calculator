@@ -47,7 +47,8 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     updated_by: 0,
     banks: [],
     banks_baby_allocations: [],
-    babies: []
+    babies: [],
+    customer_code: ''
   }
 
   title: string = "Create Customer";
@@ -95,53 +96,6 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
       confirmationDialog: this.unsaved_changes_dialog
     });
   }
-
-
-  
-/*
-  hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
-    const banksUnsaved = this.customer_banks_tables.find(t => t.unsaved_changes);
-  
-    if (!this.customer_form.pristine || banksUnsaved) {
-      // Wrap the confirmation and follow-up call in a single Observable
-      return new Observable<boolean>((observer) => {
-        this.confirmResult = null;
-        this.navigate_confirmation.open();
-  
-        const sub = this.navigate_confirmation.confirm
-          .pipe(first()) // take the first result only
-          .subscribe((confirmed: boolean) => {
-            this.confirmResult = confirmed;
-            setTimeout(() => this.confirmResult = null, 0);
-  
-            if (confirmed) {
-              // 👇 call your HTTP service here
-              this.customersService.saveCustomer(this.customerItem).subscribe({
-                next: (serviceResult) => {
-                  console.dir(serviceResult);
-                  this.stateService.setState({ message: serviceResult.message, isError: false });
-                  observer.next(serviceResult);
-                  observer.complete();
-                },
-                error: () => {
-                  this.stateService.setState({ message: "Error saving customer data", isError: true });
-                  observer.next(false);
-                  observer.complete();
-                }
-              });
-            } else {
-              observer.next(false);
-              observer.complete();
-            }
-          });
-  
-        // Optional: clean up subscription if needed
-        return () => sub.unsubscribe();
-      });
-    }
-    return true;
-  }
-*/
 
   ngOnInit(): void {
     this.is_new_customer = !this.activatedRoute.snapshot.queryParamMap.has('id');
@@ -259,6 +213,7 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     this.customersService.saveCustomer(this.customerItem).subscribe(
     {
       next:(data) => { 
+        this.customer_form.form.markAsPristine();
         this.customer_banks_tables.forEach(b => { b.unsaved_changes = false });
         this.btn_save.nativeElement.classList.remove("disabled"); this.gotoCustomersList(data['message'], false); },//this.getRawMaterials(this.current_page); },
       error:(error) => { 

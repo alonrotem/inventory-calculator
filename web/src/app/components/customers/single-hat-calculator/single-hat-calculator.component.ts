@@ -2,15 +2,14 @@ import { AfterViewInit, Component, Input, OnInit, viewChild, ViewChild } from '@
 import { FormsModule } from '@angular/forms';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { WingsService } from '../../../services/wings.service';
-import { Baby, Customer, Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, CustomerHat, nameIdPair, Status, Wing, WingBaby, WingsListItem } from '../../../../types';
+import { Customer, Customer_Bank_Baby_Allocation, CustomerHat, RawMaterialNameColor, Status, Wing, WingBaby, WingsListItem } from '../../../../types';
 import { DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { WingDiagramComponent } from '../../wings/wing-diagram/wing-diagram.component';
 import { PrefixPipe } from '../../../utils/pipes/prefix-pipe';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
-import { environment } from '../../../../environments/environment';
 import { Lightbox, LightboxModule } from 'ngx-lightbox';
 import { GlobalsService } from '../../../services/globals.service';
-import { faArrowLeft, faArrowsRotate, faBasketShopping, faChartPie, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faArrowsRotate, faBasketShopping, faChartPie, faRecordVinyl, faRuler, faScissors, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { AllocationPickerComponent } from '../allocation-picker/allocation-picker.component';
 import { StartsWithPipe } from '../../../utils/pipes/starts-with-pipe';
@@ -63,21 +62,22 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
 
   wings: WingsListItem[] = []; //populating the list of wings to select
-  raw_material_names: string[] = []; //populating the raw material selectors
+  raw_material_names: RawMaterialNameColor[] = []; //populating the raw material selectors
 
   //the current customer object
   @Input() customer: Customer = {
-    id: 0, name: '', business_name: '', email: '', phone: '',  tax_id: '', 
-    created_at: new Date(), updated_at: new Date(),  created_by: 0, updated_by: 0, 
-    banks: [], banks_baby_allocations: [], babies: []
+    id: 0, name: '', business_name: '', email: '', phone: '', tax_id: '',
+    created_at: new Date(), updated_at: new Date(), created_by: 0, updated_by: 0,
+    banks: [], banks_baby_allocations: [], babies: [],
+    customer_code: ''
   };
 
   //wing representations:
   //the original wing loaded from the DB
   customerHat: CustomerHat = {
     id: 0,
-    hat_material: '',
-    crown_material: '',
+    hat_material_id: null,
+    crown_material_id: null,
     wing_quantity: 44,
     customer_id: this.customer.id,
     shorten_top_by: 0,
@@ -99,14 +99,53 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   is_wing_customized: boolean = false;
   faArrowsRotate: IconDefinition = faArrowsRotate;
   faArrowLeft: IconDefinition = faArrowLeft;
+  faBasketShopping:IconDefinition = faBasketShopping;
+  faScissors:IconDefinition = faScissors;
+  faRecordVinyl:IconDefinition = faRecordVinyl;
+  faRuler:IconDefinition = faRuler;
 
   summary_table_instructions: string = "";
   hat_babies: aggregated_babies[] = []; //containing aggregated babies with length, quantity and num of hats
   crown_babies: aggregated_babies[] = []; //crown_babies are used only if the allocations are split between hat and crown
 
   order_amount: number = -1;
-  faBasketShopping:IconDefinition = faBasketShopping;
+  
   selected_wing_name:string = "";
+
+  min_knife:number = 4;
+  max_knife:number = 12.5;
+  knife_steps: number = 0.5;
+  arr_knives: number[] = Array(
+    (this.max_knife - this.min_knife)*2+1)
+    .fill(this.min_knife)
+    .map((_,i) => _ + i * this.knife_steps);
+  wing_knife: number = 0;
+  
+  min_wing_total_height:number = 15;
+  max_wing_total_height:number = 30;
+  wing_height_steps: number = 0.5;
+  arr_wing_total_height: number[] = Array(
+    (this.max_wing_total_height - this.min_wing_total_height)*2+1)
+    .fill(this.min_wing_total_height)
+    .map((_,i) => _ + i * this.wing_height_steps);
+  wing_total_height: number = 0;
+
+  min_height_for_wing:number = 0;
+  max_height_for_wing:number = 0;
+
+  min_kippa:number = 55;
+  max_kippa:number = 60;
+  kippa_steps: number = 0.5;
+  arr_kippa: number[] = Array(
+    (this.max_kippa - this.min_kippa)*2+1)
+    .fill(this.min_kippa)
+    .map((_,i) => _ + i * this.kippa_steps);
+  hat_kippa: number = this.min_kippa;
+  inch_to_cm: number = 2.54;
+
+  arr_mayler: number[] = [0.15, 0.17, 0.2];
+  hat_mayler = 0.17;
+
   //==================== old stuff below====================
 
   //server_url: string = environment.serverUrl;
@@ -224,21 +263,25 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         this.customer = customer;
         this.customerHat.customer_id = this.customer.id;
 
-        this.rawMaterialsService.getRawMaterialNames(id).subscribe({
+        this.rawMaterialsService.getRawMaterialNamesColors(id).subscribe({
           next: (names)=> {
             this.raw_material_names = names;
-          }
-        });          
 
         let hat_material = this.activatedRoute.snapshot.queryParamMap.get('w_mat');
         if(hat_material) {
-          this.customerHat.hat_material = hat_material;
-          this.wall_material_changed(hat_material);
+          this.customerHat.hat_material_id = Number(hat_material);
+          let material_rec = this.raw_material_names.find(m => m.id == this.customerHat.hat_material_id);
+          if(material_rec) {
+            this.wall_material_changed(material_rec);
+          }
         }
         let crown_material = this.activatedRoute.snapshot.queryParamMap.get('c_mat');
         if(crown_material) {
-          this.customerHat.crown_material = crown_material;
-          this.crown_material_changed(crown_material);
+          this.customerHat.crown_material_id = Number(crown_material);
+          let material_rec = this.raw_material_names.find(m => m.id == this.customerHat.hat_material_id);
+          if(material_rec) {
+            this.crown_material_changed(material_rec);
+          }
         }
         let hat_allocation = Number(this.activatedRoute.snapshot.queryParamMap.get('w_aloc'));
         if(hat_allocation) {
@@ -261,7 +304,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         if(shorten_top || shorten_crown) {
           this.margins_changed();
         }
-      },
+      }})},
       error: (error) => {
         console.log(error);
       }
@@ -319,7 +362,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       if(this.pending_allocation_area_selection == "wall") {
         this.wall_alocation = alloc;
         this.wall_allocation_units = bank? bank.raw_material_quantity_units : "";
-        if(this.customerHat.crown_material == this.customerHat.hat_material && !this.crown_allocation){
+        if(this.customerHat.crown_material_id == this.customerHat.hat_material_id /* && !this.crown_allocation*/){
           this.crown_allocation = alloc;
           this.crown_allocation_units = bank? bank.raw_material_quantity_units : "";
           this.customerHat.crown_allocation_id = alloc_id;
@@ -359,7 +402,6 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   }
 
   wing_selected(selectedWingId:number | null) {
-    this.console.dir(selectedWingId);
     this.hat_babies = [];
     if(selectedWingId) {
       this.wingsService.getWing(selectedWingId).subscribe((w:Wing) => {
@@ -378,55 +420,69 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         this.aggregateHatBabiesAndMatchingAllocations();
         this.update_table_instructions();
         this.order_amount = this.total_num_of_possible_hats;
+        this.recalculate_hat_size();
       });
     }
   }
-  wall_material_changed(value:string){
-    this.customerHat.hat_material = value;
-    if (this.customerHat.crown_material == "") { 
-      this.customerHat.crown_material = value;
-    }
+
+  wing_cleared(){
+    this.customerHat.wing = null;
+  }
+
+  wall_material_changed(material: RawMaterialNameColor){
+    if(!material)
+      return;
+    this.customerHat.hat_material_id = material.id;
+    //if (this.customerHat.crown_material == "") { 
+    this.customerHat.crown_material_id = material.id;
+    //}
     this.update_table_instructions();
     this.reload_allocations();
   }
 
   wall_material_cleared(){
-    this.customerHat.hat_material = "";
+    this.customerHat.hat_material_id = null;
+    this.customerHat.crown_material_id = null;
     this.update_table_instructions();
     this.reload_allocations();
   }
 
-  crown_material_changed(value:string){
-    this.customerHat.crown_material = value;
+  crown_material_changed(material: RawMaterialNameColor){
+    if(!material)
+      return;
+    this.customerHat.crown_material_id = material.id;
+    //if (this.customerHat.crown_material == "") { 
+    this.customerHat.crown_material_id = material.id;
+    //}
     this.update_table_instructions();
     this.reload_allocations();
   }
   
   crown_material_cleared(){
-    this.customerHat.crown_material = "";
+    this.customerHat.crown_material_id = null;
     this.update_table_instructions();
     this.reload_allocations();
   }
 
   reload_allocations(){
-    this.console.dir(this.customer.banks);
-    let banks_with_wall_materials = this.customer.banks.filter(b => b.raw_material_name == this.customerHat.hat_material).map(b => b.id);
-    let banks_with_crown_materials = this.customer.banks.filter(b => b.raw_material_name == this.customerHat.crown_material).map(b => b.id);
+    let banks_with_wall_materials = this.customer.banks.filter(b => b.raw_material_id == this.customerHat.hat_material_id).map(b => b.id);
+    let banks_with_crown_materials = this.customer.banks.filter(b => b.raw_material_id == this.customerHat.crown_material_id).map(b => b.id);
     this.num_of_allocations_with_wall_material = this.customer.banks_baby_allocations.filter(a => banks_with_wall_materials.indexOf(a.customer_bank_id) >= 0).length;
     this.num_of_allocations_with_crown_material = this.customer.banks_baby_allocations.filter(a => banks_with_crown_materials.indexOf(a.customer_bank_id) >= 0).length;
     this.update_table_instructions();
   }
 
-  open_material_allocation_picker(materialFilter: string, area: string){
+  open_material_allocation_picker(materialFilter: number | null, area: string){
+    if(materialFilter) {
     this.allocation_picker.dialogWrapper.modalTitle = "Pick allocation";
-    this.allocation_picker.banks = this.customer.banks.filter(bank => (materialFilter)? bank.raw_material_name == materialFilter : true);
+    this.allocation_picker.banks = this.customer.banks.filter(bank => (materialFilter)? bank.raw_material_id == materialFilter : true);
     this.allocation_picker.banks_baby_allocations = this.customer.banks_baby_allocations;
     this.allocation_picker.babies = this.customer.babies;
     this.allocation_picker.customer = this.customer;
     this.allocation_picker.wing_id = (this.selected_wing_id)?? 0;
-    this.console.log("oopening picker with ID " + this.allocation_picker.wing_id);
     this.pending_allocation_area_selection = area;
     this.allocation_picker.dialogWrapper.open();
+    }
   }
 
   diagram_baby_clicked(baby_position:string){
@@ -444,6 +500,62 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
   modal_length_Changed(wing_baby: WingBaby){
   }
+
+  /*
+  wing loaded -> the knife is set -> calculate total height: knife + L1 + C1
+    Limit the total height:
+      total height - (L1 + C1) >= 4
+      total height >= 4 + L1 + C1
+
+      total height - (L1 + C1) <= 12.5
+      total height <= 12.5 +  + L1 + C1
+
+  Knife changed -> calculate total height: knife + L1 + C1
+
+  Total height changed -> calculate knife: total height - (L1 + C1)
+  */
+
+  knife_changed(new_knife: string){
+    if(this.customerHat && this.customerHat.wing){
+      this.wing_knife = Number(new_knife);
+      this.customerHat.wing.knife = this.wing_knife;
+
+      this.recalculate_hat_size();
+    }
+  }
+
+  recalculate_hat_size(){
+    this.wing_total_height = (this.customerHat.wing)?this.customerHat.wing.knife : 0;
+    if(this.customerHat && this.customerHat.wing){
+      if(this.customerHat.wing.babies){
+        const L1 = this.customerHat.wing.babies.find(b => b.position.toUpperCase() == "L1");
+        const C1 = this.customerHat.wing.babies.find(b => b.position.toUpperCase() == "C1");
+        const L1_len = (L1) ? L1.length : 0;
+        const C1_len = (C1) ? C1.length : 0;
+        this.wing_total_height += (L1_len + C1_len);
+        this.min_height_for_wing = (this.min_knife + L1_len + C1_len);
+        this.max_height_for_wing = (this.max_knife + L1_len + C1_len);
+      }
+    }
+  }  
+
+  height_changed(new_height: string){
+    if(this.customerHat && this.customerHat.wing){
+      //this.customerHat.wing.knife = Number(new_height);
+      this.wing_knife = Number(new_height);
+
+      if(this.customerHat.wing.babies){
+        const L1 = this.customerHat.wing.babies.find(b => b.position.toUpperCase() == "L1");
+        const C1 = this.customerHat.wing.babies.find(b => b.position.toUpperCase() == "C1");
+        const L1_len = (L1) ? L1.length : 0;
+        const C1_len = (C1) ? C1.length : 0;
+        this.wing_knife -= (L1_len + C1_len);
+        this.customerHat.wing.knife = this.wing_knife;
+      }
+    }
+  }
+
+
 
   check_for_wing_changes(): boolean{
     let changed = false;
@@ -470,6 +582,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.check_for_wing_changes();
     this.aggregateHatBabiesAndMatchingAllocations();
     this.order_amount = this.total_num_of_possible_hats;
+    this.recalculate_hat_size();
   }
 
   margins_changed() {
@@ -486,6 +599,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.check_for_wing_changes();
     this.aggregateHatBabiesAndMatchingAllocations();
     this.order_amount = this.total_num_of_possible_hats;
+    this.recalculate_hat_size();
   }
 
   confirm_reset(){
@@ -507,11 +621,11 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       this.summary_table_instructions = "Please select a wing";
     }
     else {
-      if(this.customerHat.hat_material == "") {
+      if(this.customerHat.hat_material_id == 0) {
         this.summary_table_instructions = "Please select the wall material";
       }
       else {
-        if(this.customerHat.crown_material == "") {
+        if(this.customerHat.crown_material_id == 0) {
           this.summary_table_instructions = "Please select the crown material";
         }
         else {
@@ -550,8 +664,6 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       {
         next:(data) => { 
           this.toastService.showSuccess(data["message"]);
-          this.console.dir(this.hat_babies);
-          this.console.dir(this.wall_alocation);
           this.customerHat.wing?.babies.forEach((hatBaby: WingBaby) => {
             let allocationBaby = hatBaby.position.toUpperCase().startsWith("C")?
               this.customer.babies.find(b => b.customer_banks_babies_id == this.crown_allocation?.id && b.length == hatBaby.length) : 

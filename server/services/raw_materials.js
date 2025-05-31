@@ -10,7 +10,7 @@ async function getSingle(id){
     const rows = await db.query(
       `SELECT  id, name, purchased_at, purchase_quantity, remaining_quantity, 
         quantity_units, units_per_kg, vendor_name, origin_country, price, 
-        currency, notes, created_at, updated_at, created_by, updated_by
+        currency, notes, color, created_at, updated_at, created_by, updated_by
       FROM raw_materials WHERE id=${id}`
     );
     const raw_material = helper.emptyOrSingle(rows);
@@ -36,7 +36,7 @@ async function getMultiple(page = 1, perPage){
   const rows = await db.query(
     `SELECT rms.id, rms.name, rms.purchased_at, rms.purchase_quantity, rms.remaining_quantity, 
         rms.quantity_units, rms.units_per_kg, rms.vendor_name, rms.origin_country, rms.price, 
-        rms.currency, rms.notes, rms.created_at, rms.updated_at, rms.created_by, rms.updated_by
+        rms.currency, rms.notes, rms.color, rms.created_at, rms.updated_at, rms.created_by, rms.updated_by
     FROM raw_materials rms
     ORDER BY rms.updated_at desc ${subset}`
     /*
@@ -71,16 +71,17 @@ async function getNames(for_customer_id){
 
   //get all material names in the system
   let query = `
-    select distinct name from raw_materials  
-    order by name;`;
+    select distinct id, name, color from raw_materials
+    order by name, color;`;
 
   //or get just ones which are in bank(s) of a specific customer
   if(for_customer_id && for_customer_id > 0){
     query = `
-      select distinct rm.name 
+      select distinct rm.id, name, color
         from raw_materials rm left join customer_banks cb 
         on rm.id = cb.raw_material_id 
-        where cb.customer_id=${for_customer_id};`;
+        where cb.customer_id=${for_customer_id} 
+        order by name, color;`;
   }
 
   const result = await db.query(query);
@@ -89,8 +90,15 @@ async function getNames(for_customer_id){
     select hat_material as name from hats union
     select crown_material as name from hats   
     */
-  const data = helper.emptyOrRows(result).map(material => material.name);
+  const data = helper.emptyOrRows(result);//.map(material => material.name);
   return (data);
+}
+
+async function getColors() {
+    let query = `select color from material_colors order by color;`;
+    const result = await db.query(query);
+    const data = helper.emptyOrRows(result).map(item => item.color);
+    return (data);
 }
 
 async function getQuantityUnitTypes() {
@@ -107,21 +115,32 @@ async function save_material(rawMaterial, active_connection=null){
     active_connection = await db.trasnaction_start();
     self_executing = true;
   }
-  try {  
+  try {
+    const material_by_name_and_color = await db.query(
+      `select * from raw_materials where name=(?) and color=(?)`, 
+      [rawMaterial.name, rawMaterial.color]);
+    const rec = helper.emptyOrSingle(material_by_name_and_color);
+    if(rec && 
+       rec['name'] &&rec['name'].toUpperCase() == rawMaterial.name.toUpperCase() && 
+       rec['color'] &&rec['color'].toUpperCase() == rawMaterial.color.toUpperCase() && 
+       (rawMaterial.id <= 0 || rawMaterial.id != rec['id'])){
+      throw new Error(`A material with the name ${rawMaterial.name} and color ${rawMaterial.color} already exists`);
+    }
+
     const isNew = rawMaterial.id <= 0;
 
     const result = await db.transaction_query(
       `INSERT INTO raw_materials 
       (id, name, purchased_at, purchase_quantity, remaining_quantity, 
         quantity_units, units_per_kg, vendor_name, origin_country, price, 
-        currency, notes, created_at, updated_at, created_by, updated_by) 
+        currency, notes, color, created_at, updated_at, created_by, updated_by) 
       VALUES 
-      ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?))
+      ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?))
       as new_raw_materials
       ON DUPLICATE KEY UPDATE
       name=new_raw_materials.name, purchase_quantity=new_raw_materials.purchase_quantity, remaining_quantity=new_raw_materials.remaining_quantity,
       quantity_units=new_raw_materials.quantity_units, units_per_kg=new_raw_materials.units_per_kg, vendor_name=new_raw_materials.vendor_name, 
-      origin_country=new_raw_materials.origin_country, price=new_raw_materials.price, currency=new_raw_materials.currency, created_by=new_raw_materials.created_by, updated_by=new_raw_materials.updated_by`,
+      origin_country=new_raw_materials.origin_country, price=new_raw_materials.price, currency=new_raw_materials.currency, color=new_raw_materials.color, created_by=new_raw_materials.created_by, updated_by=new_raw_materials.updated_by`,
       [
         rawMaterial.id, 
         rawMaterial.name, 
@@ -135,6 +154,7 @@ async function save_material(rawMaterial, active_connection=null){
         rawMaterial.price, 
         rawMaterial.currency, 
         rawMaterial.notes, 
+        rawMaterial.color,
         (isNew)? helper.nowDateStr(): helper.formatDate(rawMaterial.created_at), 
         helper.nowDateStr(), 
         rawMaterial.created_by, 
@@ -228,5 +248,6 @@ module.exports = {
     save_material,
     remove,
     getNames,
+    getColors,
     getQuantityUnitTypes
 }

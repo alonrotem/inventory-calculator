@@ -18,10 +18,11 @@ export class HatsCalculatorDialogComponent {
   @Input() banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
   @Input() babies: Customer_Baby[] = [];  
   @Input() customer: Customer = {
-      id: 0, name: '', business_name: '', email: '', phone: '',  tax_id: '', 
-      created_at: new Date(), updated_at: new Date(),  created_by: 0, updated_by: 0, 
-      banks: [], banks_baby_allocations: [], babies: []
-    };
+    id: 0, name: '', business_name: '', email: '', phone: '', tax_id: '',
+    created_at: new Date(), updated_at: new Date(), created_by: 0, updated_by: 0,
+    banks: [], banks_baby_allocations: [], babies: [],
+    customer_code: ''
+  };
   
   open() {
     /*

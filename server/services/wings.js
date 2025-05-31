@@ -6,7 +6,7 @@ const { logger } = require('../logger')
 
 async function getSingle(id){
     const rows = await db.query(
-      `select id, name, width from wings where id=${id}` //width 5 - 11
+      `select id, name, knife from wings where id=${id}` //width 5 - 11
     );
     const data = helper.emptyOrSingle(rows);
     if(!helper.isEmptyObj(data)) {
@@ -23,7 +23,7 @@ async function getSingle(id){
 
 async function getSingleWingByName(name){
   const rows = await db.query(
-    `select id, name, width from wings where name=(?)`, [name]
+    `select id, name, knife from wings where name=(?)`, [name]
   );
   const data = helper.emptyOrSingle(rows);
   //console.log(helper.isEmptyObj(data));
@@ -56,7 +56,7 @@ async function getMultiple(page = 1, perPage, customer_id){
   
   const rows = await db.query(
     `select 
-      w.id, w.name, w.width, ch.customer_id,
+      w.id, w.name, w.knife, ch.customer_id,
       (SELECT COUNT(*) FROM wings_babies wb
               WHERE wb.parent_wing_id = w.id and wb.position like'L%') as 'Left',
       (SELECT COUNT(*) FROM wings_babies wb
@@ -124,11 +124,11 @@ async function save(wing, active_connection=null){
       wing.babies.forEach(b => b.id = 0);
     }
     const result = await db.transaction_query(
-      `INSERT INTO wings (id, name, width) 
+      `INSERT INTO wings (id, name, knife) 
         VALUES ((?), (?), (?)) as new_wing
         ON DUPLICATE KEY UPDATE
-        name=new_wing.name, width=new_wing.width`, 
-        [ wing.id, wing.name, wing.width, wing.customer_id ],
+        name=new_wing.name, knife=new_wing.knife`, 
+        [ wing.id, wing.name, wing.knife, wing.customer_id ],
         active_connection
     );
 

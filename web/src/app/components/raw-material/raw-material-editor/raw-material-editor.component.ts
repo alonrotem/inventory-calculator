@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Location, NgClass, NgFor, NgIf } from '@angular/common';
-import { Country, Currency, RawMaterial, RawMaterialCustomerBank, TransactionType } from '../../../../types';
+import { Country, Currency, RawMaterial, RawMaterialCustomerBank, RawMaterialNameColor, TransactionType } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
 import { RouterLink, RouterOutlet, ActivatedRoute } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -34,7 +34,7 @@ import { UnsavedNavigationConfirmationService } from '../../../services/unsaved-
     FaIconComponent, NgIf, ConfirmationDialogComponent, AutocompleteLibModule,
     RawMaterialCustomerTableComponent, RawMaterialQuantityDialogComponent,
     RawMaterialHistoryDialogComponent, NgClass,
-    UnsavedChangesDialogComponent
+    UnsavedChangesDialogComponent, NgFor
 ],
   templateUrl: './raw-material-editor.component.html',
   styleUrl: './raw-material-editor.component.scss'
@@ -60,9 +60,11 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
     quantity_units: 'units',
     customer_banks: [],
     transaction_record: null,
-    deleted_bank_records: []
+    deleted_bank_records: [],
+    color: ''
   }
 
+  colors: string[] = [];
   countries: Country[] = [];
   currencies: Currency[] = [];
   quantity_units: string[] = [];
@@ -74,7 +76,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
   faArrowLeft: IconDefinition = faArrowLeft;
   faClockRotateLeft : IconDefinition = faClockRotateLeft;
   is_new_material: Boolean = true;
-  raw_material_names: string[] = [];
+  raw_material_names: RawMaterialNameColor[] = [];
   confirmResult: boolean | null = null;
   purchaseQuantity: number = 0;
   remainingQuantity: number = 0;
@@ -88,7 +90,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
   initial_totals_per_bank: any[] = [];
   insufficient_quantity_for_banks: boolean = false;
   curr_total_in_banks: number = 0;
-
+  console=console;
   @ViewChild("materialName", { read: ElementRef }) materialName! :ElementRef;
   @ViewChild("suggestions", { read: ElementRef }) suggestions!: ElementRef;
   @ViewChild("purchasedAt", { read: ElementRef }) purchase_date!: ElementRef;
@@ -112,7 +114,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
     private toastService: ToastService,
     private stateService: StateService,
     private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService) { 
-    this.rawMaterialsService.getRawMaterialNames().subscribe({
+    this.rawMaterialsService.getRawMaterialNamesColors().subscribe({
       next: (names)=> {
         this.raw_material_names = names;
       }
@@ -166,8 +168,22 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
       const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
       this.getRawMaterial(id);
     }
+    this.get_colors();
     this.getCountries();
     this.getCurrencies();
+  }
+
+  get_colors(){
+    this.rawMaterialsService.getRawMaterialColors().subscribe({
+      next: (colors: string[]) => {
+        this.console.log("colorssss");
+        this.console.dir(colors);
+        this.colors = colors;
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    })
   }
 
   getCountries(){
@@ -329,8 +345,17 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
 
       this.rawMaterialsService.save(this.rawMaterialItem).subscribe(
         {
-          next:(data) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoMaterialsList(data['message'], false); },//this.getRawMaterials(this.current_page); },
-          error:(error) => { this.btn_save.nativeElement.classList.remove("disabled"); this.gotoMaterialsList(error, true); }
+          next:(data) => { 
+            this.raw_material_form.form.markAsPristine();
+             this.customer_table.unsaved_changes = false;
+            this.btn_save.nativeElement.classList.remove("disabled"); 
+            this.gotoMaterialsList(data['message'], false); 
+          },
+          error:(error) => { 
+            this.btn_save.nativeElement.classList.remove("disabled"); 
+            //this.gotoMaterialsList(error, true); 
+            this.toastService.showError(error.error["message"]);
+          }
         }
       );      
     }

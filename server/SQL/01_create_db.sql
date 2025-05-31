@@ -27,6 +27,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 drop table if exists users;
 
 drop table if exists raw_materials;
+drop table if exists material_colors;
 drop table if exists customers;
 drop table if exists customer_banks;
 drop table if exists customer_banks_babies;
@@ -42,6 +43,7 @@ drop table if exists customer_hats;
 drop table if exists hats_wings;
 drop table if exists orders;
 drop table if exists orders_status;
+drop table if exists settings;
 
 drop table if exists transaction_history;
 SET FOREIGN_KEY_CHECKS = 1;
@@ -376,6 +378,7 @@ CREATE TABLE  IF NOT EXISTS `raw_materials`
   `price`			float NULL,
   `currency`		varchar(3) NULL,
   `notes`			varchar(255) NULL,
+  `color`			varchar(128) null,
   `created_at`    	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
   `updated_at`    	DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
   `created_by`	 	int null,
@@ -384,8 +387,19 @@ CREATE TABLE  IF NOT EXISTS `raw_materials`
   CONSTRAINT fk_raw_material_country
   FOREIGN KEY (`origin_country`) REFERENCES countries(`code`),
   CONSTRAINT fk_raw_material_currency
-  FOREIGN KEY (`currency`) REFERENCES currencies(`code`)
+  FOREIGN KEY (`currency`) REFERENCES currencies(`code`),
+  CONSTRAINT fk_raw_material_color
+  FOREIGN KEY (`color`) REFERENCES material_colors(`color`)
 );
+
+CREATE TABLE  IF NOT EXISTS `material_colors` (
+	`color` varchar(128) not null,
+    PRIMARY KEY (`color`)
+);
+
+Insert into `material_colors` (`color`)
+VALUES
+('Dark brown'), ('Light brown'), ('Natural'), ('Black');
 
 CREATE TABLE  IF NOT EXISTS `customers` (
 	`id`            	INT NOT NULL auto_increment,
@@ -394,6 +408,7 @@ CREATE TABLE  IF NOT EXISTS `customers` (
 	`email`     		VARCHAR(255) NULL ,
 	`phone`     		VARCHAR(255) NULL ,
 	`tax_id`     		VARCHAR(255) NULL ,
+    `customer_code`		VARCHAR(127) NULL,
     `notes`				varchar(255) NULL,
 	`created_at`    	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
 	`updated_at`    	DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -497,7 +512,7 @@ VALUES
 CREATE TABLE  IF NOT EXISTS wings (
 	`id`    INT NOT NULL auto_increment,
     `name`	VARCHAR(255) NOT NULL,
-    `width`	float,
+    `knife`	float,
     PRIMARY KEY (`id`)
 );
 
@@ -559,8 +574,8 @@ Ordrers saves:
 CREATE TABLE  IF NOT EXISTS `customer_hats`
 (
 	`id`				INT NOT NULL auto_increment,
-	`hat_material`		VARCHAR(255) NULL,
-	`crown_material`	VARCHAR(255) NULL,
+	`hat_material_id`	INT NOT NULL,
+	`crown_material_id`	INT NOT NULL,
     `wing_id`			INT NOT NULL,
     `wing_quantity`		INT NOT NULL,
     `customer_id`		INT NOT NULL,
@@ -570,6 +585,10 @@ CREATE TABLE  IF NOT EXISTS `customer_hats`
     `crown_allocation_id` INT NOT NULL,
  
 	PRIMARY KEY (`id`),
+	CONSTRAINT fk_customer_hats_wall_material_id
+	  FOREIGN KEY (`hat_material_id`) REFERENCES raw_materials(`id`) ON DELETE CASCADE,
+	CONSTRAINT fk_customer_hats_wall_crown_id
+	  FOREIGN KEY (`crown_material_id`) REFERENCES raw_materials(`id`) ON DELETE CASCADE,
 	CONSTRAINT fk_customer_hats_wing_id
 	  FOREIGN KEY (`wing_id`) REFERENCES wings(`id`) ON DELETE CASCADE,
 	CONSTRAINT fk_customer_hats_customer_id

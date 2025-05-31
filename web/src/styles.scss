@@ -171,3 +171,27 @@ input.invalid {
         background-color: red; /*var(--bs-danger)*/
     }
 }
+
+.color {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 5px;
+    border: 1px solid white;
+}
+
+.color.color-dark-brown {
+    background-color: #654321;
+}
+
+.color.color-light-brown {
+    background-color: #D68E46;
+}
+
+.color.color-black {
+    background-color: black;
+}
+
+.color.color-natural {
+    background-color: #decca6;
+}

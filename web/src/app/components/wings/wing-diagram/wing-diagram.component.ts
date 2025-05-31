@@ -19,7 +19,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
   @Input() lefts =[5];//, 7, 8, 8.5, 10];
   @Input() crown = [10];
   //@Input() crown_length = 2;//4;
-  @Input() width = 10;
+  @Input() knife = 10;
   @Input() scale = 1;
   @Input() show_tooltips = true;
   @Input() highlight_mouseover_baby = true;
@@ -216,7 +216,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     if(!this.checkArrEquality(changes["rights"]["currentValue"], changes["rights"]["previousValue"])) rebuild = true;
     if(!this.checkArrEquality(changes["top_length"]["currentValue"], changes["top_length"]["previousValue"])) rebuild = true;
     if(!this.checkArrEquality(changes["crown"]["currentValue"], changes["crown"]["previousValue"])) rebuild = true;
-    if((changes["width"]) && (changes["width"]["currentValue"] != changes["width"]["previousValue"])) rebuild = true;
+    if((changes["knife"]) && (changes["knife"]["currentValue"] != changes["knife"]["previousValue"])) rebuild = true;
     //if(changes["crown"]["currentValue"] != changes["crown"]["previousValue"])  rebuild = true;
     //if(changes["crown_length"]["currentValue"] != changes["crown_length"]["previousValue"])  rebuild = true;
 
@@ -284,13 +284,13 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     this.ctx.stroke(wing_path);
 
     this.buildExtras();
-    if(this.show_texts && this.width > 0) {
+    if(this.show_texts && this.knife > 0) {
       this.ctx.beginPath();
       this.ctx.textAlign = "center";
       this.ctx.textBaseline = "middle";
       this.ctx.fillStyle = this.color;
       this.ctx.font = "normal " + (12 * this.scale) + "px Arial";
-      this.ctx.fillText(this.width.toFixed(1) + " cm", this.wing_width_caption_point.x + this.pan.x, this.wing_width_caption_point.y + this.pan.y);
+      this.ctx.fillText(this.knife.toFixed(1) + " cm", this.wing_width_caption_point.x + this.pan.x, this.wing_width_caption_point.y + this.pan.y);
     }
   }
 

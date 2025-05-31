@@ -52,6 +52,7 @@ export interface RawMaterial {
     price: number; 
     currency: string; 
     notes: string;
+    color: string;
     created_at: Date; 
     updated_at: Date; 
     created_by: number; 
@@ -59,6 +60,12 @@ export interface RawMaterial {
     customer_banks: RawMaterialCustomerBank[];
     transaction_record: TransactionRecord | null;
     deleted_bank_records: TransactionRecord[];
+}
+
+export interface RawMaterialNameColor {
+    id: number;
+    name: string;
+    color: string;
 }
 
 export interface RawMaterialCustomerBank {
@@ -96,7 +103,7 @@ export interface Baby {
 
 export interface WingsListItem {
     id: number;
-    width: number;
+    knife: number;
     name: string;
     Left: number;
     Top: number;
@@ -117,7 +124,7 @@ export interface WingsList {
 export interface Wing {
     id: number;
     name: string;
-    width: number;
+    knife: number;
     babies: WingBaby[];
 }
 
@@ -169,8 +176,8 @@ export interface HatBasicInfo {
 */
 export interface CustomerHat {
     id: number;
-	hat_material: string;
-	crown_material: string;
+	hat_material_id: number | null;
+	crown_material_id: number| null;
     wing_quantity: number;
     customer_id: number;
     shorten_top_by: number;
@@ -245,6 +252,7 @@ export class Point {
     email: string; 
     phone: string; 
     tax_id: string;
+    customer_code: string;
     created_at: Date;
     updated_at: Date;
     created_by: number;
@@ -272,6 +280,7 @@ export interface CustomerListItem {
 
 export interface Customer_Bank {
     raw_material_name: string; 
+    raw_material_color: string;
     raw_material_quantity_units: string;
     id: number; 
     customer_id: number;

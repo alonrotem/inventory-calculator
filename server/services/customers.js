@@ -7,7 +7,7 @@ const { logger } = require('../logger');
 async function getSingle(id){
   const rows = await db.query(
     `select 
-      c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.notes, 
+      c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.notes, c.customer_code,
         c.created_at, c.updated_at, c.created_by, c.updated_by 
     from customers c where c.id=${id};`);
 
@@ -15,7 +15,7 @@ async function getSingle(id){
   if(!helper.isEmptyObj(customer)) {
     const customer_banks_recs =  await db.query(
       `select 
-          rm.name raw_material_name, rm.quantity_units raw_material_quantity_units, cb.id, cb.customer_id, cb.raw_material_id, cb.quantity, cb.remaining_quantity 
+          rm.name raw_material_name, rm.color raw_material_color, rm.quantity_units raw_material_quantity_units, cb.id, cb.customer_id, cb.raw_material_id, cb.quantity, cb.remaining_quantity 
         from customer_banks cb
         left join raw_materials rm on cb.raw_material_id = rm.id
         where cb.customer_id=${id};`);
@@ -92,13 +92,13 @@ async function save(customer){
   try {
     const isNew = customer.id <= 0;
     const result = await db.transaction_query(`
-      INSERT INTO customers (id, name, business_name, email, phone, tax_id, created_at, updated_at, created_by, updated_by)
+      INSERT INTO customers (id, name, business_name, email, phone, tax_id, customer_code, created_at, updated_at, created_by, updated_by)
       VALUES 
-      ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?)) 
+      ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?)) 
       as new_customers
       ON DUPLICATE KEY UPDATE
       name=new_customers.name, business_name=new_customers.business_name, email=new_customers.email, 
-      phone=new_customers.phone, tax_id=new_customers.tax_id, created_at=new_customers.created_at, 
+      phone=new_customers.phone, tax_id=new_customers.tax_id, customer_code=new_customers.customer_code, created_at=new_customers.created_at, 
       updated_at=new_customers.updated_at, created_by=new_customers.created_by, updated_by=new_customers.updated_by`,
       [
         customer.id,
@@ -107,6 +107,7 @@ async function save(customer){
         customer.email,
         customer.phone,
         customer.tax_id,
+        customer.customer_code,
         (isNew)? helper.nowDateStr(): helper.formatDate(customer.created_at),
         helper.nowDateStr(),
         customer.created_by,

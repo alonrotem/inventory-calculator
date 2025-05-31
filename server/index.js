@@ -45,7 +45,7 @@ app.use("/backup", backupRouter);
 app.use("/settings", settingsRouter);
 app.use("/systemlogs", systemlogsRouter);
 
-console.log(config.hatsUploadDir);
+//console.log(config.hatsUploadDir);
 app.use(config.hats_pictures_path, express.static(config.hatsUploadDir));
 
 /* Error handler middleware */

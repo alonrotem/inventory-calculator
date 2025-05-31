@@ -27,9 +27,10 @@ export class HatAllocationEditorPickerComponent implements ModalContentDirective
   editedObject: any = null;
   close: EventEmitter<any> = new EventEmitter();
   @Input() customer: Customer = {
-    id: 0, name: '', business_name: '', email: '', phone: '',  tax_id: '', 
-    created_at: new Date(), updated_at: new Date(),  created_by: 0, updated_by: 0, 
-    banks: [], banks_baby_allocations: [], babies: []
+    id: 0, name: '', business_name: '', email: '', phone: '', tax_id: '',
+    created_at: new Date(), updated_at: new Date(), created_by: 0, updated_by: 0,
+    banks: [], banks_baby_allocations: [], babies: [],
+    customer_code: ''
   };
   @Input() wing_id: number = 0;
   @Input() banks: Customer_Bank[] = [];

@@ -5,7 +5,7 @@ import { Wing, WingBaby } from '../../../../types';
 import { FormsModule, NgForm } from '@angular/forms';
 import { WingsService } from '../../../services/wings.service';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { NgFor, NgIf, PlatformLocation } from '@angular/common';
+import { DecimalPipe, NgFor, NgIf, PlatformLocation } from '@angular/common';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { WingsBabiesTableComponent } from '../wings-babies-table/wings-babies-table.component';
 import { WingDiagramComponent } from '../wing-diagram/wing-diagram.component';
@@ -24,7 +24,8 @@ import { StateService } from '../../../services/state.service';
 @Component({
   selector: 'app-wings-editor',
   standalone: true,
-  imports: [ ConfirmationDialogComponent, FormsModule, NgIf, NgFor, FaIconComponent, WingsBabiesTableComponent, WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent, BabyLengthModalComponent, UnsavedChangesDialogComponent],
+  imports: [ ConfirmationDialogComponent, FormsModule, NgIf, NgFor, FaIconComponent, WingsBabiesTableComponent, 
+    WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent, BabyLengthModalComponent, UnsavedChangesDialogComponent, DecimalPipe],
   templateUrl: './wings-editor.component.html',
   styleUrl: './wings-editor.component.scss',/*
   changeDetection: ChangeDetectionStrategy.OnPush*/
@@ -42,6 +43,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
 
   crown_units: number = 0;
   crown_length: number = 0;
+  total_wing_height: number = 0;
 
   @ViewChild("diagram") diagram!: WingDiagramComponent;
   @ViewChild("wingName", { read: ElementRef }) wingName!: ElementRef;
@@ -63,7 +65,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   public wing : Wing = {
     id: 0,
     name: '',
-    width: 0,
+    knife: 0,
     babies: []
   }
   crown_babies_options = Array(5).fill(0).map((_, i)=> i+1);
@@ -114,6 +116,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
         let crownBabies = this.wing.babies.filter((b) => b.position.startsWith("C"));
         this.crown_units = crownBabies.length;
         this.crown_length = (crownBabies.length > 0)? crownBabies[0].length: 0;
+        this.calculate_total_wing_height();
       },
       error: (error) => {
         console.log(error);
@@ -121,7 +124,17 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
     })
   }
 
+  calculate_total_wing_height(){
+    this.total_wing_height = this.wing.knife;
+    const L1 = this.wing.babies.find(b => b.position.toUpperCase()=="L1");
+    const C1 = this.wing.babies.find(b => b.position.toUpperCase()=="C1");
+    const L1_len = (L1)? L1.length : 0;
+    const C1_len = (C1)? C1.length : 0;
+    this.total_wing_height += (L1_len + C1_len);
+  }
+
   babies_length_clicked() {
+    this.calculate_total_wing_height();
     this.wingForm.form.markAsDirty();
   }
 
@@ -150,6 +163,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
     else {
       tops[0].length = new_length;
     }
+    this.calculate_total_wing_height();
   }
 
   //set the crown controls according to the babies objects
@@ -169,6 +183,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
         wing_id: this.wing_id
       })
     }
+    this.calculate_total_wing_height();
   }
 
   save(goToHatEditor: boolean = false)
@@ -307,6 +322,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
     this.crown_units =  this.length_editor.crown_units;
     this.crown_size.nativeElement.value =  this.length_editor.crown_units;
     this.set_crown();
+    this.calculate_total_wing_height();
   }
 
   modal_length_Changed(obj: WingBaby){
@@ -321,6 +337,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
     //"refresh" the array, to detect the change
     this.wing.babies = this.wing.babies.map(el => Object.assign({}, el));
     this.form_touched();
+    this.calculate_total_wing_height();
   }
 
   form_touched() {

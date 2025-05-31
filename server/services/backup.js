@@ -5,6 +5,7 @@ const helper = require('../helper');
 const tables = [
     'customers',
     'raw_materials',
+    'material_colors',
     'customer_banks',
     'customer_banks_babies',
     'babies',

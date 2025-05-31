@@ -124,7 +124,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
         this.systemWings.push({
           id: w_id,
           name: wing.w_n,
-          width: 0,
+          knife: 0,
           babies: babies
          });
         }
@@ -411,8 +411,8 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
       this.router.navigate(['/inventory/customer/hat-calculator'], { 
         queryParams: { 
           wing_id: wing_id,
-          w_mat: this.wall_bank!.raw_material_name,
-          c_mat: this.crown_bank!.raw_material_name,
+          w_mat: this.wall_bank!.raw_material_id,
+          c_mat: this.crown_bank!.raw_material_id,
           w_aloc: wall_allocation_id,
           c_aloc: crown_allocation_id,
           s_t: shorten_top,

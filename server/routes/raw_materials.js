@@ -55,6 +55,19 @@ router.get('/single/:id', async function(req, res, next) {
     }
   });
 
+  router.get('/colors', async function(req, res, next) {
+    logger.info(`get /raw_materials/colors/`);
+    try {
+      const response = await raw_materials.getColors();
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);
+    } 
+    catch (err) {
+      logger.error(`Error getting raw material colors:  ${err.message}`, );
+      next(err);
+    }
+  });
+
   router.get('/quantity_units', async function(req, res, next) {
     logger.info(`get /raw_materials/quantity_units`);
     try {

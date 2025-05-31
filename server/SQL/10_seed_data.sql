@@ -43,19 +43,21 @@ SET @sql = IF(@table_exists > 0, "DELETE FROM `raw_materials` where @delete_reco
 PREPARE stmt FROM @sql;
 EXECUTE stmt; #USING @value1, @value2;
 DEALLOCATE PREPARE stmt;
+
+-- ('Dark brown'), ('Light brown'), ('Natural'), ('Black')
     
 -- Check if the table exists
 SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'raw_materials');
 -- Prepare the INSERT statement only if the table exists
-SET @sql = IF(@table_exists > 0, "INSERT INTO `raw_materials` (`id`, `name`, `purchased_at`, `purchase_quantity`, `remaining_quantity`, `quantity_units`, `units_per_kg`, `vendor_name`, `origin_country`, `price`, `currency`, `notes`, `created_at`, `updated_at`, `created_by`, `updated_by`) 
+SET @sql = IF(@table_exists > 0, "INSERT INTO `raw_materials` (`id`, `name`, `purchased_at`, `purchase_quantity`, `remaining_quantity`, `quantity_units`, `units_per_kg`, `vendor_name`, `origin_country`, `price`, `currency`, `notes`, `color`, `created_at`, `updated_at`, `created_by`, `updated_by`) 
 VALUES
-(13, 'Sable', '2024-06-08 00:00:00', 210, 0, 'units', 30, 'JJ', 'US', 30, 'USD', 'This is a test material', '2025-01-06 20:05:29', '2025-02-16 21:07:25', 1, 1),
-(15, 'SM', '2024-06-08 00:00:00', 1000, 600, 'units', 112, 'KK', 'RU', 3, 'USD', 'This is a test material', '2025-01-06 20:05:29', '2025-02-25 20:11:19', 1, 1),
-(16, 'BM', '2024-06-08 00:00:00', 750, 750, 'units', 135, null, 'US', 60, 'EUR', 'This is a test material', '2025-01-06 20:05:29', '2025-01-06 20:05:29', 1, 1),
-(17, 'Canady', '2024-06-08 00:00:00', 7, 7, 'kg', 10, 'XY', 'US', 10, 'USD', 'This is a test material', '2025-01-06 20:05:29', '2025-01-06 20:05:29', 1, 1),
-(18, 'Demo material 1', '2025-01-07 00:00:00', 100, 30, 'kg', 11, 'JJ', 'US', 300, 'USD', 'Demo material for calculations', '2025-01-07 15:18:39', '2025-01-07 15:20:15', 0, 0),
-(19, 'Demo material 2', '2025-01-07 00:00:00', 250, 250, 'kg', 2, 'KK', 'US', 1000, 'USD', 'Demo material for calculations', '2025-01-07 15:19:09', '2025-01-07 15:19:09', 0, 0),
-(20, 'DM', '2025-02-08 00:00:00', 100, 10, 'units', 80, 'dd', 'US', 20, 'USD', '', '2025-02-08 21:20:42', '2025-02-24 22:21:29', 0, 0)
+(13, 'Sable', '2024-06-08 00:00:00', 210, 0, 'units', 30, 'JJ', 'US', 30, 'USD', 'This is a test material', 'Dark brown', '2025-01-06 20:05:29', '2025-02-16 21:07:25', 1, 1),
+(15, 'SM', '2024-06-08 00:00:00', 1000, 600, 'units', 112, 'KK', 'RU', 3, 'USD', 'This is a test material', 'Dark brown',  '2025-01-06 20:05:29', '2025-02-25 20:11:19', 1, 1),
+(16, 'BM', '2024-06-08 00:00:00', 750, 750, 'units', 135, null, 'US', 60, 'EUR', 'This is a test material', 'Light brown', '2025-01-06 20:05:29', '2025-01-06 20:05:29', 1, 1),
+(17, 'Canady', '2024-06-08 00:00:00', 7, 7, 'kg', 10, 'XY', 'US', 10, 'USD', 'This is a test material', 'Light brown', '2025-01-06 20:05:29', '2025-01-06 20:05:29', 1, 1),
+(18, 'Demo material 1', '2025-01-07 00:00:00', 100, 30, 'kg', 11, 'JJ', 'US', 300, 'USD', 'Demo material for calculations', 'Natural', '2025-01-07 15:18:39', '2025-01-07 15:20:15', 0, 0),
+(19, 'Demo material 2', '2025-01-07 00:00:00', 250, 250, 'kg', 2, 'KK', 'US', 1000, 'USD', 'Demo material for calculations', 'Natural', '2025-01-07 15:19:09', '2025-01-07 15:19:09', 0, 0),
+(20, 'DM', '2025-02-08 00:00:00', 100, 10, 'units', 80, 'dd', 'US', 20, 'USD', '', 'Black', '2025-02-08 21:20:42', '2025-02-24 22:21:29', 0, 0)
 as new_raw_materials
 ON DUPLICATE KEY UPDATE
 `name`=new_raw_materials.`name`, `purchased_at`=new_raw_materials.`purchased_at`, `purchase_quantity`=new_raw_materials.`purchase_quantity`, `remaining_quantity`=new_raw_materials.`remaining_quantity`, `quantity_units`=new_raw_materials.`quantity_units`, `units_per_kg`=new_raw_materials.`units_per_kg`, `vendor_name`=new_raw_materials.`vendor_name`, `origin_country`=new_raw_materials.`origin_country`, `price`=new_raw_materials.`price`, `currency`=new_raw_materials.`currency`, `notes`=new_raw_materials.`notes`, `created_at`=new_raw_materials.`created_at`, `updated_at`=new_raw_materials.`updated_at`, `created_by`=new_raw_materials.`created_by`, `updated_by`=new_raw_materials.`updated_by`;", 'SELECT \'Table raw_materials does not exist\'');
@@ -321,7 +323,7 @@ DEALLOCATE PREPARE stmt;
 -- Check if the table exists
 SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'wings');
 -- Prepare the INSERT statement only if the table exists
-SET @sql = IF(@table_exists > 0, "INSERT INTO `wings` (`id`, `name`, `width`, `customer_id`) 
+SET @sql = IF(@table_exists > 0, "INSERT INTO `wings` (`id`, `name`, `knife`, `customer_id`) 
 VALUES
 (1, 'Demo wing 1', 6.5, null),
 (2, 'RT70', 10, null),
@@ -332,7 +334,7 @@ VALUES
 (14, 'RT100 H20250405132634', 11, null)
 as new_wings
 ON DUPLICATE KEY UPDATE
-`name`=new_wings.`name`, `width`=new_wings.`width`, `customer_id`=new_wings.`customer_id`;", 'SELECT \'Table wings does not exist\'');
+`name`=new_wings.`name`, `knife`=new_wings.`knife`, `customer_id`=new_wings.`customer_id`;", 'SELECT \'Table wings does not exist\'');
 -- Execute the prepared statement
 PREPARE stmt FROM @sql;
 EXECUTE stmt; #USING @value1, @value2;
@@ -495,12 +497,12 @@ DEALLOCATE PREPARE stmt;
 -- Check if the table exists
 SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'customer_hats');
 -- Prepare the INSERT statement only if the table exists
-SET @sql = IF(@table_exists > 0, "INSERT INTO `customer_hats` (`id`, `hat_material`, `crown_material`, `wing_id`, `wing_quantity`, `customer_id`, `shorten_top_by`, `shorten_crown_by`, `wall_allocation_id`, `crown_allocation_id`) 
+SET @sql = IF(@table_exists > 0, "INSERT INTO `customer_hats` (`id`, `hat_material_id`, `crown_material_id`, `wing_id`, `wing_quantity`, `customer_id`, `shorten_top_by`, `shorten_crown_by`, `wall_allocation_id`, `crown_allocation_id`) 
 VALUES
-(6, 'Sable', 'Sable', 14, 44, 9, 0, 0, 2, 2)
+(6, 13, 13, 14, 44, 9, 0, 0, 2, 2)
 as new_customer_hats
 ON DUPLICATE KEY UPDATE
-`hat_material`=new_customer_hats.`hat_material`, `crown_material`=new_customer_hats.`crown_material`, `wing_id`=new_customer_hats.`wing_id`, `wing_quantity`=new_customer_hats.`wing_quantity`, `customer_id`=new_customer_hats.`customer_id`, `shorten_top_by`=new_customer_hats.`shorten_top_by`, `shorten_crown_by`=new_customer_hats.`shorten_crown_by`, `wall_allocation_id`=new_customer_hats.`wall_allocation_id`, `crown_allocation_id`=new_customer_hats.`crown_allocation_id`;", 'SELECT \'Table customer_hats does not exist\'');
+`hat_material_id`=new_customer_hats.`hat_material_id`, `crown_material_id`=new_customer_hats.`crown_material_id`, `wing_id`=new_customer_hats.`wing_id`, `wing_quantity`=new_customer_hats.`wing_quantity`, `customer_id`=new_customer_hats.`customer_id`, `shorten_top_by`=new_customer_hats.`shorten_top_by`, `shorten_crown_by`=new_customer_hats.`shorten_crown_by`, `wall_allocation_id`=new_customer_hats.`wall_allocation_id`, `crown_allocation_id`=new_customer_hats.`crown_allocation_id`;", 'SELECT \'Table customer_hats does not exist\'');
 -- Execute the prepared statement
 PREPARE stmt FROM @sql;
 EXECUTE stmt; #USING @value1, @value2;

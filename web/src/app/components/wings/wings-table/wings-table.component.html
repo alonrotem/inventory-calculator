@@ -20,7 +20,7 @@
     <thead>
       <tr>
         <th scope="col">Name</th>
-        <th scope="col">Width</th>
+        <th scope="col">Knife</th>
         <th scope="col" colspan="4">Babies</th>
       </tr>
     </thead>
@@ -29,12 +29,12 @@
         *ngFor="let wing of this.wingsList" 
         routerLink="/templates/wings/editor" 
         [queryParams]="{ id: wing.id }" role="button">
-        <td>{{ wing.name }}</td>
-        <td>{{ wing.width | number: '1.1-1' }} cm</td>
-        <td style="width: 150px;"><span class="icon-feather-wing"></span> L ({{ wing.Left }})</td>
-        <td style="width: 150px;"><span class="icon-feather-wing-r"></span> R ({{ wing.Right }})</td>
-        <td style="width: 150px;"><span class="icon-top"></span> T ({{ wing.Top }})</td>
-        <td style="width: 150px;"><span class="icon-crown"></span> C ({{ wing.Crown }})</td>
+        <td class="text-nowrap">{{ wing.name }}</td>
+        <td><span class="icon-knife"></span> {{ wing.knife | number: '1.1-1' }} cm</td>
+        <td><span class="icon-feather-wing"></span> L ({{ wing.Left }})</td>
+        <td><span class="icon-feather-wing-r"></span> R ({{ wing.Right }})</td>
+        <td><span class="icon-top"></span> T ({{ wing.Top }})</td>
+        <td><span class="icon-crown"></span> C ({{ wing.Crown }})</td>
       </tr>
     </tbody>
   </table>

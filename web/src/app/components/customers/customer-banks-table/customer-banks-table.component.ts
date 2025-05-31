@@ -29,9 +29,10 @@ import { aggregated_babies } from '../../../services/hats-calculator.service';
 })
 export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() customer: Customer = {
-    id: 0, name: '', business_name: '', email: '', phone: '',  tax_id: '', 
-    created_at: new Date(), updated_at: new Date(),  created_by: 0, updated_by: 0, 
-    banks: [], banks_baby_allocations: [], babies: []
+    id: 0, name: '', business_name: '', email: '', phone: '', tax_id: '',
+    created_at: new Date(), updated_at: new Date(), created_by: 0, updated_by: 0,
+    banks: [], banks_baby_allocations: [], babies: [],
+    customer_code: ''
   };    
   @Input() bank: Customer_Bank = {
     raw_material_name: '',
@@ -41,7 +42,8 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     quantity: 0,
     remaining_quantity: 0,
     raw_material_quantity_units: '',
-    transaction_history: []
+    transaction_history: [],
+    raw_material_color: ''
   };
   @Input() banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
   @Input() babies: Customer_Baby[] = [];
@@ -49,7 +51,8 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   //Saving the original data in order to be able to reset changes
   unchanged_bank: Customer_Bank = {
     raw_material_name: '', raw_material_quantity_units: '', id: 0,
-    customer_id: 0, raw_material_id: 0, quantity: 0, remaining_quantity: 0, transaction_history: []
+    customer_id: 0, raw_material_id: 0, quantity: 0, remaining_quantity: 0, transaction_history: [],
+    raw_material_color: ''
   };
   unchanged_banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
   unchanged_babies: Customer_Baby[] = [];
