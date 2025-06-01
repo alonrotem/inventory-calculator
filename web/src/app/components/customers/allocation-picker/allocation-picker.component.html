@@ -30,14 +30,14 @@ Pick for hat
         <div class="bank-picker allocation" *ngFor="let allocation of banks_baby_allocations | filter: 'customer_bank_id' : bank.id.toString()" (click)="allocation_clicked(allocation.id)">
             <div>Work allocation #{{ allocation.id }}, {{ allocation.quantity }} {{ bank.raw_material_quantity_units }}</div>
 
-            <div *ngIf="(babies | filter: 'customer_banks_babies_id' : allocation.id.toString()).length > 0">
+            <div *ngIf="(babies | filter: 'allocation_id' : allocation.id.toString()).length > 0">
                 <div class="accordion" id="accordion_babies_{{ allocation.id }}">
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" [attr.data-bs-target]="'#collapse'+ allocation.id" aria-expanded="false" [attr.aria-controls]="'collapse'+ allocation.id" (click)="$event.stopPropagation()">
                             Show/hide
-                            {{ (babies | filter: 'customer_banks_babies_id' : allocation.id.toString()) | sum: 'quantity' }}
-                            {{ (babies | filter: 'customer_banks_babies_id' : allocation.id.toString() | sum: 'quantity') == 1 ? 'baby' : 'babies' }}
+                            {{ (babies | filter: 'allocation_id' : allocation.id.toString()) | sum: 'quantity' }}
+                            {{ (babies | filter: 'allocation_id' : allocation.id.toString() | sum: 'quantity') == 1 ? 'baby' : 'babies' }}
                             </button>
                         </h2>
                         <div id="collapse{{ allocation.id}}" class="accordion-collapse collapse" [attr.data-bs-parent]="'accordion_babies_' + allocation.id">
@@ -52,7 +52,7 @@ Pick for hat
                                         </thead>
                                         <tbody>
                                           <tr 
-                                            *ngFor="let baby of this.babies  | filter: 'customer_banks_babies_id' : allocation.id.toString()" 
+                                            *ngFor="let baby of this.babies  | filter: 'allocation_id' : allocation.id.toString()" 
                                             role="button">
                                             <td>{{ baby.length | number : '1.1-1' }} cm</td>
                                             <td class="text-center">{{ baby.quantity }}</td>
@@ -65,7 +65,7 @@ Pick for hat
                     </div>
                 </div>
             </div>
-            <div *ngIf="(babies | filter: 'customer_banks_babies_id' : allocation.id.toString()).length == 0">
+            <div *ngIf="(babies | filter: 'allocation_id' : allocation.id.toString()).length == 0">
                 <fa-icon [icon]="faTriangleExclamation"></fa-icon> No babies in this allocation
             </div>
         </div>

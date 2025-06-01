@@ -265,7 +265,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
           raw_material_id: this.rawMaterialItem.id,
           customer_id: 0,
           customer_bank_id: 0,
-          customer_banks_babies_id: 0,
+          allocation_id: 0,
           cur_raw_material_quantity: this.rawMaterialItem.remaining_quantity + added_to_banks_since_last_load,
           cur_customer_bank_quantity: -1,
           cur_banks_babies_allocation_quantity: -1
@@ -302,7 +302,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
               raw_material_id: this.rawMaterialItem.id,
               customer_id: customer_bank.customer_id,
               customer_bank_id: customer_bank.id,
-              customer_banks_babies_id: 0,
+              allocation_id: 0,
               cur_raw_material_quantity: counting_quantity,
               cur_customer_bank_quantity: customer_bank.remaining_quantity,
               cur_banks_babies_allocation_quantity: -1              
@@ -333,7 +333,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
           raw_material_id: this.rawMaterialItem.id,
           customer_id: bank.customer_id,
           customer_bank_id: bank.bank_id,
-          customer_banks_babies_id: 0,
+          allocation_id: 0,
           cur_raw_material_quantity: cur_raw_material_quantity,
           cur_customer_bank_quantity: 0,
           cur_banks_babies_allocation_quantity: 0

@@ -96,7 +96,7 @@
                   placeholder="Wall material"
                   (change)="wall_material_changed($event)"
                   (clear)="wall_material_cleared()"
-                  [items]="raw_material_names"
+                  [items]="raw_material_names_babies"
                   bindLabel="name"
                   bindValue="id"
                   [(ngModel)]="customerHat.hat_material_id"        
@@ -126,13 +126,16 @@
                     class="btn btn-success" 
                     style="padding: 0px 11px 1px 5px;" 
                     (click)="open_material_allocation_picker(customerHat.hat_material_id, 'wall')">
-                    <fa-icon [icon]="faChartPie"></fa-icon>
+                    <span class="icon-baby"></span>
                     Choose allocation
                   </button>
                 </div>
               </div>
-              <div *ngIf="num_of_allocations_with_wall_material <= 0">
-                <span class="text-danger">No allocations with this material</span>
+              <div class="text-warning" *ngIf="raw_material_names_babies.length > 0 && customerHat.hat_material_id == null">
+                Choose a material to get started
+              </div>
+              <div *ngIf="raw_material_names_babies.length > 0 && customerHat.hat_material_id != null && num_of_allocations_with_wall_material <= 0">
+                <span class="text-danger">No baby allocations with this material</span>
               </div>
             </div>
             <div [hidden]="raw_material_names.length > 0">
@@ -150,7 +153,7 @@
                 placeholder="Crown material"
                 (change)="crown_material_changed($event)"
                 (clear)="crown_material_cleared()"
-                [items]="raw_material_names"
+                [items]="raw_material_names_babies"
                 bindLabel="name"
                 bindValue="id"
                 [(ngModel)]="customerHat.crown_material_id">
@@ -180,16 +183,72 @@
                 class="btn btn-success" 
                 style="padding: 0px 11px 1px 5px;" 
                 (click)="open_material_allocation_picker(customerHat.crown_material_id, 'crown')">
-                <fa-icon [icon]="faChartPie"></fa-icon>
+                <span class="icon-baby"></span>
                 Choose allocation
               </button>
             </div>
           </div>
-          <div *ngIf="num_of_allocations_with_crown_material <= 0">
-            <span class="text-danger">No allocations with this material</span>
-          </div>
+              <div class="text-warning" *ngIf="raw_material_names_babies.length > 0 && customerHat.crown_material_id == null">
+                Choose a material to get started
+              </div>
+              <div *ngIf="raw_material_names_babies.length > 0 && customerHat.crown_material_id != null && num_of_allocations_with_crown_material <= 0">
+                <span class="text-danger">No baby allocations with this material</span>
+              </div>
         </div>
     <!--/Crown allocation section -->
+
+    <!-- Tails allocation section -->
+    <div class="hat-info-section" [hidden]="raw_material_names.length == 0">
+      <div><strong>Tails material:</strong></div>
+      <div class="ng-autocomplete">
+        <ng-select
+          #wing_selector
+          placeholder="Tails material"
+          (change)="tails_material_changed($event)"
+          (clear)="tails_material_cleared()"
+          [items]="raw_material_names_tails"
+          bindLabel="name"
+          bindValue="id"
+          [(ngModel)]="customerHat.tails_material_id">
+            <ng-template ng-label-tmp let-item="item">
+                <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> {{item.name}} - {{ item.color }}
+            </ng-template>
+              <ng-template ng-option-tmp let-item="item" let-index="index">
+                  <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> {{item.name}} - {{ item.color }}
+              </ng-template>          
+        </ng-select>
+      </div>
+
+    <div class="sub-info-section">
+        <strong>Material allocation:</strong>
+    </div>
+    <div *ngIf="num_of_allocations_with_tails_material > 0">
+      <div>
+        <div *ngIf="tails_allocation" class="text-success">
+          Allocation #{{ tails_allocation.id }}, {{ tails_allocation.quantity | number : '1.1-1' }} {{ tails_allocation_units }}
+        </div>
+        <div *ngIf="!tails_allocation">
+          <span class="text-danger">Choose an allocation</span>
+        </div>
+      </div>
+      <div class="section-btn-wrapper">
+        <button  
+          class="btn btn-success" 
+          style="padding: 0px 11px 1px 5px;" 
+          (click)="open_material_allocation_picker(customerHat.tails_material_id, 'tails')">
+          <span class="icon-tails"></span>
+          Choose allocation
+        </button>
+      </div>
+    </div>
+      <div class="text-warning" *ngIf="raw_material_names_tails.length > 0 && customerHat.tails_material_id == null">
+        Choose a material to get started
+      </div>
+      <div *ngIf="raw_material_names_tails.length > 0 && customerHat.tails_material_id != null && num_of_allocations_with_tails_material <= 0">
+        <span class="text-danger">No baby allocations with this material</span>
+      </div>
+  </div>
+  <!--/Tails allocation section -->    
 
     <!-- Wing number picker -->
     <div class="hat-info-section">
@@ -228,6 +287,8 @@
   <!-- sliders -->
   <div class="col-12 col-md-6">
     <div class="hat-info-section">
+
+      <div style="margin-bottom: 15px;"><strong>Hat tweaks:</strong></div>
       
       <div class="d-flex flex-row align-items-center">
         <div style="min-width: 200px;"><fa-icon [icon]="faScissors" style="margin-right: 5px;"></fa-icon><label for="tempB">Shorten top by:</label> {{ customerHat.shorten_top_by | number : '1.1-1' }} cm<br /></div>
@@ -253,6 +314,20 @@
         </div>
       </div>
 
+      <div><hr></div>
+      <div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+          <label class="form-check-label" for="flexCheckDefault">
+            White hair
+          </label>
+        </div>
+        <div class="form-floating">
+          <textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea"></textarea>
+          <label for="floatingTextarea">White hair notes</label>
+        </div>        
+      </div>
+
     </div>
   </div>
   <!--/sliders -->
@@ -260,6 +335,8 @@
   <!-- knife and size -->
   <div class="col-12 col-md-6">
     <div class="hat-info-section">
+
+      <div style="margin-bottom: 15px;"><strong>Measurements:</strong></div>
       
       <div class="d-flex flex-row align-items-center">
         <div class="d-flex flex-row align-items-center" style="min-width: 200px;">
@@ -324,7 +401,38 @@
           </option>
         </select>
         </div>
-      </div>    
+      </div>
+
+      <div class="d-flex flex-row align-items-center">
+        <div style="min-width: 200px;" class="d-flex flex-row align-items-center" style="min-width: 200px;">
+          <fa-icon [icon]="faRuler" style="margin-right: 10px;"></fa-icon>
+          <label for="tempB">HR/HL tails:</label>
+        </div>
+        <div class="flex-grow-1" style="margin-left: 15px;">
+          <select *ngIf="customerHat.tails_allocation_id" class="form-select" [(ngModel)]="hat_hr_hl" #select_hr_hl (change)="calculateVisibleCrown()">
+            <option 
+              *ngFor="let w of arr_hr_hl" 
+              value="{{ w }}" 
+              >
+                {{ w  | number : '1.2-2' }} cm
+            </option>
+          </select>
+
+          <div *ngIf="!customerHat.tails_allocation_id" class="text-warning">
+            Select an allocation for tails
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex flex-row align-items-center">
+        <div style="min-width: 200px;" class="d-flex flex-row align-items-center" style="min-width: 200px;">
+          <fa-icon [icon]="faRuler" style="margin-right: 10px;"></fa-icon>
+          <label for="tempB">Crown visible:</label>
+        </div>
+        <div class="flex-grow-1" style="margin-left: 15px;">
+            {{ hat_crown_visible  | number : '1.2-2' }} cm
+        </div>
+      </div>      
 
     </div>
   </div>

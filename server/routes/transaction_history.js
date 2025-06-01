@@ -3,12 +3,6 @@ const router = express.Router();
 const transaction_history = require('../services/transaction_history');
 const { logger } =  require('../logger');
 
-/*git bash:
-curl -i -X POST  -H 'Accept: application/json' \
- -H 'Content-type: application/json' \
- --data "{  \"id\": 0, \"date\": \"2024-05-01\", \"raw_material_id\": 2, \"customer_id\": 3, \"customer_bank_id\": 8, \"customer_banks_babies_id\": 9, \"quantity\": 90, \"transaction_type\": \"customer_bank_allocate_to_Work\", \"added_by\": 1 }" \
- http://localhost:3000/transaction_history/
-*/
 router.post('/', async function(req, res, next) {
     try {
       logger.info(`post /transaction_history/`);

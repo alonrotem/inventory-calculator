@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, ViewChild } from '@angular/core';
-import { Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, ModalDialog } from '../../../../types';
+import { Allocation_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, ModalDialog } from '../../../../types';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
 import { faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
@@ -35,7 +35,7 @@ export class AllocationPickerComponent implements ModalContentDirective, ModalDi
 
   @Input() banks: Customer_Bank[] = [];
   @Input() banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
-  @Input() babies: Customer_Baby[] = [];
+  @Input() babies: Allocation_Baby[] = [];
   @Input() instructions: string = "";
   @Input() confirmAction: boolean = false;
 

@@ -2,7 +2,7 @@ import { AfterViewInit, Component, Input, OnInit, viewChild, ViewChild } from '@
 import { FormsModule } from '@angular/forms';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { WingsService } from '../../../services/wings.service';
-import { Customer, Customer_Bank_Baby_Allocation, CustomerHat, RawMaterialNameColor, Status, Wing, WingBaby, WingsListItem } from '../../../../types';
+import { Bank_Allocation_Type, Customer, Customer_Bank_Baby_Allocation, CustomerHat, RawMaterialNameColor, Status, Wing, WingBaby, WingsListItem } from '../../../../types';
 import { DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { WingDiagramComponent } from '../../wings/wing-diagram/wing-diagram.component';
 import { PrefixPipe } from '../../../utils/pipes/prefix-pipe';
@@ -63,6 +63,8 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
   wings: WingsListItem[] = []; //populating the list of wings to select
   raw_material_names: RawMaterialNameColor[] = []; //populating the raw material selectors
+  raw_material_names_babies: RawMaterialNameColor[] = []; //populating the raw material selectors
+  raw_material_names_tails: RawMaterialNameColor[] = []; //populating the raw material selectors
 
   //the current customer object
   @Input() customer: Customer = {
@@ -84,7 +86,9 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     shorten_crown_by: 0,
     wing: null,
     wall_allocation_id: 0,
-    crown_allocation_id: 0
+    crown_allocation_id: 0,
+    tails_material_id: null,
+    tails_allocation_id: null
   };
   //the wing without customizations (shorten top or crown)
   wing_unchanged: Wing | null = null;
@@ -146,6 +150,11 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   arr_mayler: number[] = [0.15, 0.17, 0.2];
   hat_mayler = 0.17;
 
+  arr_hr_hl: number[] = [3.5, 4, 4.5];
+  hat_hr_hl: number = 3.5;
+
+  hat_crown_visible: number = 0;
+
   //==================== old stuff below====================
 
   //server_url: string = environment.serverUrl;
@@ -158,10 +167,13 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   
   wall_alocation: Customer_Bank_Baby_Allocation | null = null;
   crown_allocation: Customer_Bank_Baby_Allocation | null = null;
+  tails_allocation: Customer_Bank_Baby_Allocation | null = null;
   wall_allocation_units : string = "";
   crown_allocation_units : string = "";
+  tails_allocation_units : string = "";
   num_of_allocations_with_wall_material = 0;
   num_of_allocations_with_crown_material = 0;
+  num_of_allocations_with_tails_material = 0;
 
   //allow_top_max_margin = 0;
   //allow_crown_max_margin = 0;
@@ -174,11 +186,6 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   console=console;
   selected_wing_id: number | null = null;
 
-  /*
-  @Input() banks: Customer_Bank[] = [];
-  @Input() banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
-  @Input() babies: Customer_Baby[] = [];
-*/
   total_num_of_possible_hats: number = 0;
   highlight_lowest_number_in_table: boolean =  false;
 
@@ -267,48 +274,110 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
           next: (names)=> {
             this.raw_material_names = names;
 
-        let hat_material = this.activatedRoute.snapshot.queryParamMap.get('w_mat');
-        if(hat_material) {
-          this.customerHat.hat_material_id = Number(hat_material);
-          let material_rec = this.raw_material_names.find(m => m.id == this.customerHat.hat_material_id);
-          if(material_rec) {
-            this.wall_material_changed(material_rec);
+            //--- find materials with baby allocations:
+            //Find the ids of customer banks which have allocations of type babies
+            let bank_ids_with_babies_allocations = this.customer.banks_baby_allocations
+              .filter(alloc => alloc.allocation_type == Bank_Allocation_Type.babies)
+              .map(alloc => alloc.customer_bank_id);
+            
+            //Find the raw material IDs of those banks
+            let raw_material_ids_with_baby_allocations = this.customer.banks
+              .filter(bank => bank_ids_with_babies_allocations
+              .find(id => id == bank.id))
+              .map(a => a.raw_material_id);
+            
+            //filter the raw materials lists to only ones with baby allocations
+            this.raw_material_names_babies = names
+              .filter(material => raw_material_ids_with_baby_allocations.find(id => id == material.id));
+            
+            
+            //--- find materials with tails allocations:
+            //Find the ids of customer banks which have allocations of type babies
+            let bank_ids_with_tails_allocations = this.customer.banks_baby_allocations
+              .filter(alloc => alloc.allocation_type == Bank_Allocation_Type.tails)
+              .map(alloc => alloc.customer_bank_id);
+            
+            //Find the raw material IDs of those banks
+            let raw_material_ids_with_tails_allocations = this.customer.banks
+              .filter(bank => bank_ids_with_tails_allocations
+              .find(id => id == bank.id))
+              .map(a => a.raw_material_id);
+            
+            //filter the raw materials lists to only ones with baby allocations
+            this.raw_material_names_tails = names
+              .filter(material => raw_material_ids_with_tails_allocations.find(id => id == material.id));
+
+
+          let hat_material = this.activatedRoute.snapshot.queryParamMap.get('w_mat');
+          if(hat_material) {
+            this.customerHat.hat_material_id = Number(hat_material);
+            let material_rec = this.raw_material_names.find(m => m.id == this.customerHat.hat_material_id);
+            if(material_rec) {
+              this.wall_material_changed(material_rec);
+            }
           }
-        }
-        let crown_material = this.activatedRoute.snapshot.queryParamMap.get('c_mat');
-        if(crown_material) {
-          this.customerHat.crown_material_id = Number(crown_material);
-          let material_rec = this.raw_material_names.find(m => m.id == this.customerHat.hat_material_id);
-          if(material_rec) {
-            this.crown_material_changed(material_rec);
+          let crown_material = this.activatedRoute.snapshot.queryParamMap.get('c_mat');
+          if(crown_material) {
+            this.customerHat.crown_material_id = Number(crown_material);
+            let material_rec = this.raw_material_names.find(m => m.id == this.customerHat.hat_material_id);
+            if(material_rec) {
+              this.crown_material_changed(material_rec);
+            }
           }
-        }
-        let hat_allocation = Number(this.activatedRoute.snapshot.queryParamMap.get('w_aloc'));
-        if(hat_allocation) {
-          this.pending_allocation_area_selection = "wall";
-          this.allocation_selected(hat_allocation);
-        }
-        let crown_allocation = Number(this.activatedRoute.snapshot.queryParamMap.get('c_aloc'));
-        if(crown_allocation) {
-          this.pending_allocation_area_selection = "crown";
-          this.allocation_selected(crown_allocation);
-        }
-        let shorten_top = Number(this.activatedRoute.snapshot.queryParamMap.get('s_t'));
-        if(shorten_top) {
-          this.customerHat.shorten_top_by = shorten_top;
-        }
-        let shorten_crown = Number(this.activatedRoute.snapshot.queryParamMap.get('s_c'));
-        if(shorten_crown) {
-          this.customerHat.shorten_crown_by = shorten_crown;
-        }
-        if(shorten_top || shorten_crown) {
-          this.margins_changed();
-        }
+          let hat_allocation = Number(this.activatedRoute.snapshot.queryParamMap.get('w_aloc'));
+          if(hat_allocation) {
+            this.pending_allocation_area_selection = "wall";
+            this.allocation_selected(hat_allocation);
+          }
+          let crown_allocation = Number(this.activatedRoute.snapshot.queryParamMap.get('c_aloc'));
+          if(crown_allocation) {
+            this.pending_allocation_area_selection = "crown";
+            this.allocation_selected(crown_allocation);
+          }
+
+          let tails_material = this.activatedRoute.snapshot.queryParamMap.get('t_mat');
+          if(tails_material && Number(tails_material) != 0) {
+            this.customerHat.tails_material_id = Number(tails_material);
+            let material_rec = this.raw_material_names.find(m => m.id == this.customerHat.tails_material_id);
+            if(material_rec) {
+              this.tails_material_changed(material_rec);
+            }
+          }
+          let tails_allocation = Number(this.activatedRoute.snapshot.queryParamMap.get('t_aloc'));
+          if(tails_allocation  && Number(tails_allocation) != 0) {
+            this.pending_allocation_area_selection = "tails";
+            this.allocation_selected(tails_allocation);
+          }
+
+          let shorten_top = Number(this.activatedRoute.snapshot.queryParamMap.get('s_t'));
+          if(shorten_top) {
+            this.customerHat.shorten_top_by = shorten_top;
+          }
+          let shorten_crown = Number(this.activatedRoute.snapshot.queryParamMap.get('s_c'));
+          if(shorten_crown) {
+            this.customerHat.shorten_crown_by = shorten_crown;
+          }
+          if(shorten_top || shorten_crown) {
+            this.margins_changed();
+          }
+
+          this.calculateVisibleCrown();
       }})},
       error: (error) => {
         console.log(error);
       }
     })
+  }
+
+  calculateVisibleCrown(){
+    this.hat_crown_visible = 0;
+    if(this.customerHat && this.customerHat.wing) {
+      const C1 = this.customerHat.wing.babies.find(b => b.position.toUpperCase() == "C1");
+      this.hat_crown_visible = (C1) ? C1.length : 0;
+    }
+    if(this.customerHat.tails_allocation_id && this.hat_crown_visible > 0){
+      this.hat_crown_visible -= this.hat_hr_hl;
+    }
   }
 
   gotoCustomersList(textInfo: string = '', isError: Boolean = false) {
@@ -327,8 +396,8 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   aggregateHatBabiesAndMatchingAllocations() {
 
     this.highlight_lowest_number_in_table = false;
-    let babies_in_wall_allocation = (this.wall_alocation)? (this.customer.babies.filter(b => b.customer_banks_babies_id == this.wall_alocation?.id)) : [];
-    let babies_in_crown_allocation = (this.crown_allocation)? (this.customer.babies.filter(b => b.customer_banks_babies_id == this.crown_allocation?.id)) : [];
+    let babies_in_wall_allocation = (this.wall_alocation)? (this.customer.babies.filter(b => b.allocation_id == this.wall_alocation?.id)) : [];
+    let babies_in_crown_allocation = (this.crown_allocation)? (this.customer.babies.filter(b => b.allocation_id == this.crown_allocation?.id)) : [];
 
     let hats_info = this.hatsCalculatorService.aggregateHatBabiesAndMatchingAllocations(
       this.customerHat.wing,
@@ -369,15 +438,21 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         }
         this.customerHat.wall_allocation_id = alloc_id;
       }
-      else {
+      else if(this.pending_allocation_area_selection == "wall") {
         this.crown_allocation = alloc;
         this.crown_allocation_units = bank? bank.raw_material_quantity_units : "";
         this.customerHat.crown_allocation_id = alloc_id;
       }
+      else if(this.pending_allocation_area_selection == "tails") {
+        this.tails_allocation = alloc;
+        this.crown_allocation_units = bank? bank.raw_material_quantity_units : "";
+        this.customerHat.tails_allocation_id = alloc_id;
+      }      
     }
     this.aggregateHatBabiesAndMatchingAllocations();
     this.update_table_instructions();
     this.order_amount = this.total_num_of_possible_hats;
+    this.calculateVisibleCrown();
   }
 
   num_of_wings_changed(){
@@ -421,6 +496,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         this.update_table_instructions();
         this.order_amount = this.total_num_of_possible_hats;
         this.recalculate_hat_size();
+        this.calculateVisibleCrown();
       });
     }
   }
@@ -433,9 +509,11 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     if(!material)
       return;
     this.customerHat.hat_material_id = material.id;
-    //if (this.customerHat.crown_material == "") { 
     this.customerHat.crown_material_id = material.id;
-    //}
+    this.wall_alocation = null;
+    this.crown_allocation = null;
+    this.customerHat.wall_allocation_id = 0;
+    this.customerHat.crown_allocation_id = 0;
     this.update_table_instructions();
     this.reload_allocations();
   }
@@ -443,6 +521,10 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   wall_material_cleared(){
     this.customerHat.hat_material_id = null;
     this.customerHat.crown_material_id = null;
+    this.wall_alocation = null;
+    this.crown_allocation = null;
+    this.customerHat.wall_allocation_id = 0;
+    this.customerHat.crown_allocation_id = 0;
     this.update_table_instructions();
     this.reload_allocations();
   }
@@ -451,15 +533,34 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     if(!material)
       return;
     this.customerHat.crown_material_id = material.id;
-    //if (this.customerHat.crown_material == "") { 
-    this.customerHat.crown_material_id = material.id;
-    //}
+    this.customerHat.crown_allocation_id = 0;
+    this.crown_allocation = null;
+    this.update_table_instructions();
+    this.reload_allocations();
+  }
+
+  tails_material_changed(material: RawMaterialNameColor){
+    if(!material)
+      return;
+    this.customerHat.tails_material_id = material.id;
+    this.customerHat.tails_allocation_id = 0;
+    this.tails_allocation = null;
     this.update_table_instructions();
     this.reload_allocations();
   }
   
   crown_material_cleared(){
     this.customerHat.crown_material_id = null;
+    this.customerHat.crown_allocation_id = 0;
+    this.crown_allocation = null;
+    this.update_table_instructions();
+    this.reload_allocations();
+  }
+
+  tails_material_cleared() {
+    this.customerHat.tails_material_id = null;
+    this.customerHat.tails_allocation_id = 0;
+    this.tails_allocation = null;
     this.update_table_instructions();
     this.reload_allocations();
   }
@@ -467,21 +568,25 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   reload_allocations(){
     let banks_with_wall_materials = this.customer.banks.filter(b => b.raw_material_id == this.customerHat.hat_material_id).map(b => b.id);
     let banks_with_crown_materials = this.customer.banks.filter(b => b.raw_material_id == this.customerHat.crown_material_id).map(b => b.id);
-    this.num_of_allocations_with_wall_material = this.customer.banks_baby_allocations.filter(a => banks_with_wall_materials.indexOf(a.customer_bank_id) >= 0).length;
-    this.num_of_allocations_with_crown_material = this.customer.banks_baby_allocations.filter(a => banks_with_crown_materials.indexOf(a.customer_bank_id) >= 0).length;
+    let banks_with_tails_materials = this.customer.banks.filter(b => b.raw_material_id == this.customerHat.tails_material_id).map(b => b.id);
+
+    this.num_of_allocations_with_wall_material = this.customer.banks_baby_allocations.filter(a => banks_with_wall_materials.indexOf(a.customer_bank_id) >= 0 && a.allocation_type==Bank_Allocation_Type.babies).length;
+    this.num_of_allocations_with_crown_material = this.customer.banks_baby_allocations.filter(a => banks_with_crown_materials.indexOf(a.customer_bank_id) >= 0 && a.allocation_type==Bank_Allocation_Type.babies).length;
+    this.num_of_allocations_with_tails_material = this.customer.banks_baby_allocations.filter(a => banks_with_tails_materials.indexOf(a.customer_bank_id) >= 0 && a.allocation_type==Bank_Allocation_Type.tails).length;
     this.update_table_instructions();
+    this.calculateVisibleCrown();
   }
 
   open_material_allocation_picker(materialFilter: number | null, area: string){
     if(materialFilter) {
-    this.allocation_picker.dialogWrapper.modalTitle = "Pick allocation";
-    this.allocation_picker.banks = this.customer.banks.filter(bank => (materialFilter)? bank.raw_material_id == materialFilter : true);
-    this.allocation_picker.banks_baby_allocations = this.customer.banks_baby_allocations;
-    this.allocation_picker.babies = this.customer.babies;
-    this.allocation_picker.customer = this.customer;
-    this.allocation_picker.wing_id = (this.selected_wing_id)?? 0;
-    this.pending_allocation_area_selection = area;
-    this.allocation_picker.dialogWrapper.open();
+      this.allocation_picker.dialogWrapper.modalTitle = "Pick allocation";
+      this.allocation_picker.banks = this.customer.banks.filter(bank => (materialFilter)? bank.raw_material_id == materialFilter : true);
+      this.allocation_picker.banks_baby_allocations = this.customer.banks_baby_allocations.filter(a => a.allocation_type == ((area!="tails")? Bank_Allocation_Type.babies : Bank_Allocation_Type.tails));
+      this.allocation_picker.babies = this.customer.babies;
+      this.allocation_picker.customer = this.customer;
+      this.allocation_picker.wing_id = (this.selected_wing_id)?? 0;
+      this.pending_allocation_area_selection = area;
+      this.allocation_picker.dialogWrapper.open();
     }
   }
 
@@ -583,6 +688,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.aggregateHatBabiesAndMatchingAllocations();
     this.order_amount = this.total_num_of_possible_hats;
     this.recalculate_hat_size();
+    this.calculateVisibleCrown();
   }
 
   margins_changed() {
@@ -600,6 +706,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.aggregateHatBabiesAndMatchingAllocations();
     this.order_amount = this.total_num_of_possible_hats;
     this.recalculate_hat_size();
+    this.calculateVisibleCrown();
   }
 
   confirm_reset(){
@@ -613,6 +720,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.customerHat.shorten_crown_by = 0;
     this.margins_changed();
     this.check_for_wing_changes();
+    this.calculateVisibleCrown();
   }
 
   update_table_instructions(){
@@ -666,8 +774,8 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
           this.toastService.showSuccess(data["message"]);
           this.customerHat.wing?.babies.forEach((hatBaby: WingBaby) => {
             let allocationBaby = hatBaby.position.toUpperCase().startsWith("C")?
-              this.customer.babies.find(b => b.customer_banks_babies_id == this.crown_allocation?.id && b.length == hatBaby.length) : 
-              this.customer.babies.find(b => b.customer_banks_babies_id == this.wall_alocation?.id && b.length == hatBaby.length);
+              this.customer.babies.find(b => b.allocation_id == this.crown_allocation?.id && b.length == hatBaby.length) : 
+              this.customer.babies.find(b => b.allocation_id == this.wall_alocation?.id && b.length == hatBaby.length);
       
             if(allocationBaby){
               //this.console.log("Reducing baby " + allocationBaby.length  + " by  " + (this.order_amount * this.customerHat.wing_quantity));

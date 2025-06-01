@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnInit, Output, QueryList, SimpleChanges, ViewChild, ViewChildren } from '@angular/core';
-import { Baby, Customer, Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, HistoryReportRecord, TransactionRecord, TransactionType, Wing, ShortWingsInfo } from '../../../../types';
+import { Baby, Customer, Allocation_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, HistoryReportRecord, TransactionRecord, TransactionType, Wing, ShortWingsInfo, Bank_Allocation_Type } from '../../../../types';
 import { RouterModule } from '@angular/router';
 import { DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
@@ -46,7 +46,8 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     raw_material_color: ''
   };
   @Input() banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
-  @Input() babies: Customer_Baby[] = [];
+  @Input() babies: Allocation_Baby[] = [];
+  tails_allocation_in_this_bank: Customer_Bank_Baby_Allocation | undefined = undefined;
 
   //Saving the original data in order to be able to reset changes
   unchanged_bank: Customer_Bank = {
@@ -55,7 +56,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     raw_material_color: ''
   };
   unchanged_banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
-  unchanged_babies: Customer_Baby[] = [];
+  unchanged_babies: Allocation_Baby[] = [];
 
   @Input() wing_id: number = 0;
   @Input() raw_material_quantity_units: string = "";
@@ -114,7 +115,10 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     this.unchanged_bank = (JSON.parse(JSON.stringify(this.bank)));
     this.unchanged_banks_baby_allocations = (JSON.parse(JSON.stringify(this.banks_baby_allocations)));
     this.unchanged_babies = (JSON.parse(JSON.stringify(this.babies)));
-    this.unchanged_bank = (JSON.parse(JSON.stringify(this.bank)));
+
+    //does this bank have an allocation for tails?
+    //if so, send it to the order calculator when opened
+    this.tails_allocation_in_this_bank = this.banks_baby_allocations.find(alloc => alloc.allocation_type == Bank_Allocation_Type.tails && alloc.customer_bank_id == this.bank.id);
 
     this.delete_allocation_dialog.confirm.subscribe((response:any) => {
       if(this.pendingAllocationIdAction != -999) {
@@ -127,24 +131,24 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     this.babies_picker.appendBaby.subscribe((baby: Baby) => { this.babies_dialog_closed(baby); });
 
     this.allocation_dialog.dialogWrapper.modalTitle = "Manage allocation";
-    this.allocation_dialog.dialogWrapper.confirm.subscribe(() => { this.allocation_dialog_closed(this.allocation_dialog.CurrentQuantity); });
+    this.allocation_dialog.dialogWrapper.confirm.subscribe(() => { this.allocation_dialog_closed(this.allocation_dialog.CurrentQuantity, this.allocation_dialog.editedObject.allocation_type); });
 
     this.allocation_picker.dialogWrapper.confirm.subscribe((target_allocation_id: number) => {
       let babies_to_delete: number[] = [];
-      this.babies.filter(b => b.customer_banks_babies_id == this.pendingMergedSourceAllocationID).forEach(soure_baby => {
+      this.babies.filter(b => b.allocation_id == this.pendingMergedSourceAllocationID).forEach(soure_baby => {
         // find a baby with the destination allocation id
         // if not exists, just change the current baby allocation id
         // else, append the current quantity to the other baby. add the baby id to the deleted ones
         let destination_baby_with_same_length = this.babies.find(
           target_baby => 
-            target_baby.customer_banks_babies_id == target_allocation_id && 
+            target_baby.allocation_id == target_allocation_id && 
             target_baby.length == soure_baby.length);
         if(destination_baby_with_same_length) {
           destination_baby_with_same_length.quantity += soure_baby.quantity;
           babies_to_delete.push(soure_baby.id);
         }
         else {
-          soure_baby.customer_banks_babies_id = target_allocation_id;
+          soure_baby.allocation_id = target_allocation_id;
         }
       });
       while(babies_to_delete.length > 0){
@@ -177,7 +181,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   }
 
   delete_allocation(allocationId:number){
-    let babiesCount = this.babies.filter(b => b.customer_banks_babies_id == allocationId).length;
+    let babiesCount = this.babies.filter(b => b.allocation_id == allocationId).length;
     if(babiesCount == 0){
       this.delete_allocation_confirmed(allocationId);
     }
@@ -192,7 +196,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     //delete all babies for this allocation
     let baby_index = 999;
     while (baby_index >= 0){
-      baby_index = this.babies.findIndex(b => b.customer_banks_babies_id == allocationId);
+      baby_index = this.babies.findIndex(b => b.allocation_id == allocationId);
       if(baby_index >= 0){
         this.babies.splice(baby_index, 1);
         deleted = true;
@@ -208,7 +212,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     //Remove its records of other pending transaction actions (added changed allocation)
     let allocation_transaction_index = 0;
     do {
-      allocation_transaction_index = this.bank.transaction_history.findIndex(a => a.customer_banks_babies_id == allocationId);
+      allocation_transaction_index = this.bank.transaction_history.findIndex(a => a.allocation_id == allocationId);
       if(allocation_transaction_index >= 0) {
         this.bank.transaction_history.splice(allocation_transaction_index, 1);
         //console.log("removing transaction record");
@@ -229,13 +233,17 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
           raw_material_id: this.bank.raw_material_id,
           customer_id: this.bank.customer_id,
           customer_bank_id: this.bank.id,
-          customer_banks_babies_id:  this.banks_baby_allocations[allocation_index].id,
+          allocation_id:  this.banks_baby_allocations[allocation_index].id,
           cur_raw_material_quantity: 0,
           cur_customer_bank_quantity: (this.bank.remaining_quantity + this.banks_baby_allocations[allocation_index].quantity),
           cur_banks_babies_allocation_quantity: 0
         });
       }
+      //deleting
       this.banks_baby_allocations.splice(allocation_index, 1);
+      if(this.tails_allocation_in_this_bank && allocationId == this.tails_allocation_in_this_bank.id){
+        this.tails_allocation_in_this_bank = this.banks_baby_allocations.find(alloc => alloc.allocation_type == Bank_Allocation_Type.tails  && alloc.customer_bank_id == this.bank.id);
+      }
       deleted = true;
     }
 
@@ -279,7 +287,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     this.allocation_dialog.open();
   }
 
-  allocation_dialog_closed(currentQuantity: number) {
+  allocation_dialog_closed(currentQuantity: number, allocationType: Bank_Allocation_Type) {
     let other_allocations_sum = this.banks_baby_allocations.filter(alloc => alloc.customer_bank_id == this.bank.id && alloc.id != this.pendingAllocationIdAction)
       .reduce((acc, alloc) => acc + alloc.quantity, 0);
     //console.log("other_allocations_sum " + other_allocations_sum);
@@ -291,7 +299,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
       this.bank.transaction_history = [];
     }
     let pushNewTransationRecord = false;
-    let transactionrec = this.bank.transaction_history.find(rec => rec.customer_banks_babies_id == this.pendingAllocationIdAction);
+    let transactionrec = this.bank.transaction_history.find(rec => rec.allocation_id == this.pendingAllocationIdAction);
     if(!transactionrec) {
       transactionrec = {
         id: 0,
@@ -302,7 +310,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
         raw_material_id: this.bank.raw_material_id,
         customer_id: this.bank.customer_id,
         customer_bank_id: this.bank.id,
-        customer_banks_babies_id: 0,
+        allocation_id: 0,
         cur_raw_material_quantity: -1,
         cur_customer_bank_quantity: currentQuantity,
         cur_banks_babies_allocation_quantity: 0
@@ -313,21 +321,23 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
       console.log("transaction found, to fix");
     }
     if(allocation){
-      //let directionFactor = (transactionrec.customer_banks_babies_id  allocation.id);
+      //let directionFactor = (transactionrec.allocation_id  allocation.id);
       //console.log("allocation found, to fix");
       transactionrec.transaction_quantity = (allocation.id < 0) ? allocation.quantity : (currentQuantity - allocation.quantity);
-      transactionrec.customer_banks_babies_id = allocation.id;
+      transactionrec.allocation_id = allocation.id;
       allocation.quantity = currentQuantity;
+      allocation.allocation_type = allocationType;
     }
     else {
       this.banks_baby_allocations.push({
         id: this.newAllocationIdCounter,
         customer_bank_id: this.bank.id,
         quantity: currentQuantity,
-        remaining_quantity: 0
+        remaining_quantity: 0,
+        allocation_type: allocationType
       });
       transactionrec.transaction_quantity = currentQuantity;
-      transactionrec.customer_banks_babies_id = this.newAllocationIdCounter;
+      transactionrec.allocation_id = this.newAllocationIdCounter;
       this.newAllocationIdCounter--;
     }
     transactionrec.cur_customer_bank_quantity = (this.bank.quantity - other_allocations_sum - currentQuantity);
@@ -344,7 +354,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     let babyIndex = this.babies.findIndex(b => b.id == baby_id);
     if(babyIndex >= 0)
     {
-      let allocation_id = this.babies[babyIndex].customer_banks_babies_id;
+      let allocation_id = this.babies[babyIndex].allocation_id;
       this.babies.splice(babyIndex, 1);
       this.update_advisor_babies(allocation_id);
     }
@@ -355,7 +365,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   open_babies_dialog(bank_allocation_id: number, baby_length: number) {
     this.pendingBabyAppendAllocation = bank_allocation_id;
     this.pendingBabyAppendBaby = baby_length;
-    let baby_to_edit = this.babies.find(b => b.length == baby_length && b.customer_banks_babies_id == this.pendingBabyAppendAllocation);
+    let baby_to_edit = this.babies.find(b => b.length == baby_length && b.allocation_id == this.pendingBabyAppendAllocation);
     this.babies_picker.editedObject = {
       id: 0,
       raw_material_parent_id: 0,
@@ -384,7 +394,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   babies_dialog_closed(baby: Baby) {
     console.log("Received:");
     console.dir(baby);
-    let baby_to_edit = this.babies.find(b => b.length == baby.length && b.customer_banks_babies_id == this.pendingBabyAppendAllocation);
+    let baby_to_edit = this.babies.find(b => b.length == baby.length && b.allocation_id == this.pendingBabyAppendAllocation);
     if(baby_to_edit) {
       if(this.babies_picker.babyEditMode) {
         console.log("Setting baby with length " + baby.length + "quantity to " + baby.quantity);
@@ -399,7 +409,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
       console.log("Adding new baby " + baby.length + "quantity " + baby.quantity);
       this.babies.push({
         id: 0,
-        customer_banks_babies_id: this.pendingBabyAppendAllocation,
+        allocation_id: this.pendingBabyAppendAllocation,
         length: baby.length,
         quantity: baby.quantity,
         quantity_in_pending_orders: 0
@@ -461,7 +471,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
       if(baby_to_append.remaining > 0){  
         let wall_baby_with_same_length = this.babies.find(
           baby_in_customer_bank => 
-            baby_in_customer_bank.length == baby_to_append.length && baby_in_customer_bank.customer_banks_babies_id == aggregatedBabies.hat_alloc_id
+            baby_in_customer_bank.length == baby_to_append.length && baby_in_customer_bank.allocation_id == aggregatedBabies.hat_alloc_id
         );
         if(wall_baby_with_same_length){
           wall_baby_with_same_length.quantity += baby_to_append.remaining;
@@ -470,7 +480,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
         else {
           this.babies = [...this.babies, {
             id: 0,
-            customer_banks_babies_id: aggregatedBabies.hat_alloc_id,
+            allocation_id: aggregatedBabies.hat_alloc_id,
             length: baby_to_append.length,
             quantity: baby_to_append.remaining,
             quantity_in_pending_orders: 0

@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { WingsService } from '../../../services/wings.service';
 import { aggregated_babies, HatsCalculatorService } from '../../../services/hats-calculator.service';
-import { Customer_Baby, Customer_Bank_Baby_Allocation, Wing, WingBaby, ShortWingsInfo, OrderAdvisorWingOverall, OrderAdvisorHatsSuggestionAlternative, Customer_Bank } from '../../../../types';
+import { Allocation_Baby, Customer_Bank_Baby_Allocation, Wing, WingBaby, ShortWingsInfo, OrderAdvisorWingOverall, OrderAdvisorHatsSuggestionAlternative, Customer_Bank } from '../../../../types';
 import { Router, withEnabledBlockingInitialNavigation } from '@angular/router';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { faArrowsRotate, faLightbulb, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
@@ -21,18 +21,20 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   
   @Input() wall_bank: Customer_Bank | null = null;
   @Input() crown_bank: Customer_Bank | null = null;
+  @Input() tails_bank: Customer_Bank | null = null;
   @Input() wing_id: number = 0;
   @Input() wall_allocation: Customer_Bank_Baby_Allocation | null = null;
   @Input() crown_allocation: Customer_Bank_Baby_Allocation | null = null;
-  @Input() customer_wall_babies: Customer_Baby[] = [];
-  @Input() customer_crown_babies: Customer_Baby[] = [];
+  @Input() tails_allocation: Customer_Bank_Baby_Allocation | null = null;
+  @Input() customer_wall_babies: Allocation_Baby[] = [];
+  @Input() customer_crown_babies: Allocation_Baby[] = [];
   @Input() show_options_button: boolean = true;
   @Input() try_to_exceed: number = -1;
   @ViewChild("advisor_dialog") advisor_dialog!: ModalDialogComponent;
   @ViewChild("hat_creation_assistant") hat_creation_assistant!: ModalDialogComponent;
 
-  allocation_wall_babies: Customer_Baby[] = [];
-  allocation_crown_babies: Customer_Baby[] = [];
+  allocation_wall_babies: Allocation_Baby[] = [];
+  allocation_crown_babies: Allocation_Baby[] = [];
 
   calculating: boolean = false;
   systemWings: Wing[] = [];
@@ -79,17 +81,17 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     //console.log("ngOnChanges:");
     //console.dir(changes);
-    this.allocation_wall_babies = this.customer_wall_babies.filter(b => b.customer_banks_babies_id == ((this.wall_allocation) ? this.wall_allocation.id : 0));
-    this.allocation_crown_babies = this.customer_crown_babies.filter(b => b.customer_banks_babies_id == ((this.crown_allocation) ? this.crown_allocation.id : 0));
+    this.allocation_wall_babies = this.customer_wall_babies.filter(b => b.allocation_id == ((this.wall_allocation) ? this.wall_allocation.id : 0));
+    this.allocation_crown_babies = this.customer_crown_babies.filter(b => b.allocation_id == ((this.crown_allocation) ? this.crown_allocation.id : 0));
 
     this.runCalculations();
   }
 
-  updateBabies(new_wall_babies: Customer_Baby[], new_crown_babies: Customer_Baby[] ) {
+  updateBabies(new_wall_babies: Allocation_Baby[], new_crown_babies: Allocation_Baby[] ) {
     this.customer_wall_babies = new_wall_babies;
     this.customer_crown_babies = new_crown_babies;
-    this.allocation_wall_babies = this.customer_wall_babies.filter(b => b.customer_banks_babies_id == ((this.wall_allocation) ? this.wall_allocation.id : 0));
-    this.allocation_crown_babies = this.customer_crown_babies.filter(b => b.customer_banks_babies_id == ((this.crown_allocation) ? this.crown_allocation.id : 0));
+    this.allocation_wall_babies = this.customer_wall_babies.filter(b => b.allocation_id == ((this.wall_allocation) ? this.wall_allocation.id : 0));
+    this.allocation_crown_babies = this.customer_crown_babies.filter(b => b.allocation_id == ((this.crown_allocation) ? this.crown_allocation.id : 0));
     //console.log("advisor updated " + this.wall_allocation!.id);
     //console.dir(this.allocation_wall_babies);
     this.runCalculations();
@@ -319,9 +321,9 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
       reduceTop: number,
       reduceCrown: number,
       wallAllocation: Customer_Bank_Baby_Allocation,
-      wallAllocationBabies: Customer_Baby[],
+      wallAllocationBabies: Allocation_Baby[],
       crownAllocation: Customer_Bank_Baby_Allocation,
-      crownAllocationBabies: Customer_Baby[],
+      crownAllocationBabies: Allocation_Baby[],
       wingsPerHat: number
     ){
       let adjustedWing: Wing | null = wing;
@@ -408,16 +410,25 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
 
     goToCalculator(wing_id: number, wall_allocation_id:number, crown_allocation_id: number, shorten_top: number, shorten_crown: number){
       this.advisor_dialog.onCancel();
+      let queryParams = { 
+        wing_id: wing_id,
+        w_mat: this.wall_bank!.raw_material_id,
+        c_mat: this.crown_bank!.raw_material_id,
+        w_aloc: wall_allocation_id,
+        c_aloc: crown_allocation_id,
+        s_t: shorten_top,
+        s_c: shorten_crown,
+        t_aloc: 0,
+        t_mat: 0,
+      };
+      if(this.tails_bank && this.tails_bank.raw_material_id){
+        queryParams["t_mat"] = this.tails_bank.raw_material_id;
+      }
+      if(this.tails_allocation){
+        queryParams["t_aloc"] = this.tails_allocation.id;
+      }
       this.router.navigate(['/inventory/customer/hat-calculator'], { 
-        queryParams: { 
-          wing_id: wing_id,
-          w_mat: this.wall_bank!.raw_material_id,
-          c_mat: this.crown_bank!.raw_material_id,
-          w_aloc: wall_allocation_id,
-          c_aloc: crown_allocation_id,
-          s_t: shorten_top,
-          s_c: shorten_crown
-        }, 
+        queryParams: queryParams,
         queryParamsHandling:'merge'
       });
     }

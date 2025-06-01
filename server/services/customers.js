@@ -22,20 +22,20 @@ async function getSingle(id){
     const customer_banks = helper.emptyOrRows(customer_banks_recs);
     customer.banks = customer_banks;
 
-    const customer_banks_babies_recs =  await db.query(
+    const customer_banks_allocations_recs =  await db.query(
       `select 
-        cbb.id, cbb.customer_bank_id, cbb.quantity, cbb.remaining_quantity 
-      from customer_banks_babies cbb 
+        cbb.id, cbb.customer_bank_id, cbb.quantity, cbb.remaining_quantity, cbb.allocation_type
+      from customer_banks_allocations cbb 
       where cbb.customer_bank_id in (select cb.id from customer_banks cb where cb.customer_id=${id});`);
-    const customer_banks_babies = helper.emptyOrRows(customer_banks_babies_recs);
-    customer.banks_baby_allocations = customer_banks_babies;
+    const customer_banks_allocations = helper.emptyOrRows(customer_banks_allocations_recs);
+    customer.banks_baby_allocations = customer_banks_allocations;
 
     const customer_baby_recs =  await db.query(
       `select 
-        b.id, b.customer_banks_babies_id, b.length, b.quantity, quantity_in_pending_orders
-      from babies b 
-      where b.customer_banks_babies_id in (select cbb.id
-      from customer_banks_babies cbb where cbb.customer_bank_id in (select cb.id from customer_banks cb where cb.customer_id=${id}));;`);
+        b.id, b.allocation_id, b.length, b.quantity, quantity_in_pending_orders
+      from allocation_babies b 
+      where b.allocation_id in (select cbb.id
+      from customer_banks_allocations cbb where cbb.customer_bank_id in (select cb.id from customer_banks cb where cb.customer_id=${id}));;`);
 
     const customer_babies = helper.emptyOrRows(customer_baby_recs);
     customer.babies = customer_babies;
@@ -57,7 +57,7 @@ async function getMultiple(page = 1, perPage){
     FROM customers c
     LEFT JOIN  customer_banks cb ON c.id = cb.customer_id
     LEFT JOIN 
-        (SELECT customer_bank_id,  COUNT(*) AS allocation_count FROM customer_banks_babies
+        (SELECT customer_bank_id,  COUNT(*) AS allocation_count FROM customer_banks_allocations
         GROUP BY customer_bank_id) work_allocations 
     ON cb.id = work_allocations.customer_bank_id
     GROUP BY  c.id  ${subset}`
@@ -148,16 +148,16 @@ async function delete_all_customer_banks(where_rule, force=false, active_connect
     }
   
     const delete1 = await db.transaction_query(
-      `delete from babies
-      where customer_banks_babies_id in 
-      (select id from customer_banks_babies 
+      `delete from allocation_babies
+      where allocation_id in 
+      (select id from customer_banks_allocations 
         where customer_bank_id in 
         (select id from customer_banks ${where_rule}));`, 
       [], 
       active_connection);
 
     const delete2 = await db.transaction_query(
-      `delete from customer_banks_babies 
+      `delete from customer_banks_allocations 
       where customer_bank_id in 
       (select id from customer_banks ${where_rule});`, 
       [], 
@@ -251,9 +251,9 @@ async function save_customer_bank (customer, bank_id, active_connection){
       }
       //First delete all the babies, which are connected to the non-existing allocations
       let delete_non_existing_babies = await db.transaction_query(
-        `delete from babies 
-          where customer_banks_babies_id in 
-          (select id from  customer_banks_babies 
+        `delete from allocation_babies 
+          where allocation_id in 
+          (select id from  customer_banks_allocations 
             where customer_bank_id=${new_bank_id} 
             ${existing_allocations_filter})`, 
         [], 
@@ -261,7 +261,7 @@ async function save_customer_bank (customer, bank_id, active_connection){
       
       //then delete the allocations themselves  
       let delete_non_existing_allocations = await db.transaction_query(
-        `delete from  customer_banks_babies 
+        `delete from  customer_banks_allocations 
           where customer_bank_id=${new_bank_id} 
           ${existing_allocations_filter}`, 
           [], 
@@ -283,14 +283,14 @@ async function save_customer_bank (customer, bank_id, active_connection){
 
       //delete non-existing babies for this allocation, if this allocation is not new
       if(allocation.id > 0){
-        let existing_babies = customer.babies.filter(baby => baby.customer_banks_babies_id == allocation.id).map(baby => baby.id);
+        let existing_babies = customer.babies.filter(baby => baby.allocation_id == allocation.id).map(baby => baby.id);
         let existing_babies_str = existing_babies.join(",");
         let existing_babies_filter = "";
         if(existing_babies.length > 0) {
           existing_babies_filter = `and id not in (${existing_babies_str})`
         }
         let del_non_existing_babies = await db.transaction_query(
-          `delete from babies where customer_banks_babies_id=${allocation.id} ${existing_babies_filter}`,
+          `delete from allocation_babies where allocation_id=${allocation.id} ${existing_babies_filter}`,
           [],
           active_connection
         );
@@ -298,19 +298,21 @@ async function save_customer_bank (customer, bank_id, active_connection){
 
       // create/update the allocation
       const allocation_result = await db.transaction_query(
-        `insert into customer_banks_babies (id, customer_bank_id, quantity, remaining_quantity)
+        `insert into customer_banks_allocations (id, customer_bank_id, quantity, remaining_quantity, allocation_type)
         VALUES
-        ((?),(?),(?),(?))
-        as new_customer_banks_babies
+        ((?),(?),(?),(?),(?))
+        as new_customer_banks_allocations
         ON DUPLICATE KEY UPDATE
-        customer_bank_id=new_customer_banks_babies.customer_bank_id,
-        quantity=new_customer_banks_babies.quantity,
-        remaining_quantity=new_customer_banks_babies.remaining_quantity`,
+        customer_bank_id=new_customer_banks_allocations.customer_bank_id,
+        quantity=new_customer_banks_allocations.quantity,
+        remaining_quantity=new_customer_banks_allocations.remaining_quantity,
+        allocation_type=new_customer_banks_allocations.allocation_type`,
       [
         allocation.id,
         new_bank_id,
         allocation.quantity,
-        allocation.remaining_quantity
+        allocation.remaining_quantity,
+        allocation.allocation_type
       ],
       active_connection);
       new_allocation_id = (new_allocation_id <= 0)? allocation_result.insertId : new_allocation_id;
@@ -320,18 +322,18 @@ async function save_customer_bank (customer, bank_id, active_connection){
         //console.log("FOUND " + bank.transaction_history.length +" TRANSACTIONS TO SAVE");
         //console.log("original allocation id: " + original_allocation_id);
         //console.log("new allocation id: " + new_allocation_id);
-        let filtered_recs = bank.transaction_history.filter(alloc => alloc.customer_banks_babies_id == original_allocation_id);
+        let filtered_recs = bank.transaction_history.filter(alloc => alloc.allocation_id == original_allocation_id);
         //console.log("filtered_recs " + filtered_recs.length);
         //console.dir(bank.transaction_history);
-        bank.transaction_history.filter(alloc => alloc.customer_banks_babies_id == original_allocation_id).forEach(async record => {
-          record.customer_banks_babies_id = new_allocation_id;
+        bank.transaction_history.filter(alloc => alloc.allocation_id == original_allocation_id).forEach(async record => {
+          record.allocation_id = new_allocation_id;
           //console.log(record);
           await transaction_history.create_history_record(record);
         });
       }
 
       //find babies which are by the old (or new) allocation id and save them
-      let babies_to_save = customer.babies.filter(b => b.customer_banks_babies_id == original_allocation_id);
+      let babies_to_save = customer.babies.filter(b => b.allocation_id == original_allocation_id);
       if(babies_to_save.length > 0) {
 
         let babies_to_save_arr = babies_to_save.map(baby => 
@@ -346,11 +348,11 @@ async function save_customer_bank (customer, bank_id, active_connection){
         let placeholder = Array(babies_to_save.length).fill("(" + Array(babies_to_save_arr.length / babies_to_save.length).fill("?").join(",") + ")").join(",");
 
         const babiesResult = await db.transaction_query(
-          `INSERT INTO babies (id, customer_banks_babies_id, length, quantity, quantity_in_pending_orders)
+          `INSERT INTO allocation_babies (id, allocation_id, length, quantity, quantity_in_pending_orders)
           VALUES ${placeholder}
           as new_babies
           ON DUPLICATE KEY UPDATE
-          customer_banks_babies_id=new_babies.customer_banks_babies_id,
+          allocation_id=new_babies.allocation_id,
           length=new_babies.length,
           quantity=new_babies.quantity,
           quantity_in_pending_orders=new_babies.quantity_in_pending_orders`, 
@@ -458,8 +460,8 @@ async function remove(id, active_connection=null){
   try {
 
     const customer_banks_select = `from customer_banks where customer_id = ${id}`;
-    const customer_banks_allocation_select = `from customer_banks_babies where customer_bank_id in (select id ${customer_banks_select})`;
-    const babies_select = `from babies where customer_banks_babies_id in (select id ${customer_banks_allocation_select})`;
+    const customer_banks_allocation_select = `from customer_banks_allocations where customer_bank_id in (select id ${customer_banks_select})`;
+    const babies_select = `from allocation_babies where allocation_id in (select id ${customer_banks_allocation_select})`;
 
     const del_babies_result = await db.transaction_query(`DELETE ${babies_select}`, [], active_connection);
     const del_banks_allocations_result = await db.transaction_query(`DELETE ${customer_banks_allocation_select}`, [], active_connection);
@@ -690,7 +692,7 @@ async function moveBabiesToOrder(
         when 12 then quantity_in_pending_orders+1
         when 11 then quantity_in_pending_orders+3
     end
-  where length in (12, 11) and customer_banks_babies_id=2;
+  where length in (12, 11) and allocation_id=2;
 */
   let wall_babies_quantity_update = "";
   let wall_babies_quantity_in_orders_update = "";
@@ -701,14 +703,14 @@ async function moveBabiesToOrder(
     wall_babies_quantity_in_orders_update += `when ${b["length"]} then quantity_in_pending_orders + ${b["count"]} `;
   }
   let query_update_wall_allocation = `
-      update babies set 
+      update allocation_babies set 
       quantity = case length
         ${wall_babies_quantity_update}
       end,
         quantity_in_pending_orders = case length 
           ${wall_babies_quantity_in_orders_update}
       end
-      where length in (${wall_babies_lengths}) and customer_banks_babies_id=${wall_allocation_id};`;
+      where length in (${wall_babies_lengths}) and allocation_id=${wall_allocation_id};`;
 
 
   let crown_babies_quantity_update = "";
@@ -720,14 +722,14 @@ async function moveBabiesToOrder(
     crown_babies_quantity_in_orders_update += `when ${b["length"]} then quantity_in_pending_orders + ${b["count"]} `;
   }
   let query_update_crown_allocation = `
-      update babies set 
+      update allocation_babies set 
       quantity = case length
         ${crown_babies_quantity_update}
       end,
         quantity_in_pending_orders = case length 
           ${crown_babies_quantity_in_orders_update}
       end
-      where length in (${crown_babies_lengths}) and customer_banks_babies_id=${crown_allocation_id};`;
+      where length in (${crown_babies_lengths}) and allocation_id=${crown_allocation_id};`;
 
     await db.transaction_query(query_update_wall_allocation, [], active_connection);
     await db.transaction_query(query_update_crown_allocation, [], active_connection);

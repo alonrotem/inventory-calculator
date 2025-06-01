@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, OnInit,QueryList,ViewChild, ViewChildren } from '@angular/core';
 import { NgFor, NgIf } from '@angular/common';
-import { Customer, Customer_Baby, TransactionType } from '../../../../types';
+import { Customer, Allocation_Baby, TransactionType } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -186,23 +186,6 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     bank_id:number, 
     allocation_id:number,
     bank_quantity:number) {
-    /*
-      this.customerItem.transaction_history.push({
-      raw_material_name: raw_material_name,
-      customer_name: this.customerItem.name,
-      transaction_type: transaction_type,
-      transaction_quantity: transaction_quantity,
-      raw_material_id: raw_material_id,
-      customer_id: this.customerItem.id,
-      customer_bank_id: bank_id,
-      customer_banks_babies_id: allocation_id,
-      cur_raw_material_quantity: 0,
-      cur_customer_bank_quantity: 0,
-      cur_banks_babies_allocation_quantity: 0,
-      date: undefined,
-      added_by: 1
-    });
-    */
   }
 
   saveCustomer()
@@ -271,7 +254,7 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     });
   }
 
-  customer_bank_babies_updated(newBabies: Customer_Baby[]){
+  customer_bank_babies_updated(newBabies: Allocation_Baby[]){
     this.customerItem.babies = newBabies;
     this.recalculateBanks();
   }

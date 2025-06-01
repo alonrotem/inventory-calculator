@@ -2,7 +2,7 @@ import { AfterViewInit, Component, EventEmitter, Input, Output, ViewChild } from
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
 import { ModalContentDirective } from '../../common/directives/modal-content.directive';
-import { Customer, Customer_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, ModalDialog } from '../../../../types';
+import { Customer, Allocation_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, ModalDialog } from '../../../../types';
 import { CustomerBanksTableComponent } from '../customer-banks-table/customer-banks-table.component';
 import { NgFor } from '@angular/common';
 
@@ -35,7 +35,7 @@ export class HatAllocationEditorPickerComponent implements ModalContentDirective
   @Input() wing_id: number = 0;
   @Input() banks: Customer_Bank[] = [];
   @Input() banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
-  @Input() babies: Customer_Baby[] = [];
+  @Input() babies: Allocation_Baby[] = [];
   @Output() allocation_selected = new EventEmitter<Customer_Bank_Baby_Allocation>();
 
   ngAfterViewInit(): void {

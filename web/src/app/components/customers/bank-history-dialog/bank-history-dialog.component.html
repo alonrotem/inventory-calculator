@@ -50,12 +50,12 @@
               </span>
 
               <span *ngSwitchCase="'customer_bank_allocate_to_Work'">
-                <span *ngIf="record.transaction_quantity >= 0">Allocted to work (#{{ record.customer_banks_babies_id }})</span>
-                <span *ngIf="record.transaction_quantity < 0">Reduced allocation (#{{ record.customer_banks_babies_id }})</span>
+                <span *ngIf="record.transaction_quantity >= 0">Allocted to work (#{{ record.allocation_id }})</span>
+                <span *ngIf="record.transaction_quantity < 0">Reduced allocation (#{{ record.allocation_id }})</span>
               </span>
 
               <span *ngSwitchCase="'customer_bank_allocation_deleted'">
-                <span>Work allocation deleted (#{{ record.customer_banks_babies_id }})</span>
+                <span>Work allocation deleted (#{{ record.allocation_id }})</span>
               </span>
 
             </td>

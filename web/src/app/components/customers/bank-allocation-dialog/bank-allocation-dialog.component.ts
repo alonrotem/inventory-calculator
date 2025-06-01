@@ -1,16 +1,17 @@
 import { AfterViewInit, Component, EventEmitter, Input, ViewChild } from '@angular/core';
-import { Customer_Bank_Baby_Allocation, ModalDialog } from '../../../../types';
+import { Bank_Allocation_Type, Customer_Bank_Baby_Allocation, ModalDialog } from '../../../../types';
 import { ModalContentDirective } from '../../common/directives/modal-content.directive';
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
 import { FormsModule, NgForm } from '@angular/forms';
 import { NgClass, NgIf } from '@angular/common';
 import { CapacityBarComponent } from '../../raw-material/capacity-bar/capacity-bar.component';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 @Component({
   selector: 'app-bank-allocation-dialog',
   standalone: true,
-  imports: [ ModalContentDirective, ModalDialogComponent, FormsModule, NgClass, NgIf, CapacityBarComponent ],
+  imports: [ ModalContentDirective, ModalDialogComponent, FormsModule, NgClass, NgIf, CapacityBarComponent, NgSelectModule  ],
   templateUrl: './bank-allocation-dialog.component.html',
   styleUrl: './bank-allocation-dialog.component.scss',
   providers: [{
@@ -29,12 +30,15 @@ export class BankAllocationDialogComponent implements ModalContentDirective, Mod
   @Input() MaxQuantity: number = 0;
   @Input() QuantityUnits: string = "";
   attemptedClose = false;
+
+  allocation_types = Object.values(Bank_Allocation_Type).map(item => ({ name: item }));
   
   editedObject: Customer_Bank_Baby_Allocation = {
     id: 0,
     customer_bank_id: 0,
     quantity: 0,
-    remaining_quantity: 0
+    remaining_quantity: 0,
+    allocation_type: Bank_Allocation_Type.babies
   };
   
   open(){
@@ -76,6 +80,7 @@ export class BankAllocationDialogComponent implements ModalContentDirective, Mod
   }
 
   beforeClose(): Boolean {
+    console.dir(this.editedObject);
     this.attemptedClose = true;
     this.quantityForm.form.markAllAsTouched();
     let okToClose = (this.CurrentQuantity > 0) && (this.CurrentQuantity <= this.MaxQuantity);

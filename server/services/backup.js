@@ -4,11 +4,13 @@ const helper = require('../helper');
 
 const tables = [
     'customers',
-    'raw_materials',
     'material_colors',
+    'raw_materials',
     'customer_banks',
-    'customer_banks_babies',
-    'babies',
+    'customer_banks_babies',        //old table
+    'customer_banks_allocations',   //new table
+    'babies',                       //old table
+    'allocation_babies',            //new table
     'transaction_history',
     'wings',
     'wings_babies',
@@ -31,21 +33,23 @@ async function get_table_records(table_name){
     return helper.emptyOrRows(rows);
 }
 
-function construct_inserts(table_name, table_info, records, keep_existing_records){
+function construct_queries(table_name, table_info, records, keep_existing_records){
     let title = `# ${table_name.toUpperCase()}\n# ${"-".repeat(table_name.length + 2)}\n`;
     let values = "";
-    let delete_statement = wrap_statement_if_table_exists(`DELETE FROM \`${table_name}\` where @delete_records=TRUE;`, table_name) + ``;
+    let delete_statement = wrap_statement_if_table_exists(`DELETE FROM \`${table_name}\` where @delete_records=TRUE;`, table_name) + `\n\n`;
+    let insert_statement = '';
     if (!records || !records.length) {
         //console.log("No records to insert.");
-        title += "# No records to insert.\n";   
-        return title + delete_statement;
+        insert_statement += "# No records to insert.\n\n";   
+        //return title + delete_statement;
     }
     if (!table_info || !table_info.length) {
         //console.log("No columns in the table.");
-        title += "# No columns in the table.\n";
-        return title;
+        insert_statement += "# No columns in the table.\n\n";
+        delete_statement = '';
+        //return title;
     }
-    else {
+    if (records && records.length) {
         insert_statement = `INSERT INTO \`${table_name}\` (${ table_info.map((c) => `\`${c.Field}\``).join(", ") }) \nVALUES\n`;
         for(let row=0; row < records.length; row++)
         {
@@ -83,8 +87,15 @@ function construct_inserts(table_name, table_info, records, keep_existing_record
         }
     }
     let onduplicate = `as new_${table_name}\nON DUPLICATE KEY UPDATE\n${ table_info.filter(f=> f.Field != 'id').map((c) => `\`${c.Field}\`=new_${table_name}.\`${c.Field}\``).join(", ") };`;
-    return title + delete_statement + wrap_statement_if_table_exists(insert_statement + values + onduplicate, table_name) + "\n\n";
-    //fs.appendFileSync(outputFile, insert_statement + values + "\n\n");
+    
+    //return title + delete_statement + wrap_statement_if_table_exists(insert_statement + values + onduplicate, table_name) + "\n\n";
+    return {
+        title: title,
+        deletes: delete_statement,
+        inserts: (insert_statement && values && onduplicate && table_name)?
+            wrap_statement_if_table_exists(insert_statement + values + onduplicate, table_name) + '\n\n':
+            ''
+    };
 }
 
 function wrap_statement_if_table_exists(sql_statement, table_name){
@@ -102,7 +113,7 @@ function wrap_statement_if_table_exists(sql_statement, table_name){
 async function create_table_backup_statement(table_name, keep_existing_records=false){
     const tbl_exists = await helper.check_if_table_exists(table_name);
     if(tbl_exists) {
-        return construct_inserts(
+        return construct_queries(
             table_name, 
             await get_table_info(table_name), 
             await get_table_records(table_name),
@@ -110,22 +121,30 @@ async function create_table_backup_statement(table_name, keep_existing_records=f
         );
     }
     else {
-        return `\n\n# Table ${table_name} does not exist in the database!\n\n`;
+        return {
+            title: `\n\n# Table ${table_name} does not exist in the database!\n\n`,
+            deletes: '',
+            inserts: ''
+        }
     }
 }
 
 
 //https://stackoverflow.com/a/18471193
-async function get_backup(keep_existing_records) {   
-    let inserts =
+async function get_backup(keep_existing_records) {
+       
+    const statements =
         "use inventory;\nSET @delete_records=" + (!(Boolean(keep_existing_records))).toString().toUpperCase() + ";\n\n";
+    let deletes = '# ========== DELETES ==========\n\n';
+    let inserts = '# ========== INSERTS ==========\n\n';;
     
     for (const table of tables) {
-        let statements = await create_table_backup_statement(table, keep_existing_records);
-        inserts += statements;
+        let queries = await create_table_backup_statement(table, keep_existing_records);
+        deletes += queries.title + queries.deletes;
+        inserts += queries.title + queries.inserts;
     }   
 
-    return inserts;
+    return statements + deletes + inserts;
 }
 
 async function clean_table(table_name){
@@ -149,19 +168,6 @@ async function restore_backup(backup_sql, cleanup){
             tables.forEach(async (table) => {
                 await clean_table(table);
             });
-            /*
-            await clean_table(`customers`);
-            await clean_table(`raw_materials`);
-            await clean_table(`customer_banks`);
-            await clean_table(`customer_banks_babies`);
-            await clean_table(`babies`);
-            await clean_table(`transaction_history`);
-            await clean_table(`wings`);
-            await clean_table(`wings_babies`);
-            await clean_table(`customer_hats`);
-            await clean_table(`hats_wings`);
-            await clean_table(`settings`);
-            */
         }
     }
     await db.query(backup_sql);

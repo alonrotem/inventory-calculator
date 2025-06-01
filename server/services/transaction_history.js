@@ -15,7 +15,7 @@ export interface TransactionRecord {
 	raw_material_id: number;
     customer_id: number;
     customer_bank_id: number;
-    customer_banks_babies_id: number;
+    allocation_id: number;
 		
 	// track keeping on quantities at the time of this transaction:
     cur_raw_material_quantity: number;
@@ -33,7 +33,7 @@ async function create_history_record(history, active_connection=null){
   try {    
     const result = await db.transaction_query(
         `INSERT INTO transaction_history 
-        (id, date, added_by, transaction_quantity, transaction_type, raw_material_id, customer_id, customer_bank_id, customer_banks_babies_id, cur_raw_material_quantity, cur_customer_bank_quantity, cur_banks_babies_allocation_quantity)
+        (id, date, added_by, transaction_quantity, transaction_type, raw_material_id, customer_id, customer_bank_id, allocation_id, cur_raw_material_quantity, cur_customer_bank_quantity, cur_banks_babies_allocation_quantity)
         VALUES 
         ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?)) as new_transaction_history
         ON DUPLICATE KEY UPDATE
@@ -44,7 +44,7 @@ async function create_history_record(history, active_connection=null){
             raw_material_id = new_transaction_history.raw_material_id,
             customer_id = new_transaction_history.customer_id,
             customer_bank_id = new_transaction_history.customer_bank_id,
-            customer_banks_babies_id = new_transaction_history.customer_banks_babies_id,
+            allocation_id = new_transaction_history.allocation_id,
             cur_raw_material_quantity = new_transaction_history.cur_raw_material_quantity,
             cur_customer_bank_quantity = new_transaction_history.cur_customer_bank_quantity,
             cur_banks_babies_allocation_quantity = new_transaction_history.cur_banks_babies_allocation_quantity`,
@@ -57,7 +57,7 @@ async function create_history_record(history, active_connection=null){
             history.raw_material_id, 
             history.customer_id, 
             history.customer_bank_id, 
-            history.customer_banks_babies_id,
+            history.allocation_id,
             history.cur_raw_material_quantity, 
             history.cur_customer_bank_quantity, 
             history.cur_banks_babies_allocation_quantity
@@ -96,7 +96,7 @@ async function get_all_raw_maerial_transactions(raw_material_id){
     const rows = await db.query(
         `select 
             rh.name raw_material_name, c.name customer_name, th.id, th.date, th.added_by, th.transaction_quantity, th.transaction_type, 
-            th.raw_material_id, th.customer_id, th.customer_bank_id, th.customer_banks_babies_id, 
+            th.raw_material_id, th.customer_id, th.customer_bank_id, th.allocation_id, 
             th.cur_raw_material_quantity, th.cur_customer_bank_quantity, th.cur_banks_babies_allocation_quantity
         from 
             transaction_history th

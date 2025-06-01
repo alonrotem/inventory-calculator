@@ -178,6 +178,7 @@ export interface CustomerHat {
     id: number;
 	hat_material_id: number | null;
 	crown_material_id: number| null;
+	tails_material_id: number | null;
     wing_quantity: number;
     customer_id: number;
     shorten_top_by: number;
@@ -185,6 +186,7 @@ export interface CustomerHat {
     wing: Wing | null;
     wall_allocation_id: number;
     crown_allocation_id: number;
+    tails_allocation_id: number | null;
 }
 
 export interface PaginationParams {
@@ -260,7 +262,7 @@ export class Point {
 
     banks: Customer_Bank[];
     banks_baby_allocations: Customer_Bank_Baby_Allocation[];
-    babies: Customer_Baby[];
+    babies: Allocation_Baby[];
 }
 
 export interface CustomerListItem {
@@ -291,16 +293,22 @@ export interface Customer_Bank {
     transaction_history: TransactionRecord[];
 }
 
+export enum Bank_Allocation_Type {
+    babies = "babies",
+    tails = "tails"
+}
+
 export interface Customer_Bank_Baby_Allocation {
     id: number; 
     customer_bank_id: number; 
     quantity: number; 
-    remaining_quantity: number; 
+    remaining_quantity: number;
+    allocation_type: Bank_Allocation_Type
 }
 
-export interface Customer_Baby {
+export interface Allocation_Baby {
     id: number;
-    customer_banks_babies_id: number;
+    allocation_id: number;
     length: number;
     quantity: number;
     quantity_in_pending_orders: number;
@@ -349,7 +357,7 @@ export interface TransactionRecord {
 	raw_material_id: number;
     customer_id: number;
     customer_bank_id: number;
-    customer_banks_babies_id: number;
+    allocation_id: number;
 		
 	// track keeping on quantities at the time of this transaction:
     cur_raw_material_quantity: number;
@@ -369,7 +377,7 @@ export interface HistoryReportRecord {
     raw_material_id: number;
     customer_id: number;
     customer_bank_id: number;
-    customer_banks_babies_id: number;
+    allocation_id: number;
     cur_raw_material_quantity: number;
     cur_customer_bank_quantity: number;
     cur_banks_babies_allocation_quantity: number;

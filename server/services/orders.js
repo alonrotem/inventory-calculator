@@ -44,10 +44,10 @@ async function create(orderData, active_connection=null){
             `INSERT INTO customer_hats (
                 id, hat_material, crown_material, wing_id, wing_quantity,
                 customer_id, shorten_top_by, shorten_crown_by, wall_allocation_id,
-                crown_allocation_id
+                crown_allocation_id, tails_material_id, tails_allocation_id
             )
             VALUES 
-            ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_hats
+            ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_hats
             ON DUPLICATE KEY UPDATE
                 id=new_hats.id,
                 hat_material=new_hats.hat_material,
@@ -58,12 +58,15 @@ async function create(orderData, active_connection=null){
                 shorten_top_by=new_hats.shorten_top_by,
                 shorten_crown_by=new_hats.shorten_crown_by,
                 wall_allocation_id=new_hats.wall_allocation_id,
-                crown_allocation_id=new_hats.crown_allocation_id`,
+                crown_allocation_id=new_hats.crown_allocation_id,
+                tails_material_id=new_hats.tails_material_id,
+                tails_allocation_id=new_hats.tails_allocation_id`,
             [ 
                 orderData.customer_hat.id, orderData.customer_hat.hat_material, orderData.customer_hat.crown_material,
                 wing_id, orderData.customer_hat.wing_quantity, orderData.customer_hat.customer_id,
                 orderData.customer_hat.shorten_top_by, orderData.customer_hat.shorten_crown_by,
-                orderData.customer_hat.wall_allocation_id, orderData.customer_hat.crown_allocation_id
+                orderData.customer_hat.wall_allocation_id, orderData.customer_hat.crown_allocation_id,
+                orderData.customer_hat.tails_material_id, orderData.customer_hat.tails_allocation_id
             ],
             active_connection
         );

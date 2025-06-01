@@ -13,16 +13,7 @@ drop table if exists test;
 # CLEANUP
 # -----------
 /*
-# Drop foreign key if exists:
-SET @table_name = 'babies', @fk_name = 'fk_baby_raw_material_customer_parent'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
-SET @table_name = 'raw_materials', @fk_name = 'fk_raw_material_country'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
-SET @table_name = 'raw_materials', @fk_name = 'fk_raw_material_currency'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
-SET @table_name = 'wings_babies', @fk_name = 'fk_parent_wing_id'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
-SET @table_name = 'hats_wings', @fk_name = 'fk_hat_parent_wing_id'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
-SET @table_name = 'customer_banks', @fk_name = 'fk_raw_material_customer'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
-SET @table_name = 'customer_banks', @fk_name = 'fk_customer_raw_material'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
-SET @table_name = 'customer_banks_babies', @fk_name = 'fk_customer_babies_bank'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
-
+use inventory;
 SET FOREIGN_KEY_CHECKS = 0;
 drop table if exists users;
 
@@ -30,8 +21,10 @@ drop table if exists raw_materials;
 drop table if exists material_colors;
 drop table if exists customers;
 drop table if exists customer_banks;
-drop table if exists customer_banks_babies;
-drop table if exists babies;
+drop table if exists customer_banks_babies; -- old
+drop table if exists customer_banks_allocations; -- new
+drop table if exists babies; -- old
+drop table if exists allocation_babies; -- new
 drop table if exists countries;
 drop table if exists currencies;
 
@@ -362,7 +355,16 @@ name=new_currencies.name, symbol= new_currencies.symbol, `order`=new_currencies.
                 allocate to customer work
 			transaction quantity
 */
-# raw_materials -> customer_banks -> customer_banks_babies -> babies
+# raw_materials -> customer_banks -> customer_banks_allocations -> allocation_babies
+
+CREATE TABLE  IF NOT EXISTS `material_colors` (
+	`color` varchar(128) not null,
+    PRIMARY KEY (`color`)
+);
+
+Insert into `material_colors` (`color`)
+VALUES
+('Dark brown'), ('Light brown'), ('Natural'), ('Black');
 
 CREATE TABLE  IF NOT EXISTS `raw_materials`
 (
@@ -389,17 +391,8 @@ CREATE TABLE  IF NOT EXISTS `raw_materials`
   CONSTRAINT fk_raw_material_currency
   FOREIGN KEY (`currency`) REFERENCES currencies(`code`),
   CONSTRAINT fk_raw_material_color
-  FOREIGN KEY (`color`) REFERENCES material_colors(`color`)
+  FOREIGN KEY (`color`) REFERENCES material_colors(`color`) ON DELETE CASCADE
 );
-
-CREATE TABLE  IF NOT EXISTS `material_colors` (
-	`color` varchar(128) not null,
-    PRIMARY KEY (`color`)
-);
-
-Insert into `material_colors` (`color`)
-VALUES
-('Dark brown'), ('Light brown'), ('Natural'), ('Black');
 
 CREATE TABLE  IF NOT EXISTS `customers` (
 	`id`            	INT NOT NULL auto_increment,
@@ -425,32 +418,33 @@ CREATE TABLE  IF NOT EXISTS `customer_banks` (
     `remaining_quantity`   	    float NOT NULL ,
 	PRIMARY KEY (`id`),
   CONSTRAINT fk_raw_material_customer
-  FOREIGN KEY (`customer_id`) REFERENCES customers(`id`)  ON DELETE CASCADE,
+  FOREIGN KEY (`customer_id`) REFERENCES customers(`id`) ON DELETE CASCADE,
   CONSTRAINT fk_customer_raw_material
   FOREIGN KEY (`raw_material_id`) REFERENCES raw_materials(`id`)  ON DELETE CASCADE
 );
 
 # Withdrawn for work
-CREATE TABLE  IF NOT EXISTS `customer_banks_babies` (
+CREATE TABLE  IF NOT EXISTS `customer_banks_allocations` (
 	`id`            			INT NOT NULL auto_increment,
     `customer_bank_id`          INT NOT NULL,
 	`quantity`   	    		float NOT NULL,
     `remaining_quantity`   	    float NOT NULL ,
+    `allocation_type`			ENUM('babies', 'tails') DEFAULT 'babies',
     PRIMARY KEY (`id`),
     CONSTRAINT fk_customer_babies_bank
 	FOREIGN KEY (`customer_bank_id`) REFERENCES customer_banks(`id`)  ON DELETE CASCADE
 ); 
 
-CREATE TABLE  IF NOT EXISTS `babies`
+CREATE TABLE  IF NOT EXISTS `allocation_babies`
 (
   `id`            INT NOT NULL auto_increment,
-  `customer_banks_babies_id` INT NOT NULL,
+  `allocation_id` INT NOT NULL,
   `length`   	    float NOT NULL,
   `quantity`   	    INT NOT NULL,
   `quantity_in_pending_orders`  INT Default 0,
   PRIMARY KEY (`id`),
   CONSTRAINT fk_baby_raw_material_customer_parent
-  FOREIGN KEY (`customer_banks_babies_id`) REFERENCES customer_banks_babies(`id`) ON DELETE CASCADE
+  FOREIGN KEY (`allocation_id`) REFERENCES customer_banks_allocations(`id`) ON DELETE CASCADE
 );
 
 CREATE TABLE  IF NOT EXISTS transaction_history (
@@ -471,7 +465,7 @@ CREATE TABLE  IF NOT EXISTS transaction_history (
 	`raw_material_id` 	INT,
     `customer_id` 		INT,
     `customer_bank_id` 	INT,
-    `customer_banks_babies_id` INT,
+    `allocation_id` INT,
 		
 	# track keeping on quantities at the time of this transaction:
     `cur_raw_material_quantity` float,
@@ -576,6 +570,7 @@ CREATE TABLE  IF NOT EXISTS `customer_hats`
 	`id`				INT NOT NULL auto_increment,
 	`hat_material_id`	INT NOT NULL,
 	`crown_material_id`	INT NOT NULL,
+    `tails_material_id`	INT NULL,
     `wing_id`			INT NOT NULL,
     `wing_quantity`		INT NOT NULL,
     `customer_id`		INT NOT NULL,
@@ -583,20 +578,25 @@ CREATE TABLE  IF NOT EXISTS `customer_hats`
     `shorten_crown_by`	float NULL,
     `wall_allocation_id` INT NOT NULL,
     `crown_allocation_id` INT NOT NULL,
+    `tails_allocation_id`	INT NULL,
  
 	PRIMARY KEY (`id`),
 	CONSTRAINT fk_customer_hats_wall_material_id
 	  FOREIGN KEY (`hat_material_id`) REFERENCES raw_materials(`id`) ON DELETE CASCADE,
-	CONSTRAINT fk_customer_hats_wall_crown_id
+	CONSTRAINT fk_customer_hats_crown_material_id
 	  FOREIGN KEY (`crown_material_id`) REFERENCES raw_materials(`id`) ON DELETE CASCADE,
+	CONSTRAINT fk_customer_hats_tails_material_id
+	  FOREIGN KEY (`tails_material_id`) REFERENCES raw_materials(`id`) ON DELETE CASCADE,
 	CONSTRAINT fk_customer_hats_wing_id
 	  FOREIGN KEY (`wing_id`) REFERENCES wings(`id`) ON DELETE CASCADE,
 	CONSTRAINT fk_customer_hats_customer_id
 	  FOREIGN KEY (`customer_id`) REFERENCES customers(`id`) ON DELETE CASCADE,
 	CONSTRAINT fk_customer_hats_wall_alloc_id
-		FOREIGN KEY (`wall_allocation_id`) REFERENCES customer_banks_babies(`id`)  ON DELETE CASCADE,
+		FOREIGN KEY (`wall_allocation_id`) REFERENCES customer_banks_allocations(`id`)  ON DELETE CASCADE,
 	CONSTRAINT fk_customer_hats_crown_alloc_id
-		FOREIGN KEY (`crown_allocation_id`) REFERENCES customer_banks_babies(`id`)  ON DELETE CASCADE
+		FOREIGN KEY (`crown_allocation_id`) REFERENCES customer_banks_allocations(`id`)  ON DELETE CASCADE,
+	CONSTRAINT fk_customer_hats_tails_alloc_id
+		FOREIGN KEY (`tails_allocation_id`) REFERENCES customer_banks_allocations(`id`)  ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `orders` (

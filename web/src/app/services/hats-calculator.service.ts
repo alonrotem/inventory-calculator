@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Customer_Baby, Customer_Bank_Baby_Allocation, Wing, WingBaby } from '../../types';
+import { Allocation_Baby, Customer_Bank_Baby_Allocation, Wing, WingBaby } from '../../types';
 
 export interface aggregated_babies { 
   length: number; 
@@ -29,8 +29,8 @@ export class HatsCalculatorService {
     wing: Wing | null, 
     wall_alocation: Customer_Bank_Baby_Allocation | null, 
     crown_allocation: Customer_Bank_Baby_Allocation | null,
-    wall_alocation_babies: Customer_Baby[],
-    crown_allocation_babies: Customer_Baby[],
+    wall_alocation_babies: Allocation_Baby[],
+    crown_allocation_babies: Allocation_Baby[],
     wing_quantity_in_hat: number,
     num_of_hats_to_order: number = -1) {
 
@@ -149,7 +149,7 @@ export class HatsCalculatorService {
   private append_to_babies_collection(
     babies_collection: aggregated_babies[], //collection to append the baby to
     wingBaby: WingBaby,                     //the baby to append
-    alocation_babies: Customer_Baby[],      //the allocation of the baby (for quantity)
+    alocation_babies: Allocation_Baby[],      //the allocation of the baby (for quantity)
     wing_quantity: number,
     cur_max_hats: number)
   {
