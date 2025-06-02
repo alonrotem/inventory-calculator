@@ -45,9 +45,19 @@ async function create(orderData, active_connection=null){
                 id, hat_material, crown_material, wing_id, wing_quantity,
                 customer_id, shorten_top_by, shorten_crown_by, wall_allocation_id,
                 crown_allocation_id, tails_material_id, tails_allocation_id
+
+                kippa_size,
+                mayler_width,
+                hr_hl_width,
+                white_hair,
+                white_hair_notes,
+                order_date,
+                isurgent,
+                order_notes
+
             )
             VALUES 
-            ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_hats
+            ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_hats
             ON DUPLICATE KEY UPDATE
                 id=new_hats.id,
                 hat_material=new_hats.hat_material,
@@ -60,13 +70,32 @@ async function create(orderData, active_connection=null){
                 wall_allocation_id=new_hats.wall_allocation_id,
                 crown_allocation_id=new_hats.crown_allocation_id,
                 tails_material_id=new_hats.tails_material_id,
-                tails_allocation_id=new_hats.tails_allocation_id`,
+                tails_allocation_id=new_hats.tails_allocation_id,
+                
+                kippa_size=new_hats.kippa_size,
+                mayler_width=new_hats.mayler_width,
+                hr_hl_width=new_hats.hr_hl_width,
+                white_hair=new_hats.white_hair,
+                white_hair_notes=new_hats.white_hair_notes,
+                order_date=new_hats.order_date,
+                isurgent=new_hats.isurgent,
+                order_notes=new_hats.order_notes
+                `,
             [ 
                 orderData.customer_hat.id, orderData.customer_hat.hat_material, orderData.customer_hat.crown_material,
                 wing_id, orderData.customer_hat.wing_quantity, orderData.customer_hat.customer_id,
                 orderData.customer_hat.shorten_top_by, orderData.customer_hat.shorten_crown_by,
                 orderData.customer_hat.wall_allocation_id, orderData.customer_hat.crown_allocation_id,
-                orderData.customer_hat.tails_material_id, orderData.customer_hat.tails_allocation_id
+                orderData.customer_hat.tails_material_id, orderData.customer_hat.tails_allocation_id,
+
+                orderData.customer_hat.kippa_size,
+                orderData.customer_hat.mayler_width,
+                orderData.customer_hat.hr_hl_width,
+                orderData.customer_hat.white_hair,
+                orderData.customer_hat.white_hair_notes,
+                orderData.customer_hat.order_date,
+                orderData.customer_hat.isurgent,
+                orderData.customer_hat.order_notes
             ],
             active_connection
         );

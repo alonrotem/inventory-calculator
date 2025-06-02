@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { WingsService } from '../../../services/wings.service';
 import { Bank_Allocation_Type, Customer, Customer_Bank_Baby_Allocation, CustomerHat, RawMaterialNameColor, Status, Wing, WingBaby, WingsListItem } from '../../../../types';
-import { DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
+import { DecimalPipe, formatDate, NgClass, NgFor, NgIf } from '@angular/common';
 import { WingDiagramComponent } from '../../wings/wing-diagram/wing-diagram.component';
 import { PrefixPipe } from '../../../utils/pipes/prefix-pipe';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
@@ -88,7 +88,15 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     wall_allocation_id: 0,
     crown_allocation_id: 0,
     tails_material_id: null,
-    tails_allocation_id: null
+    tails_allocation_id: null,
+    kippa_size: 0,
+    mayler_width: 0.17,
+    hr_hl_width: 0,
+    white_hair: false,
+    white_hair_notes: '',
+    order_date: null,
+    isurgent: false,
+    order_notes: ''
   };
   //the wing without customizations (shorten top or crown)
   wing_unchanged: Wing | null = null;
@@ -144,16 +152,23 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     (this.max_kippa - this.min_kippa)*2+1)
     .fill(this.min_kippa)
     .map((_,i) => _ + i * this.kippa_steps);
-  hat_kippa: number = this.min_kippa;
+  //hat_kippa: number = this.min_kippa;
   inch_to_cm: number = 2.54;
 
   arr_mayler: number[] = [0.15, 0.17, 0.2];
-  hat_mayler = 0.17;
+  //hat_mayler = 0.17;
 
   arr_hr_hl: number[] = [3.5, 4, 4.5];
   hat_hr_hl: number = 3.5;
 
   hat_crown_visible: number = 0;
+  //hat_white_hair: boolean = false;
+  //hat_white_hair_notes: string = '';
+
+  //order_date: Date | null = null;
+  //order_urgent: boolean = false;
+  //order_notes: string = '';
+  minDate = formatDate(Date.now(),'yyyy-MM-dd','en-US');
 
   //==================== old stuff below====================
 

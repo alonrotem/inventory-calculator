@@ -579,6 +579,15 @@ CREATE TABLE  IF NOT EXISTS `customer_hats`
     `wall_allocation_id` INT NOT NULL,
     `crown_allocation_id` INT NOT NULL,
     `tails_allocation_id`	INT NULL,
+    
+    `kippa_size`	FLOAT NULL,
+    `mayler_width`	FLOAT NULL,
+    `hr_hl_width`	FLOAT NULL default 0.17,
+    `white_hair`	BOOL default False,
+    `white_hair_notes` Varchar(256) null,
+    `order_date`	DATE NULL,
+    `isurgent`		BOOL default false,
+    `order_notes` Varchar(256) null,
  
 	PRIMARY KEY (`id`),
 	CONSTRAINT fk_customer_hats_wall_material_id

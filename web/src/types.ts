@@ -187,6 +187,15 @@ export interface CustomerHat {
     wall_allocation_id: number;
     crown_allocation_id: number;
     tails_allocation_id: number | null;
+
+    kippa_size: number;
+    mayler_width: number;
+    hr_hl_width: number;
+    white_hair: boolean;
+    white_hair_notes: string;
+    order_date: Date | null;
+    isurgent: boolean;
+    order_notes: string;  
 }
 
 export interface PaginationParams {

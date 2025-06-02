@@ -317,14 +317,14 @@
       <div><hr></div>
       <div>
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-          <label class="form-check-label" for="flexCheckDefault">
+          <input class="form-check-input" type="checkbox" [(ngModel)]="hat_white_hair"  id="chkWhiteHair">
+          <label class="form-check-label" for="chkWhiteHair">
             White hair
           </label>
         </div>
         <div class="form-floating">
-          <textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea"></textarea>
-          <label for="floatingTextarea">White hair notes</label>
+          <textarea class="form-control" placeholder="White hair notes" id="textWhiteHairNotes" [(ngModel)]="hat_white_hair_notes" [disabled]="!hat_white_hair"></textarea>
+          <label for="textWhiteHairNotes">White hair notes</label>
         </div>        
       </div>
 
@@ -535,7 +535,31 @@
   <div style="border: 1px solid; border-radius: 10px; margin: 20px 0px;padding: 20px;">
     <div><h3>Place an order</h3></div>
     <div *ngIf="total_num_of_possible_hats > 0">
-      <div>Submit an order for
+
+      <div class="order-notes d-flex flex-row align-items-center flex-wrap" style="">
+        <span>Place the order for a specific date:</span>
+        <input
+          type="date"
+          id="orderDate"
+          name="orderDate"
+          [attr.min]="minDate"
+          [(ngModel)]="customerHat.order_date"
+          />
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" [(ngModel)]="customerHat.isurgent"  id="chkUrgent">
+          <label class="form-check-label" for="chkUrgent">
+            Mark this order as urgent
+          </label>
+        </div>          
+      </div>
+      <div class="order-notes">
+        <div class="form-floating">
+          <textarea class="form-control" placeholder="Order notes" id="floatingTextarea" [(ngModel)]="customerHat.order_notes"></textarea>
+          <label for="floatingTextarea">Order notes</label>
+        </div> 
+      </div>
+
+        <div>Submit an order for
         <input type="number" min="0" [attr.max]="total_num_of_possible_hats" [(ngModel)]="order_amount"  (change)="order_amount_changed()" />
           {{ order_amount == 1 ? 'hat' : 'hats' }}
         <button 
@@ -551,6 +575,7 @@
       <div class="text-danger" *ngIf="order_amount > total_num_of_possible_hats">
         Your max allocation is limited to a max of {{ total_num_of_possible_hats }} hats
       </div>
+
     </div>
     <div *ngIf="total_num_of_possible_hats <= 0">
       No sufficient quota to order hats
