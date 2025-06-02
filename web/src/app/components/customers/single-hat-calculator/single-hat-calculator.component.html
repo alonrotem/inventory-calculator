@@ -317,13 +317,13 @@
       <div><hr></div>
       <div>
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" [(ngModel)]="hat_white_hair"  id="chkWhiteHair">
+          <input class="form-check-input" type="checkbox" [(ngModel)]="customerHat.white_hair"  id="chkWhiteHair">
           <label class="form-check-label" for="chkWhiteHair">
             White hair
           </label>
         </div>
         <div class="form-floating">
-          <textarea class="form-control" placeholder="White hair notes" id="textWhiteHairNotes" [(ngModel)]="hat_white_hair_notes" [disabled]="!hat_white_hair"></textarea>
+          <textarea class="form-control" placeholder="White hair notes" id="textWhiteHairNotes" [(ngModel)]="customerHat.white_hair_notes" [disabled]="!customerHat.white_hair"></textarea>
           <label for="textWhiteHairNotes">White hair notes</label>
         </div>        
       </div>
@@ -375,7 +375,7 @@
           <label for="tempB">Kippa size:</label>
         </div>
         <div class="flex-grow-1" style="margin-left: 15px;">
-        <select class="form-select" [(ngModel)]="hat_kippa" #select_kippa>
+        <select class="form-select" [(ngModel)]="customerHat.kippa_size" #select_kippa>
           <option 
             *ngFor="let kippa of arr_kippa" 
             value="{{ kippa }}" 
@@ -392,7 +392,7 @@
           <label for="tempB">Mayler width:</label>
         </div>
         <div class="flex-grow-1" style="margin-left: 15px;">
-        <select class="form-select" [(ngModel)]="hat_mayler" #select_kippa>
+        <select class="form-select" [(ngModel)]="customerHat.mayler_width" #select_kippa>
           <option 
             *ngFor="let mayler of arr_mayler" 
             value="{{ mayler }}" 
