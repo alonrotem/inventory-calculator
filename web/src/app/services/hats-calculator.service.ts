@@ -16,12 +16,75 @@ export interface hats_calculated {
   crown_babies: aggregated_babies[]
 }
 
+export interface summed_babies {
+  length: number;
+  quantity: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class HatsCalculatorService {
 
   constructor() { }
+
+  getMaxNumberOfWingsInAllocations(
+    wing: Wing | null,
+    wall_alocation_babies: Allocation_Baby[],
+    crown_allocation_babies: Allocation_Baby[],
+    allocations_are_different: boolean){
+
+    let max_num_of_wings_with_given_allocations = Infinity;
+    let wall_babies_to_build_one_wing: summed_babies[] = [];
+    let crown_babies_to_build_one_wing: summed_babies[] = [];
+    if(wing){
+      wing.babies.forEach((wingBaby: WingBaby) => {
+        let current_aggregation = ((allocations_are_different) && (wingBaby.position.startsWith("C"))) ? crown_babies_to_build_one_wing : wall_babies_to_build_one_wing;
+        
+        let baby_with_this_length = current_aggregation.find (b => b.length == wingBaby.length);
+        
+        if(baby_with_this_length){
+          baby_with_this_length.quantity ++;
+        }
+        else {
+          current_aggregation.push({
+            length: wingBaby.length,
+            quantity: 1
+          })
+        }
+      });
+      
+      wall_babies_to_build_one_wing.forEach((baby_in_wing: summed_babies) => {
+        let babies_of_this_length_needed_for_one_wing = baby_in_wing.quantity;
+        let babies_of_this_length_in_allocation = wall_alocation_babies.find(alloc_baby =>  alloc_baby.length == baby_in_wing.length);
+        if(babies_of_this_length_in_allocation && babies_of_this_length_in_allocation.quantity){
+          let you_can_make_wings_with_this_alloc = Math.floor(babies_of_this_length_in_allocation.quantity / babies_of_this_length_needed_for_one_wing);
+          max_num_of_wings_with_given_allocations = Math.min(max_num_of_wings_with_given_allocations, you_can_make_wings_with_this_alloc);
+        }
+        else {
+          max_num_of_wings_with_given_allocations = 0;
+        }
+      });
+
+      if(allocations_are_different){
+        crown_babies_to_build_one_wing.forEach((baby_in_wing: summed_babies) => {
+          let babies_of_this_length_needed_for_one_wing = baby_in_wing.quantity;
+          let babies_of_this_length_in_allocation = crown_allocation_babies.find(alloc_baby => {
+            alloc_baby.length == baby_in_wing.length;
+          });
+          if(babies_of_this_length_in_allocation && babies_of_this_length_in_allocation.quantity){
+            let you_can_make_wings_with_this_alloc = Math.floor(babies_of_this_length_in_allocation.quantity / babies_of_this_length_needed_for_one_wing);
+            max_num_of_wings_with_given_allocations = Math.min(max_num_of_wings_with_given_allocations, you_can_make_wings_with_this_alloc);
+          }
+          else {
+            max_num_of_wings_with_given_allocations = 0;
+          }
+        });        
+      }
+    }
+    return max_num_of_wings_with_given_allocations;
+  }
+
 
   //this function analyzes the hat and its wings, aggregates the wing's positions babies by length, 
   //and sees how many matched babies the customer has in the allocation, and how many hats can be made.

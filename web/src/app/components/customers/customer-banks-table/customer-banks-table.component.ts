@@ -16,6 +16,7 @@ import { SumPipe } from '../../../utils/pipes/sum-pipe';
 import { CustomersService } from '../../../services/customers.service';
 import { OrderAdvisorComponent } from "../order-advisor/order-advisor.component";
 import { aggregated_babies } from '../../../services/hats-calculator.service';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-customer-banks-table',
@@ -92,7 +93,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   unsaved_changes: boolean = false;
 
   constructor(
-      private customerService: CustomersService, private wingsService: WingsService) {
+      private customerService: CustomersService, private wingsService: WingsService, private toastService: ToastService) {
   }
   ngOnInit(): void {
 
@@ -177,6 +178,20 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
           error:(error) => { this.pendingAllocationIdAction = -999; }
         });
     });
+    this.order_advisors.forEach(advisor => {
+      advisor.triggerSaveChanges.subscribe(() => {
+        console.log(this.customer);
+      this.customerService.saveCustomer(this.customer).subscribe(
+        {
+          next:(data) => { 
+            this.unsaved_changes = false;
+            this.toastService.showSuccess("Saved successfully");
+          },
+          error:(error) => { this.toastService.showError("Error saving pending changes"); }
+        });        
+      });
+    });
+    
     this.afterViewInit.emit();
   }
 

@@ -42,9 +42,9 @@ async function create(orderData, active_connection=null){
     if(orderData.customer_hat){
         const hat_save = await db.transaction_query(
             `INSERT INTO customer_hats (
-                id, hat_material, crown_material, wing_id, wing_quantity,
+                id, hat_material_id, crown_material_id, wing_id, wing_quantity,
                 customer_id, shorten_top_by, shorten_crown_by, wall_allocation_id,
-                crown_allocation_id, tails_material_id, tails_allocation_id
+                crown_allocation_id, tails_material_id, tails_allocation_id,
 
                 kippa_size,
                 mayler_width,
@@ -60,8 +60,8 @@ async function create(orderData, active_connection=null){
             ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_hats
             ON DUPLICATE KEY UPDATE
                 id=new_hats.id,
-                hat_material=new_hats.hat_material,
-                crown_material=new_hats.crown_material,
+                hat_material_id=new_hats.hat_material_id,
+                crown_material_id=new_hats.crown_material_id,
                 wing_id=new_hats.wing_id,
                 wing_quantity=new_hats.wing_quantity,
                 customer_id=new_hats.customer_id,
@@ -82,7 +82,7 @@ async function create(orderData, active_connection=null){
                 order_notes=new_hats.order_notes
                 `,
             [ 
-                orderData.customer_hat.id, orderData.customer_hat.hat_material, orderData.customer_hat.crown_material,
+                orderData.customer_hat.id, orderData.customer_hat.hat_material_id, orderData.customer_hat.crown_material_id,
                 wing_id, orderData.customer_hat.wing_quantity, orderData.customer_hat.customer_id,
                 orderData.customer_hat.shorten_top_by, orderData.customer_hat.shorten_crown_by,
                 orderData.customer_hat.wall_allocation_id, orderData.customer_hat.crown_allocation_id,

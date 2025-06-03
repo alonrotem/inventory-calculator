@@ -4,7 +4,7 @@ import { aggregated_babies, HatsCalculatorService } from '../../../services/hats
 import { Allocation_Baby, Customer_Bank_Baby_Allocation, Wing, WingBaby, ShortWingsInfo, OrderAdvisorWingOverall, OrderAdvisorHatsSuggestionAlternative, Customer_Bank } from '../../../../types';
 import { Router, withEnabledBlockingInitialNavigation } from '@angular/router';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
-import { faArrowsRotate, faLightbulb, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faArrowsRotate, faLightbulb, faSave, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.component";
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -30,6 +30,11 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() customer_crown_babies: Allocation_Baby[] = [];
   @Input() show_options_button: boolean = true;
   @Input() try_to_exceed: number = -1;
+
+  @Input() wait_for_saved_changes: boolean = false;
+  @Input() pending_saved_changes: boolean = true;
+  @Output() triggerSaveChanges = new EventEmitter<any>();
+
   @ViewChild("advisor_dialog") advisor_dialog!: ModalDialogComponent;
   @ViewChild("hat_creation_assistant") hat_creation_assistant!: ModalDialogComponent;
 
@@ -49,6 +54,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   faLightbulb: IconDefinition = faLightbulb;
   faTriangleExclamation: IconDefinition = faTriangleExclamation;
   faArrowsRotate: IconDefinition = faArrowsRotate;
+  faSave: IconDefinition = faSave;
 
   //Exceed calculator (to improve the wing selection)
   exceed_number_of_hats_message: string = "";
@@ -100,12 +106,13 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   runCalculations() {
     //console.log("runCalculations: ");
     //console.dir(this.wall_allocation)
-
-    this.calculating = true;
-    this.calculate().then((data: OrderAdvisorWingOverall) => {
-      this.calculating = false;
-      //console.dir(this.suggestions);
-    });
+    if(!this.wait_for_saved_changes || !this.pending_saved_changes) {
+      this.calculating = true;
+      this.calculate().then((data: OrderAdvisorWingOverall) => {
+        this.calculating = false;
+        //console.dir(this.suggestions);
+      });
+    }
   }
 
 
@@ -486,5 +493,9 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
         top: this.exceed_number_shorten_top, 
         crown: this.exceed_number_shorten_crown
       });
+    }
+
+    emitSaveChanges(){
+      this.triggerSaveChanges.emit();
     }
 }

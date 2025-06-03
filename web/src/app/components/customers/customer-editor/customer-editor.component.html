@@ -118,6 +118,7 @@
             <div>
                 <app-customer-banks-table 
                     *ngFor="let bank of customerItem.banks"
+                    [customer]="customerItem"
                     [bank]="bank"
                     [banks_baby_allocations]="customerItem.banks_baby_allocations"
                     [babies]="customerItem.babies"

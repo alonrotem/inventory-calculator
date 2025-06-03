@@ -26,6 +26,7 @@ import { ToastService } from '../../../services/toast.service';
 import { OrderAdvisorComponent } from "../order-advisor/order-advisor.component";
 import { StateService } from '../../../services/state.service';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
+import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 
 /*
 sohortening top/crown with slider:
@@ -53,7 +54,7 @@ apply the sliders after the load
     WingDiagramComponent, PrefixPipe, FilterPipe, StartsWithPipe, LightboxModule,
     AllocationPickerComponent, FaIconComponent, AutocompleteLibModule, BabyLengthModalComponent,
     FaIconComponent, ConfirmationDialogComponent, HatAllocationEditorPickerComponent, RouterLink,
-    OrderAdvisorComponent
+    OrderAdvisorComponent, ModalDialogComponent
 ],
   templateUrl: './single-hat-calculator.component.html',
   styleUrl: './single-hat-calculator.component.scss'
@@ -89,7 +90,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     crown_allocation_id: 0,
     tails_material_id: null,
     tails_allocation_id: null,
-    kippa_size: 0,
+    kippa_size: 55,
     mayler_width: 0.17,
     hr_hl_width: 0,
     white_hair: false,
@@ -108,6 +109,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   @ViewChild("reset_confirmation") reset_confirmation!: ConfirmationDialogComponent;
   @ViewChild("order_confirmation") order_confirmation!: ConfirmationDialogComponent;
   @ViewChild("allocation_picker") allocation_picker!: HatAllocationEditorPickerComponent;
+  @ViewChild("order_wing_adjustment") order_wing_adjustment!: ModalDialogComponent;
   is_wing_customized: boolean = false;
   faArrowsRotate: IconDefinition = faArrowsRotate;
   faArrowLeft: IconDefinition = faArrowLeft;
@@ -169,6 +171,10 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   //order_urgent: boolean = false;
   //order_notes: string = '';
   minDate = formatDate(Date.now(),'yyyy-MM-dd','en-US');
+
+  wings_per_hat_in_order: number[] = [];
+  max_number_of_wings_in_all_allocations: number = 0;
+  allWingsInOrder: number = 0;
 
   //==================== old stuff below====================
 
@@ -770,7 +776,26 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   }
 
   placeOrder(){
-    this.order_confirmation.open();
+    let babies_in_wall_allocation = (this.wall_alocation)? (this.customer.babies.filter(b => b.allocation_id == this.wall_alocation?.id)) : [];
+    let babies_in_crown_allocation = (this.crown_allocation)? (this.customer.babies.filter(b => b.allocation_id == this.crown_allocation?.id)) : [];
+
+    this.wings_per_hat_in_order = Array(this.order_amount).fill(this.customerHat.wing_quantity);
+    this.allWingsInOrder = this.wings_per_hat_in_order.reduce((partialSum, a) => partialSum + a, 0);
+    
+
+    this.max_number_of_wings_in_all_allocations = this.hatsCalculatorService.getMaxNumberOfWingsInAllocations(this.customerHat.wing,
+      babies_in_wall_allocation,
+      babies_in_crown_allocation,
+      (this.wall_alocation?.id != this.crown_allocation?.id));
+    this.console.log("You can produce " + this.max_number_of_wings_in_all_allocations + " wings with your allocations, and you are producing " + this.allWingsInOrder);
+    this.order_wing_adjustment.open();
+    //this.order_confirmation.open();
+  }
+
+  wings_per_hat_changed(event: any, index:number){
+    //this.console.dir(event.target.value);
+     this.wings_per_hat_in_order[index] = Number(event.target.value);
+     this.allWingsInOrder = this.wings_per_hat_in_order.reduce((partialSum, a) => partialSum + a, 0);
   }
 
   placeOrderConfirmed() {

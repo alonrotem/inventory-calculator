@@ -112,8 +112,11 @@ async function get_all_raw_maerial_transactions(raw_material_id){
 
 async function get_all_customer_bank_transactions(bank_id) {
     const rows = await db.query(
-        `select * from transaction_history where customer_bank_id=${bank_id} order by date;`
-    );
+        `select th.*, cba.allocation_type 
+            from transaction_history th left join customer_banks_allocations cba 
+            on th.allocation_id=cba.id 
+            where th.customer_bank_id=${bank_id} 
+            order by date;`);
     const data = helper.emptyOrRows(rows);
     return data;
 }

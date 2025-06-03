@@ -387,6 +387,7 @@ export interface HistoryReportRecord {
     customer_id: number;
     customer_bank_id: number;
     allocation_id: number;
+    allocation_type: Bank_Allocation_Type;
     cur_raw_material_quantity: number;
     cur_customer_bank_quantity: number;
     cur_banks_babies_allocation_quantity: number;
