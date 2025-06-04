@@ -52,3 +52,20 @@ h1 {
     color: var(--bs-body-color) !important;
 }
     */
+
+.horizontal-scrollable > .row {
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.horizontal-scrollable > .row > .col-xs-4 {
+    display: inline-block;
+    float: none;
+}
+
+.shortened {
+  white-space: nowrap; 
+  width: 125px; 
+  overflow: hidden;
+  text-overflow: ellipsis; 
+}

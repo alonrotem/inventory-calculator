@@ -104,9 +104,9 @@ async function create(orderData, active_connection=null){
                 orderData.customer_hat.isurgent,
                 orderData.customer_hat.order_notes,
 
-                orderData.orderData.customer_hatoriginal_wing_name,
-                orderData.orderData.customer_hatcrown_visible,
-                orderData.orderData.customer_hatcrown_length
+                orderData.customer_hat.original_wing_name,
+                orderData.customer_hat.crown_visible,
+                orderData.customer_hat.crown_length
             ],
             active_connection
         );
@@ -177,7 +177,7 @@ async function get_orders_list(page = 1, perPage, customer_id){
     let customer_filter = '';
 
     if(customer_id && customer_id > 0) {
-        customer_filter = `where ch.customer_id=${customer_id}`;
+        customer_filter = `and ch.customer_id=${customer_id}`;
     }
 
     if(page && perPage) {
@@ -186,32 +186,38 @@ async function get_orders_list(page = 1, perPage, customer_id){
     }    
 
     const rows = await db.query(
-        `SELECT 
-            o.id, c.name as customer_name, o.num_of_hats, ch.wing_quantity, 
-            os.order_status, os.date
-        FROM 
-            orders o
-        left join customer_hats ch on o.customer_hat_id = ch.id
-        left join customers c on ch.customer_id = c.id
-        LEFT JOIN (
-            SELECT 
-                os1.order_id,
-                os1.order_status,
-                os1.date
-            FROM 
-                orders_status os1
-            INNER JOIN (
-                SELECT 
-                    order_id,
-                    MAX(date) AS max_date
-                FROM 
-                    orders_status
-                GROUP BY 
-                    order_id
-            ) os2 ON os1.order_id = os2.order_id AND os1.date = os2.max_date
-        ) os ON o.id = os.order_id
-        ${customer_filter}
-        ${subset}`);
+        `
+select 
+o.id,
+CASE WHEN c.customer_code IS NOT NULL 
+       THEN concat(c.customer_code, o.id)
+       ELSE o.id
+END AS order_id_with_customer,
+os.order_status,
+ch.isurgent,
+c.name customer_name,
+concat(ch.original_wing_name, ' ', rm_wall.name, ' ', rm_wall.color) wall,
+ch.kippa_size,
+ch.wing_quantity,
+concat(rm_crown.name, ' ', rm_crown.color) crown,
+ch.crown_visible,
+ch.crown_length,
+w.knife,
+ch.white_hair_notes,
+ch.white_hair,
+concat(rm_tails.name, ' ', rm_tails.color) tails,
+os.date
+from orders o 
+left join customer_hats ch on o.customer_hat_id=ch.id
+left join customers c on ch.customer_id=c.id
+left join orders_status os on os.order_id = o.id
+left join wings w on ch.wing_id = w.id
+left join raw_materials rm_wall on ch.hat_material_id=rm_wall.id
+left join raw_materials rm_crown on ch.crown_material_id=rm_crown.id
+left join raw_materials rm_tails on ch.tails_material_id=rm_tails.id
+where os.date = (select MAX(os2.date) FROM orders_status os2 where os.id = os2.id)
+    ${customer_filter}
+    ${subset}`);
 
     const total = await db.query(
         `select count(*) as count from orders o left join customer_hats ch on o.customer_hat_id=ch.id ${customer_filter};`

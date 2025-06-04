@@ -192,7 +192,7 @@ export interface CustomerHat {
 
     crown_visible: number;
     crown_length: number;
-    
+
     kippa_size: number;
     mayler_width: number;
     hr_hl_width: number;
@@ -430,10 +430,20 @@ export interface OrderStatus {
 
 export interface OrderListItem {
     id: number;
+    order_id_with_customer: string;
+    order_status: Status;
+    isurgent: boolean;
     customer_name: string;
-    num_of_hats: number;
+    wall: string,
+    kippa_size: number;
     wing_quantity: number;
-    order_status: Status
+    crown: string,
+    crown_visible: number;
+    crown_length: number;
+    knife: number;
+    white_hair_notes: string;
+    white_hair: number;
+    tails: number;
     date: Date;
 }
 
