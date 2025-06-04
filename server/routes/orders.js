@@ -9,7 +9,7 @@ const { logger } =  require('../logger');
   router.put('/', async function(req, res, next) {
     logger.info(`put /orders/`);
     try {
-      logger.debug(req.body);
+      logger.debug(`Body: ${ JSON.stringify(req.body) }`)
       const response = await orders.create(req.body);
       logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
       res.json(response);

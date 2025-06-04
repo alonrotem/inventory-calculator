@@ -53,11 +53,14 @@ async function create(orderData, active_connection=null){
                 white_hair_notes,
                 order_date,
                 isurgent,
-                order_notes
+                order_notes,
 
+                original_wing_name,
+                crown_visible,
+                crown_length
             )
             VALUES 
-            ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_hats
+            ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_hats
             ON DUPLICATE KEY UPDATE
                 id=new_hats.id,
                 hat_material_id=new_hats.hat_material_id,
@@ -80,7 +83,10 @@ async function create(orderData, active_connection=null){
                 white_hair_notes=new_hats.white_hair_notes,
                 order_date=new_hats.order_date,
                 isurgent=new_hats.isurgent,
-                order_notes=new_hats.order_notes
+                order_notes=new_hats.order_notes,
+                original_wing_name=new_hats.original_wing_name,
+                crown_visible=new_hats.crown_visible,
+                crown_length=new_hats.crown_length                
                 `,
             [ 
                 orderData.customer_hat.id, orderData.customer_hat.hat_material_id, orderData.customer_hat.crown_material_id,
@@ -96,7 +102,11 @@ async function create(orderData, active_connection=null){
                 orderData.customer_hat.white_hair_notes,
                 orderData.customer_hat.order_date,
                 orderData.customer_hat.isurgent,
-                orderData.customer_hat.order_notes
+                orderData.customer_hat.order_notes,
+
+                orderData.orderData.customer_hatoriginal_wing_name,
+                orderData.orderData.customer_hatcrown_visible,
+                orderData.orderData.customer_hatcrown_length
             ],
             active_connection
         );

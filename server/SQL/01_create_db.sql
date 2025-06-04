@@ -572,6 +572,8 @@ CREATE TABLE  IF NOT EXISTS `customer_hats`
 	`crown_material_id`	INT NOT NULL,
     `tails_material_id`	INT NULL,
     `wing_id`			INT NOT NULL,
+    --
+    `original_wing_name` varchar(255) not null,
     `wing_quantity`		INT NOT NULL,
     `adjusted_wings_per_hat` varchar(2048),
     `customer_id`		INT NOT NULL,
@@ -584,6 +586,10 @@ CREATE TABLE  IF NOT EXISTS `customer_hats`
     `kippa_size`	FLOAT NULL,
     `mayler_width`	FLOAT NULL,
     `hr_hl_width`	FLOAT NULL default 0.17,
+    --
+    `crown_visible` FLOAT not null default 0,
+	`crown_length`	float not null default 0,
+    
     `white_hair`	BOOL default False,
     `white_hair_notes` Varchar(256) null,
     `order_date`	DATE NULL,

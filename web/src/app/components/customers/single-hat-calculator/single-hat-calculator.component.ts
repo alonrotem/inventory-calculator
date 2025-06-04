@@ -98,7 +98,10 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     order_date: null,
     isurgent: false,
     order_notes: '',
-    adjusted_wings_per_hat: ''
+    adjusted_wings_per_hat: '',
+    original_wing_name: '',
+    crown_visible: 0,
+    crown_length: 0
   };
   //the wing without customizations (shorten top or crown)
   wing_unchanged: Wing | null = null;
@@ -164,7 +167,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   arr_hr_hl: number[] = [3.5, 4, 4.5];
   hat_hr_hl: number = 3.5;
 
-  hat_crown_visible: number = 0;
+  //hat_crown_visible: number = 0;
   //hat_white_hair: boolean = false;
   //hat_white_hair_notes: string = '';
 
@@ -394,13 +397,15 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   }
 
   calculateVisibleCrown(){
-    this.hat_crown_visible = 0;
+    this.customerHat.crown_visible = 0;
+    this.customerHat.crown_length = 0;
     if(this.customerHat && this.customerHat.wing) {
       const C1 = this.customerHat.wing.babies.find(b => b.position.toUpperCase() == "C1");
-      this.hat_crown_visible = (C1) ? C1.length : 0;
+      this.customerHat.crown_visible = (C1) ? C1.length : 0;
+      this.customerHat.crown_length = (C1)? C1.length : 0;
     }
-    if(this.customerHat.tails_allocation_id && this.hat_crown_visible > 0){
-      this.hat_crown_visible -= this.hat_hr_hl;
+    if(this.customerHat.tails_allocation_id && this.customerHat.crown_visible > 0){
+      this.customerHat.crown_visible -= this.hat_hr_hl;
     }
   }
 
@@ -514,6 +519,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         this.wing_original = (JSON.parse(JSON.stringify(w)));
         this.wing_unchanged = (JSON.parse(JSON.stringify(w)));
         this.is_wing_customized = false;
+        this.customerHat.original_wing_name = this.selected_wing_name;
 
         this.diagram.setColors(this.globalsService.currentTheme());
         this.aggregateHatBabiesAndMatchingAllocations();
@@ -817,6 +823,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   }
 
   placeOrderConfirmed() {
+    alert(this.customerHat.original_wing_name);
     this.ordersService.createOrder({
       id: 0,
       customer_hat: this.customerHat,

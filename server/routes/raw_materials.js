@@ -93,7 +93,7 @@ router.get('/single/:id', async function(req, res, next) {
   router.put('/', async function(req, res, next) {
     logger.info(`pug /raw_materials`);
     try {
-      logger.debug(`Body: ${ JSON.stringify(req.body) }`)
+      logger.debug(`Body: ${ JSON.stringify(req.body) }`);
       const response = await raw_materials.save_material(req.body);
       logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
       res.json(response);

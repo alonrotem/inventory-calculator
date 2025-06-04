@@ -185,10 +185,14 @@ export interface CustomerHat {
     shorten_top_by: number;
     shorten_crown_by: number;
     wing: Wing | null;
+    original_wing_name: string;
     wall_allocation_id: number;
     crown_allocation_id: number;
     tails_allocation_id: number | null;
 
+    crown_visible: number;
+    crown_length: number;
+    
     kippa_size: number;
     mayler_width: number;
     hr_hl_width: number;
