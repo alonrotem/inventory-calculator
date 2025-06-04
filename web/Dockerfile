@@ -16,7 +16,7 @@ WORKDIR /web
 # ===============
 # Set environment variables
 ENV NVM_DIR=/root/.nvm \
-    NODE_VERSION=22.0.0
+    NODE_VERSION=20.19.0
 
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash \
     && . "$NVM_DIR/nvm.sh" \
