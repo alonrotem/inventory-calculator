@@ -823,7 +823,6 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   }
 
   placeOrderConfirmed() {
-    alert(this.customerHat.original_wing_name);
     this.ordersService.createOrder({
       id: 0,
       customer_hat: this.customerHat,
