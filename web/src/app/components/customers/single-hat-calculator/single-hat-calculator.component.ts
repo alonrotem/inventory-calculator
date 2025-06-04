@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { WingsService } from '../../../services/wings.service';
 import { Bank_Allocation_Type, Customer, Customer_Bank_Baby_Allocation, CustomerHat, RawMaterialNameColor, Status, Wing, WingBaby, WingsListItem } from '../../../../types';
-import { DecimalPipe, formatDate, NgClass, NgFor, NgIf } from '@angular/common';
+import { DecimalPipe, formatDate, JsonPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { WingDiagramComponent } from '../../wings/wing-diagram/wing-diagram.component';
 import { PrefixPipe } from '../../../utils/pipes/prefix-pipe';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
@@ -54,7 +54,7 @@ apply the sliders after the load
     WingDiagramComponent, PrefixPipe, FilterPipe, StartsWithPipe, LightboxModule,
     AllocationPickerComponent, FaIconComponent, AutocompleteLibModule, BabyLengthModalComponent,
     FaIconComponent, ConfirmationDialogComponent, HatAllocationEditorPickerComponent, RouterLink,
-    OrderAdvisorComponent, ModalDialogComponent
+    OrderAdvisorComponent, ModalDialogComponent, JsonPipe
 ],
   templateUrl: './single-hat-calculator.component.html',
   styleUrl: './single-hat-calculator.component.scss'
@@ -97,7 +97,8 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     white_hair_notes: '',
     order_date: null,
     isurgent: false,
-    order_notes: ''
+    order_notes: '',
+    adjusted_wings_per_hat: ''
   };
   //the wing without customizations (shorten top or crown)
   wing_unchanged: Wing | null = null;
@@ -172,6 +173,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   //order_notes: string = '';
   minDate = formatDate(Date.now(),'yyyy-MM-dd','en-US');
 
+  wings_per_hat_in_order_previous_values: number[] = [];
   wings_per_hat_in_order: number[] = [];
   max_number_of_wings_in_all_allocations: number = 0;
   allWingsInOrder: number = 0;
@@ -267,8 +269,9 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       }
     });
 
-    this.order_confirmation.confirm.subscribe({
+    this.order_wing_adjustment.confirm.subscribe({
       next: () => {
+        this.customerHat.adjusted_wings_per_hat = this.wings_per_hat_in_order.join(",");
         this.placeOrderConfirmed();
       }
     });
@@ -780,9 +783,9 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     let babies_in_crown_allocation = (this.crown_allocation)? (this.customer.babies.filter(b => b.allocation_id == this.crown_allocation?.id)) : [];
 
     this.wings_per_hat_in_order = Array(this.order_amount).fill(this.customerHat.wing_quantity);
+    this.wings_per_hat_in_order_previous_values = Array(this.order_amount).fill(this.customerHat.wing_quantity);
     this.allWingsInOrder = this.wings_per_hat_in_order.reduce((partialSum, a) => partialSum + a, 0);
     
-
     this.max_number_of_wings_in_all_allocations = this.hatsCalculatorService.getMaxNumberOfWingsInAllocations(this.customerHat.wing,
       babies_in_wall_allocation,
       babies_in_crown_allocation,
@@ -792,10 +795,25 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     //this.order_confirmation.open();
   }
 
-  wings_per_hat_changed(event: any, index:number){
-    //this.console.dir(event.target.value);
-     this.wings_per_hat_in_order[index] = Number(event.target.value);
-     this.allWingsInOrder = this.wings_per_hat_in_order.reduce((partialSum, a) => partialSum + a, 0);
+  //prevent the focus from jumping between boxes
+  trackByIndex(index: number, item: number): number {
+    return index;
+  }
+
+  dont_exceed_max_wings(event:any, index: number): void {
+    let max_gap = this.max_number_of_wings_in_all_allocations - this.allWingsInOrder;
+    let increased_value = this.wings_per_hat_in_order[index] - this.wings_per_hat_in_order_previous_values[index];
+    if(increased_value > max_gap) {
+      let limited_new_value = this.wings_per_hat_in_order_previous_values[index] + max_gap;
+      this.wings_per_hat_in_order[index] = limited_new_value;
+      event.target.value = limited_new_value;
+      this.wings_per_hat_in_order_previous_values[index] = limited_new_value;
+    }
+    else {
+      this.wings_per_hat_in_order_previous_values[index] = this.wings_per_hat_in_order[index];
+      event.target.value = this.wings_per_hat_in_order[index];
+    }
+    this.allWingsInOrder = this.wings_per_hat_in_order.reduce((partialSum, a) => partialSum + a, 0);
   }
 
   placeOrderConfirmed() {

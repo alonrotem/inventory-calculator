@@ -27,41 +27,45 @@
   />
 
 <app-modal-dialog 
-    #order_wing_adjustment
-    [modalSize]="'xl'">
+  #order_wing_adjustment
+  [modalTitle]="'Confirm wings usage in all hats'"
+  [btnSaveIcon]="faBasketShopping"
+  [btnSaveText]="'Place order!'"
+  [btnSaveClass]="'btn-success'"
+  [btnCancelText]="'Cancel'"
+  [modalSize]="'l'">
 
-    <div>You can produce a total of {{ max_number_of_wings_in_all_allocations }} wings with your allocations</div>
-    <div>In all hats, you are now using {{ allWingsInOrder }} wings</div>
-    <div class="d-flex flex-row align-items-center" style="margin: 15px 0px;">
+  <div>You can produce a total of {{ max_number_of_wings_in_all_allocations }} wings with your allocations</div>
+  <div>In all hats, you are now using {{ allWingsInOrder }} wings</div>
+  <div class="d-flex flex-row align-items-center" style="margin: 15px 0px;">
     <div>0</div>
-  <div class="progress" style="flex-grow:1; margin: 0px 15px;">
-    
+    <div class="progress" style="flex-grow:1; margin: 0px 15px;">    
     <div class="bg-info"
-        role="progressbar" 
-        [style.width.%]="((allWingsInOrder)*100/max_number_of_wings_in_all_allocations)" 
-        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+      role="progressbar" 
+      [style.width.%]="((allWingsInOrder)*100/max_number_of_wings_in_all_allocations)" 
+      aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+    <div>{{ max_number_of_wings_in_all_allocations }}</div>
   </div>
-  <div>{{ max_number_of_wings_in_all_allocations }}</div>
-  </div>
-    <table class="table table-responsive">
-      <th>Hat in order</th>
-      <th>Number of wings</th>
-      <tr *ngFor="let num_of_wings of wings_per_hat_in_order; let i = index">
-        <td>Hat #{{ i+1 }}</td>
-        <td>
-          <input 
-            class="form-control" 
-            type="number" 
-            [value]="num_of_wings" 
-            style="width: 70px; text-align: center;" 
-            (change)="wings_per_hat_changed($event, i)" 
-            
-            [min]="0"
-            [max]="num_of_wings + (max_number_of_wings_in_all_allocations - allWingsInOrder)" />
-            <!--(keyup)="wings_per_hat_changed($event, i)" -->
-        </td>
-      </tr>
-    </table>
+
+  <table class="table table-responsive">
+    <th>Hat in order</th>
+    <th>Number of wings</th>
+    <tr *ngFor="let num_of_wings of wings_per_hat_in_order; let i = index; trackBy: trackByIndex">
+      <td>Hat #{{ i+1 }}</td>
+      <td>
+        <input 
+          class="form-control" 
+          type="number" 
+          [(ngModel)]="wings_per_hat_in_order[i]"
+          style="width: 120px; text-align: center;" 
+          min="0"
+          max="{{num_of_wings + (max_number_of_wings_in_all_allocations - allWingsInOrder)}}"
+          (input)="dont_exceed_max_wings($event, i)"
+            />
+      </td>
+    </tr>
+  </table>
 </app-modal-dialog>
 
 

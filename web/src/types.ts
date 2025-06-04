@@ -180,6 +180,7 @@ export interface CustomerHat {
 	crown_material_id: number| null;
 	tails_material_id: number | null;
     wing_quantity: number;
+    adjusted_wings_per_hat: string;
     customer_id: number;
     shorten_top_by: number;
     shorten_crown_by: number;

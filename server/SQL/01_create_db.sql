@@ -573,6 +573,7 @@ CREATE TABLE  IF NOT EXISTS `customer_hats`
     `tails_material_id`	INT NULL,
     `wing_id`			INT NOT NULL,
     `wing_quantity`		INT NOT NULL,
+    `adjusted_wings_per_hat` varchar(2048),
     `customer_id`		INT NOT NULL,
     `shorten_top_by`	float NULL,
     `shorten_crown_by`	float NULL,

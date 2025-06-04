@@ -1,5 +1,5 @@
 use inventory;
-SET @delete_records=FALSE;
+SET @delete_records=TRUE;
 
 # ========== DELETES ==========
 
@@ -181,7 +181,7 @@ SET @delete_records=FALSE;
         -- Prepare the INSERT statement only if the table exists
         SET @sql = IF(@table_exists > 0, "INSERT INTO `customers` (`id`, `name`, `business_name`, `email`, `phone`, `tax_id`, `customer_code`, `notes`, `created_at`, `updated_at`, `created_by`, `updated_by`) 
 VALUES
-(9, 'Alon Rotem', 'Romtech', 'alon@mail.com', '+359 (88) 401-3532', 'Tax payer 1234', null, null, '2025-01-06 20:05:29', '2025-05-27 21:10:15', 1, 1),
+(9, 'Alon Rotem', 'Romtech', 'alon@mail.com', '+359 (88) 401-3532', 'Tax payer 1234', null, null, '2025-01-06 20:05:29', '2025-06-01 22:34:04', 1, 1),
 (10, 'Avi Bar', 'Romtech', 'avi_bar@mail.com', '+359 87 985 8868', 'Tax payer 5678', null, null, '2025-01-06 20:05:29', '2025-06-01 09:20:32', 1, 1),
 (11, 'Guy Tal', 'Guytech', 'guy@mail.com', '+359 87 123 4567', 'Tax payer 90123', null, null, '2025-01-06 20:05:29', '2025-02-16 21:16:09', 1, 1),
 (12, 'London', 'London Inc', '', '', '456456', 'L', null, '2025-02-24 22:19:45', '2025-06-01 09:29:05', 0, 0),
@@ -225,7 +225,7 @@ VALUES
 (13, 'Sable', '2024-06-08 00:00:00', 210, 0, 'units', 30, 'JJ', 'US', 30, 'USD', 'This is a test material', 'Dark brown', '2025-01-06 20:05:29', '2025-02-16 21:07:25', 1, 1),
 (15, 'SM', '2024-06-08 00:00:00', 1000, 600, 'units', 112, 'KK', 'RU', 3, 'USD', 'This is a test material', 'Dark brown', '2025-01-06 20:05:29', '2025-02-25 20:11:19', 1, 1),
 (16, 'BM', '2024-06-08 00:00:00', 750, 550, 'units', 135, null, 'US', 60, 'EUR', 'This is a test material', 'Light brown', '2025-01-06 20:05:29', '2025-05-27 21:20:24', 1, 1),
-(17, 'Canady', '2024-06-08 00:00:00', 7, 7, 'kg', 10, 'XY', 'US', 10, 'USD', 'This is a test material', 'Light brown', '2025-01-06 20:05:29', '2025-01-06 20:05:29', 1, 1),
+(17, 'Canady', '2024-06-08 00:00:00', 7, 3, 'kg', 10, 'XY', 'US', 10, 'USD', 'This is a test material', 'Light brown', '2025-01-06 20:05:29', '2025-06-01 22:33:15', 1, 1),
 (18, 'Demo material 1', '2025-01-07 00:00:00', 100, 30, 'kg', 11, 'JJ', 'US', 300, 'USD', 'Demo material for calculations', 'Natural', '2025-01-07 15:18:39', '2025-01-07 15:20:15', 0, 0),
 (19, 'DМ light', '2025-01-07 00:00:00', 750, 600, 'units', 2, 'KK', 'US', 25, 'USD', 'Demo material for calculations', 'Natural', '2025-01-07 15:19:09', '2025-06-01 09:25:50', 0, 0),
 (20, 'DM', '2025-02-08 00:00:00', 100, 5, 'units', 80, 'dd', 'US', 20, 'USD', '', 'Black', '2025-02-08 21:20:42', '2025-05-29 09:03:13', 0, 0)
@@ -256,7 +256,8 @@ VALUES
 (23, 10, 16, 200, 100),
 (24, 10, 16, 200, 200),
 (25, 12, 19, 150, 50),
-(26, 12, 19, 150, 150)
+(26, 12, 19, 150, 150),
+(28, 9, 17, 4, 0)
 as new_customer_banks
 ON DUPLICATE KEY UPDATE
 `customer_id`=new_customer_banks.`customer_id`, `raw_material_id`=new_customer_banks.`raw_material_id`, `quantity`=new_customer_banks.`quantity`, `remaining_quantity`=new_customer_banks.`remaining_quantity`;", 'SELECT \'Table customer_banks does not exist\'');
@@ -291,7 +292,9 @@ VALUES
 (17, 22, 100, 0, 'babies'),
 (18, 23, 200, 0, 'babies'),
 (22, 23, 5, 0, 'babies'),
-(23, 25, 100, 0, 'babies')
+(23, 25, 100, 0, 'babies'),
+(25, 28, 3, 0, 'babies'),
+(26, 28, 1, 0, 'tails')
 as new_customer_banks_allocations
 ON DUPLICATE KEY UPDATE
 `customer_bank_id`=new_customer_banks_allocations.`customer_bank_id`, `quantity`=new_customer_banks_allocations.`quantity`, `remaining_quantity`=new_customer_banks_allocations.`remaining_quantity`, `allocation_type`=new_customer_banks_allocations.`allocation_type`;", 'SELECT \'Table customer_banks_allocations does not exist\'');
@@ -437,7 +440,15 @@ VALUES
 (256, 23, 7, 536, 264),
 (257, 23, 6.5, 922, 528),
 (258, 23, 6, 772, 528),
-(259, 23, 5.5, 672, 528)
+(259, 23, 5.5, 672, 528),
+(260, 25, 10, 220, 0),
+(261, 25, 9, 88, 0),
+(262, 25, 8, 88, 0),
+(263, 25, 7.5, 44, 0),
+(264, 25, 7, 88, 0),
+(265, 25, 6.5, 88, 0),
+(266, 25, 6, 88, 0),
+(267, 25, 5.5, 88, 0)
 as new_allocation_babies
 ON DUPLICATE KEY UPDATE
 `allocation_id`=new_allocation_babies.`allocation_id`, `length`=new_allocation_babies.`length`, `quantity`=new_allocation_babies.`quantity`, `quantity_in_pending_orders`=new_allocation_babies.`quantity_in_pending_orders`;", 'SELECT \'Table allocation_babies does not exist\'');
@@ -505,7 +516,9 @@ VALUES
 (52, '2025-06-01 09:25:51', 1, 150, 'to_customer_bank', 19, 12, 25, 0, 600, 150, -1),
 (53, '2025-06-01 09:25:50', 1, 500, 'raw_material_purchase', 19, 0, 0, 0, 750, -1, -1),
 (54, '2025-06-01 09:25:51', 1, 150, 'to_customer_bank', 19, 12, 26, 0, 600, 150, -1),
-(55, '2025-06-01 09:27:21', 1, 100, 'customer_bank_allocate_to_Work', 19, 12, 25, 23, -1, 50, 0)
+(55, '2025-06-01 09:27:21', 1, 100, 'customer_bank_allocate_to_Work', 19, 12, 25, 23, -1, 50, 0),
+(57, '2025-06-01 22:33:30', 1, 3, 'customer_bank_allocate_to_Work', 17, 9, 28, 25, -1, 1, 0),
+(58, '2025-06-01 22:33:42', 1, 1, 'customer_bank_allocate_to_Work', 17, 9, 28, 26, -1, 0, 0)
 as new_transaction_history
 ON DUPLICATE KEY UPDATE
 `date`=new_transaction_history.`date`, `added_by`=new_transaction_history.`added_by`, `transaction_quantity`=new_transaction_history.`transaction_quantity`, `transaction_type`=new_transaction_history.`transaction_type`, `raw_material_id`=new_transaction_history.`raw_material_id`, `customer_id`=new_transaction_history.`customer_id`, `customer_bank_id`=new_transaction_history.`customer_bank_id`, `allocation_id`=new_transaction_history.`allocation_id`, `cur_raw_material_quantity`=new_transaction_history.`cur_raw_material_quantity`, `cur_customer_bank_quantity`=new_transaction_history.`cur_customer_bank_quantity`, `cur_banks_babies_allocation_quantity`=new_transaction_history.`cur_banks_babies_allocation_quantity`;", 'SELECT \'Table transaction_history does not exist\'');
