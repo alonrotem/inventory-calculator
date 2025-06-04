@@ -233,8 +233,8 @@ export interface ModalDialog {
 
 export interface Stats {
     raw_material_records: number,
-    total_baby_records: number,
-    total_babies: number,
+    //total_baby_records: number,
+    //total_babies: number,
     total_wings: number,
     num_of_orders: number,
     total_hats: number,

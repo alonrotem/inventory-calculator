@@ -15,8 +15,8 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 export class SummaryCardComponent implements OnInit {
 
   raw_material_records: number = 0;
-  total_baby_records: number = 0;
-  total_babies: number = 0;
+  //total_baby_records: number = 0;
+  //total_babies: number = 0;
   total_wings: number = 0;
   num_of_orders: number = 0;
   total_hats: number = 0;
@@ -37,8 +37,8 @@ export class SummaryCardComponent implements OnInit {
       next: (stats: Stats) => {
         console.dir(stats);
         this.raw_material_records = stats.raw_material_records;
-        this.total_baby_records = stats.total_baby_records;
-        this.total_babies = stats.total_babies;
+        //this.total_baby_records = stats.total_baby_records;
+        //this.total_babies = stats.total_babies;
         this.total_wings = stats.total_wings;
         this.num_of_orders = stats.num_of_orders;
         this.total_hats = stats.total_hats;

@@ -19,6 +19,7 @@ async function getInfo(){
     const cur_raw_material_quantity_units = cur_raw_material_units[0]['quantity_units'];
     const cur_raw_material_remaining_units = cur_raw_material_units[0]['ramaining_units'];    
 
+    /*
     const baby_records = await db.query(
         `select count(*) as bb_recs from babies;`
     );
@@ -28,7 +29,7 @@ async function getInfo(){
         `select COALESCE(sum(quantity), 0) as quantity from babies;`
     );
     const total_babies = babies_quantity[0]['quantity'];  
-
+    */
     const wings_records = await db.query(
       `select count(*) as wings_recs from wings;`
     );
@@ -54,8 +55,8 @@ async function getInfo(){
     */
   return  {
     raw_material_records,
-    total_baby_records,
-    total_babies,
+    //total_baby_records,
+    //total_babies,
     total_wings,
     num_of_orders,
     total_hats,
