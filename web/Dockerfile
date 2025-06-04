@@ -33,6 +33,6 @@ RUN node --version && npm --version
 
 RUN npm install -g @angular/cli@latest
 RUN npm install --force
-RUN ng analytics off
+# RUN ng analytics off
 
 CMD ["ng", "serve", "--host", "0.0.0.0", "--configuration=production"]
