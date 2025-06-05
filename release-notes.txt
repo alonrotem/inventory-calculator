@@ -1,11 +1,17 @@
+[ ] Page clears on mobile when switching apps
+[ ] Colors & color order: Natural, Light brown, Brown, Dark brown, Black
+[ ] Mylar thickness, not width
+[ ] Hitting Enter on the babies dialog marks the next size
+
+=================================
 Raw materials
-    [ ] Colors and ui everywhere
-    [ ] Not allow saving of materials with existing name and color
-    [ ] Creating orders with material IDs, not names
+    [x] Colors and ui everywhere
+    [x] Not allow saving of materials with existing name and color
+    [x] Creating orders with material IDs, not names
 
 Customers
-    [ ] Costomer code field
-=================================
+    [x] Costomer code field
+
 
 * Mbile nav, collapses on click of an item or outside the menu
 * Changed menu layout, removed hats and flattened drop-downs
