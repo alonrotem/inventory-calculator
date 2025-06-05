@@ -358,13 +358,14 @@ name=new_currencies.name, symbol= new_currencies.symbol, `order`=new_currencies.
 # raw_materials -> customer_banks -> customer_banks_allocations -> allocation_babies
 
 CREATE TABLE  IF NOT EXISTS `material_colors` (
+	`priority` int not null,
 	`color` varchar(128) not null,
     PRIMARY KEY (`color`)
 );
 
-Insert into `material_colors` (`color`)
+Insert into `material_colors` (`priority`, `color`)
 VALUES
-('Dark brown'), ('Light brown'), ('Natural'), ('Black');
+(10, 'Natural'), (20, 'Light brown'), (30, 'Brown'), (40, 'Dark brown'), (50, 'Black');
 
 CREATE TABLE  IF NOT EXISTS `raw_materials`
 (

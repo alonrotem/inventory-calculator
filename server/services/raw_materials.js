@@ -95,7 +95,7 @@ async function getNames(for_customer_id){
 }
 
 async function getColors() {
-    let query = `select color from material_colors order by color;`;
+    let query = `select color from material_colors order by priority;`;
     const result = await db.query(query);
     const data = helper.emptyOrRows(result).map(item => item.color);
     return (data);

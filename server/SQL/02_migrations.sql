@@ -48,6 +48,31 @@ DEALLOCATE PREPARE stmt;
 # -----------------------------------
 
 # -----------------------------------
+DELETE from material_colors;
+
+# Add column if doesn't exist
+SET @tbl='material_colors';
+SET @col='priority';
+SET @col_type='int not null';
+SET @sttmnt = CONCAT('ALTER TABLE ', @tbl ,' ADD COLUMN ', @col ,' ', @col_type, ';');
+SET @col_exists = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS 
+		WHERE TABLE_NAME = @tbl 
+		AND COLUMN_NAME = @col 
+		AND TABLE_SCHEMA = DATABASE()
+);
+SET @query = IF(@col_exists = 0, @sttmnt, 'SELECT 1');
+PREPARE stmt FROM @query;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+Insert into `material_colors` (`priority`, `color`)
+VALUES
+(10, 'Natural'), (20, 'Light brown'), (30, 'Brown'), (40, 'Dark brown'), (50, 'Black');
+# End: Add column if doesn't exist
+# -----------------------------------
+
+# -----------------------------------
 # Add constraint if doesn't exist
 SET @tablename = "wings";
 SET @constraintname = "fk_wing_customer_id";

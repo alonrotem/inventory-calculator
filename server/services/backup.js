@@ -70,12 +70,15 @@ function construct_queries(table_name, table_info, records, keep_existing_record
                         switch(table_info[col].Type) {
                             case 'int':
                             case 'float':
+                            case 'tinyint(1)':
                                 values += current_rec_value;
                                 break;
                             case 'datetime':
                             case 'date':
                                 values += "'" + helper.dateStr(current_rec_value) + "'";
                                 break;
+                            case 'tinyint(1)': //boolean
+
                         }
                     }
                 }

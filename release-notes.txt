@@ -1,4 +1,4 @@
-[ ] Page clears on mobile when switching apps
+[x] Page clears on mobile when switching apps
 [ ] Colors & color order: Natural, Light brown, Brown, Dark brown, Black
 [ ] Mylar thickness, not width
 [ ] Hitting Enter on the babies dialog marks the next size
