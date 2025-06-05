@@ -28,16 +28,12 @@ app.use(
     extended: true,
   })
 );
-app.get("/", (req, res) => {
-  res.json({ message: "Server is up on port "+ port +"!" });
-});
 
 app.use("/raw_materials", rawMaterialsRouter);
 app.use("/currencies", currenciesRouter);
 app.use("/countries", countriessRouter);
 app.use("/info", infoRouter);
 app.use("/wings", wingsRouter);
-//app.use("/hats", hatsRouter);
 app.use("/orders", ordersRouter);
 app.use("/customers", customersRouter);
 app.use("/transaction_history", transaction_historyRouter);
@@ -45,8 +41,16 @@ app.use("/backup", backupRouter);
 app.use("/settings", settingsRouter);
 app.use("/systemlogs", systemlogsRouter);
 
-//console.log(config.hatsUploadDir);
 app.use(config.hats_pictures_path, express.static(config.hatsUploadDir));
+
+if(os.hostname != config.prod_server_hostname) {
+  app.get("/", (req, res) => {
+    res.json({ message: "Server is up on port "+ port +"!" });
+  });
+}
+else {
+  app.use(express.static(config.angularAppDir));
+}
 
 /* Error handler middleware */
 app.use((err, req, res, next) => {
