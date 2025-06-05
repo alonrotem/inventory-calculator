@@ -10,14 +10,18 @@ RUN apt-get update && apt-get install -y \
     nano \
     curl
 
+# copy the server files
 RUN mkdir /server
-COPY . /server
-WORKDIR /server
+COPY ./server/. /server
+
+# copy the web files (in production, angular is served statically)
+RUN mkdir /temp_web
+COPY ./web/. /temp_web
 
 # ===============
 # Set environment variables
 ENV NVM_DIR=/root/.nvm \
-    NODE_VERSION=22.0.0
+    NODE_VERSION=22.16.0
 
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash \
     && . "$NVM_DIR/nvm.sh" \
@@ -32,7 +36,18 @@ ENV PATH="$NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH"
 RUN node --version && npm --version
 # ===============
 
-#RUN npm install -g @angular/cli@latest
+RUN npm install -g @angular/cli@latest
+
+# install the server packages
+WORKDIR /server
 RUN npm install --force
 
+# install the web packages, build the production files, copy to the server
+WORKDIR /temp_web
+RUN npm install --force
+RUN ng build --configuration=production
+RUN cp -r /temp_web/dist/inventory-calculator/browser/. /server/web
+
+# run it all
+WORKDIR /server
 CMD ["node", "index.js", "0.0.0.0"]

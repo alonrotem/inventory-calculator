@@ -11,18 +11,21 @@
 name: romtech
 
 services:
-  web:
-    build: ./web/
-    # no need for ports when the network mdoe is set to "host"
-    #ports:
-    #  - "4200:4200"
-    network_mode: "host"
-    restart: always
-    depends_on:
-      - server
+  #web:
+  #  build: ./web/
+  #  # no need for ports when the network mdoe is set to "host"
+  #  #ports:
+  #  #  - "4200:4200"
+  #  network_mode: "host"
+  #  restart: always
+  #  depends_on:
+  #    - server
 
   server:
-    build: ./server/
+    #build: ./server/
+    build: 
+      dockerfile: ./server/Dockerfile
+      context: ./
     #ports:
     #  - "3000:3000"
     network_mode: "host"
