@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, ViewChild } from '@angular/core';
 import { Baby, ModalDialog } from '../../../../types';
 import { FormBuilder, FormControl, FormGroup, FormsModule, NgForm, NgSelectOption, ReactiveFormsModule, RequiredValidator, Validators } from '@angular/forms';
 import { NgIf } from '@angular/common';
@@ -29,29 +29,35 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
   @ViewChild("quantity", { read: ElementRef }) quantity!: ElementRef;
   @ViewChild("babyEditorDialog") dialogWrapper!: ModalDialogComponent;
 
-  public editedObject: Baby = {
-    id: 0,
-    raw_material_parent_id: 0,
-    raw_material: '',
-    length: 0,
-    quantity: 0,
-    quantity_in_pending_orders: 0,
-    created_at: new Date(),
-    updated_at: new Date(),
-    created_by: 1,
-    updated_by: 1
-  }
-  appendBaby: EventEmitter<any> = new EventEmitter<Baby>();
+  @Input() babies_to_edit: { length: number; quantity: number }[] = [];
+  @Input() highlighted_baby_length: number = 0;
+  highlighted_baby_quantity: number = 0;
 
-  babyFormEditor = this.fb.group({
+  //[ 5.0, 5.5, 6.0, 6.5, ... 13.0 ]
+  min_length:number = 5;
+  max_length:number = 13;
+  length_steps: number = 0.5;
+  lengths: number[] = Array(
+    (this.max_length - this.min_length)*2+1)
+    .fill(this.min_length)
+    .map((_,i) => _ + i * this.length_steps);
+  console = console;
+
+  public editedObject: null = null;
+  appendBaby: EventEmitter<{ length: number; quantity: number }> = new EventEmitter<{ length: number; quantity: number }>();
+
+  /*
+    babyFormEditor = this.fb.group({
     /*
     length: [this.editedObject.length, [
       Validators.required
     ]],*/
+    /*
     quantity: [this.editedObject.quantity, [
       Validators.required
     ]]
   });
+  */
   isSubmitted : boolean = false;
   babyEditMode: boolean = false; // babyEditmode: editing an existing baby. Otherwise in add mode
 
@@ -61,19 +67,23 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
   close: EventEmitter<any> = new EventEmitter<Baby>();
 
   ngAfterViewInit(): void {
-    this.length_picker.lengthChange.subscribe((value: Number) => {
-      this.quantity.nativeElement.focus();
+    this.length_picker.lengthChange.subscribe((value: number) => {
+      this.highlighted_baby_length = value;
+      this.highlightNext();
     });
   }
 
-  //[ 5.0, 5.5, 6.0, 6.5, ... 13.0 ]
-  lengths = Array.from({ length:17 }, (v, k) => (5.5 + ((k-1)*0.5)).toFixed(1));
-  console = console;
+
 
   onOpen(): any {
     this.isSubmitted = false;
     //this.babyFormEditor.get("length")?.setValue(this.editedObject.length);
     this.length_picker.reset();
+    this.highlightNext();
+    /*
+    if(this.editedObject.length == 0){
+      this.editedObject.length = this.min_length;
+    }
     this.length_picker.length = this.editedObject.length;
     this.babyFormEditor.get("quantity")?.setValue(this.editedObject.quantity);
     this.babyFormEditor.markAsPristine();
@@ -99,33 +109,111 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
   }});   
   }
 
+  highlightNext(){
+    this.console.dir(this.highlighted_baby_length);
+    if(this.highlighted_baby_length < this.min_length || this.highlighted_baby_length > this.max_length){
+      this.highlighted_baby_length = this.min_length;
+    }
+    this.length_picker.length = this.highlighted_baby_length;
+    const baby_info = this.babies_to_edit.find(b => b.length == this.highlighted_baby_length);
+    this.console.log("baby info:");
+    
+    this.highlighted_baby_quantity = (baby_info)? baby_info.quantity: 0;
+
+    this.quantity.nativeElement.focus();
+    //this.quantity.nativeElement.select();
+    setTimeout(() => {
+      this.quantity.nativeElement.focus();
+      this.quantity.nativeElement.select();
+    }, 0);
+  }
+
   beforeClose(): Boolean {
+    return false;
     console.log("beforeClose...");
     this.isSubmitted = true;
+    /*
     this.babyFormEditor.markAsDirty();
     if(this.babyFormEditor.invalid || (this.length_picker.isLengthInvalid()))
     {
       this.toastService.showError("Please fill length and quantity!");
       return false;
     }
+      */
+     /*
     //this.editedObject.length =  this.babyFormEditor.get('length')!.value ?? 0;
     //this.editedObject.length = this.length_picker.get_length();
     this.editedObject.quantity =  this.babyFormEditor.get('quantity')!.value ?? 0;
     this.appendBaby.emit(this.editedObject);
-    this.toastService.showSuccess("Applied");
+    //this.toastService.showSuccess("Applied");
 
     //reset the form and don't close
     this.length_picker.reset();
     this.babyFormEditor.get('quantity')!.setValue(0);
+    this.editedObject.length = this.editedObject.length + this.length_steps;
+    if(this.editedObject.length > this.max_length){
+      this.editedObject.length = this.min_length;
+    }
     this.babyFormEditor.markAsPristine();
     this.babyFormEditor.markAsUntouched();
     this.quantity.nativeElement.focus();
 
     return this.babyEditMode;
+    */
   }
 
   sendit(event:any){
-    this.close.emit(this.editedObject);
+    this.appendBaby.emit({
+      length: this.highlighted_baby_length,
+      quantity: this.highlighted_baby_quantity
+    });
+    let baby_to_modify = this.babies_to_edit
+      .find(b => b.length == this.highlighted_baby_length);
+
+//------------
+    if(this.babyEditMode){
+      if(baby_to_modify){
+        baby_to_modify.quantity = this.highlighted_baby_quantity;
+      }
+      else {
+        this.babies_to_edit.push({
+          length:this.highlighted_baby_length,
+          quantity: this.highlighted_baby_quantity,
+        });
+      }
+    }
+    //append mode
+    else {
+      //add mode
+      // find the baby
+      // if found -> 
+      //  top up quantity
+      // if not found
+      //  append new with quantity
+      if(baby_to_modify){
+        baby_to_modify.quantity += this.highlighted_baby_quantity;
+      }
+      else {
+        this.babies_to_edit.push({
+          length:this.highlighted_baby_length,
+          quantity: this.highlighted_baby_quantity,
+        });
+      }      
+    }
+//------------
+
+      //this.pendingBabyAppendAllocation
+      //edit mode:
+      // find the baby
+      // if found -> 
+      //  if quantity is 0, and in_orders is 0 -> splice out
+      //  if quantity is > 0 -> update the quanitty
+      // if not found && quantity > 0->
+      //    append new with quantity
+
+    this.highlighted_baby_length += this.length_steps;
+    this.highlightNext();
+    //this.close.emit(this.editedObject);
   }
 /*
   setLength(length:string) {

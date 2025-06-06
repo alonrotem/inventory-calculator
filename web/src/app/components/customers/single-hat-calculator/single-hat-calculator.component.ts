@@ -244,7 +244,17 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
   ngAfterViewInit(): void {
     this.wingsService.getWings_for_customer(this.customer.id).subscribe(wingsListInfo => {
-      this.wings = wingsListInfo.data;
+      this.wings = wingsListInfo.data.sort((w1:WingsListItem, w2:WingsListItem) =>{
+        this.console.log(w1.name);
+        const w1_len = w1.name.match(/[^\d]*(\d*)[^\d]*/);
+        const w2_len = w2.name.match(/[^\d]*(\d*)[^\d]*/);
+        if(w1_len && w2_len && w1_len.length > 1 && w2_len.length > 1){
+          return Number(w2_len[1]) - Number(w1_len[1]);
+        }
+        else {
+          return 0;
+        }
+      });
       let selected_wing_id = Number(this.activatedRoute.snapshot.queryParamMap.get('wing_id'));
       if(selected_wing_id > 0) {
         this.selected_wing_id = selected_wing_id;
@@ -467,7 +477,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         }
         this.customerHat.wall_allocation_id = alloc_id;
       }
-      else if(this.pending_allocation_area_selection == "wall") {
+      else if(this.pending_allocation_area_selection == "crown") {
         this.crown_allocation = alloc;
         this.crown_allocation_units = bank? bank.raw_material_quantity_units : "";
         this.customerHat.crown_allocation_id = alloc_id;
@@ -522,6 +532,23 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         this.customerHat.original_wing_name = this.selected_wing_name;
 
         this.diagram.setColors(this.globalsService.currentTheme());
+
+        /**/
+        this.customerHat.hat_material_id = null;
+        this.customerHat.crown_material_id = null;
+        this.customerHat.tails_material_id = null;
+        
+        this.wall_alocation = null;
+        this.crown_allocation = null;
+        this.tails_allocation = null;
+        this.customerHat.wall_allocation_id = 0;
+        this.customerHat.crown_allocation_id = 0;
+        this.customerHat.tails_allocation_id = 0;
+        this.num_of_allocations_with_wall_material = 0;
+        this.num_of_allocations_with_crown_material = 0;
+        this.num_of_allocations_with_tails_material = 0;
+        /**/
+
         this.aggregateHatBabiesAndMatchingAllocations();
         this.update_table_instructions();
         this.order_amount = this.total_num_of_possible_hats;

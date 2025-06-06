@@ -1,7 +1,7 @@
 
 <app-modal-dialog #babyEditorDialog>
     <div modalContent>
-<form novalidate #baby_editor_form="ngForm" [formGroup]="babyFormEditor">
+<!--<form novalidate #baby_editor_form="ngForm" [formGroup]="babyFormEditor">-->
     <div class="form-floating">
         <!--
         <ng-select name="length" #length formControlName="length" [formGroup]="babyFormEditor" [clearable]="false" style="display:none">
@@ -19,16 +19,19 @@
         </div>
             -->
         <div>
-            <app-babies-length-picker #length_picker [(length)]="this.editedObject.length" />
+            <app-babies-length-picker #length_picker [(length)]="highlighted_baby_length" />
         </div>
     </div>
     <div class="form-floating mt-3">
-        <input type="number" class="form-control" placeholder="0" required min="1" #quantity formControlName="quantity" [formGroup]="babyFormEditor" (focus)="$any($event.target).select()" (keyup.enter)="sendit($event)">
+        <input type="number" class="form-control" placeholder="0" required min="1" #quantity [(ngModel)]="highlighted_baby_quantity" (focus)="$any($event.target).select()" (keyup.enter)="sendit($event)">
         <label for="quantity">Quantity</label>
     </div>
-    <div class="text-danger" *ngIf="babyFormEditor.get('quantity')?.invalid && (babyFormEditor.get('quantity')?.touched || babyFormEditor.get('quantity')?.dirty || isSubmitted) && (babyFormEditor.get('quantity') && !babyFormEditor.get('quantity')?.value)"> 
+    <!--div class="text-danger" *ngIf="babyFormEditor.get('quantity')?.invalid && (babyFormEditor.get('quantity')?.touched || babyFormEditor.get('quantity')?.dirty || isSubmitted) && (babyFormEditor.get('quantity') && !babyFormEditor.get('quantity')?.value)"> 
         <span>Please enter a valid babies quantity</span>
-    </div> 
-</form>
+    </div--> 
+    <div class="text-success d-flex justify-content-center">
+        (Hit Enter to send and move next)
+    </div>
+<!--</form>-->
 </div>
 </app-modal-dialog>

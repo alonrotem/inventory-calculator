@@ -127,9 +127,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
         this.pendingAllocationIdAction = -999;
       }
     });
-    this.babies_picker.dialogWrapper.modalTitle = "Modify babies in allocation";
-    this.babies_picker.dialogWrapper.confirm.subscribe((baby: Baby) => { this.babies_dialog_closed(baby); });
-    this.babies_picker.appendBaby.subscribe((baby: Baby) => { this.babies_dialog_closed(baby); });
+    this.babies_picker.appendBaby.subscribe((baby_info: { length: number; quantity: number }) => { this.append_baby(baby_info) });
 
     this.allocation_dialog.dialogWrapper.modalTitle = "Manage allocation";
     this.allocation_dialog.dialogWrapper.confirm.subscribe(() => { this.allocation_dialog_closed(this.allocation_dialog.CurrentQuantity, this.allocation_dialog.editedObject.allocation_type); });
@@ -379,67 +377,87 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
 
   open_babies_dialog(bank_allocation_id: number, baby_length: number) {
     this.pendingBabyAppendAllocation = bank_allocation_id;
-    this.pendingBabyAppendBaby = baby_length;
-    let baby_to_edit = this.babies.find(b => b.length == baby_length && b.allocation_id == this.pendingBabyAppendAllocation);
-    this.babies_picker.editedObject = {
-      id: 0,
-      raw_material_parent_id: 0,
-      raw_material: '',
-      length: 0,
-      quantity: 0,
-      quantity_in_pending_orders: 0,
-      created_at: new Date(),
-      updated_at: new Date(),
-      created_by: 1,
-      updated_by: 1
-    };
-    if(baby_to_edit){
-      this.babies_picker.editedObject.quantity = baby_to_edit.quantity;
-      this.babies_picker.editedObject.length = baby_to_edit.length;
+    const curr_baby = this.babies.find(b => 
+      b.allocation_id == bank_allocation_id && b.length == baby_length
+    );
+    let babiesToEdit: { length: number; quantity: number }[] = [];
+    this.babies_picker.dialogWrapper.btnSaveClass = "d-none";
+      this.babies_picker.dialogWrapper.btnCancelText = "(Esc to close)";
+    if(baby_length > 0) {
+      babiesToEdit = this.babies
+        .filter(b => b.allocation_id == bank_allocation_id)
+        .map(b => ({ length: b.length, quantity: b.quantity }));
       this.babies_picker.babyEditMode = true;
-      this.babies_picker.dialogWrapper.btnSaveText = "Update baby";
+      this.babies_picker.dialogWrapper.modalTitle = "Edit babies";
     }
     else {
       this.babies_picker.babyEditMode = false;
-      this.babies_picker.dialogWrapper.btnSaveText = "Add + Next >";
+    this.babies_picker.dialogWrapper.modalTitle = "Add / Top-up babies";
     }
+    this.babies_picker.babies_to_edit = babiesToEdit;
+    this.babies_picker.highlighted_baby_length = baby_length;
+    this.babies_picker.highlighted_baby_quantity = (curr_baby)? curr_baby.quantity : 0;
+
     this.babies_picker.dialogWrapper.open();
   }
 
-  babies_dialog_closed(baby: Baby) {
-    console.log("Received:");
-    console.dir(baby);
-    let baby_to_edit = this.babies.find(b => b.length == baby.length && b.allocation_id == this.pendingBabyAppendAllocation);
-    if(baby_to_edit) {
-      if(this.babies_picker.babyEditMode) {
-        console.log("Setting baby with length " + baby.length + "quantity to " + baby.quantity);
-        baby_to_edit.quantity = baby.quantity;
+  append_baby(baby_info: { length: number; quantity: number }){
+    console.log("append_baby:"); console.dir(baby_info);
+    let baby_to_modify = this.babies.find(b => b.allocation_id == this.pendingBabyAppendAllocation && b.length == baby_info.length);
+
+    //edit mode:
+    // find the baby
+    // if found -> 
+    //  if quantity is 0, and in_orders is 0 -> splice out
+    //  if quantity is > 0 -> update the quanitty
+    // if not found && quantity > 0->
+    //    append new with quantity    
+    if(this.babies_picker.babyEditMode){
+      if(baby_to_modify){
+        if(baby_info.quantity <= 0 && baby_to_modify.quantity_in_pending_orders <= 0) {
+          let baby_index = this.babies.findIndex(b => b.allocation_id == this.pendingBabyAppendAllocation && b.length == baby_info.length);
+          if(baby_index >= 0){
+            this.babies.splice(baby_index, 1);
+          }
+        }
+        else {
+          baby_to_modify.quantity = baby_info.quantity;
+        }
       }
       else {
-        console.log("Increasing baby with length " + baby.length + "quantity from " + baby_to_edit.quantity +  " to " + (baby_to_edit.quantity + baby.quantity));
-        baby_to_edit.quantity += baby.quantity;
+        this.babies.push({
+          id: 0,
+          allocation_id: this.pendingBabyAppendAllocation,
+          length: baby_info.length,
+          quantity: baby_info.quantity,
+          quantity_in_pending_orders: 0
+        });
       }
     }
+
+    //append mode
     else {
-      console.log("Adding new baby " + baby.length + "quantity " + baby.quantity);
-      this.babies.push({
-        id: 0,
-        allocation_id: this.pendingBabyAppendAllocation,
-        length: baby.length,
-        quantity: baby.quantity,
-        quantity_in_pending_orders: 0
-      });
+      //add mode
+      // find the baby
+      // if found -> 
+      //  top up quantity
+      // if not found
+      //  append new with quantity
+      if(baby_to_modify){
+        baby_to_modify.quantity += baby_info.quantity;
+      }
+      else {
+        this.babies.push({
+          id: 0,
+          allocation_id: this.pendingBabyAppendAllocation,
+          length: baby_info.length,
+          quantity: baby_info.quantity,
+          quantity_in_pending_orders: 0
+        });
+      }      
     }
-
-    //---
-    this.update_advisor_babies(this.pendingBabyAppendAllocation);
-
-    //this.pendingBabyAppendAllocation = -999;
-    //this.pendingBabyAppendBaby = -999;
-    this.unsaved_changes = true;
-
   }
-
+  
   openHistoryDialog(){
     this.history_dialog.raw_material_name = this.bank.raw_material_name;
     this.history_dialog.raw_material_id = this.bank.raw_material_id;

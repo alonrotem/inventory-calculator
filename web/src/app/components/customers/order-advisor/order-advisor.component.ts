@@ -42,6 +42,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   allocation_crown_babies: Allocation_Baby[] = [];
 
   calculating: boolean = false;
+  not_enough_data: boolean = false;
   systemWings: Wing[] = [];
   suggestions: OrderAdvisorWingOverall = {
     wing_suggestions: [],
@@ -142,6 +143,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
 
   calculate(numOfWingsPerHat:number=44) : Promise<OrderAdvisorWingOverall> {
     if(!this.wall_allocation || !this.crown_allocation) {
+      this.not_enough_data = true;
       return new Promise((resolve, reject ) => { resolve({
             wing_suggestions: [],
             max_num_of_hats: 0,
@@ -152,7 +154,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
         })
       });
     }
-    
+    this.not_enough_data = false;
     this.exceed_number_of_hats_message = "";
     this.already_at_max_num_of_hats = false;
     return new Promise((resolve, reject) => {

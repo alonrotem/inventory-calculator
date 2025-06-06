@@ -93,7 +93,7 @@
  <div class="allocation-area">
       <div>
         <strong><span class="icon-babies" style="margin-right:10px;"></span>Babies work allocation #{{ bank_allocation.id }}:</strong>
-        {{ bank_allocation.quantity }} {{ raw_material_quantity_units }}, {{ (babies | filter: "allocation_id" : bank_allocation.id) | sum: 'quantity' }} babies 
+        {{ bank_allocation.quantity  | number: '1.' }} {{ raw_material_quantity_units }}, {{ (babies | filter: "allocation_id" : bank_allocation.id) | sum: 'quantity' | number: '1.' }} babies 
         <div>
           <button class="btn btn-warning" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="open_allocation_dialog(bank_allocation.id)">
             <fa-icon [icon]="faPencil"></fa-icon>
@@ -172,7 +172,7 @@
         <div>No babies in this allocation</div>
       </div>
       <div style="display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: center; align-items: center;">
-        <button class="btn btn-primary" style="width: 50%; padding: 2px 0px;" (click)="open_babies_dialog(bank_allocation.id, -999)">+ Add babies</button>
+        <button class="btn btn-primary" style="width: 50%; padding: 2px 0px;" (click)="open_babies_dialog(bank_allocation.id, -999)">+ Add/Top-up babies</button>
       </div>  
       <div *ngIf="show_hat_advisor">
         <app-order-advisor 

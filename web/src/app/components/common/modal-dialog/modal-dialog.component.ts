@@ -1,8 +1,6 @@
 import { Component, ContentChild, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { NgClass, NgIf } from '@angular/common';
-//import { ModalObjectEditor } from '../../../../types';
-//import { BabyEditorDialogComponent } from '../../babies/baby-editor-dialog/baby-editor-dialog.component';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBorderNone, faTrashAlt, faW, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { ModalContentDirective } from '../directives/modal-content.directive';

@@ -126,7 +126,7 @@
 </app-modal-dialog>
 
 <div class="advisor">
-    <div class="advisor-content" *ngIf="calculating && (!wait_for_saved_changes || !pending_saved_changes)">
+    <div class="advisor-content" *ngIf="calculating && (!wait_for_saved_changes || !pending_saved_changes) && (!not_enough_data)">
         <div>
             <fa-icon [icon]="faArrowsRotate" [spin]="true"></fa-icon>
         </div>
@@ -134,13 +134,13 @@
             Calculating...
         </div>
     </div>
-    <div class="advisor-content" *ngIf="!calculating && suggestions.max_num_of_hats > 0 && try_to_exceed < 0  && (!wait_for_saved_changes || !pending_saved_changes)">
+    <div class="advisor-content" *ngIf="!calculating && suggestions.max_num_of_hats > 0 && try_to_exceed < 0  && (!wait_for_saved_changes || !pending_saved_changes) && (!not_enough_data)">
         <div class="message">
             <div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon> With this allocation you can make up to {{ suggestions.max_num_of_hats }} {{ (suggestions.max_num_of_hats == 1)? 'hat': 'hats' }} of type <strong>{{ suggestions.max_hat_wing_name }}</strong></div>
             <div *ngIf="show_options_button"><button class="btn btn-success" (click)="openAdviseTable()">Show me!</button></div>
         </div>
     </div>
-    <div class="advisor-content" *ngIf="!calculating && suggestions.max_num_of_hats <= 0 && try_to_exceed < 0 && (!wait_for_saved_changes || !pending_saved_changes)">
+    <div class="advisor-content" *ngIf="!calculating && suggestions.max_num_of_hats <= 0 && try_to_exceed < 0 && (!wait_for_saved_changes || !pending_saved_changes) && (!not_enough_data)">
         <div class="message">
         <div><fa-icon class="text-danger" [icon]="faTriangleExclamation" size="1x"></fa-icon>
             You don't have the capatity to make {{ (wing_id > 0)? 'this hat': 'hats' }} with {{ (wall_allocation && crown_allocation && wall_allocation.id == crown_allocation.id)?'this allocation':'these allocations' }}
@@ -148,17 +148,27 @@
             <div *ngIf="(wall_allocation && crown_allocation && wall_allocation.id == crown_allocation.id)"><button class="btn btn-info" (click)="helpCreateHat()">Help me adjust my allocation!</button></div>
         </div>
     </div>
-    <div class="advisor-content" *ngIf="!calculating && try_to_exceed >= 0  && (!wait_for_saved_changes || !pending_saved_changes)">
+    <div class="advisor-content" *ngIf="!calculating && try_to_exceed >= 0  && (!wait_for_saved_changes || !pending_saved_changes) && (!not_enough_data)">
         <div class="message">
-            <div><div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon>{{ exceed_number_of_hats_message }}</div>
-            <div *ngIf="!already_at_max_num_of_hats" style="display: flex; justify-content: center;"><button class="btn btn-warning" (click)="emit_exceed_operation()">Make this change for me!</button></div>
+            <div>
+                <div>
+                    <fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon>{{ exceed_number_of_hats_message }}
+                </div>
+                <div *ngIf="!already_at_max_num_of_hats" style="display: flex; justify-content: center;"><button class="btn btn-warning" (click)="emit_exceed_operation()">Make this change for me!</button></div>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="advisor-content" *ngIf="wait_for_saved_changes && pending_saved_changes">
-    <div class="message">
-        <div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon> In order to assist with calculations, you need to save your pending changes</div>
-        <button class="btn btn-success" (click)="emitSaveChanges()"><fa-icon [icon]="faSave"></fa-icon> Save my pending changes</button>
+    <div class="advisor-content" *ngIf="wait_for_saved_changes && pending_saved_changes">
+        <div class="message">
+            <div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon> In order to assist with calculations, you need to save your pending changes</div>
+            <button class="btn btn-success" (click)="emitSaveChanges()"><fa-icon [icon]="faSave"></fa-icon> Save my pending changes</button>
+        </div>
+    </div>
+
+    <div class="advisor-content" *ngIf="not_enough_data">
+        <div class="message">
+            <div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon> Choose allocations to get calculation suggestions</div>
+        </div>
     </div>
 </div>
