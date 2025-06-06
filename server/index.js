@@ -3,6 +3,7 @@ const cors = require("cors");
 const config = require("./config");
 const { logger, end_logger } = require("./logger");
 const os = require('os');
+const path = require('path');
 
 const app = express();
 let server = null;
@@ -29,6 +30,18 @@ app.use(
   })
 );
 
+// 1. Serve Angular static files
+app.use(config.hats_pictures_path, express.static(config.hatsUploadDir));
+if(os.hostname != config.prod_server_hostname) {
+  app.get("/", (req, res) => {
+    res.json({ message: "Server is up on port "+ port +"!" });
+  });
+}
+else {
+  app.use(express.static(config.angularAppDir));
+}
+
+// 2. API routes
 app.use("/raw_materials", rawMaterialsRouter);
 app.use("/currencies", currenciesRouter);
 app.use("/countries", countriessRouter);
@@ -41,16 +54,10 @@ app.use("/backup", backupRouter);
 app.use("/settings", settingsRouter);
 app.use("/systemlogs", systemlogsRouter);
 
-app.use(config.hats_pictures_path, express.static(config.hatsUploadDir));
-
-if(os.hostname != config.prod_server_hostname) {
-  app.get("/", (req, res) => {
-    res.json({ message: "Server is up on port "+ port +"!" });
-  });
-}
-else {
-  app.use(express.static(config.angularAppDir));
-}
+// 3. Catch-all: send Angular index.html for non-API routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(config.angularAppDir, 'index.html'));
+});
 
 /* Error handler middleware */
 app.use((err, req, res, next) => {
