@@ -129,5 +129,43 @@ DEALLOCATE PREPARE stmt;
 # End: Add column if doesn't exist
 # -----------------------------------
 
+#*******************************************************************
+# -----------------------------------
+# Add column if doesn't exist
+SET @tbl='customer_banks_allocations';
+SET @col='tails_quantity';
+SET @col_type='INT NOT NULL DEFAULT(0)';
+SET @sttmnt = CONCAT('ALTER TABLE ', @tbl ,' ADD COLUMN ', @col ,' ', @col_type, ';');
+SET @col_exists = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS 
+		WHERE TABLE_NAME = @tbl 
+		AND COLUMN_NAME = @col 
+		AND TABLE_SCHEMA = DATABASE()
+);
+SET @query = IF(@col_exists = 0, @sttmnt, 'SELECT 1');
+PREPARE stmt FROM @query;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+# End: Add column if doesn't exist
+# -----------------------------------
+# -----------------------------------
+# Add column if doesn't exist
+SET @tbl='customer_banks_allocations';
+SET @col='tails_in_orders';
+SET @col_type='INT NOT NULL DEFAULT(0)';
+SET @sttmnt = CONCAT('ALTER TABLE ', @tbl ,' ADD COLUMN ', @col ,' ', @col_type, ';');
+SET @col_exists = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS 
+		WHERE TABLE_NAME = @tbl 
+		AND COLUMN_NAME = @col 
+		AND TABLE_SCHEMA = DATABASE()
+);
+SET @query = IF(@col_exists = 0, @sttmnt, 'SELECT 1');
+PREPARE stmt FROM @query;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+# End: Add column if doesn't exist
+# -----------------------------------
+
 
 SET FOREIGN_KEY_CHECKS = 1;

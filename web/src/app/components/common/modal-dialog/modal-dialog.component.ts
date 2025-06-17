@@ -6,6 +6,11 @@ import { faBorderNone, faTrashAlt, faW, IconDefinition } from '@fortawesome/free
 import { ModalContentDirective } from '../directives/modal-content.directive';
 import { ModalDialog } from '../../../../types';
 
+export enum DialogClosingReason {
+  confirm,
+  cancel
+}
+
 @Component({
   selector: 'app-modal-dialog',
   standalone: true,
@@ -37,7 +42,7 @@ export class ModalDialogComponent implements ModalDialog {
   @Input() reverseButtons: boolean = false;
   modal_content_close_subscription:any;
   isOpen : boolean = false;
-
+  
   @ContentChild(ModalContentDirective) dialogContentComponent!: ModalContentDirective;
 
   constructor(private modalService: NgbModal) { }
@@ -45,7 +50,7 @@ export class ModalDialogComponent implements ModalDialog {
   
   editedObject = null;
   onOpen() { }
-  beforeClose(): Boolean { return true; }
+  beforeClose(reason: DialogClosingReason): Boolean { return true; }
   close: EventEmitter<any> = new EventEmitter<any>();
   
   public open() {
@@ -94,7 +99,7 @@ export class ModalDialogComponent implements ModalDialog {
   onConfirm() {
     if(this.dialogContentComponent)
     {
-      let okToClose = this.dialogContentComponent.beforeClose();
+      let okToClose = this.dialogContentComponent.beforeClose(DialogClosingReason.confirm);
       if(!okToClose)
       {
         return;
@@ -119,6 +124,14 @@ export class ModalDialogComponent implements ModalDialog {
   }
 
   onCancel () {
+    if(this.dialogContentComponent)
+    {
+      let okToClose = this.dialogContentComponent.beforeClose(DialogClosingReason.cancel);
+      if(!okToClose)
+      {
+        return;
+      }
+    }    
     this.cancel.emit();
     if(this.modal_content_close_subscription){
       this.modal_content_close_subscription.unsubscribe();

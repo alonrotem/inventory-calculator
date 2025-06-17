@@ -1,7 +1,27 @@
+Bugs fixed
+[x] If crown allocation is different, number of hats dialog shows 0 wings and strange negative numbers
+[x] If the number of hats to order is 0, show a message in the table and lock the order button
+[ ] Fail to issue order without tails
+[ ] When choosing crown allocation show advisir with crown, not hats
+[x] Changing the crown length after choosing allocation doesn't change the crown
+[x] Changing the crown length after choosing allocation, an empty crown number picker appears in the corner (probably related)
+[x] Adding babies from the allocation picker of the hat calculator
+[ ] When opening "help me create", choose the current hat + 1 hat
+[ ] Do not allow the user to pick an empty allocation
+
+New features
+[x] H material label
+[ ] Count tails on H materials per hat
+[ ] Do not let order without H materials
+[ ] Mouse wheel on wing design
+[ ] Increase / settings for page size
+
+=================================
+
 [x] Page clears on mobile when switching apps
-[ ] Colors & color order: Natural, Light brown, Brown, Dark brown, Black
-[ ] Mylar thickness, not width
-[ ] Hitting Enter on the babies dialog marks the next size
+[x] Colors & color order: Natural, Light brown, Brown, Dark brown, Black
+[x] Mylar thickness, not width
+[x] Hitting Enter on the babies dialog marks the next size
 
 =================================
 Raw materials

@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, EventEmitter, Input, ViewChild } from '@angular/core';
 import { Bank_Allocation_Type, Customer_Bank_Baby_Allocation, ModalDialog } from '../../../../types';
 import { ModalContentDirective } from '../../common/directives/modal-content.directive';
-import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
+import { DialogClosingReason, ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
 import { FormsModule, NgForm } from '@angular/forms';
 import { NgClass, NgIf } from '@angular/common';
@@ -29,19 +29,39 @@ export class BankAllocationDialogComponent implements ModalContentDirective, Mod
   @Input() CurrentQuantity: number = 0;
   @Input() MaxQuantity: number = 0;
   @Input() QuantityUnits: string = "";
+  @Input() AllocationType: Bank_Allocation_Type = Bank_Allocation_Type.babies;
+  @Input() LockAllocationType: boolean = false;
   attemptedClose = false;
 
-  allocation_types = Object.values(Bank_Allocation_Type).map(item => ({ name: item }));
+  allocation_type_cations: { [key: string]: string } = {
+    babies: 'Babies',
+    tails: 'H Material tails'
+  };
+  allocation_types = Object.keys(Bank_Allocation_Type)
+    .map((item, index) => ({ 
+      name: item, 
+      caption: Object.values(Bank_Allocation_Type)[index] 
+    }
+  ));
+  allocation_type: Bank_Allocation_Type = Bank_Allocation_Type.babies;
+  Bank_Allocation_Type = Bank_Allocation_Type;
+  Object = Object;
+
+  constructor() {
+  }
   
   editedObject: Customer_Bank_Baby_Allocation = {
     id: 0,
     customer_bank_id: 0,
     quantity: 0,
     remaining_quantity: 0,
-    allocation_type: Bank_Allocation_Type.babies
+    allocation_type: Bank_Allocation_Type.babies,
+    tails_quantity: 0,
+    tails_in_orders: 0
   };
   
   open(){
+    console.log("opening with AllocationType:"); console.dir(this.AllocationType);
     this.dialogWrapper.open();
   }
 
@@ -79,7 +99,10 @@ export class BankAllocationDialogComponent implements ModalContentDirective, Mod
     this.meter.recalculate();
   }
 
-  beforeClose(): Boolean {
+  beforeClose(reason: DialogClosingReason): Boolean {
+    if(reason == DialogClosingReason.cancel) {
+      return true;
+    }
     console.dir(this.editedObject);
     this.attemptedClose = true;
     this.quantityForm.form.markAllAsTouched();

@@ -196,6 +196,7 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     this.customersService.saveCustomer(this.customerItem).subscribe(
     {
       next:(data) => { 
+        console.log("SAVED CUSTOMER !!!"); console.dir(data["customer"]);
         this.customer_form.form.markAsPristine();
         this.customer_banks_tables.forEach(b => { b.unsaved_changes = false });
         this.btn_save.nativeElement.classList.remove("disabled"); this.gotoCustomersList(data['message'], false); },//this.getRawMaterials(this.current_page); },

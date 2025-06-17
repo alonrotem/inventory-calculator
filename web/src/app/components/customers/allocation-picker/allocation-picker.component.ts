@@ -4,7 +4,7 @@ import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
 import { faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.component";
+import { DialogClosingReason, ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.component";
 import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
 import { ModalContentDirective } from '../../common/directives/modal-content.directive';
 import { SumPipe } from '../../../utils/pipes/sum-pipe';
@@ -61,7 +61,7 @@ export class AllocationPickerComponent implements ModalContentDirective, ModalDi
   onOpen() {
   }
 
-  beforeClose(): Boolean {
+  beforeClose(reason: DialogClosingReason): Boolean {
     return true;
   }
 

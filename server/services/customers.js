@@ -24,7 +24,7 @@ async function getSingle(id){
 
     const customer_banks_allocations_recs =  await db.query(
       `select 
-        cbb.id, cbb.customer_bank_id, cbb.quantity, cbb.remaining_quantity, cbb.allocation_type
+        cbb.id, cbb.customer_bank_id, cbb.quantity, cbb.remaining_quantity, cbb.allocation_type, cbb.tails_quantity, cbb.tails_in_orders
       from customer_banks_allocations cbb 
       where cbb.customer_bank_id in (select cb.id from customer_banks cb where cb.customer_id=${id});`);
     const customer_banks_allocations = helper.emptyOrRows(customer_banks_allocations_recs);
@@ -118,7 +118,12 @@ async function save(customer){
       await sync_customer_banks(customer, connection);
 
       await db.transaction_commit(connection);
-      return { message: "Saved successfully" };
+
+      const saved_customer = await getSingle(customer.id);
+      return { 
+        message: "Saved successfully",
+        customer: saved_customer
+      };
   }
   catch(error){
     db.transaction_rollback(connection);
@@ -298,21 +303,26 @@ async function save_customer_bank (customer, bank_id, active_connection){
 
       // create/update the allocation
       const allocation_result = await db.transaction_query(
-        `insert into customer_banks_allocations (id, customer_bank_id, quantity, remaining_quantity, allocation_type)
+        `insert into customer_banks_allocations (id, customer_bank_id, quantity, remaining_quantity, allocation_type, tails_quantity, tails_in_orders)
         VALUES
-        ((?),(?),(?),(?),(?))
+        ((?),(?),(?),(?),(?),(?),(?))
         as new_customer_banks_allocations
         ON DUPLICATE KEY UPDATE
         customer_bank_id=new_customer_banks_allocations.customer_bank_id,
         quantity=new_customer_banks_allocations.quantity,
         remaining_quantity=new_customer_banks_allocations.remaining_quantity,
-        allocation_type=new_customer_banks_allocations.allocation_type`,
+        allocation_type=new_customer_banks_allocations.allocation_type,
+        tails_quantity=new_customer_banks_allocations.tails_quantity,
+        tails_in_orders=new_customer_banks_allocations.tails_in_orders
+        `,
       [
         allocation.id,
         new_bank_id,
         allocation.quantity,
         allocation.remaining_quantity,
-        allocation.allocation_type
+        allocation.allocation_type,
+        allocation.tails_quantity,
+        allocation.tails_in_orders
       ],
       active_connection);
       new_allocation_id = (new_allocation_id <= 0)? allocation_result.insertId : new_allocation_id;

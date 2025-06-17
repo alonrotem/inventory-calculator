@@ -86,16 +86,17 @@
 </div>
 
 <!-- allocations from this bank -->
- <div *ngIf="(banks_baby_allocations | filter: 'customer_bank_id' : bank.id).length > 0">
+ <div *ngIf="((banks_baby_allocations | filter: 'customer_bank_id' : bank.id).length > 0)">
  
+<div *ngIf="(banks_baby_allocation_type_filter === null || banks_baby_allocation_type_filter === Bank_Allocation_Type.babies)"> 
  <ng-container *ngFor="let bank_allocation of banks_baby_allocations | filter: 'customer_bank_id' : bank.id | filter: 'allocation_type' : 'babies'">
  <hr  style="margin: 30px 0px;" />
  <div class="allocation-area">
       <div>
         <strong><span class="icon-babies" style="margin-right:10px;"></span>Babies work allocation #{{ bank_allocation.id }}:</strong>
         {{ bank_allocation.quantity  | number: '1.' }} {{ raw_material_quantity_units }}, {{ (babies | filter: "allocation_id" : bank_allocation.id) | sum: 'quantity' | number: '1.' }} babies 
-        <div>
-          <button class="btn btn-warning" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="open_allocation_dialog(bank_allocation.id)">
+        <div class="allocation-action-buttons">
+          <button class="btn btn-warning" (click)="open_allocation_dialog(bank_allocation.id)">
             <fa-icon [icon]="faPencil"></fa-icon>
             Edit
           </button>
@@ -103,8 +104,7 @@
             <button 
               [disabled]="(babies | filter: 'allocation_id' : bank_allocation.id | filter: 'quantity_in_pending_orders' : 0 : true).length > 0"
               *ngIf="((this.banks_baby_allocations | filter: 'customer_bank_id' : bank.id).length > 1) && ((babies | filter: 'allocation_id' : bank_allocation.id).length > 0)"  
-              class="btn btn-success" 
-              style="padding: 0px 11px 1px 5px; margin-left: 10px;" 
+              class="btn btn-success"  
               (click)="openAllocationMergeDialog(bank_allocation.id)">
               <span class="icon-merge"></span>
               Merge
@@ -113,34 +113,35 @@
           <span [attr.title]="((babies | filter: 'allocation_id' : bank_allocation.id | filter: 'quantity_in_pending_orders' : 0 : true).length > 0)? 'Cannot delete this allocation&#10;(some babies in pending orders)':'Delete this'">
             <button 
               [disabled]="(babies | filter: 'allocation_id' : bank_allocation.id | filter: 'quantity_in_pending_orders' : 0 : true).length > 0"
-              class="btn btn-danger" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="delete_allocation(bank_allocation.id)">
+              class="btn btn-danger" (click)="delete_allocation(bank_allocation.id)">
               <fa-icon [icon]="faTrashCan"></fa-icon>
               Delete
             </button>
           </span>
-          <button *ngIf="selectable_allocatoin" class="btn btn-info btn-select-this" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="select_allocation(bank_allocation)">
+          <button *ngIf="selectable_allocatoin" class="btn btn-info btn-select-this" (click)="select_allocation(bank_allocation)">
             <fa-icon [icon]="faCheck"></fa-icon>
             Select this
           </button>
         </div>
 
-        <div> <!-- show/hide babies button -->
+        <div class="allocation-action-buttons"> <!-- show/hide babies button -->
           <button
             *ngIf="(babies | filter: 'allocation_id' : bank_allocation.id).length > 0"
             [className]="'btn btn-outline-info btn-babies-toggle ' + ((((babies | filter: 'allocation_id' : bank_allocation.id).length > 0) && collapsed_babies_lists)? 'collapsed' : '')" 
             type="button" 
             data-bs-toggle="collapse" 
-            [attr.data-bs-target]="'#collapseExample' + bank_allocation.id" [attr.aria-expanded]="!collapsed_babies_lists" 
-            [attr.aria-controls]="'collapseExample' + bank_allocation.id">
+            [attr.data-bs-target]="'#allocation_table' + bank_allocation.id" [attr.aria-expanded]="!collapsed_babies_lists" 
+            [attr.aria-controls]="'allocation_table' + bank_allocation.id"
+            [id]="'allocation_collapse_Button' + bank_allocation.id">
             <span class="expanded-text"><span class="icon-chevron-up"></span> Hide babies</span>
             <span class="collapsed-text"><span class="icon-chevron-down"></span> Show babies</span>
           </button>
         </div>
 
       </div>
-      
+      <!--from-->
       <div 
-        [className]="'collapse ' + (((babies | filter: 'allocation_id' : bank_allocation.id).length > 0) && (collapsed_babies_lists)? '' : 'show')" [id]="'collapseExample' + bank_allocation.id" 
+        [className]="'collapse ' + (((babies | filter: 'allocation_id' : bank_allocation.id).length > 0) && (collapsed_babies_lists)? '' : 'show')" [id]="'allocation_table' + bank_allocation.id" 
         *ngIf="(babies | filter: 'allocation_id' : bank_allocation.id).length > 0">
         <table class="table table-responsive table-striped table-hover">
             <thead>
@@ -173,8 +174,9 @@
       </div>
       <div style="display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: center; align-items: center;">
         <button class="btn btn-primary" style="width: 50%; padding: 2px 0px;" (click)="open_babies_dialog(bank_allocation.id, -999)">+ Add/Top-up babies</button>
-      </div>  
-      <div *ngIf="show_hat_advisor">
+      </div>
+      <!--to-->
+      <div *ngIf="show_hat_advisor" class="row">
         <app-order-advisor 
           #order_advisor
           [show_options_button]="advisor_show_options_button"
@@ -192,6 +194,7 @@
 
           [customer_crown_babies]="this.babies"
           (assistantAutoAddBabies)="assistant_auto_add_babies($event)"
+          (triggerSaveChanges)="save_customer()"
 
           [wait_for_saved_changes]="true"
           [pending_saved_changes]="unsaved_changes"
@@ -201,13 +204,15 @@
 
 </div>
 </ng-container>
+</div>
 
+<div *ngIf="(banks_baby_allocation_type_filter === null || banks_baby_allocation_type_filter === Bank_Allocation_Type.tails)"> 
 <ng-container *ngFor="let bank_allocation of banks_baby_allocations | filter: 'customer_bank_id' : bank.id | filter: 'allocation_type' : 'tails'">
 <!-- from here -->
  <hr  style="margin: 30px 0px;" />
  <div class="allocation-area">
       <div>
-        <strong><span class="icon-tails" style="margin-right:10px;"></span>Tails work allocation #{{ bank_allocation.id }}:</strong>
+        <strong><span class="icon-tails" style="margin-right:10px;"></span>H material work allocation #{{ bank_allocation.id }}:</strong>
         {{ bank_allocation.quantity }} {{ raw_material_quantity_units }}
         <div>
           <button class="btn btn-warning" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="open_allocation_dialog(bank_allocation.id)">
@@ -240,13 +245,74 @@
         </div>
 
       </div>
+        <!-- Tails editor -->
+        <div class="d-flex flex-column tails_editor">
+          <div>
+            Set the number of cut tails for this H material allocation:
+          </div>
+          <div class="d-flex flex-row align-items-center tails_editor_form">
+            <div class="form-floating">
+              <input 
+                type="number" 
+                class="form-control tails_quantity" 
+                [id]="'tails_quantity' + bank_allocation.id"  
+                [(ngModel)]="bank_allocation.tails_quantity" 
+                (change)="tails_quantity_changed(bank_allocation.id)" 
+                (focus)="$any($event.target).select()"
+                oninput="this.value = Math.max(this.value, 0)"
+                min="0">
+              <label [for]="'tails_quantity' + bank_allocation.id">H Material tails</label>
+            </div>
+            <div>
+              In orders: {{ bank_allocation.tails_in_orders }}
+            </div>
+          </div>
+        </div>
+        <!--/Tails editor -->
+
+            <!--from
+      <div 
+        [className]="'collapse ' + (((babies | filter: 'allocation_id' : bank_allocation.id).length > 0) && (collapsed_babies_lists)? '' : 'show')" [id]="'allocation_table' + bank_allocation.id" 
+        *ngIf="(babies | filter: 'allocation_id' : bank_allocation.id).length > 0">
+        <table class="table table-responsive table-striped table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Cut tails</th>
+                <th scope="col">In orders</th>
+                <th scope="col" class="text-center">Remove</th>
+              </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngFor="let baby of babies | sort: 'length' : true">
+              <tr *ngIf="baby.allocation_id == bank_allocation.id">
+                <td (click)="open_babies_dialog(bank_allocation.id, baby.length)">{{ baby.quantity }}</td>
+                <td (click)="open_babies_dialog(bank_allocation.id, baby.length)">{{ baby.quantity_in_pending_orders }}</td>
+                <td class="text-center" style="cursor: pointer;" [attr.title]="(baby.quantity_in_pending_orders == 0)? 'Delete these tails': 'Cannot delete these tails (included in orders)'"><fa-icon *ngIf="baby.quantity_in_pending_orders == 0" class="text-danger" [icon]="faTrashCan" (click)="delete_baby(baby.id)"></fa-icon></td>
+              </tr>
+                </ng-container>
+            </tbody>
+          </table>
+
+        
+      </div>
+      <div *ngIf="(babies | filter: 'allocation_id' : bank_allocation.id).length == 0" style="height: 120px; display: flex; flex-direction: column; flex-wrap: nowrap; justify-content: center; align-items: center;">
+        <div><fa-icon [icon]="faTriangleExclamation" size="2x"></fa-icon></div>
+        <div>No babies in this allocation</div>
+      </div>
+      <div style="display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: center; align-items: center;">
+        <button class="btn btn-primary" style="width: 50%; padding: 2px 0px;" (click)="open_tails_dialog(bank_allocation.id)">+ Add/Top-up H material tails</button>
+      </div>
+      to-->
+      <!--
       <div class="d-flex flex-column justify-content-center align-items-center">
         <span class="icon-tails" style="font-size: 40px; margin-bottom: 20px;"></span>
         <div>This is an allocation for cutting tails</div>
       </div>
+      -->
 </div>
  <!-- to here-->
 </ng-container>
+</div>
 
 </div>
 <div style="height: 160px; display: flex; flex-direction: column; flex-wrap: nowrap; justify-content: center; align-items: center; line-height: 40px;" *ngIf="(banks_baby_allocations | filter: 'customer_bank_id' : bank.id).length == 0">

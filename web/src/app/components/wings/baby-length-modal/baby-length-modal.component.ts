@@ -3,7 +3,7 @@ import { ModalDialog, WingBaby } from '../../../../types';
 import { BabiesLengthPickerComponent } from "../../babies/babies-length-picker/babies-length-picker.component";
 import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
+import { DialogClosingReason, ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { ModalContentDirective } from '../../common/directives/modal-content.directive';
 import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
 
@@ -25,8 +25,9 @@ export class BabyLengthModalComponent implements ModalContentDirective, ModalDia
   @ViewChild("dialogWrapper") dialogWrapper!: ModalDialogComponent | null;
 
   @Input() crown_units: number = 0;
-  @Input() crown_babies_options: number[] = [];
+  @Input() crown_babies_options: number[] = Array(5).fill(0).map((_, i)=> i+1);
   @Output() length_changed = new EventEmitter<WingBaby>();
+  @Output() crown_babies_quantity_changed = new EventEmitter<number>();
   @Output() confirm = new EventEmitter<WingBaby>();
   @Output() cancel = new EventEmitter<WingBaby>();
   @ViewChild("crown_size", { read: ElementRef }) crown_size!: ElementRef;
@@ -44,6 +45,7 @@ export class BabyLengthModalComponent implements ModalContentDirective, ModalDia
 
   onOpen() {
     this.object_changed = false;
+    this.console.dir(this.crown_babies_options);
   }
 
   ngAfterViewInit(): void {
@@ -63,8 +65,12 @@ export class BabyLengthModalComponent implements ModalContentDirective, ModalDia
     //this.console.log("set_crown " +  this.crown_units + " :: " + this.crown_size.nativeElement.value);
   }
 
+  crown_units_changed(){
+    this.crown_babies_quantity_changed.emit(this.crown_units);
+  }
 
-  beforeClose(): Boolean {
+
+  beforeClose(reason: DialogClosingReason): Boolean {
     if(this.object_changed) {
       this.length_changed.emit(this.editedObject);
     }

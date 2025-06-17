@@ -1,6 +1,6 @@
 import { HttpContext, HttpHeaders, HttpParams } from "@angular/common/http";
 import { EventEmitter } from "@angular/core";
-import { ModalDialogComponent } from "./app/components/common/modal-dialog/modal-dialog.component";
+import { DialogClosingReason, ModalDialogComponent } from "./app/components/common/modal-dialog/modal-dialog.component";
 
 export interface Options {
     headers?: HttpHeaders | {
@@ -227,7 +227,7 @@ export interface ModalDialog {
     dialogWrapper: ModalDialogComponent | null;
     editedObject: any | null;
     onOpen(): any;
-    beforeClose(): Boolean;
+    beforeClose(reason: DialogClosingReason): Boolean;
     close: EventEmitter<any>;
 }
 
@@ -317,7 +317,11 @@ export interface Customer_Bank_Baby_Allocation {
     customer_bank_id: number; 
     quantity: number; 
     remaining_quantity: number;
-    allocation_type: Bank_Allocation_Type
+    allocation_type: Bank_Allocation_Type;
+
+    // For allocations of type "tails" only
+    tails_quantity: number;
+    tails_in_orders: number;
 }
 
 export interface Allocation_Baby {

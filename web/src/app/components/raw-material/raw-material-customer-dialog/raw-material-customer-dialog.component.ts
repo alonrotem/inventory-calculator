@@ -6,7 +6,7 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { NgClass, NgIf } from '@angular/common';
 import { ModalContentDirective } from '../../common/directives/modal-content.directive';
 import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
-import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
+import { DialogClosingReason, ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { CapacityBarComponent } from '../capacity-bar/capacity-bar.component';
 
 @Component({
@@ -83,7 +83,7 @@ export class RawMaterialCustomerDialogComponent implements ModalContentDirective
   }
 
 
-  beforeClose(): Boolean {
+  beforeClose(reason: DialogClosingReason): Boolean {
     this.attemptedClose = true;
     this.bankForm.form.markAllAsTouched();
 

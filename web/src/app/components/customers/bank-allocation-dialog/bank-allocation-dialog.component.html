@@ -12,17 +12,18 @@
                   #allocation_type_selector
                   placeholder="Allocation type"
                   [items]="allocation_types"
-                  bindLabel="name"
+                  bindLabel="caption"
                   bindValue="name"
-                  [(ngModel)]="editedObject.allocation_type"
+                  [(ngModel)]="allocation_type"
                   name="allocation_type_selector"
                   [clearable]="false"
+                  [disabled]="LockAllocationType" 
                   >
                     <ng-template ng-label-tmp let-item="item">
-                        <span [className]="'icon-' + item.name"></span> <span class="text-capitalize" style="margin-left: 10px;">{{ item.name }}</span>
+                        <span [className]="'icon-' + item.name"></span> <span class="text-capitalize" style="margin-left: 10px;">{{ allocation_type_cations[item.name] }}</span>
                     </ng-template>
                       <ng-template ng-option-tmp let-item="item" let-index="index">
-                        <span [className]="'icon-' + item.name"></span> <span class="text-capitalize" style="margin-left: 10px;">{{ item.name }}</span>
+                        <span [className]="'icon-' + item.name"></span> <span class="text-capitalize" style="margin-left: 10px;">{{ allocation_type_cations[item.name] }}</span>
                       </ng-template>          
                 </ng-select>
             

@@ -10,7 +10,12 @@
 
 <app-unsaved-changes-dialog #unsaved_changes_dialog></app-unsaved-changes-dialog>
 
-<app-baby-length-modal #length_editor (length_changed)="modal_length_Changed($event)" [crown_units]="crown_units" (confirm)="length_editor_closed()" />
+<app-baby-length-modal 
+    #length_editor 
+    (length_changed)="modal_length_Changed($event)" 
+    [crown_units]="crown_units" 
+    (crown_babies_quantity_changed)="crown_babies_quantity_changed($event)"
+    (confirm)="length_editor_closed()" />
 
 
 <div class="row justify-content-center">

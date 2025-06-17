@@ -34,7 +34,7 @@ export class HatsCalculatorService {
     crown_allocation_babies: Allocation_Baby[],
     allocations_are_different: boolean){
 
-    let max_num_of_wings_with_given_allocations = Infinity;
+      let max_num_of_wings_with_given_allocations = Infinity;
     let wall_babies_to_build_one_wing: summed_babies[] = [];
     let crown_babies_to_build_one_wing: summed_babies[] = [];
     if(wing){
@@ -69,9 +69,9 @@ export class HatsCalculatorService {
       if(allocations_are_different){
         crown_babies_to_build_one_wing.forEach((baby_in_wing: summed_babies) => {
           let babies_of_this_length_needed_for_one_wing = baby_in_wing.quantity;
-          let babies_of_this_length_in_allocation = crown_allocation_babies.find(alloc_baby => {
-            alloc_baby.length == baby_in_wing.length;
-          });
+          let babies_of_this_length_in_allocation = crown_allocation_babies.find(alloc_baby => 
+            alloc_baby.length == baby_in_wing.length
+          );
           if(babies_of_this_length_in_allocation && babies_of_this_length_in_allocation.quantity){
             let you_can_make_wings_with_this_alloc = Math.floor(babies_of_this_length_in_allocation.quantity / babies_of_this_length_needed_for_one_wing);
             max_num_of_wings_with_given_allocations = Math.min(max_num_of_wings_with_given_allocations, you_can_make_wings_with_this_alloc);

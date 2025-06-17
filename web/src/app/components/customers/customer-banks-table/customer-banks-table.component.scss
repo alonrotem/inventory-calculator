@@ -1,7 +1,6 @@
 /*Toggle the show/hide babies button message*/
 .btn-babies-toggle {
     padding: 0px 11px 1px 5px;
-    margin: 10px;
     min-width: 50%;
 }
 
@@ -23,13 +22,35 @@
 
 .allocation-area {
     border-radius: 5px;
-    padding: 10px 0px;
+    padding: 15px;
 }
+
+.allocation-action-buttons {
+    margin: 15px 0;
+}
+
+.allocation-area button {
+    padding: 0px 11px 1px 5px;
+    margin-right: 15px;;
+}
+
 .allocation-area:has(.btn-select-this:hover), 
 .allocation-area:has(.btn-select-this:hover) td, 
 .allocation-area:has(.btn-select-this:hover) th,
 .allocation-area:has(.btn-select-this:hover) .btn-babies-toggle {
-    background-color: #66ff99 !important;
+    background-color: #C7FFAF !important;
     color: black !important;
     border: 1px solid black;
+}
+
+.tails_editor, .tails_editor_form {
+    margin: 20px 0px;
+}
+
+.tails_editor_form .form-floating {
+    margin-right: 20px;
+}
+
+.tails_quantity {
+    width: 150px;
 }

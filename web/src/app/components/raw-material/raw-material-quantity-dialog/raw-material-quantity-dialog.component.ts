@@ -2,7 +2,7 @@ import { Component, ContentChild, EventEmitter, Input, ViewChild } from '@angula
 import { ModalDialog, RawMaterial } from '../../../../types';
 import { FormsModule, NgForm } from '@angular/forms';
 import { NgClass, NgIf } from '@angular/common';
-import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
+import { DialogClosingReason, ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { ModalContentDirective } from '../../common/directives/modal-content.directive';
 import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
 
@@ -50,7 +50,7 @@ export class RawMaterialQuantityDialogComponent implements ModalContentDirective
     this.attemptedClose = false;
   }
 
-  beforeClose(): Boolean {
+  beforeClose(reason: DialogClosingReason): Boolean {
     this.attemptedClose = true;
     this.quantityForm.form.markAllAsTouched();
     let okToClose = (this.editedObject.max_topping > 0)? this.quantityForm.form.controls["topUpQuantity"].value <= this.editedObject.max_topping : true;

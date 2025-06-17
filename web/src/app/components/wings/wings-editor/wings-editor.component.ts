@@ -170,12 +170,16 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   set_crown(){
     this.wingForm.form.markAsDirty();
     let num_of_crown_items = this.crown_size.nativeElement.value;
-    let new_length = this.crown_picker.get_length(); 
-    this.crown_units = num_of_crown_items;
+    this.crown_babies_quantity_changed(num_of_crown_items);
+  }
+
+  crown_babies_quantity_changed(new_crown_quantity: number){
+    this.crown_units = new_crown_quantity;
+    let new_length = this.crown_picker.get_length();
     this.crown_length = new_length;
 
     this.wing.babies = this.wing.babies.filter(b => !b.position.startsWith("C"));
-    for(let i=0; i < num_of_crown_items; i++) {
+    for(let i=0; i < new_crown_quantity; i++) {
       this.wing.babies.push({
         id: 0,
         length: new_length,
@@ -184,6 +188,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
       })
     }
     this.calculate_total_wing_height();
+
   }
 
   save(goToHatEditor: boolean = false)

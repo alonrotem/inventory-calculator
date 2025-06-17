@@ -2,6 +2,7 @@ import { Directive, EventEmitter, Host, Inject, Optional } from '@angular/core';
 import { ModalDialog } from '../../../../types';
 import { MODAL_OBJECT_EDITOR } from './modal-object-editor.token';
 import { ModalDialogComponent } from '../modal-dialog/modal-dialog.component';
+import { DialogClosingReason } from '../modal-dialog/modal-dialog.component'
 
 @Directive({
   selector: '[modalContent]',
@@ -24,9 +25,9 @@ export class ModalContentDirective implements ModalDialog {
       }      
     }
     
-    beforeClose(): Boolean {
+    beforeClose(reason: DialogClosingReason): Boolean {
       if (this.host?.beforeClose) {
-        return this.host.beforeClose(); // Call the component's implementation if provided
+        return this.host.beforeClose(reason); // Call the component's implementation if provided
       } 
       else {
         console.log('beforeClose called from ModalContentDirective (no override)');

@@ -372,7 +372,7 @@ CREATE TABLE  IF NOT EXISTS `raw_materials`
   `id`            	INT NOT NULL auto_increment,
   `name`          	VARCHAR(255) NOT NULL ,
   `purchased_at` 	DATE NOT NULL DEFAULT(CURRENT_DATE),
-  `purchase_quantity`   	    float NOT NULL ,
+  `purchase_quantity`   	    float NOT NULL ,  -- quantities are floats because they are measured in decimal kgs, or whole units
   `remaining_quantity`   	    float NOT NULL ,
   `quantity_units`	ENUM('kg', 'units') DEFAULT 'kg',
   `units_per_kg`	float NULL,
@@ -431,6 +431,11 @@ CREATE TABLE  IF NOT EXISTS `customer_banks_allocations` (
 	`quantity`   	    		float NOT NULL,
     `remaining_quantity`   	    float NOT NULL ,
     `allocation_type`			ENUM('babies', 'tails') DEFAULT 'babies',
+    
+    # For allocations of type "tails"
+	`tails_quantity` INT NOT NULL DEFAULT(0),
+    `tails_in_orders` INT NOT NULL DEFAULT(0),
+    
     PRIMARY KEY (`id`),
     CONSTRAINT fk_customer_babies_bank
 	FOREIGN KEY (`customer_bank_id`) REFERENCES customer_banks(`id`)  ON DELETE CASCADE

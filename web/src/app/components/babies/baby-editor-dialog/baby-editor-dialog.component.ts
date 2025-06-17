@@ -5,7 +5,7 @@ import { NgIf } from '@angular/common';
 import { NgOptionComponent, NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { BabiesLengthPickerComponent } from '../babies-length-picker/babies-length-picker.component';
 import { ToastService } from '../../../services/toast.service';
-import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
+import { DialogClosingReason, ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
 import { ModalContentDirective } from '../../common/directives/modal-content.directive';
 
@@ -128,10 +128,12 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
     }, 0);
   }
 
-  beforeClose(): Boolean {
-    return false;
+  beforeClose(reason: DialogClosingReason): Boolean {
+    if(reason == DialogClosingReason.confirm)
+      return false;
     console.log("beforeClose...");
     this.isSubmitted = true;
+    return true;
     /*
     this.babyFormEditor.markAsDirty();
     if(this.babyFormEditor.invalid || (this.length_picker.isLengthInvalid()))
