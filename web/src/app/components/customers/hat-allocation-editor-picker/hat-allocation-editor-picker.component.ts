@@ -39,6 +39,7 @@ export class HatAllocationEditorPickerComponent implements ModalContentDirective
   @Input() banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
   @Input() babies: Allocation_Baby[] = [];
   @Output() allocation_selected = new EventEmitter<Customer_Bank_Baby_Allocation>();
+  @Output() customer_updated = new EventEmitter<Customer>();
   @Input() banks_baby_allocation_type_filter: Bank_Allocation_Type | null = null;
 
   ngAfterViewInit(): void {
@@ -89,5 +90,9 @@ export class HatAllocationEditorPickerComponent implements ModalContentDirective
   allocation_clicked(alloc: Customer_Bank_Baby_Allocation){
     this.allocation_selected.emit(alloc);
     this.dialogWrapper.onConfirm();
+  }
+
+  update_customer(customer: Customer){
+    this.customer_updated.emit(customer);
   }
 }

@@ -75,7 +75,7 @@
                         Number of wings per hat
                     </td>
                     <td>
-                        <input type="number" [(ngModel)]="assistant_wing_quantity" style="width: 70px; text-align: center;" (change)="assistant_recalculate()" (keyup)="assistant_recalculate()" />
+                        <input type="number" [(ngModel)]="assistant_wing_quantity" style="width: 70px; text-align: center;" (change)="assistant_recalculate()" (keyup)="assistant_recalculate()" (focus)="$any($event.target).select()" />
                     </td>
                 </tr>
                 <tr>
@@ -143,9 +143,9 @@
     <div class="advisor-content" *ngIf="!calculating && suggestions.max_num_of_hats <= 0 && try_to_exceed < 0 && (!wait_for_saved_changes || !pending_saved_changes) && (!not_enough_data)">
         <div class="message">
         <div><fa-icon class="text-danger" [icon]="faTriangleExclamation" size="1x"></fa-icon>
-            You don't have the capatity to make {{ (wing_id > 0)? 'this hat': 'hats' }} with {{ (wall_allocation && crown_allocation && wall_allocation.id == crown_allocation.id)?'this allocation':'these allocations' }}
+            You don't have the capatity to make {{ (wing_id > 0)? 'this hat': 'hats' }} with {{ ((wall_allocation && crown_allocation  && tails_allocation) || (wall_allocation?.id == crown_allocation?.id))? 'these allocations':'this allocation' }}
         </div>
-            <div *ngIf="(wall_allocation && crown_allocation && wall_allocation.id == crown_allocation.id)"><button class="btn btn-info" (click)="helpCreateHat()">Help me adjust my allocation!</button></div>
+            <div *ngIf="(show_help_me_adjust_button && wall_allocation && crown_allocation && wall_allocation.id == crown_allocation.id)"><button class="btn btn-info" (click)="helpCreateHat()">Help me adjust my allocation!</button></div>
         </div>
     </div>
     <div class="advisor-content" *ngIf="!calculating && try_to_exceed >= 0  && (!wait_for_saved_changes || !pending_saved_changes) && (!not_enough_data)">

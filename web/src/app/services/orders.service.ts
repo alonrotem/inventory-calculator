@@ -13,8 +13,8 @@ export class OrdersService {
 
   createOrder = (order: Order): Observable<any> => {
     console.log("save hat in service");
+    console.dir(order);
     let x = this.apiService.put(`${environment.serverUrl}/orders/`, order, { });
-    console.dir(x);
     return x;
   };
 

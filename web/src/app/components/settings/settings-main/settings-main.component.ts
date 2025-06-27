@@ -9,10 +9,12 @@ import { SettingsNotificationsComponent } from '../settings-notifications/settin
 import { SettingsService } from '../../../services/settings.service';
 import { BackupUploadComponent } from '../../backup/backup-upload/backup-upload.component';
 import { SystemLogsComponent } from "../system-logs/system-logs.component";
+import { SettingsUiComponent } from "../settings-ui/settings-ui.component";
 
 enum settingsPage {
   alerts,
   notifications,
+  ui,
   backup,
   system_logs
 };
@@ -20,7 +22,7 @@ enum settingsPage {
 @Component({
   selector: 'app-settings-main',
   standalone: true,
-  imports: [NgClass, RouterLink, FaIconComponent, SettingsAlertsComponent, BackupDownloadComponent, BackupUploadComponent, SettingsNotificationsComponent, SystemLogsComponent],
+  imports: [NgClass, RouterLink, FaIconComponent, SettingsAlertsComponent, BackupDownloadComponent, BackupUploadComponent, SettingsNotificationsComponent, SystemLogsComponent, SettingsUiComponent],
   templateUrl: './settings-main.component.html',
   styleUrl: './settings-main.component.scss'
 })

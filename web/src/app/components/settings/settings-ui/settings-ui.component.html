@@ -1,0 +1,13 @@
+<h3><span class="icon-leaf"></span>Raw material alerts</h3>
+<form novalidate #settings_form="ngForm" [id]="'settings_form'" *ngIf="settings">
+<div class="section">
+    <h5>Raw material totals</h5>
+    <div class="switch-group form-check form-switch">
+        <input class="form-check-input" type="checkbox" #chk_alert_raw_material_total_kg="ngModel" name="chk_alert_raw_material_total_kg" [(ngModel)]="settings['alert_raw_material_total_kg']">
+        <label class="form-check-label" for="chk_alert_raw_material_total_kg">
+            Alert when raw material total quantity below 
+            <input type="number" class="form-control" #txtAlert_raw_material_total_kg_below="ngModel" name="txtAlert_raw_material_total_kg_below" placeholder="0" [(ngModel)]="settings['alert_raw_material_total_kg_below']" [disabled]="!settings['alert_raw_material_total_kg']"> 
+            kg
+        </label>
+    </div>
+</div>

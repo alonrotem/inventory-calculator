@@ -30,6 +30,8 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() customer_crown_babies: Allocation_Baby[] = [];
   @Input() show_options_button: boolean = true;
   @Input() try_to_exceed: number = -1;
+  @Input() numOfWingsPerHat: number = 44;
+  @Input() show_help_me_adjust_button: boolean = true;
 
   @Input() wait_for_saved_changes: boolean = false;
   @Input() pending_saved_changes: boolean = true;
@@ -109,7 +111,8 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
     //console.dir(this.wall_allocation)
     if(!this.wait_for_saved_changes || !this.pending_saved_changes) {
       this.calculating = true;
-      this.calculate().then((data: OrderAdvisorWingOverall) => {
+      console.log("recalculating with " + this.numOfWingsPerHat + " wings per hat");
+      this.calculate(this.numOfWingsPerHat).then((data: OrderAdvisorWingOverall) => {
         this.calculating = false;
         //console.dir(this.suggestions);
       });
@@ -342,8 +345,15 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
       let hats_info = this.hatsCalculatorService.aggregateHatBabiesAndMatchingAllocations(
         adjustedWing,
         wallAllocation, crownAllocation,               //same allocation for crown and wall
-        wallAllocationBabies, crownAllocationBabies, //same babies for crown and wall
+        this.tails_allocation,                                          //not counting tails here
+        wallAllocationBabies, crownAllocationBabies,  //same babies for crown and wall
         wingsPerHat, -1);
+
+      if(this.tails_allocation && hats_info.max_num_of_hats_with_tails <= 0 && this.suggestions.wing_suggestions.length == 0){
+        this.try_to_exceed = -1;
+        this.suggestions.max_num_of_hats = -1;
+        return;
+      }
 
       if(hats_info.total_num_of_possible_hats > 0) {
         //console.log("For wing " + wing.name + "(alloc(w) #" + wallAllocation.id + ", alloc(c) #" + crownAllocation.id + ", top: -"+ reduceTop + ", crown: -" + reduceCrown + "):" +  hats_info.total_num_of_possible_hats + " hats");
@@ -389,7 +399,12 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
           this.already_at_max_num_of_hats = false;
         }
         else {
-          this.exceed_number_of_hats_message = "You are already at the max number of hats for this allocation";
+          //if(hats_info.total_num_of_possible_hats > 0) {
+            this.exceed_number_of_hats_message = "You are already at the max number of hats for this allocation";
+          //}
+          //else {
+          //  this.exceed_number_of_hats_message = "You don't have sufficient quotas to produce this hat -> " + hats_info.total_num_of_possible_hats;
+          //}
           this.already_at_max_num_of_hats = true;
           this.exceed_number_shorten_top = -1;
           this.exceed_number_shorten_crown = -1;
@@ -443,10 +458,16 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     helpCreateHat(){
-      this.assistant_selected_wing_id = null;
+      if(this.systemWings.length == 1){
+        this.assistant_selected_wing_id = this.systemWings[0].id;
+      }
+      else {
+        this.assistant_selected_wing_id = null;
+      }
       this.assistant_wing_quantity = 44;
-      this.assistant_num_of_hats = 0;
+      this.assistant_num_of_hats = 1;
       this.hat_creation_assistant.open();
+      this.assistant_recalculate ();
     }
 
     assistant_recalculate () {
@@ -456,7 +477,8 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
           let aggregation = this.hatsCalculatorService.aggregateHatBabiesAndMatchingAllocations(
             wing, 
             this.wall_allocation, 
-            this.crown_allocation, 
+            this.crown_allocation,
+            null, 
             this.allocation_wall_babies, 
             this.allocation_crown_babies, 
             this.assistant_wing_quantity, 

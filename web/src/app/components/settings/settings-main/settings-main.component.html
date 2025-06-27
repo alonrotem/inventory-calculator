@@ -11,6 +11,9 @@
       <a  [ngClass]="{'nav-link': true, 'active': (currentPage == settingsPage.notifications)}" (click)="setPage(settingsPage.notifications)">Notifications</a>
     </li>
     <li class="nav-item">
+      <a  [ngClass]="{'nav-link': true, 'active': (currentPage == settingsPage.ui)}" (click)="setPage(settingsPage.ui)">User Interface</a>
+    </li>
+    <li class="nav-item">
       <a [ngClass]="{'nav-link': true, 'active': (currentPage == settingsPage.backup)}" (click)="setPage(settingsPage.backup)">Backup</a>
     </li>
     <li class="nav-item">
@@ -24,14 +27,17 @@
         [settings]="settings"
         />
     
-
     <app-settings-notifications 
-        [ngClass]="{ 'd-none': (currentPage != settingsPage.notifications)}"
-        />
+      [ngClass]="{ 'd-none': (currentPage != settingsPage.notifications)}"
+      />
+
+    <app-settings-ui
+      [ngClass]="{ 'd-none': (currentPage != settingsPage.ui)}"
+      />
 
     <app-backup-download 
-        [ngClass]="{ 'd-none': (currentPage != settingsPage.backup)}"
-        />
+      [ngClass]="{ 'd-none': (currentPage != settingsPage.backup)}"
+      />
 
     <app-backup-upload 
       [ngClass]="{ 'd-none': (currentPage != settingsPage.backup)}"

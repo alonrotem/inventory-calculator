@@ -18,7 +18,10 @@
     btnNoText="Cancel">
 </app-confirmation-dialog>
 
-<app-hat-allocation-editor-picker #allocation_picker />
+<app-hat-allocation-editor-picker 
+  #allocation_picker 
+  (customer_updated)="update_customer($event)"
+  />
 
 <app-baby-length-modal 
   #length_editor 
@@ -159,7 +162,7 @@
               <div class="sub-info-section">
                 <strong>Material allocation:</strong>
               </div>
-              <div *ngIf="num_of_allocations_with_wall_material > 0">
+              <div *ngIf="customerHat.hat_material_id">
                 <div>
                   <div *ngIf="wall_alocation" class="text-success">
                     Allocation #{{ wall_alocation.id }}, {{ wall_alocation.quantity | number : '1.1-1' }} {{ wall_allocation_units }}
@@ -181,12 +184,15 @@
               <div class="text-warning" *ngIf="raw_material_names_babies.length > 0 && customerHat.hat_material_id == null">
                 Choose a material to get started
               </div>
+              <!--
               <div *ngIf="raw_material_names_babies.length > 0 && customerHat.hat_material_id != null && num_of_allocations_with_wall_material <= 0">
                 <span class="text-danger">No baby allocations with this material</span>
               </div>
+              -->
             </div>
-            <div [hidden]="raw_material_names.length > 0">
-              <span class="text-danger">No banks with raw materials assigned to this customer!</span>
+            <div *ngIf="raw_material_names.length == 0" class="text-danger d-flex flex-column align-items-center">
+              <fa-icon [icon]="faTriangleExclamation" class="text-danger"></fa-icon>
+              <span class="text-center">No banks with raw materials assigned to this customer!</span>
             </div>
           </div>
           <!--/Wall allocation section -->
@@ -216,7 +222,7 @@
           <div class="sub-info-section">
               <strong>Material allocation:</strong>
           </div>
-          <div *ngIf="num_of_allocations_with_crown_material > 0">
+          <div *ngIf="customerHat.crown_material_id">
             <div>
               <div *ngIf="crown_allocation" class="text-success">
                 Allocation #{{ crown_allocation.id }}, {{ crown_allocation.quantity | number : '1.1-1' }} {{ crown_allocation_units }}
@@ -238,9 +244,11 @@
               <div class="text-warning" *ngIf="raw_material_names_babies.length > 0 && customerHat.crown_material_id == null">
                 Choose a material to get started
               </div>
+              <!--
               <div *ngIf="raw_material_names_babies.length > 0 && customerHat.crown_material_id != null && num_of_allocations_with_crown_material <= 0">
                 <span class="text-danger">No baby allocations with this material</span>
               </div>
+              -->
         </div>
     <!--/Crown allocation section -->
 
@@ -269,7 +277,7 @@
     <div class="sub-info-section">
         <strong>Material allocation:</strong>
     </div>
-    <div *ngIf="num_of_allocations_with_tails_material > 0">
+    <div *ngIf="customerHat.tails_material_id">
       <div>
         <div *ngIf="tails_allocation" class="text-success">
           Allocation #{{ tails_allocation.id }}, {{ tails_allocation.quantity | number : '1.1-1' }} {{ tails_allocation_units }}
@@ -291,14 +299,16 @@
       <div class="text-warning" *ngIf="raw_material_names_tails.length > 0 && customerHat.tails_material_id == null">
         Choose a material to get started
       </div>
+      <!--
       <div *ngIf="raw_material_names_tails.length > 0 && customerHat.tails_material_id != null && num_of_allocations_with_tails_material <= 0">
         <span class="text-danger">No baby allocations with this material</span>
       </div>
+      -->
   </div>
   <!--/Tails allocation section -->    
 
     <!-- Wing number picker -->
-    <div class="hat-info-section">
+    <div class="hat-info-section" [hidden]="raw_material_names.length == 0">
       <div><strong>Number of wings:</strong></div>
       <div>{{ (customerHat.wing)? this.selected_wing_name : 'Loading wing' }} x <input type="number" [(ngModel)]="customerHat.wing_quantity" style="width: 70px; text-align: center;" (change)="num_of_wings_changed()" (keyup)="num_of_wings_changed()" /> </div><!--{{ active_hat? active_hat.wing_quantity: "(Please select a hat)" }}-->
     </div>
@@ -328,6 +338,9 @@
 
 </div>
 <!---------/NEW LAYOUT --------->
+
+<!-- All other stuff. Don't show if there are no materials to choose-->
+<div [hidden]="raw_material_names.length == 0">
 
 <!-- Sliders and other controls -->
 <div class="row">
@@ -564,17 +577,33 @@
     </tbody>
   </table>
 
+  <div class="h-material-analysis border border-warning" *ngIf="!summary_table_instructions && tails_allocation != null">
+      <div class="text-warning"><strong>H Material:</strong></div> 
+      <span *ngIf="tails_allocation.tails_quantity >= customerHat.wing_quantity">
+        <div>{{ tails_allocation.tails_quantity }} tails in allocation.</div>
+        <div>{{ calculated_hats_info.tails_used }} used in wings,  {{ calculated_hats_info.tails_remaining }} will remain.</div>
+        <div class="text-danger">Max {{ calculated_hats_info.max_num_of_hats_with_tails }} {{ (calculated_hats_info.max_num_of_hats_with_tails == 1)? 'hat':'hats' }}</div>
+      </span>
+      <span *ngIf="tails_allocation.tails_quantity < customerHat.wing_quantity" class="text-danger">
+        Not enough H material tails in allocation ({{tails_allocation.tails_quantity}}) to produce a wing ({{ customerHat.wing_quantity }} needed)
+      </span>
+  </div>
+
   <div><h6>Max hats calculated: {{ total_num_of_possible_hats }}</h6></div>
 
   <div>
     <app-order-advisor
+      #advisor
       [wing_id]="selected_wing_id ?? 0"
       [wall_allocation]="this.wall_alocation"
       [crown_allocation]="this.crown_allocation"
+      [tails_allocation]="this.tails_allocation"
       [customer_wall_babies]="customer.babies"
       [customer_crown_babies]="customer.babies"
       [show_options_button]="false"
       [try_to_exceed]="total_num_of_possible_hats"
+      [numOfWingsPerHat]="customerHat.wing_quantity"
+      [show_help_me_adjust_button]="false"
       (fetchExceedInstructions)="exceedNumOfHats($event)"
     />
   </div> 
@@ -634,6 +663,9 @@
   </div>
 
 </div> <!-- end of active hat info-->
+
+</div> <!-- / All other stuff -->
+
 
 <div *ngIf="!customerHat.wing" style="display: flex;flex-direction: column;flex-wrap: nowrap;align-items: center; height: 100%; justify-content: center;">
   <div><span class="icon-feather-wing" style="font-size: 80px;"></span><!--<img [attr.src]="no_hat_img" style="width: 200px;">--></div>

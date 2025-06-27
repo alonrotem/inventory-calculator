@@ -9,7 +9,7 @@ import { PrefixPipe } from '../../../utils/pipes/prefix-pipe';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
 import { Lightbox, LightboxModule } from 'ngx-lightbox';
 import { GlobalsService } from '../../../services/globals.service';
-import { faArrowLeft, faArrowsRotate, faBasketShopping, faChartPie, faRecordVinyl, faRuler, faScissors, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faArrowsRotate, faBasketShopping, faChartPie, faRecordVinyl, faRuler, faScissors, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { AllocationPickerComponent } from '../allocation-picker/allocation-picker.component';
 import { StartsWithPipe } from '../../../utils/pipes/starts-with-pipe';
@@ -18,7 +18,7 @@ import { AutocompleteLibModule } from 'angular-ng-autocomplete';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 import { BabyLengthModalComponent } from '../../wings/baby-length-modal/baby-length-modal.component';
 import { HatAllocationEditorPickerComponent } from '../hat-allocation-editor-picker/hat-allocation-editor-picker.component';
-import { aggregated_babies, HatsCalculatorService } from '../../../services/hats-calculator.service';
+import { aggregated_babies, hats_calculated, HatsCalculatorService } from '../../../services/hats-calculator.service';
 import { CustomersService } from '../../../services/customers.service';
 import { ActivatedRoute, NavigationExtras, Router, RouterLink } from '@angular/router';
 import { OrdersService } from '../../../services/orders.service';
@@ -115,6 +115,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   @ViewChild("order_confirmation") order_confirmation!: ConfirmationDialogComponent;
   @ViewChild("allocation_picker") allocation_picker!: HatAllocationEditorPickerComponent;
   @ViewChild("order_wing_adjustment") order_wing_adjustment!: ModalDialogComponent;
+  @ViewChild("advisor") advisor!: OrderAdvisorComponent;
   is_wing_customized: boolean = false;
   faArrowsRotate: IconDefinition = faArrowsRotate;
   faArrowLeft: IconDefinition = faArrowLeft;
@@ -122,6 +123,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   faScissors:IconDefinition = faScissors;
   faRecordVinyl:IconDefinition = faRecordVinyl;
   faRuler:IconDefinition = faRuler;
+  faTriangleExclamation:IconDefinition = faTriangleExclamation;
 
   summary_table_instructions: string = "";
   hat_babies: aggregated_babies[] = []; //containing aggregated babies with length, quantity and num of hats
@@ -181,6 +183,14 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   wings_per_hat_in_order: number[] = [];
   max_number_of_wings_in_all_allocations: number = 0;
   allWingsInOrder: number = 0;
+  calculated_hats_info: hats_calculated = {
+    total_num_of_possible_hats: 0,
+    hat_babies: [],
+    tails_used: 0,
+    tails_remaining: 0,
+    max_num_of_hats_with_tails: 0,
+    crown_babies: []
+  };
 
   //==================== old stuff below====================
 
@@ -198,9 +208,11 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   wall_allocation_units : string = "";
   crown_allocation_units : string = "";
   tails_allocation_units : string = "";
+  /*
   num_of_allocations_with_wall_material = 0;
   num_of_allocations_with_crown_material = 0;
   num_of_allocations_with_tails_material = 0;
+  */
 
   //allow_top_max_margin = 0;
   //allow_crown_max_margin = 0;
@@ -326,8 +338,8 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
               .map(a => a.raw_material_id);
             
             //filter the raw materials lists to only ones with baby allocations
-            this.raw_material_names_babies = names
-              .filter(material => raw_material_ids_with_baby_allocations.find(id => id == material.id));
+            this.raw_material_names_babies = names;
+              //.filter(material => raw_material_ids_with_baby_allocations.find(id => id == material.id));
             
             
             //--- find materials with tails allocations:
@@ -343,8 +355,8 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
               .map(a => a.raw_material_id);
             
             //filter the raw materials lists to only ones with baby allocations
-            this.raw_material_names_tails = names
-              .filter(material => raw_material_ids_with_tails_allocations.find(id => id == material.id));
+            this.raw_material_names_tails = names;
+              //.filter(material => raw_material_ids_with_tails_allocations.find(id => id == material.id));
 
 
           let hat_material = this.activatedRoute.snapshot.queryParamMap.get('w_mat');
@@ -408,6 +420,13 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     })
   }
 
+  update_customer(customer: Customer){
+    this.customer = { ...customer };
+    //this.reload_allocations = [...customer.banks_baby_allocations];
+    this.reload_allocations();
+    //this.babies = [... data["customer"]["babies"]];
+  }
+
   calculateVisibleCrown(){
     this.customerHat.crown_visible = 0;
     this.customerHat.crown_length = 0;
@@ -440,18 +459,23 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     let babies_in_wall_allocation = (this.wall_alocation)? (this.customer.babies.filter(b => b.allocation_id == this.wall_alocation?.id)) : [];
     let babies_in_crown_allocation = (this.crown_allocation)? (this.customer.babies.filter(b => b.allocation_id == this.crown_allocation?.id)) : [];
 
-    let hats_info = this.hatsCalculatorService.aggregateHatBabiesAndMatchingAllocations(
+    this.calculated_hats_info = this.hatsCalculatorService.aggregateHatBabiesAndMatchingAllocations(
       this.customerHat.wing,
       this.wall_alocation,
       this.crown_allocation,
+      this.tails_allocation,
       babies_in_wall_allocation,
       babies_in_crown_allocation,
       this.customerHat.wing_quantity,
       this.order_amount
     );
-    this.hat_babies = (JSON.parse(JSON.stringify(hats_info.hat_babies)));
-    this.crown_babies = (JSON.parse(JSON.stringify(hats_info.crown_babies)));
-    this.total_num_of_possible_hats = hats_info.total_num_of_possible_hats;
+    this.console.log("=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+    this.console.log("CALVULATED HATS:");
+    this.console.dir(this.calculated_hats_info);
+    this.console.log("=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+    this.hat_babies = (JSON.parse(JSON.stringify(this.calculated_hats_info.hat_babies)));
+    this.crown_babies = (JSON.parse(JSON.stringify(this.calculated_hats_info.crown_babies)));
+    this.total_num_of_possible_hats = this.calculated_hats_info.total_num_of_possible_hats;
 
     if(this.total_num_of_possible_hats < Infinity || this.total_num_of_possible_hats == 0) {
       this.highlight_lowest_number_in_table = true;
@@ -461,6 +485,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       this.order_amount = this.total_num_of_possible_hats;
     }
     */
+   this.advisor.runCalculations();
   }
  
   //invoked when the selection dialog is closed
@@ -546,6 +571,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         this.customerHat.wall_allocation_id = 0;
         this.customerHat.crown_allocation_id = 0;
         this.customerHat.tails_allocation_id = 0;
+        /*
         this.num_of_allocations_with_wall_material = 0;
         this.num_of_allocations_with_crown_material = 0;
         this.num_of_allocations_with_tails_material = 0;
@@ -628,10 +654,11 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     let banks_with_wall_materials = this.customer.banks.filter(b => b.raw_material_id == this.customerHat.hat_material_id).map(b => b.id);
     let banks_with_crown_materials = this.customer.banks.filter(b => b.raw_material_id == this.customerHat.crown_material_id).map(b => b.id);
     let banks_with_tails_materials = this.customer.banks.filter(b => b.raw_material_id == this.customerHat.tails_material_id).map(b => b.id);
-
+    /*
     this.num_of_allocations_with_wall_material = this.customer.banks_baby_allocations.filter(a => banks_with_wall_materials.indexOf(a.customer_bank_id) >= 0 && a.allocation_type == Bank_Allocation_Type.babies).length;
     this.num_of_allocations_with_crown_material = this.customer.banks_baby_allocations.filter(a => banks_with_crown_materials.indexOf(a.customer_bank_id) >= 0 && a.allocation_type == Bank_Allocation_Type.babies).length;
     this.num_of_allocations_with_tails_material = this.customer.banks_baby_allocations.filter(a => banks_with_tails_materials.indexOf(a.customer_bank_id) >= 0 && a.allocation_type == Bank_Allocation_Type.tails).length;
+    */
     this.update_table_instructions();
     this.calculateVisibleCrown();
   }
@@ -880,6 +907,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.max_number_of_wings_in_all_allocations = this.hatsCalculatorService.getMaxNumberOfWingsInAllocations(this.customerHat.wing,
       babies_in_wall_allocation,
       babies_in_crown_allocation,
+      this.tails_allocation,
       (this.wall_alocation?.id != this.crown_allocation?.id));
     this.console.log("You can produce " + this.max_number_of_wings_in_all_allocations + " wings with your allocations, and you are producing " + this.allWingsInOrder);
     this.order_wing_adjustment.open();

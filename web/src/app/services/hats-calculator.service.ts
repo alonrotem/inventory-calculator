@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Allocation_Baby, Customer_Bank_Baby_Allocation, Wing, WingBaby } from '../../types';
+import { ta } from 'date-fns/locale';
 
 export interface aggregated_babies { 
   length: number; 
@@ -13,6 +14,9 @@ export interface aggregated_babies {
 export interface hats_calculated {
   total_num_of_possible_hats: number,
   hat_babies: aggregated_babies[],
+  tails_used: number,
+  tails_remaining: number,
+  max_num_of_hats_with_tails: number,
   crown_babies: aggregated_babies[]
 }
 
@@ -32,9 +36,10 @@ export class HatsCalculatorService {
     wing: Wing | null,
     wall_alocation_babies: Allocation_Baby[],
     crown_allocation_babies: Allocation_Baby[],
+    tails_allocation: Customer_Bank_Baby_Allocation | null,
     allocations_are_different: boolean){
 
-      let max_num_of_wings_with_given_allocations = Infinity;
+    let max_num_of_wings_with_given_allocations = Infinity;
     let wall_babies_to_build_one_wing: summed_babies[] = [];
     let crown_babies_to_build_one_wing: summed_babies[] = [];
     if(wing){
@@ -82,6 +87,10 @@ export class HatsCalculatorService {
         });        
       }
     }
+    if(tails_allocation){
+      max_num_of_wings_with_given_allocations = Math.min(tails_allocation.tails_quantity, max_num_of_wings_with_given_allocations);
+    }
+
     return max_num_of_wings_with_given_allocations;
   }
 
@@ -92,6 +101,7 @@ export class HatsCalculatorService {
     wing: Wing | null, 
     wall_alocation: Customer_Bank_Baby_Allocation | null, 
     crown_allocation: Customer_Bank_Baby_Allocation | null,
+    tails_allocation: Customer_Bank_Baby_Allocation | null,
     wall_alocation_babies: Allocation_Baby[],
     crown_allocation_babies: Allocation_Baby[],
     wing_quantity_in_hat: number,
@@ -100,7 +110,10 @@ export class HatsCalculatorService {
     let hats: hats_calculated = {
       total_num_of_possible_hats: Infinity,
       hat_babies: [],
-      crown_babies: []
+      crown_babies: [],
+      max_num_of_hats_with_tails: 0,
+      tails_used: 0,
+      tails_remaining: 0
     };
 
     hats.total_num_of_possible_hats = Infinity;
@@ -143,6 +156,16 @@ export class HatsCalculatorService {
     });      
     hats.hat_babies.sort((a,b) => {return b.length - a.length});
     hats.crown_babies.sort((a,b) => {return b.length - a.length});
+
+    //check how many tails (== num of wings in total) we can produce
+    if(tails_allocation) {
+      hats.max_num_of_hats_with_tails = Math.floor(tails_allocation.tails_quantity / wing_quantity_in_hat);
+      hats.total_num_of_possible_hats = Math.min(hats.total_num_of_possible_hats, hats.max_num_of_hats_with_tails);
+      hats.max_num_of_hats_with_tails = hats.total_num_of_possible_hats;
+      hats.tails_used = hats.max_num_of_hats_with_tails * wing_quantity_in_hat;
+      hats.tails_remaining = tails_allocation.tails_quantity - hats.tails_used;
+      
+    }
 
     return hats;
   }

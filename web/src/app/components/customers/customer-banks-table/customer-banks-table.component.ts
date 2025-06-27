@@ -73,6 +73,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   @Output() babies_picker_closed = new EventEmitter<void>();
   @Output() afterViewInit = new EventEmitter<void>();
   @Output() babies_updated = new EventEmitter<any>();
+  @Output() customer_updated = new EventEmitter<Customer>();
   @Input() show_hat_advisor: boolean = true;
   @Input() advisor_show_options_button: boolean = true;
   @ViewChild('delete_allocation_dialog') delete_allocation_dialog!: ConfirmationDialogComponent;
@@ -183,7 +184,9 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
           next:(data) => { 
             console.log("SAVED CUSTOMER !!"); console.dir(data["customer"]);
             let alloc = this.banks_baby_allocations.find(alloc => alloc.id == this.pendingAllocationIdAction);
-            this.customer = data["customer"];
+            this.customer = { ...data["customer"] };
+            this.banks_baby_allocations = [...data["customer"]["banks_baby_allocations"]];
+            this.babies = [... data["customer"]["babies"]];
             this.pendingAllocationIdAction = -999;
             this.unsaved_changes = false;
             if(alloc){
@@ -191,6 +194,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
             }
             this.toastService.showSuccess("Allocation saved successfully");
             this.allocation_picker.dialogWrapper.onCancel();
+            this.customer_updated.emit(this.customer);
           },
           error:(error) => { 
             this.pendingAllocationIdAction = -999; 
@@ -215,11 +219,12 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
         {
           next:(data) => { 
             console.log("SAVED!!!"); console.dir(data["customer"]);
-            this.customer = data["customer"];
-            this.banks_baby_allocations = data["customer"]["banks_baby_allocations"];
-            this.babies = data["customer"]["babies"];
+            this.customer = { ...data["customer"] };
+            this.banks_baby_allocations = [...data["customer"]["banks_baby_allocations"]];
+            this.babies = [... data["customer"]["babies"]];
             this.unsaved_changes = false;
             this.toastService.showSuccess("Saved successfully");
+            this.customer_updated.emit(this.customer);
           },
           error:(error) => { this.toastService.showError("Error saving pending changes"); }
         });        
@@ -296,9 +301,16 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     //console.dir(this.bank.transaction_history);
     if(deleted) {
       this.bank_changed.emit();
+      this.recalculateBank();
       this.unsaved_changes = true;
     }
   }
+
+recalculateBank(){
+  this.bank.remaining_quantity = this.bank.quantity;
+  let allocated = this.customer.banks_baby_allocations.filter(alloc => alloc.customer_bank_id == this.bank.id).reduce((acc, cur) => acc + cur.quantity, 0);
+  this.bank.remaining_quantity -= allocated;
+}
 
   /*
   bank 
@@ -403,6 +415,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     //console.dir(this.bank.transaction_history);
     this.pendingAllocationIdAction = -999;
     this.bank_changed.emit();
+    this.recalculateBank();
     this.unsaved_changes = true;
   }
 
@@ -415,6 +428,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
       this.update_advisor_babies(allocation_id);
     }
     this.bank_changed.emit();
+    this.recalculateBank();
     this.unsaved_changes = true;
   }
 
@@ -588,6 +602,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
    if(changes_made) {
       this.update_advisor_babies(aggregatedBabies.hat_alloc_id);
       this.bank_changed.emit();
+      this.recalculateBank();
       this.babies_updated.emit(this.babies);
       this.unsaved_changes = true;  
     }

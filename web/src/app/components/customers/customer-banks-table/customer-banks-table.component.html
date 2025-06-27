@@ -60,7 +60,12 @@
               <span [className]="'color color-' + bank.raw_material_color.toLowerCase().replace(' ', '-')"></span>
           </span>
         </h5>
-        <span *ngIf="unsaved_changes" class="text-danger" style="margin-left: 10px;">* Unsaved changes</span>
+        <span *ngIf="unsaved_changes" style="margin-left: 10px;">
+          <span class="text-danger">* Unsaved changes</span>
+           <button #btn_save class="btn btn-outline-success border-0 btn-save" type="submit" (click)="save_customer()"><!--[disabled]="!raw_material_form.form.valid"-->
+                <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
+            </button>
+        </span>
       </span>
       <span>
         <span class="icon-history" (click)="openHistoryDialog()" style="font-size: 23px; margin-left: 14px; cursor:pointer;" title="History records"></span>
@@ -189,8 +194,9 @@
           [crown_bank]="this.bank"
           [crown_allocation]="bank_allocation"
 
-          [tails_bank]="tails_allocation_in_this_bank? this.bank : null"
-          [tails_allocation]="tails_allocation_in_this_bank?? null"
+          [tails_bank]="null"
+          [tails_allocation]="null"
+
 
           [customer_crown_babies]="this.babies"
           (assistantAutoAddBabies)="assistant_auto_add_babies($event)"
@@ -200,6 +206,9 @@
           [pending_saved_changes]="unsaved_changes"
 
         />
+        <!--          
+          [tails_bank]="tails_allocation_in_this_bank? this.bank : null"
+          [tails_allocation]="tails_allocation_in_this_bank?? null"-->
       </div>
 
 </div>
