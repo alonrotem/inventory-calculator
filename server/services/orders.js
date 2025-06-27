@@ -38,6 +38,11 @@ async function create(orderData, active_connection=null){
         );
     }
 
+    await customers.moveTailsToOrder(
+        orderData.customer_hat.tails_allocation_id, 
+        orderData.customer_hat.adjusted_wings_per_hat, 
+        active_connection);
+
     // save the hat specs
     if(orderData.customer_hat){
         const hat_save = await db.transaction_query(

@@ -761,6 +761,53 @@ async function moveBabiesToOrder(
   }  
 }
 
+async function moveTailsToOrder(
+  tails_allocation_id,
+  adjusted_wings_per_hat,
+  active_connection=null
+){
+  //check if there is an active connection called from another function, or this call is a standalone
+  let self_executing = false;
+  if(!active_connection) {
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
+  }
+  try {
+    let arr_adjusted_wings_per_hat = adjusted_wings_per_hat.split(",");
+    const total_num_of_wings = arr_adjusted_wings_per_hat
+      .reduce((accumulator, currentValue) => { 
+        let curVal_num = parseInt(currentValue);
+        if(!isNaN(curVal_num)){
+          curVal_num = 0;
+        }
+        return accumulator + currentValue;
+      }, 0);
+
+      await db.transaction_query(`
+        UPDATE customer_banks_allocations 
+        SET 
+          tails_quantity = tails_quantity - ${ total_num_of_wings }, 
+          tails_in_orders = tails_in_orders + ${ total_num_of_wings } 
+        where id=${ tails_allocation_id };`,
+        [],
+        active_connection
+      );
+
+  }
+  catch(error){
+    logger.error(error.message);
+    if(self_executing) {
+      await db.transaction_rollback(active_connection);
+    }
+    throw(error);
+  }
+  finally {
+    if(self_executing) {
+      await db.transaction_release(active_connection);
+    }
+  }
+}
+
 module.exports = {
     save,
     getSingle,
@@ -768,5 +815,6 @@ module.exports = {
     remove,
     getNames,
     sync_banks_for_raw_material,
-    moveBabiesToOrder
+    moveBabiesToOrder,
+    moveTailsToOrder
 }

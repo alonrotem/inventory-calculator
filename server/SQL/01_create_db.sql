@@ -702,7 +702,12 @@ VALUES
 ('mark_yellow_customer_bank_percents_below', '30', '30', 'number'),
 -- Mark the customer bank in RED, if raw material item quantity less than __%
 ('mark_red_customer_bank_percents', '1', '1', 'boolean'),
-('mark_red_customer_bank_percents_below', '10', '10', 'number')
+('mark_red_customer_bank_percents_below', '10', '10', 'number'),
+
+
+/*------- UI Settings ---------*/
+('ui_settings_grid_page_size', '20', '20', 'number')
+
 AS new_settings
 ON DUPLICATE KEY UPDATE
 	value=new_settings.value, 
