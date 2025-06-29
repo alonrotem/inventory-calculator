@@ -40,6 +40,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   @Input() bank: Customer_Bank = {
     raw_material_name: '',
     id: 0,
+    pre_save_id: 0,
     customer_id: 0,
     raw_material_id: 0,
     quantity: 0,
@@ -56,7 +57,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
 
   //Saving the original data in order to be able to reset changes
   unchanged_bank: Customer_Bank = {
-    raw_material_name: '', raw_material_quantity_units: '', id: 0,
+    raw_material_name: '', raw_material_quantity_units: '', id: 0, pre_save_id: 0,
     customer_id: 0, raw_material_id: 0, quantity: 0, remaining_quantity: 0, transaction_history: [],
     raw_material_color: ''
   };
@@ -183,18 +184,21 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
         {
           next:(data) => { 
             console.log("SAVED CUSTOMER !!"); console.dir(data["customer"]);
-            let alloc = this.banks_baby_allocations.find(alloc => alloc.id == this.pendingAllocationIdAction);
+            //let alloc = this.banks_baby_allocations.find(alloc => alloc.id == this.pendingAllocationIdAction);
+            //let pre_selected_allocation_id = 
             this.customer = { ...data["customer"] };
             this.banks_baby_allocations = [...data["customer"]["banks_baby_allocations"]];
             this.babies = [... data["customer"]["babies"]];
-            this.pendingAllocationIdAction = -999;
             this.unsaved_changes = false;
+            this.customer_updated.emit(this.customer);
+            let alloc = this.banks_baby_allocations.find(saved_alloc => saved_alloc.pre_save_id == this.pendingAllocationIdAction);
+
+            this.pendingAllocationIdAction = -999;
             if(alloc){
               this.select_allocation_confirmed(alloc);
             }
             this.toastService.showSuccess("Allocation saved successfully");
             this.allocation_picker.dialogWrapper.onCancel();
-            this.customer_updated.emit(this.customer);
           },
           error:(error) => { 
             this.pendingAllocationIdAction = -999; 
@@ -397,6 +401,7 @@ recalculateBank(){
     else {
       this.banks_baby_allocations.push({
         id: this.newAllocationIdCounter,
+        pre_save_id: 0,
         customer_bank_id: this.bank.id,
         quantity: currentQuantity,
         remaining_quantity: 0,

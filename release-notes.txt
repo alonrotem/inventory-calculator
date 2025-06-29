@@ -6,7 +6,7 @@ Bugs fixed
 [x] Changing the crown length after choosing allocation doesn't change the crown
 [x] Changing the crown length after choosing allocation, an empty crown number picker appears in the corner (probably related)
 [x] Adding babies from the allocation picker of the hat calculator
-[ ] When opening "help me create", choose the current hat + 1 hat
+[x] When opening "help me create", choose the current hat + 1 hat
 [ ] Do not allow the user to pick an empty allocation
 
 New features
@@ -15,6 +15,7 @@ New features
 [ ] Do not let order without H materials
 [ ] Mouse wheel on wing design
 [ ] Increase / settings for page size
+[ ] Choosing hat/crown/tail material: if there are allocations OR remaining material for new allocations
 
 =================================
 

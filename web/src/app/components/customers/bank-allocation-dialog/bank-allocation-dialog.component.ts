@@ -52,6 +52,7 @@ export class BankAllocationDialogComponent implements ModalContentDirective, Mod
   
   editedObject: Customer_Bank_Baby_Allocation = {
     id: 0,
+    pre_save_id: 0,
     customer_bank_id: 0,
     quantity: 0,
     remaining_quantity: 0,

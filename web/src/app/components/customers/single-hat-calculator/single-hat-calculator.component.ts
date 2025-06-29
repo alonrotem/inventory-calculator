@@ -258,7 +258,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   ngAfterViewInit(): void {
     this.length_editor.crown_babies_quantity_changed.subscribe((new_length: number) => this.crown_babies_quantity_changed(new_length));
     this.wingsService.getWings_for_customer(this.customer.id).subscribe(wingsListInfo => {
-      this.wings = wingsListInfo.data.sort((w1:WingsListItem, w2:WingsListItem) =>{
+      this.wings = wingsListInfo.data.sort((w1:WingsListItem, w2:WingsListItem) => {
         this.console.log(w1.name);
         const w1_len = w1.name.match(/[^\d]*(\d*)[^\d]*/);
         const w2_len = w2.name.match(/[^\d]*(\d*)[^\d]*/);
@@ -957,9 +957,24 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
             if(allocationBaby){
               //this.console.log("Reducing baby " + allocationBaby.length  + " by  " + (this.order_amount * this.customerHat.wing_quantity));
               allocationBaby.quantity -= (this.order_amount * this.customerHat.wing_quantity);
+              allocationBaby.quantity_in_pending_orders += (this.order_amount * this.customerHat.wing_quantity);
               //allocationBaby.quantity_in_allocation += (this.order_amount * this.customerHat.wing_quantity);
             }
           });
+          //this.customerHat.tails_allocation_id
+          if(this.tails_allocation){
+            let arr_adjusted_wings_per_hat = this.customerHat.adjusted_wings_per_hat.split(",");
+            const total_num_of_wings = arr_adjusted_wings_per_hat
+              .reduce((accumulator, currentValue) => { 
+                let curVal_num = parseInt(currentValue);
+                if(isNaN(curVal_num)){
+                  curVal_num = 0;
+                }
+                return accumulator + curVal_num;
+              }, 0);
+            this.tails_allocation.tails_quantity -= total_num_of_wings;
+            this.tails_allocation.tails_in_orders += total_num_of_wings;
+          }
           this.aggregateHatBabiesAndMatchingAllocations();
           this.order_amount = this.total_num_of_possible_hats;
           if(this.customerHat && this.customerHat.wing){

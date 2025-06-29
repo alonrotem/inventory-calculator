@@ -115,11 +115,25 @@ async function save(customer){
       ],
       connection);
       customer.id = (isNew)? result.insertId : customer.id;
-      await sync_customer_banks(customer, connection);
+      let bank_ids_info = await sync_customer_banks(customer, connection);
 
       await db.transaction_commit(connection);
 
       const saved_customer = await getSingle(customer.id);
+      console.dir(bank_ids_info, {depth: null});
+      
+      saved_customer.banks.forEach(saved_bank => {
+        let bank_id = bank_ids_info.bank_ids.find(bank_id_info => bank_id_info.post_save_id == saved_bank.id);
+        console.log("found saved bank info. before: " + bank_id.pre_save_id + " -after-> " + saved_bank.id);
+        saved_bank.pre_save_id = bank_id.pre_save_id;
+      });
+
+      saved_customer.banks_baby_allocations.forEach(saved_allocation => {
+        let alloc_id = bank_ids_info.allocation_ids.find(allocation_id_info => allocation_id_info.post_save_id == saved_allocation.id);
+        console.log("found saved allocation info. before: " + alloc_id.pre_save_id + " -after-> " + saved_allocation.id);
+        saved_allocation.pre_save_id = alloc_id.pre_save_id;
+      });
+
       return { 
         message: "Saved successfully",
         customer: saved_customer
@@ -192,6 +206,15 @@ async function delete_all_customer_banks(where_rule, force=false, active_connect
 
 async function save_customer_bank (customer, bank_id, active_connection){
   //check if there is an active connection called from another function, or this call is a standalone
+
+  let pre_save_bank_id = {
+    bank_ids: {
+      pre_save_id: bank_id,
+      post_save_id: bank_id 
+    },
+    allocation_ids: []
+  };
+
   let self_executing = false;
   if(!active_connection) {
     // logger.info("transaction start 3");
@@ -240,6 +263,7 @@ async function save_customer_bank (customer, bank_id, active_connection){
       ], 
       active_connection);
     new_bank_id = (new_bank_id <= 0)? bank_result.insertId : new_bank_id;
+    pre_save_bank_id.bank_ids.post_save_id = new_bank_id;
     //---/SAVE THE BANK -------------------------
 
     //--- SAVE ALLOCATIONS OF THIS BANK -------------------------
@@ -281,6 +305,7 @@ async function save_customer_bank (customer, bank_id, active_connection){
       //is this allocation new?
       let original_allocation_id = allocation.id;
       let new_allocation_id = allocation.id;
+
       if(allocation.id < 0){
         //set it to 0 for insert
         allocation.id = 0;
@@ -300,6 +325,12 @@ async function save_customer_bank (customer, bank_id, active_connection){
           active_connection
         );
       }
+
+
+      let allocation_id = {
+        pre_save_id: original_allocation_id,
+        post_save_id: original_allocation_id
+      };
 
       // create/update the allocation
       const allocation_result = await db.transaction_query(
@@ -326,6 +357,8 @@ async function save_customer_bank (customer, bank_id, active_connection){
       ],
       active_connection);
       new_allocation_id = (new_allocation_id <= 0)? allocation_result.insertId : new_allocation_id;
+      allocation_id.post_save_id = new_allocation_id;
+      pre_save_bank_id.allocation_ids.push(allocation_id);
 
       //save transaction records for this allocation
       if(bank.transaction_history && bank.transaction_history.length > 0){
@@ -382,6 +415,8 @@ async function save_customer_bank (customer, bank_id, active_connection){
         await db.transaction_commit(active_connection);
       }
     }
+
+    return pre_save_bank_id;
   }
   catch(error){
     if(self_executing) {
@@ -397,6 +432,10 @@ async function save_customer_bank (customer, bank_id, active_connection){
 }
 
 async function sync_customer_banks(customer, active_connection){
+  let bank_save_ids = {
+    bank_ids: [],
+    allocation_ids: []
+  };
   //check if there is an active connection called from another function, or this call is a standalone
   let self_executing = false;
   if(!active_connection) {
@@ -424,13 +463,22 @@ async function sync_customer_banks(customer, active_connection){
       }
     }
     for(bank of customer.banks){
-      await save_customer_bank(customer, bank.id, active_connection);
+      let ids_info = await save_customer_bank(customer, bank.id, active_connection);
+      if(ids_info) {
+        if(ids_info.bank_ids){
+          bank_save_ids.bank_ids.push(ids_info.bank_ids);
+        }
+        if(ids_info.allocation_ids){
+          bank_save_ids.allocation_ids = bank_save_ids.allocation_ids.concat(ids_info.allocation_ids);
+        }
+      }
     }
     //await customer.banks.forEach(b => save_customer_bank(customer, b.id));
     //existing_banks.forEach(b => save_customer_bank(customer, b.id));
     if(self_executing) {
       await db.transaction_commit(active_connection);
     }
+    return bank_save_ids;
   }
   catch(error){
     if(self_executing) {
@@ -777,10 +825,10 @@ async function moveTailsToOrder(
     const total_num_of_wings = arr_adjusted_wings_per_hat
       .reduce((accumulator, currentValue) => { 
         let curVal_num = parseInt(currentValue);
-        if(!isNaN(curVal_num)){
+        if(isNaN(curVal_num)){
           curVal_num = 0;
         }
-        return accumulator + currentValue;
+        return accumulator + curVal_num;
       }, 0);
 
       await db.transaction_query(`

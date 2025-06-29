@@ -84,7 +84,7 @@
     <div class="row">
       <div class="col" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-top: 13px;">
         <button class="btn btn-warning" [routerLink]="'/inventory/customer/editor'" [queryParams]="{ id: this.customer.id }">
-          <div><fa-icon [icon]="faArrowLeft"></fa-icon> Back to customer's page</div>
+          <div><fa-icon [icon]="faArrowLeft"></fa-icon> Back to {{ customer.name }}'s page</div>
         </button>
         <button class="btn btn-success" (click)="go_to_orders()">
           <div><fa-icon [icon]="faBasketShopping"></fa-icon> Your orders</div>

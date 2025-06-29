@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { WingsService } from '../../../services/wings.service';
 import { aggregated_babies, HatsCalculatorService } from '../../../services/hats-calculator.service';
-import { Allocation_Baby, Customer_Bank_Baby_Allocation, Wing, WingBaby, ShortWingsInfo, OrderAdvisorWingOverall, OrderAdvisorHatsSuggestionAlternative, Customer_Bank } from '../../../../types';
+import { Allocation_Baby, Customer_Bank_Baby_Allocation, Wing, WingBaby, ShortWingsInfo, OrderAdvisorWingOverall, OrderAdvisorHatsSuggestionAlternative, Customer_Bank, OrderAdvisorHatsSuggestion } from '../../../../types';
 import { Router, withEnabledBlockingInitialNavigation } from '@angular/router';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { faArrowsRotate, faLightbulb, faSave, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
@@ -318,7 +318,18 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
           });
           //});
 
-          this.suggestions.wing_suggestions.sort((wing_a, wing_b) => wing_b.max_num_of_hats - wing_a.max_num_of_hats);
+          //this.suggestions.wing_suggestions.sort((wing_a, wing_b) => wing_b.max_num_of_hats - wing_a.max_num_of_hats);
+          this.suggestions.wing_suggestions.sort((w1:OrderAdvisorHatsSuggestion, w2:OrderAdvisorHatsSuggestion) => {
+            const w1_len = w1.wing_name.match(/[^\d]*(\d*)[^\d]*/);
+            const w2_len = w2.wing_name.match(/[^\d]*(\d*)[^\d]*/);
+            if(w1_len && w2_len && w1_len.length > 1 && w2_len.length > 1){
+              return Number(w2_len[1]) - Number(w1_len[1]);
+            }
+            else {
+              return 0;
+            }
+          });
+
           this.suggestions.wing_suggestions.forEach(wing_suggestion => {
             wing_suggestion.alternatives.sort((alt_a, alt_b) => alt_b.max_num_of_hats - alt_a.max_num_of_hats);
           });
@@ -365,7 +376,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
             wing_id: wing.id,
             wing_name: wing.name,
             num_of_wings_per_hat: wingsPerHat,
-            max_num_of_hats: Math.max(hats_info.total_num_of_possible_hats, this.suggestions.max_num_of_hats),
+            max_num_of_hats: hats_info.total_num_of_possible_hats,///*Math.max(hats_info.total_num_of_possible_hats,*/ this.suggestions.max_num_of_hats/*)*/,
             alternatives: []
           };
           this.suggestions.wing_suggestions.push(wing_suggestion);
@@ -376,6 +387,9 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
           max_num_of_hats: hats_info.total_num_of_possible_hats,
           descriptive_string: this.generateDescriptiveString(reduceTop, reduceCrown, hats_info.total_num_of_possible_hats)
         });
+        if(hats_info.total_num_of_possible_hats > wing_suggestion.max_num_of_hats){
+          wing_suggestion.max_num_of_hats = hats_info.total_num_of_possible_hats;
+        }
 
         if(hats_info.total_num_of_possible_hats > this.suggestions.max_num_of_hats){
           this.suggestions.max_num_of_hats = hats_info.total_num_of_possible_hats;

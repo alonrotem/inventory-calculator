@@ -298,6 +298,7 @@ export interface Customer_Bank {
     raw_material_name: string; 
     raw_material_color: string;
     raw_material_quantity_units: string;
+    pre_save_id: number;
     id: number; 
     customer_id: number;
     raw_material_id: number;
@@ -313,6 +314,7 @@ export enum Bank_Allocation_Type {
 }
 
 export interface Customer_Bank_Baby_Allocation {
+    pre_save_id: number;
     id: number; 
     customer_bank_id: number; 
     quantity: number; 
