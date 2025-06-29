@@ -181,11 +181,11 @@ SET @delete_records=TRUE;
         -- Prepare the INSERT statement only if the table exists
         SET @sql = IF(@table_exists > 0, "INSERT INTO `customers` (`id`, `name`, `business_name`, `email`, `phone`, `tax_id`, `customer_code`, `notes`, `created_at`, `updated_at`, `created_by`, `updated_by`) 
 VALUES
-(9, 'Alon Rotem', 'Romtech', 'alon@mail.com', '+359 (88) 401-3532', 'Tax payer 1234', 'L', null, '2025-01-06 20:05:29', '2025-06-04 21:50:57', 1, 1),
-(10, 'Avi Bar', 'Romtech', 'avi_bar@mail.com', '+359 87 985 8868', 'Tax payer 5678', 'AB', null, '2025-01-06 20:05:29', '2025-06-05 08:51:24', 1, 1),
-(11, 'Guy Tal', 'Guytech', 'guy@mail.com', '+359 87 123 4567', 'Tax payer 90123', null, null, '2025-01-06 20:05:29', '2025-06-05 11:53:17', 1, 1),
-(12, 'London', 'London Inc', '', '', '456456', 'L', null, '2025-02-24 22:19:45', '2025-06-01 09:29:05', 0, 0),
-(13, 'NY', 'NY', 'ny@gmail.con', '878782858', '234578', 'USA', null, '2025-02-25 20:10:16', '2025-06-05 11:53:40', 0, 0)
+(9, 'Alon Rotem', 'Romtech', 'alon@mail.com', '+359 (88) 401-3532', 'Tax payer 1234', 'L', null, '2025-01-06 20:05:29', '2025-06-27 12:52:24', 1, 1),
+(10, 'Avi Bar', 'Romtech', 'avi_bar@mail.com', '+359 87 985 8868', 'Tax payer 5678', 'AB', null, '2025-01-06 20:05:29', '2025-06-27 12:52:27', 1, 1),
+(11, 'Guy Tal', 'Guytech', 'guy@mail.com', '+359 87 123 4567', 'Tax payer 90123', null, null, '2025-01-06 20:05:29', '2025-06-27 12:52:29', 1, 1),
+(12, 'London', 'London Inc', '', '', '456456', 'L', null, '2025-02-24 22:19:45', '2025-06-27 12:52:32', 0, 0),
+(13, 'NY', 'NY', 'ny@gmail.con', '878782858', '234578', 'USA', null, '2025-02-25 20:10:16', '2025-06-27 12:52:34', 0, 0)
 as new_customers
 ON DUPLICATE KEY UPDATE
 `name`=new_customers.`name`, `business_name`=new_customers.`business_name`, `email`=new_customers.`email`, `phone`=new_customers.`phone`, `tax_id`=new_customers.`tax_id`, `customer_code`=new_customers.`customer_code`, `notes`=new_customers.`notes`, `created_at`=new_customers.`created_at`, `updated_at`=new_customers.`updated_at`, `created_by`=new_customers.`created_by`, `updated_by`=new_customers.`updated_by`;", 'SELECT \'Table customers does not exist\'');
@@ -200,9 +200,16 @@ ON DUPLICATE KEY UPDATE
         -- Check if the table exists
         SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'material_colors');
         -- Prepare the INSERT statement only if the table exists
-        SET @sql = IF(@table_exists > 0, "Insert into `material_colors` (`priority`, `color`)
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `material_colors` (`priority`, `color`) 
 VALUES
-(10, 'Natural'), (20, 'Light brown'), (30, 'Brown'), (40, 'Dark brown'), (50, 'Black');", 'SELECT \'Table material_colors does not exist\'');
+(50, 'Black'),
+(30, 'Brown'),
+(40, 'Dark brown'),
+(20, 'Light brown'),
+(10, 'Natural')
+as new_material_colors
+ON DUPLICATE KEY UPDATE
+`priority`=new_material_colors.`priority`, `color`=new_material_colors.`color`;", 'SELECT \'Table material_colors does not exist\'');
         -- Execute the prepared statement
         PREPARE stmt FROM @sql;
         EXECUTE stmt; #USING @value1, @value2;
@@ -224,8 +231,9 @@ VALUES
 (19, 'DМ light', '2025-01-07 00:00:00', 750, 600, 'units', 2, 'KK', 'US', 25, 'USD', 'Demo material for calculations', 'Natural', '2025-01-07 15:19:09', '2025-06-01 09:25:50', 0, 0),
 (20, 'DM', '2025-02-08 00:00:00', 100, 5, 'units', 80, 'dd', 'US', 20, 'USD', '', 'Black', '2025-02-08 21:20:42', '2025-05-29 09:03:13', 0, 0),
 (21, 'DM Medium brown', '2025-06-05 00:00:00', 500, 400, 'units', 4, '', 'US', 25, 'USD', '', 'Dark brown', '2025-06-05 08:38:20', '2025-06-05 08:38:20', 0, 0),
-(22, 'DM', '2025-06-05 00:00:00', 1000, 800, 'units', 110, '', 'US', 14, 'USD', '', 'Dark brown', '2025-06-05 10:39:38', '2025-06-05 10:39:38', 0, 0),
-(23, 'BM', '2025-06-05 00:00:00', 1000, 700, 'units', 0, '', 'RU', 18, 'USD', '', 'Natural', '2025-06-05 11:59:21', '2025-06-05 12:00:03', 0, 0)
+(22, 'DM', '2025-06-05 00:00:00', 1000, 600, 'units', 110, '', 'US', 14, 'USD', '', 'Dark brown', '2025-06-05 10:39:38', '2025-06-06 13:00:29', 0, 0),
+(23, 'BM', '2025-06-05 00:00:00', 1000, 700, 'units', 0, '', 'RU', 18, 'USD', '', 'Natural', '2025-06-05 11:59:21', '2025-06-05 12:00:03', 0, 0),
+(24, 'Sable H', '2025-06-06 00:00:00', 2350, 2350, 'units', 235, '', 'US', 7, 'USD', '', 'Natural', '2025-06-06 12:52:24', '2025-06-06 12:52:24', 0, 0)
 as new_raw_materials
 ON DUPLICATE KEY UPDATE
 `name`=new_raw_materials.`name`, `purchased_at`=new_raw_materials.`purchased_at`, `purchase_quantity`=new_raw_materials.`purchase_quantity`, `remaining_quantity`=new_raw_materials.`remaining_quantity`, `quantity_units`=new_raw_materials.`quantity_units`, `units_per_kg`=new_raw_materials.`units_per_kg`, `vendor_name`=new_raw_materials.`vendor_name`, `origin_country`=new_raw_materials.`origin_country`, `price`=new_raw_materials.`price`, `currency`=new_raw_materials.`currency`, `notes`=new_raw_materials.`notes`, `color`=new_raw_materials.`color`, `created_at`=new_raw_materials.`created_at`, `updated_at`=new_raw_materials.`updated_at`, `created_by`=new_raw_materials.`created_by`, `updated_by`=new_raw_materials.`updated_by`;", 'SELECT \'Table raw_materials does not exist\'');
@@ -249,7 +257,7 @@ VALUES
 (19, 10, 18, 45, 45),
 (20, 10, 20, 15, 5),
 (21, 12, 20, 80, 59),
-(22, 13, 15, 400, 300),
+(22, 13, 15, 400, 292),
 (23, 10, 16, 200, 3),
 (24, 10, 16, 200, 200),
 (25, 12, 19, 150, 50),
@@ -257,7 +265,9 @@ VALUES
 (28, 9, 17, 4, 0),
 (29, 10, 21, 100, 90),
 (30, 11, 22, 200, 100),
-(31, 12, 23, 300, 300)
+(31, 12, 23, 300, 300),
+(32, 13, 24, 0, 0),
+(33, 13, 22, 200, 100)
 as new_customer_banks
 ON DUPLICATE KEY UPDATE
 `customer_id`=new_customer_banks.`customer_id`, `raw_material_id`=new_customer_banks.`raw_material_id`, `quantity`=new_customer_banks.`quantity`, `remaining_quantity`=new_customer_banks.`remaining_quantity`;", 'SELECT \'Table customer_banks does not exist\'');
@@ -276,31 +286,33 @@ ON DUPLICATE KEY UPDATE
         -- Check if the table exists
         SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'customer_banks_allocations');
         -- Prepare the INSERT statement only if the table exists
-        SET @sql = IF(@table_exists > 0, "INSERT INTO `customer_banks_allocations` (`id`, `customer_bank_id`, `quantity`, `remaining_quantity`, `allocation_type`) 
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `customer_banks_allocations` (`id`, `customer_bank_id`, `quantity`, `remaining_quantity`, `allocation_type`, `tails_quantity`, `tails_in_orders`) 
 VALUES
-(2, 13, 5, 5, 'babies'),
-(3, 13, 3, 2, 'babies'),
-(7, 18, 10, 0, 'babies'),
-(9, 18, 10, 0, 'babies'),
-(10, 18, 4, 0, 'babies'),
-(11, 15, 10, 0, 'babies'),
-(12, 15, 10, 0, 'babies'),
-(13, 20, 10, 0, 'babies'),
-(14, 16, 100, 0, 'babies'),
-(15, 21, 10, 0, 'babies'),
-(16, 21, 11, 0, 'babies'),
-(17, 22, 100, 0, 'babies'),
-(18, 23, 172, 0, 'babies'),
-(22, 23, 5, 0, 'babies'),
-(23, 25, 100, 0, 'babies'),
-(25, 28, 3, 0, 'babies'),
-(26, 28, 1, 0, 'tails'),
-(27, 23, 20, 0, 'tails'),
-(28, 29, 10, 0, 'babies'),
-(29, 30, 100, 0, 'babies')
+(2, 13, 5, 5, 'babies', 0, 0),
+(3, 13, 3, 2, 'babies', 0, 0),
+(7, 18, 10, 0, 'babies', 0, 0),
+(9, 18, 10, 0, 'babies', 0, 0),
+(10, 18, 4, 0, 'babies', 0, 0),
+(11, 15, 10, 0, 'babies', 0, 0),
+(12, 15, 10, 0, 'babies', 0, 0),
+(13, 20, 10, 0, 'babies', 0, 0),
+(14, 16, 100, 0, 'babies', 0, 0),
+(15, 21, 10, 0, 'babies', 0, 0),
+(16, 21, 11, 0, 'babies', 0, 0),
+(17, 22, 100, 0, 'babies', 0, 0),
+(18, 23, 172, 0, 'babies', 0, 0),
+(22, 23, 5, 0, 'babies', 0, 0),
+(23, 25, 100, 0, 'babies', 0, 0),
+(25, 28, 3, 0, 'babies', 0, 0),
+(26, 28, 1, 0, 'tails', 0, 0),
+(27, 23, 20, 0, 'tails', 0, 0),
+(28, 29, 10, 0, 'babies', 0, 0),
+(29, 30, 100, 0, 'babies', 0, 0),
+(32, 22, 8, 0, 'babies', 0, 0),
+(33, 33, 100, 0, 'babies', 0, 0)
 as new_customer_banks_allocations
 ON DUPLICATE KEY UPDATE
-`customer_bank_id`=new_customer_banks_allocations.`customer_bank_id`, `quantity`=new_customer_banks_allocations.`quantity`, `remaining_quantity`=new_customer_banks_allocations.`remaining_quantity`, `allocation_type`=new_customer_banks_allocations.`allocation_type`;", 'SELECT \'Table customer_banks_allocations does not exist\'');
+`customer_bank_id`=new_customer_banks_allocations.`customer_bank_id`, `quantity`=new_customer_banks_allocations.`quantity`, `remaining_quantity`=new_customer_banks_allocations.`remaining_quantity`, `allocation_type`=new_customer_banks_allocations.`allocation_type`, `tails_quantity`=new_customer_banks_allocations.`tails_quantity`, `tails_in_orders`=new_customer_banks_allocations.`tails_in_orders`;", 'SELECT \'Table customer_banks_allocations does not exist\'');
         -- Execute the prepared statement
         PREPARE stmt FROM @sql;
         EXECUTE stmt; #USING @value1, @value2;
@@ -336,19 +348,19 @@ VALUES
 (29, 9, 12, 1600, 0),
 (38, 9, 6, 15, 0),
 (39, 9, 5.5, 15, 0),
-(40, 2, 12, 88, 0),
-(41, 2, 11, 384, 616),
+(40, 2, 12, 1088, 0),
+(41, 2, 11, 1616, 0),
 (42, 2, 10.5, 1000, 0),
-(43, 2, 10, 1200, 880),
+(43, 2, 10, 2080, 0),
 (44, 2, 9.5, 1000, 0),
-(45, 2, 9, 648, 352),
-(46, 2, 8.5, 516, 484),
-(47, 2, 8, 32, 968),
-(48, 2, 7.5, 208, 792),
-(49, 2, 7, 32, 968),
-(50, 2, 6.5, 32, 968),
-(51, 2, 6, 32, 968),
-(52, 2, 5.5, 232, 968),
+(45, 2, 9, 1000, 0),
+(46, 2, 8.5, 1000, 0),
+(47, 2, 8, 1000, 0),
+(48, 2, 7.5, 1000, 0),
+(49, 2, 7, 1000, 0),
+(50, 2, 6.5, 1000, 0),
+(51, 2, 6, 1000, 0),
+(52, 2, 5.5, 1200, 0),
 (53, 7, 12, 100, 0),
 (54, 7, 10, 4600, 0),
 (55, 7, 9.5, 200, 0),
@@ -389,16 +401,15 @@ VALUES
 (94, 15, 6, 1000, 0),
 (95, 15, 5.5, 1000, 0),
 (96, 16, 7.5, 1000, 0),
-(97, 17, 9, 64, 1936),
-(98, 17, 8.5, 2000, 0),
-(99, 17, 8, 64, 1936),
-(100, 17, 7.5, 1032, 968),
-(101, 17, 7, 64, 1936),
-(102, 17, 6.5, 64, 1936),
-(103, 17, 6, 64, 1936),
-(104, 17, 5.5, 64, 1936),
-(105, 17, 10, 160, 4840),
-(106, 17, 9.5, 3000, 0),
+(97, 17, 9, 2000, 0),
+(98, 17, 8.5, 4900, 0),
+(99, 17, 8, 2024, 0),
+(100, 17, 7.5, 2000, 0),
+(101, 17, 7, 7500, 0),
+(102, 17, 6.5, 6000, 0),
+(103, 17, 6, 7000, 0),
+(104, 17, 5.5, 4000, 0),
+(105, 17, 10, 5000, 0),
 (137, 10, 12, 2500, 0),
 (138, 10, 11.5, 2500, 0),
 (139, 10, 11, 3000, 0),
@@ -414,17 +425,17 @@ VALUES
 (149, 10, 6, 2000, 0),
 (150, 10, 5.5, 2000, 0),
 (151, 10, 5, 2000, 0),
-(152, 18, 10, 476, 3124),
-(153, 18, 9.5, 948, 2552),
-(154, 18, 9, 1004, 3696),
-(155, 18, 8.5, 5080, 220),
-(156, 18, 8, 1708, 2992),
-(157, 18, 7.5, 1284, 1716),
-(158, 18, 7, 524, 3476),
-(159, 18, 6.5, 524, 3476),
-(160, 18, 6, 17043, 3960),
-(161, 18, 5.5, 40, 3960),
-(162, 18, 5, 96, 2904),
+(152, 18, 10, 3600, 0),
+(153, 18, 9.5, 3500, 0),
+(154, 18, 9, 4700, 0),
+(155, 18, 8.5, 5300, 0),
+(156, 18, 8, 4700, 0),
+(157, 18, 7.5, 3000, 0),
+(158, 18, 7, 4000, 0),
+(159, 18, 6.5, 4000, 0),
+(160, 18, 6, 21003, 0),
+(161, 18, 5.5, 4000, 0),
+(162, 18, 5, 3000, 0),
 (204, 13, 9.5, 3000, 0),
 (205, 13, 9, 2000, 0),
 (206, 13, 7.5, 2000, 0),
@@ -432,18 +443,18 @@ VALUES
 (229, 13, 11.5, 2000, 0),
 (230, 13, 10.5, 2000, 0),
 (243, 11, 9, 1000, 0),
-(248, 23, 11, 436, 264),
-(249, 23, 10.5, 1036, 264),
-(250, 23, 10, 144, 1056),
-(251, 23, 9.5, 636, 264),
-(252, 23, 9, 586, 264),
-(253, 23, 8.5, 936, 264),
-(254, 23, 8, 736, 264),
-(255, 23, 7.5, 736, 264),
-(256, 23, 7, 536, 264),
-(257, 23, 6.5, 922, 528),
-(258, 23, 6, 772, 528),
-(259, 23, 5.5, 672, 528),
+(248, 23, 11, 700, 0),
+(249, 23, 10.5, 1300, 0),
+(250, 23, 10, 1200, 0),
+(251, 23, 9.5, 900, 0),
+(252, 23, 9, 850, 0),
+(253, 23, 8.5, 1200, 0),
+(254, 23, 8, 1000, 0),
+(255, 23, 7.5, 1000, 0),
+(256, 23, 7, 800, 0),
+(257, 23, 6.5, 1450, 0),
+(258, 23, 6, 1300, 0),
+(259, 23, 5.5, 1200, 0),
 (260, 25, 10, 220, 0),
 (261, 25, 9, 88, 0),
 (262, 25, 8, 88, 0),
@@ -454,17 +465,23 @@ VALUES
 (267, 25, 5.5, 88, 0),
 (279, 28, 11, 1000, 0),
 (280, 28, 10.5, 1000, 0),
-(281, 28, 10, 100, 1100),
+(281, 28, 10, 2700, 0),
 (282, 28, 9.5, 1200, 0),
-(283, 28, 9, 760, 440),
-(284, 28, 8.5, 1200, 0),
-(285, 28, 8, 560, 440),
-(286, 28, 7.5, 780, 220),
-(287, 28, 7, 760, 440),
-(288, 28, 6.5, 760, 440),
-(289, 28, 6, 1760, 440),
-(290, 28, 5.5, 560, 440),
-(291, 29, 5.5, 1010, 0)
+(283, 28, 9, 1200, 0),
+(284, 28, 8.5, 2200, 0),
+(285, 28, 8, 1000, 0),
+(286, 28, 7.5, 1000, 0),
+(287, 28, 7, 1200, 0),
+(288, 28, 6.5, 1200, 0),
+(289, 28, 6, 2200, 0),
+(290, 28, 5.5, 1000, 0),
+(291, 29, 5.5, 1010, 0),
+(292, 28, 12, 240, 0),
+(293, 28, 11.5, 200, 0),
+(307, 33, 9, 1240, 0),
+(318, 33, 6, 30, 0),
+(320, 33, 5, 30, 0),
+(322, 17, 11, 88, 0)
 as new_allocation_babies
 ON DUPLICATE KEY UPDATE
 `allocation_id`=new_allocation_babies.`allocation_id`, `length`=new_allocation_babies.`length`, `quantity`=new_allocation_babies.`quantity`, `quantity_in_pending_orders`=new_allocation_babies.`quantity_in_pending_orders`;", 'SELECT \'Table allocation_babies does not exist\'');
@@ -544,7 +561,13 @@ VALUES
 (67, '2025-06-05 10:38:56', 1, 200, 'to_customer_bank', 22, 11, 30, 0, 800, 200, -1),
 (68, '2025-06-05 10:41:04', 1, 100, 'customer_bank_allocate_to_Work', 22, 11, 30, 29, -1, 100, 0),
 (69, '2025-06-05 11:59:22', 1, 1000, 'raw_material_purchase', 23, 0, 0, 0, 1000, -1, -1),
-(70, '2025-06-05 12:00:06', 1, 300, 'to_customer_bank', 23, 12, 31, 0, 700, 300, -1)
+(70, '2025-06-05 12:00:06', 1, 300, 'to_customer_bank', 23, 12, 31, 0, 700, 300, -1),
+(71, '2025-06-06 09:55:00', 1, 8, 'customer_bank_allocate_to_Work', 15, 13, 22, 30, -1, 292, 0),
+(72, '2025-06-06 09:55:00', 1, 8, 'customer_bank_allocate_to_Work', 15, 13, 22, 31, -1, 292, 0),
+(73, '2025-06-06 09:55:00', 1, 8, 'customer_bank_allocate_to_Work', 15, 13, 22, 32, -1, 292, 0),
+(74, '2025-06-06 12:52:24', 1, 2350, 'raw_material_purchase', 24, 0, 0, 0, 2350, -1, -1),
+(75, '2025-06-06 13:00:31', 1, 200, 'to_customer_bank', 22, 13, 33, 0, 600, 200, -1),
+(76, '2025-06-06 13:02:04', 1, 100, 'customer_bank_allocate_to_Work', 22, 13, 33, 33, -1, 100, 0)
 as new_transaction_history
 ON DUPLICATE KEY UPDATE
 `date`=new_transaction_history.`date`, `added_by`=new_transaction_history.`added_by`, `transaction_quantity`=new_transaction_history.`transaction_quantity`, `transaction_type`=new_transaction_history.`transaction_type`, `raw_material_id`=new_transaction_history.`raw_material_id`, `customer_id`=new_transaction_history.`customer_id`, `customer_bank_id`=new_transaction_history.`customer_bank_id`, `allocation_id`=new_transaction_history.`allocation_id`, `cur_raw_material_quantity`=new_transaction_history.`cur_raw_material_quantity`, `cur_customer_bank_quantity`=new_transaction_history.`cur_customer_bank_quantity`, `cur_banks_babies_allocation_quantity`=new_transaction_history.`cur_banks_babies_allocation_quantity`;", 'SELECT \'Table transaction_history does not exist\'');
@@ -568,10 +591,7 @@ VALUES
 (7, 'RT100', 12, null),
 (16, 'RT110', 12, null),
 (17, 'RT90', 12.5, null),
-(22, 'RT10020250505113029', 11, null),
-(23, 'RT10020250505114230', 11.5, null),
-(24, 'RT8520250505115136', 10, null),
-(25, 'RT10020250505145359', 12, null)
+(26, 'RT120', 12.5, null)
 as new_wings
 ON DUPLICATE KEY UPDATE
 `name`=new_wings.`name`, `knife`=new_wings.`knife`, `customer_id`=new_wings.`customer_id`;", 'SELECT \'Table wings does not exist\'');
@@ -699,75 +719,24 @@ VALUES
 (253, 17, 'C1', 10),
 (254, 17, 'C2', 10),
 (255, 17, 'C3', 10),
-(322, 22, 'C1', 9.5),
-(323, 22, 'C2', 9),
-(324, 22, 'C3', 9),
-(325, 22, 'C4', 9),
-(326, 22, 'L1', 5.5),
-(327, 22, 'L2', 6),
-(328, 22, 'L3', 6.5),
-(329, 22, 'L4', 7),
-(330, 22, 'L5', 7.5),
-(331, 22, 'L6', 8),
-(332, 22, 'L7', 9),
-(333, 22, 'R1', 5.5),
-(334, 22, 'R2', 6),
-(335, 22, 'R3', 6.5),
-(336, 22, 'R4', 7),
-(337, 22, 'R5', 8),
-(338, 22, 'R6', 9),
-(339, 22, 'TOP', 9.5),
-(340, 23, 'C1', 10),
-(341, 23, 'C2', 10),
-(342, 23, 'C3', 10),
-(343, 23, 'C4', 10),
-(344, 23, 'L1', 5.5),
-(345, 23, 'L2', 6),
-(346, 23, 'L3', 6.5),
-(347, 23, 'L4', 7),
-(348, 23, 'L5', 7.5),
-(349, 23, 'L6', 8),
-(350, 23, 'L7', 9),
-(351, 23, 'R1', 5.5),
-(352, 23, 'R2', 6),
-(353, 23, 'R3', 6.5),
-(354, 23, 'R4', 7),
-(355, 23, 'R5', 8),
-(356, 23, 'R6', 9),
-(357, 23, 'TOP', 10),
-(358, 24, 'C1', 10),
-(359, 24, 'C2', 9),
-(360, 24, 'L1', 5.5),
-(361, 24, 'L2', 6),
-(362, 24, 'L3', 6.5),
-(363, 24, 'L4', 7),
-(364, 24, 'L5', 7.5),
-(365, 24, 'L6', 8),
-(366, 24, 'R1', 5.5),
-(367, 24, 'R2', 6),
-(368, 24, 'R3', 6.5),
-(369, 24, 'R4', 7),
-(370, 24, 'R5', 7.5),
-(371, 24, 'R6', 8),
-(372, 24, 'TOP', 8.5),
-(373, 25, 'C1', 10),
-(374, 25, 'C2', 10),
-(375, 25, 'C3', 10),
-(376, 25, 'C4', 10),
-(377, 25, 'L1', 5.5),
-(378, 25, 'L2', 6),
-(379, 25, 'L3', 6.5),
-(380, 25, 'L4', 7),
-(381, 25, 'L5', 7.5),
-(382, 25, 'L6', 8),
-(383, 25, 'L7', 9),
-(384, 25, 'R1', 5.5),
-(385, 25, 'R2', 6),
-(386, 25, 'R3', 6.5),
-(387, 25, 'R4', 7),
-(388, 25, 'R5', 8),
-(389, 25, 'R6', 9),
-(390, 25, 'TOP', 10)
+(391, 26, 'L1', 5.5),
+(392, 26, 'L2', 6),
+(393, 26, 'L3', 7),
+(394, 26, 'L4', 8),
+(395, 26, 'L5', 9),
+(396, 26, 'L6', 10),
+(397, 26, 'L7', 11),
+(398, 26, 'R1', 6),
+(399, 26, 'R2', 7),
+(400, 26, 'R3', 8),
+(401, 26, 'R4', 9.5),
+(402, 26, 'R5', 10.5),
+(403, 26, 'R6', 11.5),
+(404, 26, 'TOP', 12),
+(405, 26, 'C1', 10),
+(406, 26, 'C2', 10),
+(407, 26, 'C3', 10),
+(408, 26, 'C4', 10)
 as new_wings_babies
 ON DUPLICATE KEY UPDATE
 `parent_wing_id`=new_wings_babies.`parent_wing_id`, `position`=new_wings_babies.`position`, `length`=new_wings_babies.`length`;", 'SELECT \'Table wings_babies does not exist\'');
@@ -779,67 +748,13 @@ ON DUPLICATE KEY UPDATE
 # CUSTOMER_HATS
 # ---------------
 
-        -- Check if the table exists
-        SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'customer_hats');
-        -- Prepare the INSERT statement only if the table exists
-        SET @sql = IF(@table_exists > 0, "INSERT INTO `customer_hats` (`id`, `hat_material_id`, `crown_material_id`, `tails_material_id`, `wing_id`, `original_wing_name`, `wing_quantity`, `adjusted_wings_per_hat`, `customer_id`, `shorten_top_by`, `shorten_crown_by`, `wall_allocation_id`, `crown_allocation_id`, `tails_allocation_id`, `kippa_size`, `mayler_width`, `hr_hl_width`, `crown_visible`, `crown_length`, `white_hair`, `white_hair_notes`, `order_date`, `isurgent`, `order_notes`) 
-VALUES
-(4, 16, 16, null, 22, 'RT100', 44, '44,46,46,42,44,44,44', 10, 0.5, 0.5, 18, 18, null, 55, 0.17, 0, 9.5, 9.5, 1, '', null, 1, ''),
-(5, 21, 21, null, 23, 'RT100', 44, '46,46,46,44,44', 10, 0, 0, 28, 28, null, 55, 0.17, 0, 10, 10, 1, '', null, 0, ''),
-(6, 16, 16, null, 24, 'RT85', 44, '46,46,46,44,44', 10, 0, 1, 18, 18, null, 55, 0.17, 0, 10, 10, 0, '', null, 0, ''),
-(7, 15, 15, null, 25, 'RT100', 44, '44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44', 13, 0, 0, 17, 17, null, 55, 0.17, 0, 10, 10, 0, '', null, 0, '')
-as new_customer_hats
-ON DUPLICATE KEY UPDATE
-`hat_material_id`=new_customer_hats.`hat_material_id`, `crown_material_id`=new_customer_hats.`crown_material_id`, `tails_material_id`=new_customer_hats.`tails_material_id`, `wing_id`=new_customer_hats.`wing_id`, `original_wing_name`=new_customer_hats.`original_wing_name`, `wing_quantity`=new_customer_hats.`wing_quantity`, `adjusted_wings_per_hat`=new_customer_hats.`adjusted_wings_per_hat`, `customer_id`=new_customer_hats.`customer_id`, `shorten_top_by`=new_customer_hats.`shorten_top_by`, `shorten_crown_by`=new_customer_hats.`shorten_crown_by`, `wall_allocation_id`=new_customer_hats.`wall_allocation_id`, `crown_allocation_id`=new_customer_hats.`crown_allocation_id`, `tails_allocation_id`=new_customer_hats.`tails_allocation_id`, `kippa_size`=new_customer_hats.`kippa_size`, `mayler_width`=new_customer_hats.`mayler_width`, `hr_hl_width`=new_customer_hats.`hr_hl_width`, `crown_visible`=new_customer_hats.`crown_visible`, `crown_length`=new_customer_hats.`crown_length`, `white_hair`=new_customer_hats.`white_hair`, `white_hair_notes`=new_customer_hats.`white_hair_notes`, `order_date`=new_customer_hats.`order_date`, `isurgent`=new_customer_hats.`isurgent`, `order_notes`=new_customer_hats.`order_notes`;", 'SELECT \'Table customer_hats does not exist\'');
-        -- Execute the prepared statement
-        PREPARE stmt FROM @sql;
-        EXECUTE stmt; #USING @value1, @value2;
-        DEALLOCATE PREPARE stmt;
-
-
 
 # Table hats_wings does not exist in the database!
 
 # ORDERS
 # --------
-
-        -- Check if the table exists
-        SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'orders');
-        -- Prepare the INSERT statement only if the table exists
-        SET @sql = IF(@table_exists > 0, "INSERT INTO `orders` (`id`, `customer_hat_id`, `num_of_hats`) 
-VALUES
-(4, 4, 7),
-(5, 5, 5),
-(6, 6, 5),
-(7, 7, 22)
-as new_orders
-ON DUPLICATE KEY UPDATE
-`customer_hat_id`=new_orders.`customer_hat_id`, `num_of_hats`=new_orders.`num_of_hats`;", 'SELECT \'Table orders does not exist\'');
-        -- Execute the prepared statement
-        PREPARE stmt FROM @sql;
-        EXECUTE stmt; #USING @value1, @value2;
-        DEALLOCATE PREPARE stmt;
-
 # ORDERS_STATUS
 # ---------------
-
-        -- Check if the table exists
-        SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'orders_status');
-        -- Prepare the INSERT statement only if the table exists
-        SET @sql = IF(@table_exists > 0, "INSERT INTO `orders_status` (`id`, `order_id`, `date`, `order_status`) 
-VALUES
-(4, 4, '2025-06-05 08:32:55', 'new'),
-(5, 5, '2025-06-05 08:44:11', 'new'),
-(6, 6, '2025-06-05 08:52:13', 'new'),
-(7, 7, '2025-06-05 11:54:24', 'new')
-as new_orders_status
-ON DUPLICATE KEY UPDATE
-`order_id`=new_orders_status.`order_id`, `date`=new_orders_status.`date`, `order_status`=new_orders_status.`order_status`;", 'SELECT \'Table orders_status does not exist\'');
-        -- Execute the prepared statement
-        PREPARE stmt FROM @sql;
-        EXECUTE stmt; #USING @value1, @value2;
-        DEALLOCATE PREPARE stmt;
-
 # SETTINGS
 # ----------
 

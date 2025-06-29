@@ -610,7 +610,7 @@
 
   <div style="border: 1px solid; border-radius: 10px; margin: 20px 0px;padding: 20px;">
     <div><h3>Place an order</h3></div>
-    <div *ngIf="total_num_of_possible_hats > 0">
+    <div *ngIf="total_num_of_possible_hats > 0 && customerHat.crown_allocation_id > 0 && customerHat.wall_allocation_id > 0 && customerHat.tails_allocation_id != null && customerHat.tails_allocation_id > 0">
 
       <div class="order-notes d-flex flex-row align-items-center flex-wrap" style="">
         <span>Place the order for a specific date:</span>
@@ -653,8 +653,11 @@
       </div>
 
     </div>
-    <div *ngIf="total_num_of_possible_hats <= 0">
+    <div class="order-notes" *ngIf="total_num_of_possible_hats <= 0 && customerHat.crown_allocation_id > 0 && customerHat.wall_allocation_id > 0 && customerHat.tails_allocation_id != null && customerHat.tails_allocation_id > 0">
       No sufficient quota to order hats
+    </div>
+    <div class="order-notes" *ngIf="customerHat.crown_allocation_id <= 0 || customerHat.wall_allocation_id <= 0 || customerHat.tails_allocation_id == null || customerHat.tails_allocation_id <= 0">
+      {{ summary_table_instructions }} to calculate and place an order
     </div>
    
     <div>

@@ -2,18 +2,7 @@
 # & cmd.exe /c """C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"" -u root -p12345678 < .\SQL\create_db.sql"
 
 use inventory;
-SET FOREIGN_KEY_CHECKS = 0;
-/*
-CREATE TABLE  IF NOT EXISTS `test` (
-`quantity_units`	ENUM('kg', 'units') DEFAULT 'kg'
-);
-SHOW COLUMNS FROM test LIKE 'quantity_units';
-drop table if exists test;
-*/
-# CLEANUP
-# -----------
-/*
-use inventory;
+/*================= CLEAN UP AND START FRESH =================*/
 SET FOREIGN_KEY_CHECKS = 0;
 drop table if exists users;
 
@@ -40,7 +29,7 @@ drop table if exists settings;
 
 drop table if exists transaction_history;
 SET FOREIGN_KEY_CHECKS = 1;
-*/
+/*=================/CLEAN UP AND START FRESH =================*/
 
 # CREATE TABLES
 # ---------------
