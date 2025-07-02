@@ -11,7 +11,7 @@
     </thead>
     <tbody>
       <tr 
-        *ngFor="let wingbaby of this.wingsbabies | prefix: this.wingPrefix; trackBy: trackItem; index as i" role="button"> <!-- -->
+        *ngFor="let wingbaby of this.wingsbabies | sortbabies | prefix: this.wingPrefix; trackBy: trackItem; index as i" role="button"> <!-- -->
         <td (click)="clicked(wingbaby)"> {{ wingbaby.position }}</td>
         <td (click)="clicked(wingbaby)"> {{ wingbaby.length.toFixed(1) }} cm</td>
         <td class="text-center" (click)="deleteBaby(wingbaby)" (mouseover)="show_append($event)" (mouseout)="hide_append($event)"><fa-icon class="text-danger" [icon]="faTrashAlt"  [title]="'Delete ' + wingbaby.position + ' (' + wingbaby.length.toFixed(1) + ' cm)'"></fa-icon></td>

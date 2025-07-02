@@ -20,12 +20,14 @@ import { UnsavedChangesDialogComponent } from '../../common/unsaved-changes-dial
 import { UnsavedNavigationConfirmationService } from '../../../services/unsaved-navigation-confirmation.service';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { StateService } from '../../../services/state.service';
+import { SortBabiesPipe } from '../../../utils/pipes/sort-babies-pipe';
 
 @Component({
   selector: 'app-wings-editor',
   standalone: true,
   imports: [ ConfirmationDialogComponent, FormsModule, NgIf, NgFor, FaIconComponent, WingsBabiesTableComponent, 
-    WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent, BabyLengthModalComponent, UnsavedChangesDialogComponent, DecimalPipe],
+    WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent, BabyLengthModalComponent, 
+    UnsavedChangesDialogComponent, DecimalPipe, SortBabiesPipe ],
   templateUrl: './wings-editor.component.html',
   styleUrl: './wings-editor.component.scss',/*
   changeDetection: ChangeDetectionStrategy.OnPush*/

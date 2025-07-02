@@ -354,7 +354,7 @@ CREATE TABLE  IF NOT EXISTS `material_colors` (
 
 Insert into `material_colors` (`priority`, `color`)
 VALUES
-(10, 'Natural'), (20, 'Light brown'), (30, 'Brown'), (40, 'Dark brown'), (50, 'Black');
+(10, 'Natural'), (20, 'Light brown'), (30, 'Brown'), (40, 'Dark brown'), (50, 'Black'), (60, 'Mixed color');
 
 CREATE TABLE  IF NOT EXISTS `raw_materials`
 (
@@ -695,6 +695,7 @@ VALUES
 
 
 /*------- UI Settings ---------*/
+('ui_settings_grid_paging', '1', '1', 'boolean'),
 ('ui_settings_grid_page_size', '20', '20', 'number')
 
 AS new_settings

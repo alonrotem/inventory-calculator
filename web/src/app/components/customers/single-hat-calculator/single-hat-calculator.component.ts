@@ -28,6 +28,7 @@ import { StateService } from '../../../services/state.service';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { MiscUtils } from '../../../utils/misc-utils';
+import { SortBabiesPipe } from '../../../utils/pipes/sort-babies-pipe';
 
 /*
 sohortening top/crown with slider:
@@ -55,7 +56,7 @@ apply the sliders after the load
     WingDiagramComponent, PrefixPipe, FilterPipe, StartsWithPipe, LightboxModule,
     AllocationPickerComponent, FaIconComponent, AutocompleteLibModule, BabyLengthModalComponent,
     FaIconComponent, ConfirmationDialogComponent, HatAllocationEditorPickerComponent, RouterLink,
-    OrderAdvisorComponent, ModalDialogComponent, JsonPipe
+    OrderAdvisorComponent, ModalDialogComponent, JsonPipe, SortBabiesPipe
 ],
   templateUrl: './single-hat-calculator.component.html',
   styleUrl: './single-hat-calculator.component.scss'
@@ -130,6 +131,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   crown_babies: aggregated_babies[] = []; //crown_babies are used only if the allocations are split between hat and crown
 
   order_amount: number = -1;
+  total_babies_per_hat: number = 0;
   
   selected_wing_name:string = "";
 
@@ -469,10 +471,12 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       this.customerHat.wing_quantity,
       this.order_amount
     );
+    /*
     this.console.log("=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
     this.console.log("CALVULATED HATS:");
     this.console.dir(this.calculated_hats_info);
     this.console.log("=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+    */
     this.hat_babies = (JSON.parse(JSON.stringify(this.calculated_hats_info.hat_babies)));
     this.crown_babies = (JSON.parse(JSON.stringify(this.calculated_hats_info.crown_babies)));
     this.total_num_of_possible_hats = this.calculated_hats_info.total_num_of_possible_hats;
@@ -480,6 +484,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     if(this.total_num_of_possible_hats < Infinity || this.total_num_of_possible_hats == 0) {
       this.highlight_lowest_number_in_table = true;
     }
+    this.total_babies_per_hat = (this.customerHat.wing? this.customerHat.wing.babies.length : 0) * this.customerHat.wing_quantity;
     /*
     if(this.order_amount != this.total_num_of_possible_hats){
       this.order_amount = this.total_num_of_possible_hats;

@@ -75,10 +75,10 @@
             <div class="col" #diagram_container>
                 <app-wing-diagram
                     #diagram 
-                        [lefts]="this.wing.babies | prefix: 'L' : true"
-                        [rights]="this.wing.babies | prefix: 'R' : true"
-                        [top_length]="this.wing.babies | prefix: 'TOP' : true"
-                        [crown]="this.wing.babies | prefix: 'C' : true"
+                        [lefts]="this.wing.babies | sortbabies | prefix: 'L' : true"
+                        [rights]="this.wing.babies | sortbabies | prefix: 'R' : true"
+                        [top_length]="this.wing.babies | sortbabies | prefix: 'TOP' : true"
+                        [crown]="this.wing.babies | sortbabies | prefix: 'C' : true"
                         [knife]="wing.knife"
                         (babyClicked)="this.diagram_babyClicked($event)"
                         [scale]="1"
@@ -88,10 +88,10 @@
                     <div>
                         <app-wing-diagram
                             #diagram_preview
-                            [lefts]="this.wing.babies | prefix: 'L' : true"
-                            [rights]="this.wing.babies | prefix: 'R' : true"
-                            [top_length]="this.wing.babies | prefix: 'TOP' : true"
-                            [crown]="this.wing.babies | prefix: 'C' : true"
+                            [lefts]="this.wing.babies | sortbabies | prefix: 'L' : true"
+                            [rights]="this.wing.babies | sortbabies | prefix: 'R' : true"
+                            [top_length]="this.wing.babies | sortbabies | prefix: 'TOP' : true"
+                            [crown]="this.wing.babies | sortbabies | prefix: 'C' : true"
                             [knife]="wing.knife"
                             [scale]=".3"
                             [show_tooltips]="false"

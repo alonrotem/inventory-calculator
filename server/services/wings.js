@@ -11,9 +11,18 @@ async function getSingle(id){
     const data = helper.emptyOrSingle(rows);
     if(!helper.isEmptyObj(data)) {
         const wing_babies = await db.query(
+          `
+select  wb.id, wb.parent_wing_id, wb.position, wb.length from (
+select id, parent_wing_id, position, length, REGEXP_SUBSTR(position, '^[^\\d]+') pos_name, CAST(REGEXP_SUBSTR(position, '\\d+') as unsigned) pos_num 
+from wings_babies
+              where parent_wing_id=${id}
+              order by pos_name, pos_num) wb;          
+          `
+          /*
             `select id, parent_wing_id, position, length from wings_babies 
               where parent_wing_id=${id}
               order by position;`
+          */
           );
         const babies = helper.emptyOrRows(wing_babies);
         data.babies = babies;

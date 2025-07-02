@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { lastValueFrom, Observable, of } from 'rxjs';
-import { PaginationParams, Wing, ShortWingsInfo, WingsList, WingsListItem,  } from '../../types';
+import { PaginationParams, Wing, ShortWingsInfo, WingsList, WingsListItem, WingBaby,  } from '../../types';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -89,6 +89,40 @@ export class WingsService {
     }
     return of(wing_data);
     */
+  }
+
+  sort_babies(items: WingBaby[], reversed:boolean = false) : WingBaby[]{
+    return items.sort((a, b) => {
+        const parsePosition = (pos: string): { prefix: string; number: number } => {
+            if (pos.toUpperCase() === 'TOP') {
+                return { prefix: 'TOP', number: 0 };
+            }
+
+            const match = pos.match(/^([CLR])(\d+)$/i);
+            if (!match) {
+                throw new Error(`Invalid position format: ${pos}`);
+            }
+
+            return {
+                prefix: match[1].toUpperCase(),
+                number: parseInt(match[2], 10)
+            };
+        };
+
+        const prefixOrder = ['TOP', 'C', 'L', 'R'];
+
+        const aParsed = parsePosition(a.position);
+        const bParsed = parsePosition(b.position);
+
+        const aPrefixIndex = prefixOrder.indexOf(aParsed.prefix);
+        const bPrefixIndex = prefixOrder.indexOf(bParsed.prefix);
+
+        if (aPrefixIndex !== bPrefixIndex) {
+            return aPrefixIndex - bPrefixIndex;
+        }
+
+        return (reversed)? (bParsed.number - aParsed.number) : (aParsed.number - bParsed.number);
+    });
   }
 
   invalidateWingsCache() {

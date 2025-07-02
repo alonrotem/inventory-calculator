@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { WingBaby } from '../../../../types';
 import { NgFor, NgIf } from '@angular/common';
 import { faArrowsUpToLine, faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
@@ -9,16 +9,17 @@ import { FormsModule } from '@angular/forms';
 import { RawMaterialsService } from '../../../services/raw-materials.service';
 import { ToastService } from '../../../services/toast.service';
 import { PrefixPipe } from "../../../utils/pipes/prefix-pipe";
+import { SortBabiesPipe } from '../../../utils/pipes/sort-babies-pipe';
 
 @Component({
   selector: 'app-wings-babies-table',
   standalone: true,
-  imports: [NgFor, NgIf, FaIconComponent, BabiesLengthPickerComponent, AutocompleteLibModule, FormsModule, PrefixPipe],
+  imports: [NgFor, NgIf, FaIconComponent, BabiesLengthPickerComponent, AutocompleteLibModule, FormsModule, PrefixPipe, SortBabiesPipe],
   templateUrl: './wings-babies-table.component.html',
   styleUrl: './wings-babies-table.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class WingsBabiesTableComponent {
+export class WingsBabiesTableComponent implements OnChanges {
   @Input() wing_id: number = 0;
   @Input() position: string = '';
   @Input() wingsbabies: WingBaby[] = [];
@@ -33,6 +34,12 @@ export class WingsBabiesTableComponent {
 
   constructor(private toastService: ToastService){
     //this.wingsbabiesChange.emit(this.wingsbabies);
+  }
+  
+  ngOnChanges(changes: SimpleChanges): void {
+    console.log("CHANGES!");
+    console.dir(changes);
+    changes["wingsbabies"].currentValue = [];
   }
 
   addBabyToTable(){
@@ -88,7 +95,7 @@ export class WingsBabiesTableComponent {
   hide_me(e:any){
     e.target.classList.remove("expand-balloon-visible");
   }
-
+  
   insert_row(index:number){
     let index_at_pos=0, item_index_with_prefix = 0;
     for(let i=0, arr_pos_found=false; !arr_pos_found ; i++){

@@ -56,10 +56,11 @@
 
     <table class="table table-responsive">
       <th>Hat in order</th>
-      <th>Number of wings</th>
+      <th class="text-center">Number of wings</th>
+      <th class="text-center">Babies per hat</th>
       <tr *ngFor="let num_of_wings of wings_per_hat_in_order; let i = index; trackBy: trackByIndex">
         <td>Hat #{{ i+1 }}</td>
-        <td>
+        <td class="d-flex justify-content-center">
           <input 
             class="form-control" 
             type="number" 
@@ -70,6 +71,7 @@
             (input)="dont_exceed_max_wings($event, i)"
               />
         </td>
+        <td class="text-center">{{ wings_per_hat_in_order[i] * (this.customerHat.wing? this.customerHat.wing.babies.length : 0) }}</td>
       </tr>
     </table>
   </div>
@@ -310,7 +312,7 @@
     <!-- Wing number picker -->
     <div class="hat-info-section" [hidden]="raw_material_names.length == 0">
       <div><strong>Number of wings:</strong></div>
-      <div>{{ (customerHat.wing)? this.selected_wing_name : 'Loading wing' }} x <input type="number" [(ngModel)]="customerHat.wing_quantity" style="width: 70px; text-align: center;" (change)="num_of_wings_changed()" (keyup)="num_of_wings_changed()" /> </div><!--{{ active_hat? active_hat.wing_quantity: "(Please select a hat)" }}-->
+      <div>{{ (customerHat.wing)? this.selected_wing_name : 'Loading wing' }} x <input type="number" [(ngModel)]="customerHat.wing_quantity" style="width: 70px; text-align: center;" (change)="num_of_wings_changed()" (keyup)="num_of_wings_changed()" min="1" /> </div><!--{{ active_hat? active_hat.wing_quantity: "(Please select a hat)" }}-->
     </div>
     <!--/Wing number picker -->
   
@@ -323,10 +325,10 @@
       <app-wing-diagram
           #diagram 
           [scale]="0.7"
-          [lefts]="(this.customerHat.wing)? (this.customerHat.wing.babies | prefix: 'L' : true) : []"
-          [rights]="(this.customerHat.wing)? (this.customerHat.wing.babies | prefix: 'R' : true) : []"
-          [top_length]="(this.customerHat.wing)? (this.customerHat.wing.babies | prefix: 'TOP' : true) : []"
-          [crown]="(this.customerHat.wing)? (this.customerHat.wing.babies | prefix: 'C' : true) : []"
+          [lefts]="(this.customerHat.wing)? (this.customerHat.wing.babies | sortbabies | prefix: 'L' : true) : []"
+          [rights]="(this.customerHat.wing)? (this.customerHat.wing.babies | sortbabies | prefix: 'R' : true) : []"
+          [top_length]="(this.customerHat.wing)? (this.customerHat.wing.babies | sortbabies | prefix: 'TOP' : true) : []"
+          [crown]="(this.customerHat.wing)? (this.customerHat.wing.babies | sortbabies | prefix: 'C' : true) : []"
           [knife]="(this.customerHat.wing)? (this.customerHat.wing.knife) : 0"
           (babyClicked)="diagram_baby_clicked($event)"
       />
@@ -557,7 +559,7 @@
           <td>{{ item.quantity }}</td>
           <td>{{ item.position }}</td>
 
-          <td class="table-message" *ngIf="i==0 && summary_table_instructions" colspan="3" [attr.rowspan]="(hat_babies.length + crown_babies.length)">
+          <td class="table-message" *ngIf="i==0 && summary_table_instructions" colspan="3" [attr.rowspan]="(hat_babies.length + crown_babies.length +1)">
             <div>{{ summary_table_instructions }}</div>
           </td>
 
@@ -574,6 +576,14 @@
           <td *ngIf="!summary_table_instructions">{{ item.remaining }}</td>
         </tr>        
 
+        <tr>
+          <td class="text-warning">
+            <strong>Total babies per hat</strong>
+          </td>
+          <td class="text-warning">{{ total_babies_per_hat }}</td>
+          <td></td>
+          <td *ngIf="!summary_table_instructions" colspan="3"></td>
+        </tr>
     </tbody>
   </table>
 

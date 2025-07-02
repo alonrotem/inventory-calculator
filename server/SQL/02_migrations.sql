@@ -68,7 +68,7 @@ DEALLOCATE PREPARE stmt;
 
 Insert into `material_colors` (`priority`, `color`)
 VALUES
-(10, 'Natural'), (20, 'Light brown'), (30, 'Brown'), (40, 'Dark brown'), (50, 'Black');
+(10, 'Natural'), (20, 'Light brown'), (30, 'Brown'), (40, 'Dark brown'), (50, 'Black'), (60, 'Mixed color');
 # End: Add column if doesn't exist
 # -----------------------------------
 
