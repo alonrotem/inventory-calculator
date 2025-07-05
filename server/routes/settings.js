@@ -27,4 +27,19 @@ const { logger } =  require('../logger');
     }
   });
 
+    router.put('/', async function(req, res, next) {
+      logger.info(`put /settings`);
+      try {
+        logger.debug(`Body: ${ JSON.stringify(req.body) }`);
+        const response = await settings.saveSettings(req.body);
+        logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+        res.json(response);
+      } 
+      catch (err) {
+        logger.error(`Error saving settings: ${err.message}`);
+        next(err);
+      }
+  });
+
+
   module.exports = router;

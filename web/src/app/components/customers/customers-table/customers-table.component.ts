@@ -17,6 +17,8 @@ import { CustomersService } from '../../../services/customers.service';
 import { SingleHatCalculatorComponent } from '../single-hat-calculator/single-hat-calculator.component';
 import { StateService } from '../../../services/state.service';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
+import { firstValueFrom } from 'rxjs';
+import { SettingsService } from '../../../services/settings.service';
 
 @Component({
   selector: 'app-customers-table',
@@ -29,7 +31,8 @@ export class CustomersTableComponent extends NavigatedMessageComponent implement
   
   constructor(
     private customersService: CustomersService, 
-    private modalService: NgbModal, 
+    private modalService: NgbModal,
+    private settingsService: SettingsService,
     router: Router, 
     stateService: StateService,
     toastService: ToastService) {
@@ -64,7 +67,9 @@ export class CustomersTableComponent extends NavigatedMessageComponent implement
     })
   }
 
-  ngOnInit(){
+  async ngOnInit(){
+    this.rowsPerPage = await this.settingsService.getNumOfItemsPerPage();
+
     this.getCustomers(1);
     history.replaceState({}, location.href);
   }

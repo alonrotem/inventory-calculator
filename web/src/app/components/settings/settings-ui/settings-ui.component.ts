@@ -1,24 +1,27 @@
 import { NgIf } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { SettingsService } from '../../../services/settings.service';
 import { faPaintRoller, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'app-settings-ui',
   standalone: true,
-  imports: [ FormsModule, NgIf ],
+  imports: [ FormsModule, NgIf, FaIconComponent ],
   templateUrl: './settings-ui.component.html',
   styleUrl: './settings-ui.component.scss'
 })
 export class SettingsUiComponent {
-  settings: any;
   currentUrl: string = '';
   faPaintRoller: IconDefinition = faPaintRoller;
+  @Input() settings: Record<string, string> = {};
+  @Output() settings_changed: EventEmitter<void> = new EventEmitter<void>();
 
-  constructor(private settingsService: SettingsService){
-    this.settingsService.getSettings([]).subscribe({next: (settings:any) => {
-      this.settings = settings;
-    }});
+  constructor(){
+  }
+
+  emit_settings_changed() {
+    this.settings_changed.emit();
   }
 }

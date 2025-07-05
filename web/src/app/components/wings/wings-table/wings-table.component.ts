@@ -10,6 +10,7 @@ import { FaIconComponent, FontAwesomeModule } from '@fortawesome/angular-fontawe
 import { ToastService } from '../../../services/toast.service';
 import { StateService } from '../../../services/state.service';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
+import { SettingsService } from '../../../services/settings.service';
 
 @Component({
   selector: 'app-wings-table',
@@ -32,6 +33,7 @@ export class WingsTableComponent extends NavigatedMessageComponent implements On
 
   constructor(
     private wingsService: WingsService, 
+    private settingsService: SettingsService,
     router: Router, 
     stateService: StateService,
     toastService: ToastService  
@@ -57,7 +59,8 @@ export class WingsTableComponent extends NavigatedMessageComponent implements On
       })
   }
 
-  ngOnInit(): void {
+  async ngOnInit() {
+    this.rowsPerPage = await this.settingsService.getNumOfItemsPerPage();
     this.getWings(1);
   }
 

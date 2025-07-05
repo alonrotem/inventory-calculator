@@ -91,7 +91,7 @@ router.get('/single/:id', async function(req, res, next) {
         http://localhost:3000/raw_materials/12
   */
   router.put('/', async function(req, res, next) {
-    logger.info(`pug /raw_materials`);
+    logger.info(`put /raw_materials`);
     try {
       logger.debug(`Body: ${ JSON.stringify(req.body) }`);
       const response = await raw_materials.save_material(req.body);

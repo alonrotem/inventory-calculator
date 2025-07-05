@@ -1,5 +1,5 @@
 import { NgIf } from '@angular/common';
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPersonDigging, IconDefinition } from '@fortawesome/free-solid-svg-icons';
@@ -15,14 +15,14 @@ export class SettingsAlertsComponent implements OnChanges{
 
   faPersonDigging: IconDefinition = faPersonDigging;
   
-  @Input() settings: any = {
-    alert_raw_material_total_kg: true,
-    alert_raw_material_total_kg_below: 5,
-    alert_raw_material_total_units: true,
-    alert_raw_material_total_units_below: 5
-  };
+  @Output() settings_changed: EventEmitter<void> = new EventEmitter<void>();
+  @Input() settings: Record<string, string> = {};
 
   ngOnChanges(changes: SimpleChanges): void {
     //console.dir(this.settings);
+  }
+  emit_settings_changed() {
+    //console.log("change!");
+    this.settings_changed.emit();
   }
 }

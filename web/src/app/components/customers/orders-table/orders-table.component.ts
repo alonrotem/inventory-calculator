@@ -16,6 +16,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ToastService } from '../../../services/toast.service';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { StateService } from '../../../services/state.service';
+import { SettingsService } from '../../../services/settings.service';
 
 @Component({
   selector: 'app-orders-table',
@@ -40,6 +41,7 @@ export class OrdersTableComponent extends NavigatedMessageComponent implements O
   constructor(
     private ordersService: OrdersService, 
     private modalService: NgbModal, 
+    private settingsService: SettingsService,
     router: Router, 
     stateService: StateService,
     toastService: ToastService,
@@ -53,7 +55,9 @@ export class OrdersTableComponent extends NavigatedMessageComponent implements O
       }
     }
 
-  ngOnInit(): void {
+  async ngOnInit() {
+    this.rowsPerPage = await this.settingsService.getNumOfItemsPerPage();
+
     this.activatedRoute.queryParams.subscribe(params => {
       if(params['customer_id'] && params['customer_id'] != 0) {
         this.customer_id = params['customer_id'];

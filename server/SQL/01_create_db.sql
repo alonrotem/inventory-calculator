@@ -502,6 +502,7 @@ CREATE TABLE  IF NOT EXISTS wings (
 	`id`    INT NOT NULL auto_increment,
     `name`	VARCHAR(255) NOT NULL,
     `knife`	float,
+    `customer_id` INT NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -692,7 +693,6 @@ VALUES
 -- Mark the customer bank in RED, if raw material item quantity less than __%
 ('mark_red_customer_bank_percents', '1', '1', 'boolean'),
 ('mark_red_customer_bank_percents_below', '10', '10', 'number'),
-
 
 /*------- UI Settings ---------*/
 ('ui_settings_grid_paging', '1', '1', 'boolean'),

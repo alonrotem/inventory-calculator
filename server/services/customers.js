@@ -45,7 +45,7 @@ async function getSingle(id){
 
 async function getMultiple(page = 1, perPage){
   let subset =  '';
-  if(page && perPage)
+  if(page && perPage && page > 0 && perPage > 0)
   {
     const offset = helper.getOffset(page, perPage);
     subset = `LIMIT ${offset},${perPage}`

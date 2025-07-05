@@ -185,7 +185,7 @@ async function get_orders_list(page = 1, perPage, customer_id){
         customer_filter = `and ch.customer_id=${customer_id}`;
     }
 
-    if(page && perPage) {
+    if(page && perPage && page > 0 && perPage > 0) {
         const offset = helper.getOffset(page, perPage);
         subset = `LIMIT ${offset},${perPage}`
     }    
@@ -222,6 +222,7 @@ left join raw_materials rm_crown on ch.crown_material_id=rm_crown.id
 left join raw_materials rm_tails on ch.tails_material_id=rm_tails.id
 where os.date = (select MAX(os2.date) FROM orders_status os2 where os.id = os2.id)
     ${customer_filter}
+    order by date desc
     ${subset}`);
 
     const total = await db.query(

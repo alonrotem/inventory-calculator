@@ -16,6 +16,8 @@ import { ToastComponent } from '../../common/toast/toast.component';
 import { ToastService } from '../../../services/toast.service';
 import { StateService } from '../../../services/state.service';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
+import { SettingsService } from '../../../services/settings.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
     selector: 'app-raw-materials-table',
@@ -23,7 +25,7 @@ import { NavigatedMessageComponent } from '../../common/navigated-message/naviga
     templateUrl: './raw-materials-table.component.html',
     styleUrl: './raw-materials-table.component.scss',
     imports: [ 
-      NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, 
+      NgFor, PaginatorComponent, ModalDialogComponent, 
       RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, 
       FormsModule, DateStrPipe, ToastComponent, DecimalPipe 
     ]
@@ -33,7 +35,8 @@ export class RawMaterialsTableComponent extends NavigatedMessageComponent implem
   
   constructor(
     private rawMaterialsService: RawMaterialsService, 
-    private modalService: NgbModal, 
+    private modalService: NgbModal,
+    private settingsService: SettingsService, 
     router: Router, 
     stateService: StateService,
     toastService: ToastService
@@ -52,6 +55,7 @@ export class RawMaterialsTableComponent extends NavigatedMessageComponent implem
   selectedCar: number=1;
 
   getRawMaterials(page: number){
+    //console.log("this.rowsPerPage: " + this.rowsPerPage);
     this.rawMaterialsService.getRawMaterials({ page: page, perPage:this.rowsPerPage }).subscribe(
     {
       next: (rawMaterials: RawMaterials) => {
@@ -68,7 +72,9 @@ export class RawMaterialsTableComponent extends NavigatedMessageComponent implem
     })
   }
 
-  ngOnInit(){
+  async ngOnInit(){
+    this.rowsPerPage = await this.settingsService.getNumOfItemsPerPage();
+
     this.getRawMaterials(1);
     history.replaceState({}, location.href);
   }

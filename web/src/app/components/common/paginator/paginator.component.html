@@ -1,5 +1,5 @@
 <nav aria-label="Page navigation example">
-    <ul class="pagination justify-content-center">
+    <ul class="pagination justify-content-center" *ngIf="pages > 1">
       <li class="page-item" [ngClass]="(current_page == 1) ? 'disabled' : ''" (click)="(current_page == 1)? false : pageClicked((current_page * 1) - 1)">
         <a class="page-link" href="javascript:void(0)" aria-label="Previous">
           <span aria-hidden="true">&laquo;</span>

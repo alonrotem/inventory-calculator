@@ -51,7 +51,7 @@ async function getSingleWingByName(name){
 async function getMultiple(page = 1, perPage, customer_id){
   let subset =  '';
   let customer_filter = ''
-  if(page && perPage)
+  if(page && perPage && page > 0 && perPage > 0)
   {
     const offset = helper.getOffset(page, perPage);
     subset = `LIMIT ${offset},${perPage}`

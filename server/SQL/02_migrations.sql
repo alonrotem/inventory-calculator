@@ -1,5 +1,5 @@
 use inventory;
-SET FOREIGN_KEY_CHECKS = 0;
+#SET FOREIGN_KEY_CHECKS = 0;
 /*
 #==========
 -- Check if the table exists
@@ -21,13 +21,18 @@ Remove hats and hat_wings table
 Create customer_hats with id, name, wing info, material and customer id
 Add customer id to wings table, allow customer save their custom wings
 */
+/*
 # Drop foreign key if exists:
 SET @table_name = 'hats_wings', @fk_name = 'fk_hat_parent_wing_id'; SET @sql = (SELECT IF(EXISTS (SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = @table_name AND CONSTRAINT_TYPE = 'FOREIGN KEY' AND CONSTRAINT_NAME = @fk_name), CONCAT('ALTER TABLE ', @table_name, ' DROP FOREIGN KEY ', @fk_name), concat('SELECT "Foreign key ', @fk_name ,' does not exist"'))); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+*/
 
 /* Drop old tables */
+/*
 drop table if exists hats;
 drop table if exists hats_wings;
+*/
 
+/*
 # -----------------------------------
 # Add column if doesn't exist
 SET @tbl='wings';
@@ -169,3 +174,4 @@ DEALLOCATE PREPARE stmt;
 
 
 SET FOREIGN_KEY_CHECKS = 1;
+*/
