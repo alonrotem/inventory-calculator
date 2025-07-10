@@ -57,6 +57,7 @@ export interface RawMaterial {
     updated_at: Date; 
     created_by: number; 
     updated_by: number;
+    allow_shortening_babies_in_pairs: boolean;
     customer_banks: RawMaterialCustomerBank[];
     transaction_record: TransactionRecord | null;
     deleted_bank_records: TransactionRecord[];
@@ -66,6 +67,7 @@ export interface RawMaterialNameColor {
     id: number;
     name: string;
     color: string;
+    allow_shortening_babies_in_pairs: boolean;
 }
 
 export interface RawMaterialCustomerBank {
@@ -125,6 +127,7 @@ export interface Wing {
     id: number;
     name: string;
     knife: number;
+    allow_shortening_babies_in_pairs: boolean;
     babies: WingBaby[];
 }
 
@@ -189,6 +192,7 @@ export interface CustomerHat {
     wall_allocation_id: number;
     crown_allocation_id: number;
     tails_allocation_id: number | null;
+    tails_overdraft: number;
 
     crown_visible: number;
     crown_length: number;
@@ -200,7 +204,7 @@ export interface CustomerHat {
     white_hair_notes: string;
     order_date: Date | null;
     isurgent: boolean;
-    order_notes: string;  
+    order_notes: string;
 }
 
 export interface PaginationParams {
@@ -298,6 +302,7 @@ export interface Customer_Bank {
     raw_material_name: string; 
     raw_material_color: string;
     raw_material_quantity_units: string;
+    allow_shortening_babies_in_pairs: boolean;
     pre_save_id: number;
     id: number; 
     customer_id: number;
@@ -417,6 +422,47 @@ export interface Order {
     customer_hat: CustomerHat;
     num_of_hats: number;
     status: OrderStatus;
+}
+
+export interface OrderDetails {
+    id: number;
+    order_id_with_customer: string;
+    order_status: Status;
+    isurgent: boolean;
+    customer_name: string;
+wing_name: string;
+wall_material: string;
+wall_material_color: string;
+    kippa_size: number;
+    wing_quantity: number;
+crown_material: string;
+crown_material_color: string;
+    crown_visible: number;
+    crown_length: number;
+    knife: number;
+    white_hair_notes: string;
+    white_hair: number;
+h_material: string;
+h_material_color: string;
+    date: Date;
+    //-----
+adjusted_wings_per_hat: string;
+shorten_top_by: number;
+shorten_crown_by: number;
+tails_overdraft: number;
+mayler_width: number;
+hr_hl_width: number;
+order_notes: string;
+original_order_date: Date | null;
+
+babies: WingBaby[];
+    //-----
+
+/* 
+	hat_material_id: number | null;
+	crown_material_id: number| null;
+	tails_material_id: number | null;
+*/    
 }
 
 export enum Status {

@@ -1,3 +1,8 @@
+Overdraft tails
+
+
+=================================
+
 Bugs fixed
 [x] If crown allocation is different, number of hats dialog shows 0 wings and strange negative numbers
 [x] If the number of hats to order is 0, show a message in the table and lock the order button

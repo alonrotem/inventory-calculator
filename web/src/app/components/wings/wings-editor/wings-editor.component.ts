@@ -68,7 +68,8 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
     id: 0,
     name: '',
     knife: 0,
-    babies: []
+    babies: [],
+    allow_shortening_babies_in_pairs: false
   }
   crown_babies_options = Array(5).fill(0).map((_, i)=> i+1);
 

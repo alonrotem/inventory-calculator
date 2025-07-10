@@ -375,6 +375,7 @@ CREATE TABLE  IF NOT EXISTS `raw_materials`
   `updated_at`    	DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
   `created_by`	 	int null,
   `updated_by`	 	int null,
+  `allow_shortening_babies_in_pairs` boolean default false,
   PRIMARY KEY (`id`),
   CONSTRAINT fk_raw_material_country
   FOREIGN KEY (`origin_country`) REFERENCES countries(`code`),
@@ -503,6 +504,7 @@ CREATE TABLE  IF NOT EXISTS wings (
     `name`	VARCHAR(255) NOT NULL,
     `knife`	float,
     `customer_id` INT NULL,
+    `allow_shortening_babies_in_pairs` boolean default false,
     PRIMARY KEY (`id`)
 );
 
@@ -578,6 +580,7 @@ CREATE TABLE  IF NOT EXISTS `customer_hats`
     `wall_allocation_id` INT NOT NULL,
     `crown_allocation_id` INT NOT NULL,
     `tails_allocation_id`	INT NULL,
+    `tails_overdraft`		INT default 0,
     
     `kippa_size`	FLOAT NULL,
     `mayler_width`	FLOAT NULL,
@@ -606,9 +609,10 @@ CREATE TABLE  IF NOT EXISTS `customer_hats`
 	CONSTRAINT fk_customer_hats_wall_alloc_id
 		FOREIGN KEY (`wall_allocation_id`) REFERENCES customer_banks_allocations(`id`)  ON DELETE CASCADE,
 	CONSTRAINT fk_customer_hats_crown_alloc_id
-		FOREIGN KEY (`crown_allocation_id`) REFERENCES customer_banks_allocations(`id`)  ON DELETE CASCADE,
+		FOREIGN KEY (`crown_allocation_id`) REFERENCES customer_banks_allocations(`id`)  ON DELETE CASCADE /*,
 	CONSTRAINT fk_customer_hats_tails_alloc_id
 		FOREIGN KEY (`tails_allocation_id`) REFERENCES customer_banks_allocations(`id`)  ON DELETE CASCADE
+	*/
 );
 
 CREATE TABLE IF NOT EXISTS `orders` (

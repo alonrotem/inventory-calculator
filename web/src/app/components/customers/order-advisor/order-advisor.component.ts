@@ -138,8 +138,9 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
           id: w_id,
           name: wing.w_n,
           knife: 0,
-          babies: babies
-         });
+          babies: babies,
+          allow_shortening_babies_in_pairs: false
+        });
         }
       });
   }
@@ -351,7 +352,8 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
     ){
       let adjustedWing: Wing | null = wing;
       if(reduceTop > 0 || reduceCrown > 0){
-        adjustedWing = this.hatsCalculatorService.adjustWingToShortenedTCrownOrTop(wing, reduceTop, reduceCrown);
+        const allow_shortening_babies_in_pairs = (wing.allow_shortening_babies_in_pairs && this.wall_bank != null && this.wall_bank.allow_shortening_babies_in_pairs);
+        adjustedWing = this.hatsCalculatorService.adjustWingToShortenedTCrownOrTop(wing, reduceTop, reduceCrown, allow_shortening_babies_in_pairs);
       }
       let hats_info = this.hatsCalculatorService.aggregateHatBabiesAndMatchingAllocations(
         adjustedWing,
@@ -402,7 +404,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
           let current_wing_alternatives = this.suggestions.wing_suggestions.find(s => s.wing_id == this.wing_id);
           if(current_wing_alternatives) {
             let highest_alternative = current_wing_alternatives.alternatives.find(a => a.max_num_of_hats == this.suggestions.max_num_of_hats);
-            this.exceed_number_of_hats_message = `Get ${highest_alternative?.max_num_of_hats} hats, if you ` + 
+            this.exceed_number_of_hats_message = `Get ${highest_alternative?.max_num_of_hats} ${ (highest_alternative?.max_num_of_hats == 1)? 'hat':'hats' }, if you ` + 
             ((highest_alternative?.shorten_top && highest_alternative?.shorten_top > 0)? `reduce the top by ${ highest_alternative?.shorten_top.toFixed(1) }cm` : `set the top to 0`) + 
             `, and ` + 
             ((highest_alternative?.shorten_crown && highest_alternative?.shorten_crown > 0)? `reduce the crown by ${ highest_alternative?.shorten_crown.toFixed(1) }cm` : `set the crown to 0`);

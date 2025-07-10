@@ -49,7 +49,7 @@
         <tbody>           
           <tr 
             *ngFor="let order of this.orders" 
-            role="button"> <!-- routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }"-->
+            role="button" routerLink="/inventory/customer/order/editor" [queryParams]="{ id: order.id }">
             <td>{{ order.order_id_with_customer }}</td>
             <td>{{ order.order_status }}</td>
             <td><input class="form-check-input" type="checkbox" onclick="return false;" [checked]="order.isurgent" /></td>

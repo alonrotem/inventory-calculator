@@ -1,0 +1,85 @@
+<div class="row justify-content-center order-editor-container">
+    <div class="col-12 col-md-8 order-editor">
+    
+        <!-- heading -->
+        <div class="heading d-flex flex-nowrap flex-row justify-content-between align-items-center">
+            <div>
+                <img src="/assets/images/romtech-w-logo-light.png" alt="">
+            </div>
+            <div>
+                <h3>Job Order</h3>
+            </div>
+        </div>
+
+        <!-- loading animation -->
+        <div id="loading_icon" [hidden]="!loading">
+            <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <div><fa-icon [icon]="faArrowsRotate" [spin]="true" size="3x"></fa-icon></div>
+                <div id="loading_message">Loading order...</div>
+            </div>
+        </div>
+
+        <div  [hidden]="loading">
+            <div class="row fields-row">
+                <div class="col-3 d-flex flex-column">
+                    <div class="detail-title">Order last update</div>
+                    <div class="detail-field flex-grow-1">{{ orderDetails.date | dateStr }}</div>
+                </div>
+                <div class="col-3 d-flex flex-column">
+                    <div class="detail-title">Hat #</div>
+                    <div class="detail-field flex-grow-1">{{ orderDetails.order_id_with_customer }}</div>
+                </div>
+                <div class="col-3 d-flex flex-column">
+                    <div class="detail-title">Hat style</div>
+                    <div class="detail-field flex-grow-1">{{ orderDetails.wing_name }}</div>
+                </div>
+                <div class="col-3 d-flex flex-column">
+                    <div class="detail-title">Knife model</div>
+                    <div class="detail-field flex-grow-1">{{ orderDetails.knife }}</div>
+                </div>
+            </div>
+
+            <div class="row  fields-row">
+                <div class="col-3"></div>
+                <div class="col-3 d-flex flex-column">
+                    <div class="detail-title">Material</div>
+                    <div class="detail-field flex-grow-1">{{ orderDetails.wall_material }} {{ orderDetails.wall_material_color }}</div>
+                </div>
+                <div class="col-3 d-flex flex-column">
+                    <div class="detail-title">Wings</div>
+                    <div class="detail-field flex-grow-1">{{ orderDetails.wing_quantity }}</div>
+                </div>
+            </div>
+        
+            <div class="row  fields-row">
+                <div class="col-4">
+                    <table>
+                        <tr *ngFor="let baby of (orderDetails.babies | sortbabies | prefix: 'L' : false)">
+                            <td>
+                                {{ baby.position }}
+                            </td>
+                            <td>
+                                {{ baby.length }}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-4"></div>
+                <div class="col-4">
+                                        <table>
+                        <tr *ngFor="let baby of (orderDetails.babies | sortbabies | prefix: 'R' : false)">
+                            <td>
+                                {{ baby.position }}
+                            </td>
+                            <td>
+                                {{ baby.length }}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        
+        </div>
+
+    </div>
+</div>

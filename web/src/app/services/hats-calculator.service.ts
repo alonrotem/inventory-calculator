@@ -16,6 +16,7 @@ export interface hats_calculated {
   hat_babies: aggregated_babies[],
   tails_used: number,
   tails_remaining: number,
+  tails_overdraft: number,
   max_num_of_hats_with_tails: number,
   crown_babies: aggregated_babies[]
 }
@@ -113,7 +114,8 @@ export class HatsCalculatorService {
       crown_babies: [],
       max_num_of_hats_with_tails: 0,
       tails_used: 0,
-      tails_remaining: 0
+      tails_remaining: 0,
+      tails_overdraft: 0
     };
 
     hats.total_num_of_possible_hats = Infinity;
@@ -158,13 +160,30 @@ export class HatsCalculatorService {
     hats.crown_babies.sort((a,b) => {return b.length - a.length});
 
     //check how many tails (== num of wings in total) we can produce
+    const allow_overdraft_of_tails = true; //maybe configurable in the future
     if(tails_allocation) {
-      hats.max_num_of_hats_with_tails = Math.floor(tails_allocation.tails_quantity / wing_quantity_in_hat);
-      hats.total_num_of_possible_hats = Math.min(hats.total_num_of_possible_hats, hats.max_num_of_hats_with_tails);
-      hats.max_num_of_hats_with_tails = hats.total_num_of_possible_hats;
-      hats.tails_used = hats.max_num_of_hats_with_tails * wing_quantity_in_hat;
-      hats.tails_remaining = tails_allocation.tails_quantity - hats.tails_used;
-      
+      if(!allow_overdraft_of_tails){
+        hats.max_num_of_hats_with_tails = Math.floor(tails_allocation.tails_quantity / wing_quantity_in_hat);
+        hats.total_num_of_possible_hats = Math.min(hats.total_num_of_possible_hats, hats.max_num_of_hats_with_tails);
+        hats.max_num_of_hats_with_tails = hats.total_num_of_possible_hats;
+        hats.tails_used = hats.max_num_of_hats_with_tails * wing_quantity_in_hat;
+        hats.tails_remaining = tails_allocation.tails_quantity - hats.tails_used;
+      }
+      else {
+        //overdraft is allowed, the number of tails in the allocation does not affect the number of hats,
+        //but customer can be overdrafting tails for later.
+        let wings_in_all_hats = wing_quantity_in_hat * hats.total_num_of_possible_hats;
+        if(tails_allocation.tails_quantity >= wings_in_all_hats){
+          hats.tails_used = wings_in_all_hats;
+          hats.tails_remaining = tails_allocation.tails_quantity - wings_in_all_hats;
+          hats.tails_overdraft = 0;
+        }
+        else {
+          hats.tails_used = tails_allocation.tails_quantity;
+          hats.tails_remaining = 0;
+          hats.tails_overdraft = wings_in_all_hats - tails_allocation.tails_quantity;
+        }
+      }
     }
 
     return hats;
@@ -181,7 +200,7 @@ export class HatsCalculatorService {
   //      0.0         |       1.0
   //      0.5         |       1.0
   //      1.0         |       1.0
-  adjustWingToShortenedTCrownOrTop(wing: Wing | null, reduce_top_by: number, reduce_crown_by: number): Wing | null {
+  adjustWingToShortenedTCrownOrTop(wing: Wing | null, reduce_top_by: number, reduce_crown_by: number, allow_shortening_babies_in_pairs: boolean): Wing | null {
     if(wing){
       let modified_wing = (JSON.parse(JSON.stringify(wing)));
       //shorten top
@@ -194,8 +213,8 @@ export class HatsCalculatorService {
         let sorted_L = this.get_sorted_wing_babies_by_position(modified_wing, "L");
         let sorted_R = this.get_sorted_wing_babies_by_position(modified_wing, "R");
 
-        this.shorten_babies_according_to_top(modified_wing, sorted_L, top);
-        this.shorten_babies_according_to_top(modified_wing, sorted_R, top);
+        this.shorten_babies_according_to_top(modified_wing, sorted_L, top, reduce_top_by, allow_shortening_babies_in_pairs);
+        this.shorten_babies_according_to_top(modified_wing, sorted_R, top, reduce_top_by, allow_shortening_babies_in_pairs);
       }
 
       //shorten crown
@@ -280,7 +299,71 @@ export class HatsCalculatorService {
   }
 
   // - If there were manual changes made, they will be lost, in case the top has to shorten other babies
-  private shorten_babies_according_to_top(wing: Wing | null, sorted_babies_collection: WingBaby[] | null, top: WingBaby | undefined){
+  private shorten_babies_according_to_top(wing: Wing | null, sorted_babies_collection: WingBaby[] | null, top: WingBaby | undefined, reduce_top_by: number, allow_shortening_babies_in_pairs: boolean){
+    let previous_baby_in_line = top;
+    if(allow_shortening_babies_in_pairs){
+    let allow_group_similar_babies = 1;
+    let max_items_in_similar_length_group = 2;
+    sorted_babies_collection?.forEach(unchanged_baby => {
+      let display_baby = wing?.babies.find(b => b.position.toUpperCase() == unchanged_baby.position.toUpperCase());
+      if(display_baby && previous_baby_in_line && previous_baby_in_line?.length) {
+        // if the display_baby is longer than the previous_baby_in_line, shorten it (min 6cm)
+        // if the display_baby is shorter or equel to the previous_baby_in_line, do nothing
+
+        //if previous_baby_in_line == top
+        //shorten the baby, as needed. <- counter 1
+        if(previous_baby_in_line == top){
+          if(unchanged_baby.length  - reduce_top_by == previous_baby_in_line.length){
+            display_baby.length -= reduce_top_by;
+
+          }
+          else {
+            let corrected_length = previous_baby_in_line.length - 0.5;
+            display_baby.length = Math.max(corrected_length, 6);
+          }
+        }
+
+        //check next baby <- counter 1
+        //grouped? (counter < 2)
+        //allow to be equal
+        //counter++
+        else {
+          if(allow_group_similar_babies < max_items_in_similar_length_group){
+            //allow to be equal
+            display_baby.length = previous_baby_in_line.length;
+            /*
+            if(unchanged_baby.length > previous_baby_in_line.length){
+              let corrected_length = previous_baby_in_line.length - 0.5;
+              display_baby.length = Math.max(corrected_length, 6);
+            }
+            else if(unchanged_baby.length == previous_baby_in_line.length){
+              //allow it
+            }
+            */
+            allow_group_similar_babies++;
+          }
+
+          //check next baby <- counter 2
+          //grouped? (counter < 2) <- no
+          //counter = 1
+          //do not allow to be equal
+          else {
+            if(unchanged_baby.length >= previous_baby_in_line.length){
+              let corrected_length = previous_baby_in_line.length - 0.5;
+              display_baby.length = Math.max(corrected_length, 6);
+            }            
+            allow_group_similar_babies = 1;
+          }
+        }
+
+
+
+      }
+      previous_baby_in_line = display_baby;
+    });
+  }
+  else {
+
     let previous_baby_in_line = top;
     sorted_babies_collection?.forEach(unchanged_baby => {
       let display_baby = wing?.babies.find(b => b.position.toUpperCase() == unchanged_baby.position.toUpperCase());
@@ -298,5 +381,9 @@ export class HatsCalculatorService {
       }
       previous_baby_in_line = display_baby;
     });
+  }
+
+            /*
+*/
   }
 }

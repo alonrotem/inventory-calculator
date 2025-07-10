@@ -33,4 +33,17 @@ const { logger } =  require('../logger');
     }
   });
 
+  router.get('/:id', async function(req, res, next) {
+      logger.info(`get /orders/${req.params.id}`);
+      try {
+        const response = await orders.get_order_details(req.params.id);
+        logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+        res.json(response);
+      } 
+      catch (err) {
+        logger.error(`Error getting order details with ID ${ req.params.id }: ${err.message}`);
+        next(err);
+      }
+    });
+
   module.exports = router;

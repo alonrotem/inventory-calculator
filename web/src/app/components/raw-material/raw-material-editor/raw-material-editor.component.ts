@@ -61,7 +61,8 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
     customer_banks: [],
     transaction_record: null,
     deleted_bank_records: [],
-    color: ''
+    color: '',
+    allow_shortening_babies_in_pairs: false
   }
 
   colors: string[] = [];

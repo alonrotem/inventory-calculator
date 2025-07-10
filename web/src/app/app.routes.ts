@@ -14,6 +14,7 @@ import { SettingsNotificationsComponent } from './components/settings/settings-n
 import { SettingsMainComponent } from './components/settings/settings-main/settings-main.component';
 import { SingleHatCalculatorComponent } from './components/customers/single-hat-calculator/single-hat-calculator.component';
 import { OrdersTableComponent } from './components/customers/orders-table/orders-table.component';
+import { OrderEditorComponent } from './components/customers/order-editor/order-editor.component';
 
 export const routes: Routes = [
     {
@@ -54,7 +55,12 @@ export const routes: Routes = [
     {
         path: 'inventory/customer/orders',
         component: OrdersTableComponent
-    },    
+    },
+    {
+        path: 'inventory/customer/order/editor',
+        component: OrderEditorComponent,
+        canDeactivate: [UnsavedChangesGuard]
+    },
     {
         path: 'settings/alerts',
         component: SettingsAlertsComponent,

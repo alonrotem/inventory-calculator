@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
-import { Order, OrderListItem, OrdersList, PaginationParams } from '../../types';
+import { Order, OrderDetails, OrderListItem, OrdersList, PaginationParams } from '../../types';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -26,5 +26,11 @@ export class OrdersService {
       params,
       responseType: 'json'
     });
-  };  
+  };
+
+  getOrder = (order_id: number): Observable<OrderDetails> => {
+    return this.apiService.get(`${environment.serverUrl}/orders/${order_id}`, {
+      responseType: 'json'
+    });
+  };
 }

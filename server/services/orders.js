@@ -17,7 +17,6 @@ async function create(orderData, active_connection=null){
   }
   try {
      
-
     let wing_id = -1;
     let hat_id = -1;
     let order_id = -1;
@@ -62,10 +61,11 @@ async function create(orderData, active_connection=null){
 
                 original_wing_name,
                 crown_visible,
-                crown_length
+                crown_length,
+                tails_overdraft
             )
             VALUES 
-            ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_hats
+            ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_hats
             ON DUPLICATE KEY UPDATE
                 id=new_hats.id,
                 hat_material_id=new_hats.hat_material_id,
@@ -91,7 +91,8 @@ async function create(orderData, active_connection=null){
                 order_notes=new_hats.order_notes,
                 original_wing_name=new_hats.original_wing_name,
                 crown_visible=new_hats.crown_visible,
-                crown_length=new_hats.crown_length                
+                crown_length=new_hats.crown_length,
+                tails_overdraft=new_hats.tails_overdraft
                 `,
             [ 
                 orderData.customer_hat.id, orderData.customer_hat.hat_material_id, orderData.customer_hat.crown_material_id,
@@ -111,7 +112,8 @@ async function create(orderData, active_connection=null){
 
                 orderData.customer_hat.original_wing_name,
                 orderData.customer_hat.crown_visible,
-                orderData.customer_hat.crown_length
+                orderData.customer_hat.crown_length,
+                orderData.customer_hat.tails_overdraft
             ],
             active_connection
         );
@@ -240,7 +242,82 @@ where os.date = (select MAX(os2.date) FROM orders_status os2 where os.id = os2.i
     }
 }
 
+
+async function get_order_details(order_id){
+    const rows = await db.query(
+        `
+select 
+o.id,
+CASE WHEN c.customer_code IS NOT NULL 
+       THEN concat(c.customer_code, o.id)
+       ELSE o.id
+END AS order_id_with_customer,
+os.order_status,
+ch.isurgent,
+c.name customer_name,
+#------
+ch.original_wing_name wing_name,
+rm_wall.name wall_material,
+rm_wall.color wall_material_color,
+#------
+ch.kippa_size,
+ch.wing_quantity,
+#-------
+rm_crown.name crown_material,
+rm_crown.color crown_material_color,
+#-------
+ch.crown_visible,
+ch.crown_length,
+w.knife,
+ch.white_hair_notes,
+ch.white_hair,
+#-------
+rm_tails.name h_material,
+rm_tails.color h_material_color,
+#-------
+os.date,
+#===NEW
+ch.adjusted_wings_per_hat adjusted_wings_per_hat,
+ch.shorten_top_by shorten_top_by,
+ch.shorten_crown_by shorten_crown_by,
+ch.tails_overdraft tails_overdraft,
+ch.mayler_width mayler_width,
+ch.hr_hl_width hr_hl_width,
+ch.order_notes order_notes,
+ch.order_date original_order_date,
+ch.wing_id wing_id
+#=======
+from orders o 
+left join customer_hats ch on o.customer_hat_id=ch.id
+left join customers c on ch.customer_id=c.id
+left join orders_status os on os.order_id = o.id
+left join wings w on ch.wing_id = w.id
+left join raw_materials rm_wall on ch.hat_material_id=rm_wall.id
+left join raw_materials rm_crown on ch.crown_material_id=rm_crown.id
+left join raw_materials rm_tails on ch.tails_material_id=rm_tails.id
+where os.date = (select MAX(os2.date) FROM orders_status os2 where os.id = os2.id)
+   and o.id=${order_id}`);
+
+    let order_details = helper.emptyOrSingle(rows);
+
+    if(!helper.isEmptyObj(order_details)) {
+        const wing_babies = await db.query(
+          `
+            select  wb.id, wb.parent_wing_id, wb.position, wb.length from (
+            select id, parent_wing_id, position, length, REGEXP_SUBSTR(position, '^[^\\d]+') pos_name, CAST(REGEXP_SUBSTR(position, '\\d+') as unsigned) pos_num 
+            from wings_babies
+            where parent_wing_id=${order_details["wing_id"]}
+            order by pos_name, pos_num) wb;          
+          `);
+        const babies = helper.emptyOrRows(wing_babies);
+        order_details.babies = babies;          
+    }
+
+    return order_details;
+}
+
 module.exports = {
     create,
-    get_orders_list
+    get_orders_list,
+    get_order_details
 }

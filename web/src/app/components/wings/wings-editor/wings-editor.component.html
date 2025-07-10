@@ -71,6 +71,18 @@
                  </div>
             </div>
         </div>
+
+    <div class="row">
+        <div class="col col-12">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" [(ngModel)]="wing.allow_shortening_babies_in_pairs" id="chkAllowShorteningInPairs" name="chkAllowShorteningInPairs" />
+                <label class="form-check-label" for="chkAllowShorteningInPairs">
+                    Allow shortening babies of this wing in pairs (for selected materials)
+                </label>
+            </div>
+        </div>
+    </div>   
+
         <div class="row">
             <div class="col" #diagram_container>
                 <app-wing-diagram

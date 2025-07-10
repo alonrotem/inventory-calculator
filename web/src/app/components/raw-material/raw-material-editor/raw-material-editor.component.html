@@ -180,6 +180,17 @@
 
     <div class="row">
         <div class="col col-12">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" [(ngModel)]="rawMaterialItem.allow_shortening_babies_in_pairs" id="chkAllowShorteningInPairs" name="chkAllowShorteningInPairs" />
+                <label class="form-check-label" for="chkAllowShorteningInPairs">
+                    Allow shortening babies of this material in pairs (for selected wings)
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col col-12">
             <div class="form-floating">
                 <input type="text" class="form-control" id="notes" [(ngModel)]="rawMaterialItem.notes" name="notes">
                 <label for="notes">Notes</label>

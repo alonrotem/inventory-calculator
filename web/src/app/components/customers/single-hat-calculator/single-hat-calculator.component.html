@@ -260,7 +260,7 @@
       <div class="ng-autocomplete">
         <ng-select
           #wing_selector
-          placeholder="Tails material"
+          placeholder="H material"
           (change)="tails_material_changed($event)"
           (clear)="tails_material_cleared()"
           [items]="raw_material_names_tails"
@@ -282,10 +282,10 @@
     <div *ngIf="customerHat.tails_material_id">
       <div>
         <div *ngIf="tails_allocation" class="text-success">
-          Allocation #{{ tails_allocation.id }}, {{ tails_allocation.quantity | number : '1.1-1' }} {{ tails_allocation_units }}
+          Allocation #{{ tails_allocation.id }}, {{ tails_allocation.quantity | number : '1.1-1' }} {{ tails_allocation_units }} ({{tails_allocation.tails_quantity}} tails)
         </div>
         <div *ngIf="!tails_allocation">
-          <span class="text-danger">Choose an allocation</span>
+          <span class="text-warning">Choose an allocation (optional)</span>
         </div>
       </div>
       <div class="section-btn-wrapper">
@@ -374,6 +374,12 @@
             </ng-container>
           </datalist>
         </div>
+      </div>
+      <div class="text-warning">
+        According to material and wing, babies will be shortened
+        {{ (this.customerHat.wing != null &&
+          this.customerHat.wing.allow_shortening_babies_in_pairs &&
+          this.allow_shortening_material_babies_in_pairs)? 'in pairs' : 'individually' }}
       </div>
 
       <div><hr></div>
@@ -587,17 +593,49 @@
     </tbody>
   </table>
 
-  <div class="h-material-analysis border border-warning" *ngIf="!summary_table_instructions && tails_allocation != null">
-      <div class="text-warning"><strong>H Material:</strong></div> 
+  <!-- H Material analysis -->
+  <div class="h-material-analysis border border-warning"><!-- *ngIf="!summary_table_instructions && customerHat.tails_material_id != null && customerHat.tails_material_id >= 0"-->
+    <div class="text-warning"><strong>H Material:</strong></div>
+    
+    <!-- No H material selected (required for order) -->
+    <div *ngIf="customerHat.tails_material_id == null || customerHat.tails_material_id <= 0">
+      Please select the H material for this order.
+    </div>
+
+    <!-- H material selected (required for order), without allocation -->
+    <div *ngIf="customerHat.tails_material_id != null && customerHat.tails_material_id > 0 && tails_allocation == null">
+      H material selected with no allocation.<br/>
+    </div>
+
+    <!-- No hats can be produced at all (regardless of H material), can't be calculated -->
+    <div *ngIf="total_num_of_possible_hats <= 0" class="text-danger">
+      No sufficient wall and crown allocations to produce hats
+    </div>
+
+    <!-- Hats can be produced, no H material allocation selected, all tails will be overdraft -->
+    <div *ngIf="total_num_of_possible_hats > 0 && customerHat.tails_material_id != null && customerHat.tails_material_id > 0 && tails_allocation == null">
+      {{ customerHat.wing_quantity }} {{ customerHat.wing_quantity==1? 'wing':'wings' }} x {{ order_amount }} {{ order_amount==1? 'hat':'hats' }} = {{ customerHat.wing_quantity * order_amount }} tails will be requested to be produced (overdraft).
+    </div>
+
+    <!-- Hats can be produced, H material allocation selected, with enough tails, no need for overdraft -->
+    <div *ngIf="tails_allocation != null && tails_allocation.tails_quantity >= (customerHat.wing_quantity * order_amount)">
       <span *ngIf="tails_allocation.tails_quantity >= customerHat.wing_quantity">
         <div>{{ tails_allocation.tails_quantity }} tails in allocation.</div>
         <div>{{ calculated_hats_info.tails_used }} used in wings,  {{ calculated_hats_info.tails_remaining }} will remain.</div>
         <div class="text-danger">Max {{ calculated_hats_info.max_num_of_hats_with_tails }} {{ (calculated_hats_info.max_num_of_hats_with_tails == 1)? 'hat':'hats' }}</div>
       </span>
-      <span *ngIf="tails_allocation.tails_quantity < customerHat.wing_quantity" class="text-danger">
-        Not enough H material tails in allocation ({{tails_allocation.tails_quantity}}) to produce a wing ({{ customerHat.wing_quantity }} needed)
-      </span>
+    </div>
+
+    <!-- Hats can be produced, H material allocation selected, with not enough tails, some will be overdraft -->
+    <div *ngIf="tails_allocation != null && (tails_allocation.tails_quantity < (customerHat.wing_quantity * order_amount))">
+        <div class="text-warning">Total of {{ (customerHat.wing_quantity * order_amount) }} wings/tails in this order.</div>
+        {{ calculated_hats_info.tails_used }} tails in selected allocation.<br/>
+        {{ calculated_hats_info.tails_remaining }} tails will remain,<br/>
+        {{ calculated_hats_info.tails_overdraft }} will be produced in overdraft.
+    </div>
+
   </div>
+  <!--/H Material analysis -->
 
   <div><h6>Max hats calculated: {{ total_num_of_possible_hats }}</h6></div>
 
@@ -607,7 +645,7 @@
       [wing_id]="selected_wing_id ?? 0"
       [wall_allocation]="this.wall_alocation"
       [crown_allocation]="this.crown_allocation"
-      [tails_allocation]="this.tails_allocation"
+      
       [customer_wall_babies]="customer.babies"
       [customer_crown_babies]="customer.babies"
       [show_options_button]="false"
@@ -615,14 +653,15 @@
       [numOfWingsPerHat]="customerHat.wing_quantity"
       [show_help_me_adjust_button]="false"
       (fetchExceedInstructions)="exceedNumOfHats($event)"
-    />
+    /><!--[tails_allocation]="this.tails_allocation"-->
   </div> 
 
   <div style="border: 1px solid; border-radius: 10px; margin: 20px 0px;padding: 20px;">
     <div><h3>Place an order</h3></div>
-    <div *ngIf="total_num_of_possible_hats > 0 && customerHat.crown_allocation_id > 0 && customerHat.wall_allocation_id > 0 && customerHat.tails_allocation_id != null && customerHat.tails_allocation_id > 0">
+    <div *ngIf="total_num_of_possible_hats > 0 && customerHat.crown_allocation_id > 0 && customerHat.wall_allocation_id > 0">
 
-      <div class="order-notes d-flex flex-row align-items-center flex-wrap" style="">
+      <div *ngIf="customerHat.tails_material_id != null && customerHat.tails_material_id > 0">
+      <div class="order-notes d-flex flex-row align-items-center flex-wrap">
         <span>Place the order for a specific date:</span>
         <input
           type="date"
@@ -661,15 +700,19 @@
       <div class="text-danger" *ngIf="order_amount > total_num_of_possible_hats">
         Your max allocation is limited to a max of {{ total_num_of_possible_hats }} hats
       </div>
+    </div>
+    <div *ngIf="customerHat.tails_material_id == null || customerHat.tails_material_id <= 0">
+      Choose H material to place an order
+    </div>
+
 
     </div>
-    <div class="order-notes" *ngIf="total_num_of_possible_hats <= 0 && customerHat.crown_allocation_id > 0 && customerHat.wall_allocation_id > 0 && customerHat.tails_allocation_id != null && customerHat.tails_allocation_id > 0">
+    <div class="order-notes" *ngIf="total_num_of_possible_hats <= 0 && customerHat.crown_allocation_id > 0 && customerHat.wall_allocation_id > 0">
       No sufficient quota to order hats
     </div>
-    <div class="order-notes" *ngIf="customerHat.crown_allocation_id <= 0 || customerHat.wall_allocation_id <= 0 || customerHat.tails_allocation_id == null || customerHat.tails_allocation_id <= 0">
+    <div class="order-notes" *ngIf="customerHat.crown_allocation_id <= 0 || customerHat.wall_allocation_id <= 0">
       {{ summary_table_instructions }} to calculate and place an order
     </div>
-   
     <div>
       <a href="javascript:void(0)" (click)="go_to_orders()">See all your orders</a>
     </div>
@@ -679,12 +722,10 @@
 
 </div> <!-- / All other stuff -->
 
-
 <div *ngIf="!customerHat.wing" style="display: flex;flex-direction: column;flex-wrap: nowrap;align-items: center; height: 100%; justify-content: center;">
   <div><span class="icon-feather-wing" style="font-size: 80px;"></span><!--<img [attr.src]="no_hat_img" style="width: 200px;">--></div>
   <div>No wing selected. Choose a wing to calculate.</div>
   <div>Or load a previously saved setup</div>
 </div>
-
 
 </div></div>

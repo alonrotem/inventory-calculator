@@ -6,7 +6,7 @@ const { logger } = require('../logger')
 
 async function getSingle(id){
     const rows = await db.query(
-      `select id, name, knife from wings where id=${id}` //width 5 - 11
+      `select id, name, knife, allow_shortening_babies_in_pairs from wings where id=${id}` //width 5 - 11
     );
     const data = helper.emptyOrSingle(rows);
     if(!helper.isEmptyObj(data)) {
@@ -32,7 +32,7 @@ from wings_babies
 
 async function getSingleWingByName(name){
   const rows = await db.query(
-    `select id, name, knife from wings where name=(?)`, [name]
+    `select id, name, knife, allow_shortening_babies_in_pairs from wings where name=(?)`, [name]
   );
   const data = helper.emptyOrSingle(rows);
   //console.log(helper.isEmptyObj(data));
@@ -133,11 +133,11 @@ async function save(wing, active_connection=null){
       wing.babies.forEach(b => b.id = 0);
     }
     const result = await db.transaction_query(
-      `INSERT INTO wings (id, name, knife) 
-        VALUES ((?), (?), (?)) as new_wing
+      `INSERT INTO wings (id, name, knife, allow_shortening_babies_in_pairs) 
+        VALUES ((?), (?), (?), (?)) as new_wing
         ON DUPLICATE KEY UPDATE
-        name=new_wing.name, knife=new_wing.knife`, 
-        [ wing.id, wing.name, wing.knife, wing.customer_id ],
+        name=new_wing.name, knife=new_wing.knife, allow_shortening_babies_in_pairs=new_wing.allow_shortening_babies_in_pairs`, 
+        [ wing.id, wing.name, wing.knife, wing.allow_shortening_babies_in_pairs ],
         active_connection
     );
 

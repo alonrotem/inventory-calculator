@@ -15,7 +15,7 @@ async function getSingle(id){
   if(!helper.isEmptyObj(customer)) {
     const customer_banks_recs =  await db.query(
       `select 
-          rm.name raw_material_name, rm.color raw_material_color, rm.quantity_units raw_material_quantity_units, cb.id, cb.customer_id, cb.raw_material_id, cb.quantity, cb.remaining_quantity 
+          rm.name raw_material_name, rm.color raw_material_color, rm.quantity_units raw_material_quantity_units, rm.allow_shortening_babies_in_pairs allow_shortening_babies_in_pairs, cb.id, cb.customer_id, cb.raw_material_id, cb.quantity, cb.remaining_quantity 
         from customer_banks cb
         left join raw_materials rm on cb.raw_material_id = rm.id
         where cb.customer_id=${id};`);
@@ -120,17 +120,17 @@ async function save(customer){
       await db.transaction_commit(connection);
 
       const saved_customer = await getSingle(customer.id);
-      console.dir(bank_ids_info, {depth: null});
+      //console.dir(bank_ids_info, {depth: null});
       
       saved_customer.banks.forEach(saved_bank => {
         let bank_id = bank_ids_info.bank_ids.find(bank_id_info => bank_id_info.post_save_id == saved_bank.id);
-        console.log("found saved bank info. before: " + bank_id.pre_save_id + " -after-> " + saved_bank.id);
+        //console.log("found saved bank info. before: " + bank_id.pre_save_id + " -after-> " + saved_bank.id);
         saved_bank.pre_save_id = bank_id.pre_save_id;
       });
 
       saved_customer.banks_baby_allocations.forEach(saved_allocation => {
         let alloc_id = bank_ids_info.allocation_ids.find(allocation_id_info => allocation_id_info.post_save_id == saved_allocation.id);
-        console.log("found saved allocation info. before: " + alloc_id.pre_save_id + " -after-> " + saved_allocation.id);
+        //console.log("found saved allocation info. before: " + alloc_id.pre_save_id + " -after-> " + saved_allocation.id);
         saved_allocation.pre_save_id = alloc_id.pre_save_id;
       });
 
@@ -161,8 +161,8 @@ async function delete_all_customer_banks(where_rule, force=false, active_connect
 
   try {
     if(!where_rule && !force){ 
-      console.log("Cannot delete all customer banks without a rule.");
-      console.log("Set force=true to force delete them all");
+      //console.log("Cannot delete all customer banks without a rule.");
+      //console.log("Set force=true to force delete them all");
       return;
     }
   
@@ -831,16 +831,36 @@ async function moveTailsToOrder(
         return accumulator + curVal_num;
       }, 0);
 
-      await db.transaction_query(`
-        UPDATE customer_banks_allocations 
-        SET 
-          tails_quantity = tails_quantity - ${ total_num_of_wings }, 
-          tails_in_orders = tails_in_orders + ${ total_num_of_wings } 
-        where id=${ tails_allocation_id };`,
-        [],
-        active_connection
+      const current_tails_allocation = await db.query(`
+        select tails_quantity, tails_in_orders 
+        from customer_banks_allocations 
+        where id=${ tails_allocation_id };`
       );
+      const allocation = helper.emptyOrSingle(current_tails_allocation);
+      let adjusted_tails_quantity_in_allocation = 0;
+      let adjusted_tails_in_orders_in_allocation = 0;
 
+      if(!helper.isEmptyObj(allocation)) {
+        if(allocation.tails_quantity >= total_num_of_wings) {
+          adjusted_tails_quantity_in_allocation = parseInt(allocation["tails_quantity"]) - total_num_of_wings;
+          adjusted_tails_in_orders_in_allocation = parseInt(allocation["tails_in_orders"]) + total_num_of_wings;
+        }
+        else {
+          adjusted_tails_in_orders_in_allocation = parseInt(allocation["tails_quantity"]) + parseInt(allocation["tails_in_orders"]);
+          adjusted_tails_quantity_in_allocation = 0;
+          //the remainder will be handled as overdraft at the customerHat definition
+        }
+
+        await db.transaction_query(`
+          UPDATE customer_banks_allocations 
+          SET 
+            tails_quantity = ${ adjusted_tails_quantity_in_allocation }, 
+            tails_in_orders = ${ adjusted_tails_in_orders_in_allocation } 
+          where id=${ tails_allocation_id };`,
+          [],
+          active_connection
+        );
+      }
   }
   catch(error){
     logger.error(error.message);

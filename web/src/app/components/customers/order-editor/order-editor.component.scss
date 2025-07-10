@@ -1,0 +1,50 @@
+:host {
+    flex-grow: 1;
+    display: flex;
+}
+
+#loading_icon {
+    height: 100vh !important;
+    margin-top: -193px;
+    margin-bottom: -85px;
+    padding-top: 85px;
+}
+
+.order-editor-container {
+    flex-grow: 1;
+}
+
+.order-editor {
+    background-color: white;
+    color: black;
+    height: 100%;
+    padding: 15px;
+}
+
+.heading, .fields-row {
+    margin-bottom: 20px;
+}
+
+.fields-row table {
+    width: 100%;
+    border: 3px solid black;
+}
+
+.fields-row table td {
+    border: 3px solid black;
+}
+
+.heading img {
+    width: 200px;
+}
+
+.detail-title {
+    font-weight: 700;
+}
+
+.detail-field {
+    border: 3px solid black;
+    /*height: 60px;*/
+    padding: 7px;
+    align-content: center;
+}
