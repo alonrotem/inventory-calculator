@@ -197,6 +197,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   };
 
   allow_shortening_material_babies_in_pairs: boolean = false;
+  placing_order: boolean = false;
 
   //==================== old stuff below====================
 
@@ -619,8 +620,12 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.customerHat.wall_allocation_id = 0;
     this.customerHat.crown_allocation_id = 0;
     this.allow_shortening_material_babies_in_pairs = material.allow_shortening_babies_in_pairs;
+    this.customerHat.shorten_top_by = 0;
+    this.customerHat.shorten_crown_by = 0;
+    this.margins_changed();
     this.update_table_instructions();
-    this.calculateVisibleCrown();  }
+    this.calculateVisibleCrown();  
+  }
 
   wall_material_cleared(){
     this.customerHat.hat_material_id = null;
@@ -629,8 +634,12 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.crown_allocation = null;
     this.customerHat.wall_allocation_id = 0;
     this.customerHat.crown_allocation_id = 0;
+    this.customerHat.shorten_top_by = 0;
+    this.customerHat.shorten_crown_by = 0;
+    this.margins_changed();
     this.update_table_instructions();
-    this.calculateVisibleCrown();  }
+    this.calculateVisibleCrown();  
+  }
 
   crown_material_changed(material: RawMaterialNameColor){
     if(!material)
@@ -638,8 +647,12 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.customerHat.crown_material_id = material.id;
     this.customerHat.crown_allocation_id = 0;
     this.crown_allocation = null;
+    this.customerHat.shorten_top_by = 0;
+    this.customerHat.shorten_crown_by = 0;
+    this.margins_changed();
     this.update_table_instructions();
-    this.calculateVisibleCrown();  }
+    this.calculateVisibleCrown();
+  }
 
   tails_material_changed(material: RawMaterialNameColor){
     if(!material)
@@ -669,6 +682,9 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.customerHat.crown_material_id = null;
     this.customerHat.crown_allocation_id = 0;
     this.crown_allocation = null;
+    this.customerHat.shorten_top_by = 0;
+    this.customerHat.shorten_crown_by = 0;
+    this.margins_changed();
     this.update_table_instructions();
     this.calculateVisibleCrown();
   }
@@ -963,6 +979,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   }
 
   placeOrderConfirmed() {
+    this.placing_order = true;
     this.ordersService.createOrder({
       id: 0,
       customer_hat: this.customerHat,
@@ -1020,6 +1037,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
             this.customerHat.wing.id = 0;
             this.customerHat.wing.name = this.generate_unique_hat_name();
           }
+          this.placing_order = false;
         },
         error:(error) => { 
           this.toastService.showError("Failed to issue order");

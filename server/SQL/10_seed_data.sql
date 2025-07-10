@@ -182,7 +182,7 @@ SET @delete_records=TRUE;
         SET @sql = IF(@table_exists > 0, "INSERT INTO `customers` (`id`, `name`, `business_name`, `email`, `phone`, `tax_id`, `customer_code`, `notes`, `created_at`, `updated_at`, `created_by`, `updated_by`) 
 VALUES
 (9, 'Alon Rotem', 'Romtech', 'alon@mail.com', '+359 (88) 401-3532', 'Tax payer 1234', 'L', null, '2025-01-06 20:05:29', '2025-07-02 11:21:03', 1, 1),
-(10, 'Avi Bar', 'Romtech', 'avi_bar@mail.com', '+359 87 985 8868', 'Tax payer 5678', 'AB', null, '2025-01-06 20:05:29', '2025-06-29 20:25:42', 1, 1),
+(10, 'Avi Bar', 'Romtech', 'avi_bar@mail.com', '+359 87 985 8868', 'Tax payer 5678', 'AB', null, '2025-01-06 20:05:29', '2025-07-08 15:06:01', 1, 1),
 (11, 'Guy Tal', 'Guytech', 'guy@mail.com', '+359 87 123 4567', 'Tax payer 90123', null, null, '2025-01-06 20:05:29', '2025-06-27 12:52:29', 1, 1),
 (12, 'London', 'London Inc', '', '', '456456', 'L', null, '2025-02-24 22:19:45', '2025-06-27 12:52:32', 0, 0),
 (13, 'NY', 'NY', 'ny@gmail.con', '878782858', '234578', 'USA', null, '2025-02-25 20:10:16', '2025-06-30 08:31:27', 0, 0)
@@ -235,7 +235,8 @@ VALUES
 (22, 'DM', '2025-06-05 00:00:00', 1000, 600, 'units', 110, '', 'US', 14, 'USD', '', 'Dark brown', '2025-06-05 10:39:38', '2025-06-06 13:00:29', 0, 0),
 (23, 'BM', '2025-06-05 00:00:00', 1000, 700, 'units', 0, '', 'RU', 18, 'USD', '', 'Natural', '2025-06-05 11:59:21', '2025-06-05 12:00:03', 0, 0),
 (24, 'Sable H', '2025-06-06 00:00:00', 2350, 110, 'units', 235, '', 'US', 7, 'USD', '', 'Mixed color', '2025-06-06 12:52:24', '2025-07-06 14:08:34', 0, 0),
-(25, 'DM ', '2025-07-01 00:00:00', 500, 500, 'units', 0, 'London', 'US', 1.5, 'USD', 'return from dyeing on July 1st dyeing cost 2$', 'Dark brown', '2025-07-01 17:55:24', '2025-07-01 17:55:24', 0, 0)
+(25, 'DM ', '2025-07-01 00:00:00', 500, 500, 'units', 0, 'London', 'US', 1.5, 'USD', 'return from dyeing on July 1st dyeing cost 2$', 'Dark brown', '2025-07-01 17:55:24', '2025-07-01 17:55:24', 0, 0),
+(26, 'Sable ', '2025-07-08 00:00:00', 2000, 1500, 'units', 340, '', 'US', 0, 'USD', '', 'Natural', '2025-07-08 14:53:01', '2025-07-08 14:53:34', 0, 0)
 as new_raw_materials
 ON DUPLICATE KEY UPDATE
 `name`=new_raw_materials.`name`, `purchased_at`=new_raw_materials.`purchased_at`, `purchase_quantity`=new_raw_materials.`purchase_quantity`, `remaining_quantity`=new_raw_materials.`remaining_quantity`, `quantity_units`=new_raw_materials.`quantity_units`, `units_per_kg`=new_raw_materials.`units_per_kg`, `vendor_name`=new_raw_materials.`vendor_name`, `origin_country`=new_raw_materials.`origin_country`, `price`=new_raw_materials.`price`, `currency`=new_raw_materials.`currency`, `notes`=new_raw_materials.`notes`, `color`=new_raw_materials.`color`, `created_at`=new_raw_materials.`created_at`, `updated_at`=new_raw_materials.`updated_at`, `created_by`=new_raw_materials.`created_by`, `updated_by`=new_raw_materials.`updated_by`;", 'SELECT \'Table raw_materials does not exist\'');
@@ -261,7 +262,7 @@ VALUES
 (21, 12, 20, 80, 59),
 (22, 13, 15, 400, 292),
 (23, 10, 16, 200, 3),
-(24, 10, 16, 200, 200),
+(24, 10, 16, 200, 100),
 (25, 12, 19, 150, 50),
 (26, 12, 19, 150, 150),
 (28, 9, 17, 4, 0),
@@ -270,7 +271,8 @@ VALUES
 (31, 12, 23, 300, 300),
 (32, 13, 24, 1240, 840),
 (33, 13, 22, 200, 100),
-(34, 10, 24, 1000, 240)
+(34, 10, 24, 1000, 240),
+(35, 10, 26, 500, 0)
 as new_customer_banks
 ON DUPLICATE KEY UPDATE
 `customer_id`=new_customer_banks.`customer_id`, `raw_material_id`=new_customer_banks.`raw_material_id`, `quantity`=new_customer_banks.`quantity`, `remaining_quantity`=new_customer_banks.`remaining_quantity`;", 'SELECT \'Table customer_banks does not exist\'');
@@ -315,7 +317,10 @@ VALUES
 (33, 33, 100, 0, 'babies', 0, 0),
 (34, 34, 360, 0, 'tails', 32, 132),
 (35, 34, 400, 0, 'tails', 222, 178),
-(36, 32, 400, 0, 'tails', 356, 44)
+(36, 32, 400, 0, 'tails', 356, 44),
+(38, 24, 100, 0, 'babies', 0, 0),
+(39, 35, 400, 0, 'tails', 0, 0),
+(40, 35, 100, 0, 'tails', 0, 0)
 as new_customer_banks_allocations
 ON DUPLICATE KEY UPDATE
 `customer_bank_id`=new_customer_banks_allocations.`customer_bank_id`, `quantity`=new_customer_banks_allocations.`quantity`, `remaining_quantity`=new_customer_banks_allocations.`remaining_quantity`, `allocation_type`=new_customer_banks_allocations.`allocation_type`, `tails_quantity`=new_customer_banks_allocations.`tails_quantity`, `tails_in_orders`=new_customer_banks_allocations.`tails_in_orders`;", 'SELECT \'Table customer_banks_allocations does not exist\'');
@@ -489,7 +494,26 @@ VALUES
 (320, 33, 5, 30, 0),
 (322, 17, 11, 88, 0),
 (323, 25, 9.5, 880, 0),
-(324, 25, 8.5, 1320, 0)
+(324, 25, 8.5, 1320, 0),
+(335, 22, 9.5, 44, 0),
+(336, 22, 9, 264, 0),
+(337, 22, 8.5, 88, 0),
+(338, 22, 8, 88, 0),
+(339, 22, 7.5, 88, 0),
+(340, 22, 7, 88, 0),
+(341, 22, 6.5, 88, 0),
+(342, 22, 6, 88, 0),
+(343, 22, 5.5, 88, 0),
+(344, 38, 10, 50, 0),
+(345, 38, 9.5, 100, 0),
+(346, 38, 9, 200, 0),
+(347, 38, 8.5, 300, 0),
+(348, 38, 8, 230, 0),
+(349, 38, 7.5, 800, 0),
+(350, 38, 7, 900, 0),
+(351, 38, 6.5, 800, 0),
+(352, 38, 6, 1200, 0),
+(353, 38, 5.5, 1000, 0)
 as new_allocation_babies
 ON DUPLICATE KEY UPDATE
 `allocation_id`=new_allocation_babies.`allocation_id`, `length`=new_allocation_babies.`length`, `quantity`=new_allocation_babies.`quantity`, `quantity_in_pending_orders`=new_allocation_babies.`quantity_in_pending_orders`;", 'SELECT \'Table allocation_babies does not exist\'');
@@ -584,7 +608,14 @@ VALUES
 (82, '2025-06-30 08:37:26', 1, 800, 'to_customer_bank', 24, 13, 32, 0, 110, 840, -1),
 (83, '2025-07-01 17:55:24', 1, 500, 'raw_material_purchase', 25, 0, 0, 0, 500, -1, -1),
 (84, '2025-07-03 20:40:59', 1, 110, 'to_customer_bank', 24, 10, 34, 0, 0, 350, -1),
-(85, '2025-07-06 14:08:34', 1, -110, 'to_customer_bank', 24, 10, 34, 0, 110, 240, -1)
+(85, '2025-07-06 14:08:34', 1, -110, 'to_customer_bank', 24, 10, 34, 0, 110, 240, -1),
+(86, '2025-07-08 14:53:01', 1, 2000, 'raw_material_purchase', 26, 0, 0, 0, 2000, -1, -1),
+(87, '2025-07-08 14:53:36', 1, 500, 'to_customer_bank', 26, 10, 35, 0, 1500, 500, -1),
+(88, '2025-07-08 14:57:27', 1, 100, 'customer_bank_allocate_to_Work', 16, 10, 24, 37, -1, 100, 0),
+(89, '2025-07-08 14:57:27', 1, 100, 'customer_bank_allocate_to_Work', 16, 10, 24, 38, -1, 100, 0),
+(90, '2025-07-08 15:02:28', 1, 400, 'customer_bank_allocate_to_Work', 26, 10, 35, 39, -1, 100, 0),
+(91, '2025-07-08 15:04:01', 1, 0, 'customer_bank_allocate_to_Work', 26, 10, 35, 39, -1, 100, 0),
+(92, '2025-07-08 15:05:51', 1, 100, 'customer_bank_allocate_to_Work', 26, 10, 35, 40, -1, 0, 0)
 as new_transaction_history
 ON DUPLICATE KEY UPDATE
 `date`=new_transaction_history.`date`, `added_by`=new_transaction_history.`added_by`, `transaction_quantity`=new_transaction_history.`transaction_quantity`, `transaction_type`=new_transaction_history.`transaction_type`, `raw_material_id`=new_transaction_history.`raw_material_id`, `customer_id`=new_transaction_history.`customer_id`, `customer_bank_id`=new_transaction_history.`customer_bank_id`, `allocation_id`=new_transaction_history.`allocation_id`, `cur_raw_material_quantity`=new_transaction_history.`cur_raw_material_quantity`, `cur_customer_bank_quantity`=new_transaction_history.`cur_customer_bank_quantity`, `cur_banks_babies_allocation_quantity`=new_transaction_history.`cur_banks_babies_allocation_quantity`;", 'SELECT \'Table transaction_history does not exist\'');
@@ -618,7 +649,8 @@ VALUES
 (33, 'RT100 1217 T20250603223415', 12.5, null),
 (34, 'RT100 1217 T20250605184924', 12.5, null),
 (35, 'RT1217 BM', 12.5, null),
-(36, 'RT10020250606170845', 12, null)
+(36, 'RT10020250606170845', 12, null),
+(37, 'Eli Shechter 10', 12.5, null)
 as new_wings
 ON DUPLICATE KEY UPDATE
 `name`=new_wings.`name`, `knife`=new_wings.`knife`, `customer_id`=new_wings.`customer_id`;", 'SELECT \'Table wings does not exist\'');
@@ -979,7 +1011,28 @@ VALUES
 (702, 36, 'R3', 6.5),
 (703, 36, 'R4', 7),
 (704, 36, 'R5', 8),
-(705, 36, 'R6', 9)
+(705, 36, 'R6', 9),
+(706, 37, 'TOP', 9.5),
+(707, 37, 'C1', 9),
+(708, 37, 'C2', 9),
+(709, 37, 'C3', 9),
+(710, 37, 'C4', 9),
+(711, 37, 'L1', 5.5),
+(712, 37, 'L2', 6),
+(713, 37, 'L3', 6.5),
+(714, 37, 'L4', 7),
+(715, 37, 'L5', 7.5),
+(716, 37, 'L6', 8),
+(717, 37, 'L7', 8.5),
+(718, 37, 'L8', 9),
+(719, 37, 'L9', 9),
+(720, 37, 'R1', 5.5),
+(721, 37, 'R2', 6),
+(722, 37, 'R3', 6.5),
+(723, 37, 'R4', 7),
+(724, 37, 'R5', 7.5),
+(725, 37, 'R6', 8),
+(726, 37, 'R7', 8.5)
 as new_wings_babies
 ON DUPLICATE KEY UPDATE
 `parent_wing_id`=new_wings_babies.`parent_wing_id`, `position`=new_wings_babies.`position`, `length`=new_wings_babies.`length`;", 'SELECT \'Table wings_babies does not exist\'');

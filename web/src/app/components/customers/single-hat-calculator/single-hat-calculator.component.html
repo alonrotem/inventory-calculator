@@ -688,10 +688,19 @@
         <input type="number" min="0" [attr.max]="total_num_of_possible_hats" [(ngModel)]="order_amount"  (change)="order_amount_changed()" />
           {{ order_amount == 1 ? 'hat' : 'hats' }}
         <button 
-          [ngClass]="{'btn btn-success': true, 'disabled': (order_amount <= 0 || order_amount > total_num_of_possible_hats)}"
-          (click)="placeOrder()">
-          <fa-icon [icon]="faBasketShopping"></fa-icon>
-          Order
+          [ngClass]="{'btn btn-success': true, 'disabled': (order_amount <= 0 || order_amount > total_num_of_possible_hats) || (placing_order)}"
+          (click)="placeOrder()" style="min-width: 170px;">
+
+          <div *ngIf="!placing_order">
+            <fa-icon [icon]="faBasketShopping"></fa-icon>
+            Order
+          </div>
+
+          <div *ngIf="placing_order">
+            <fa-icon [icon]="faArrowsRotate" [spin]="true" size="1x"></fa-icon>
+            Loading order...
+          </div>
+
         </button>
       </div>
       <div class="text-danger" *ngIf="order_amount <= 0">
