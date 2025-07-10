@@ -300,6 +300,7 @@ export class HatsCalculatorService {
 
   // - If there were manual changes made, they will be lost, in case the top has to shorten other babies
   private shorten_babies_according_to_top(wing: Wing | null, sorted_babies_collection: WingBaby[] | null, top: WingBaby | undefined, reduce_top_by: number, allow_shortening_babies_in_pairs: boolean){
+    const mininal_baby_length = 6;
     let previous_baby_in_line = top;
     if(allow_shortening_babies_in_pairs){
     let allow_group_similar_babies = 1;
@@ -319,7 +320,7 @@ export class HatsCalculatorService {
           }
           else {
             let corrected_length = previous_baby_in_line.length - 0.5;
-            display_baby.length = Math.max(corrected_length, 6);
+            display_baby.length = Math.max(corrected_length, mininal_baby_length);
           }
         }
 
@@ -350,7 +351,7 @@ export class HatsCalculatorService {
           else {
             if(unchanged_baby.length >= previous_baby_in_line.length){
               let corrected_length = previous_baby_in_line.length - 0.5;
-              display_baby.length = Math.max(corrected_length, 6);
+              display_baby.length = Math.max(corrected_length, mininal_baby_length);
             }            
             allow_group_similar_babies = 1;
           }
@@ -373,7 +374,7 @@ export class HatsCalculatorService {
 
         if((previous_baby_in_line) && (unchanged_baby.length >= previous_baby_in_line?.length)){  
             let corrected_length = previous_baby_in_line.length - 0.5;
-            display_baby.length = Math.max(corrected_length, 5);
+            display_baby.length = Math.max(corrected_length, mininal_baby_length);
         }
         else {
           display_baby.length = unchanged_baby.length;
