@@ -222,24 +222,24 @@ ON DUPLICATE KEY UPDATE
         -- Check if the table exists
         SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'raw_materials');
         -- Prepare the INSERT statement only if the table exists
-        SET @sql = IF(@table_exists > 0, "INSERT INTO `raw_materials` (`id`, `name`, `purchased_at`, `purchase_quantity`, `remaining_quantity`, `quantity_units`, `units_per_kg`, `vendor_name`, `origin_country`, `price`, `currency`, `notes`, `color`, `created_at`, `updated_at`, `created_by`, `updated_by`) 
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `raw_materials` (`id`, `name`, `purchased_at`, `purchase_quantity`, `remaining_quantity`, `quantity_units`, `units_per_kg`, `vendor_name`, `origin_country`, `price`, `currency`, `notes`, `color`, `created_at`, `updated_at`, `created_by`, `updated_by`, `allow_shortening_babies_in_pairs`) 
 VALUES
-(13, 'Sable', '2024-06-08 00:00:00', 210, 0, 'units', 30, 'JJ', 'US', 30, 'USD', 'This is a test material', 'Dark brown', '2025-01-06 20:05:29', '2025-02-16 21:07:25', 1, 1),
-(15, 'SM', '2024-06-08 00:00:00', 1000, 600, 'units', 112, 'KK', 'RU', 3, 'USD', 'This is a test material', 'Dark brown', '2025-01-06 20:05:29', '2025-02-25 20:11:19', 1, 1),
-(16, 'BM', '2024-06-08 00:00:00', 750, 550, 'units', 135, null, 'US', 60, 'EUR', 'This is a test material', 'Light brown', '2025-01-06 20:05:29', '2025-05-27 21:20:24', 1, 1),
-(17, 'Canady', '2024-06-08 00:00:00', 7, 3, 'kg', 10, 'XY', 'US', 10, 'USD', 'This is a test material', 'Light brown', '2025-01-06 20:05:29', '2025-06-01 22:33:15', 1, 1),
-(18, 'Demo material 1', '2025-01-07 00:00:00', 100, 30, 'kg', 11, 'JJ', 'US', 300, 'USD', 'Demo material for calculations', 'Natural', '2025-01-07 15:18:39', '2025-01-07 15:20:15', 0, 0),
-(19, 'DМ light', '2025-01-07 00:00:00', 750, 600, 'units', 2, 'KK', 'US', 25, 'USD', 'Demo material for calculations', 'Natural', '2025-01-07 15:19:09', '2025-06-01 09:25:50', 0, 0),
-(20, 'DM', '2025-02-08 00:00:00', 100, 5, 'units', 80, 'dd', 'US', 20, 'USD', '', 'Black', '2025-02-08 21:20:42', '2025-05-29 09:03:13', 0, 0),
-(21, 'DM Medium brown', '2025-06-05 00:00:00', 500, 400, 'units', 4, '', 'US', 25, 'USD', '', 'Dark brown', '2025-06-05 08:38:20', '2025-06-05 08:38:20', 0, 0),
-(22, 'DM', '2025-06-05 00:00:00', 1000, 600, 'units', 110, '', 'US', 14, 'USD', '', 'Dark brown', '2025-06-05 10:39:38', '2025-06-06 13:00:29', 0, 0),
-(23, 'BM', '2025-06-05 00:00:00', 1000, 700, 'units', 0, '', 'RU', 18, 'USD', '', 'Natural', '2025-06-05 11:59:21', '2025-06-05 12:00:03', 0, 0),
-(24, 'Sable H', '2025-06-06 00:00:00', 2350, 110, 'units', 235, '', 'US', 7, 'USD', '', 'Mixed color', '2025-06-06 12:52:24', '2025-07-06 14:08:34', 0, 0),
-(25, 'DM ', '2025-07-01 00:00:00', 500, 500, 'units', 0, 'London', 'US', 1.5, 'USD', 'return from dyeing on July 1st dyeing cost 2$', 'Dark brown', '2025-07-01 17:55:24', '2025-07-01 17:55:24', 0, 0),
-(26, 'Sable ', '2025-07-08 00:00:00', 2000, 1500, 'units', 340, '', 'US', 0, 'USD', '', 'Natural', '2025-07-08 14:53:01', '2025-07-08 14:53:34', 0, 0)
+(13, 'Sable', '2024-06-08 00:00:00', 210, 0, 'units', 30, 'JJ', 'US', 30, 'USD', 'This is a test material', 'Dark brown', '2025-01-06 20:05:29', '2025-02-16 21:07:25', 1, 1, 0),
+(15, 'SM', '2024-06-08 00:00:00', 1000, 600, 'units', 112, 'KK', 'RU', 3, 'USD', 'This is a test material', 'Dark brown', '2025-01-06 20:05:29', '2025-02-25 20:11:19', 1, 1, 0),
+(16, 'BM', '2024-06-08 00:00:00', 750, 550, 'units', 135, null, 'US', 60, 'EUR', 'This is a test material', 'Light brown', '2025-01-06 20:05:29', '2025-05-27 21:20:24', 1, 1, 0),
+(17, 'Canady', '2024-06-08 00:00:00', 7, 3, 'kg', 10, 'XY', 'US', 10, 'USD', 'This is a test material', 'Light brown', '2025-01-06 20:05:29', '2025-06-01 22:33:15', 1, 1, 0),
+(18, 'Demo material 1', '2025-01-07 00:00:00', 100, 30, 'kg', 11, 'JJ', 'US', 300, 'USD', 'Demo material for calculations', 'Natural', '2025-01-07 15:18:39', '2025-01-07 15:20:15', 0, 0, 0),
+(19, 'DМ light', '2025-01-07 00:00:00', 750, 600, 'units', 2, 'KK', 'US', 25, 'USD', 'Demo material for calculations', 'Natural', '2025-01-07 15:19:09', '2025-06-01 09:25:50', 0, 0, 0),
+(20, 'DM', '2025-02-08 00:00:00', 100, 5, 'units', 80, 'dd', 'US', 20, 'USD', '', 'Black', '2025-02-08 21:20:42', '2025-07-10 15:42:10', 0, 0, 1),
+(21, 'DM Medium brown', '2025-06-05 00:00:00', 500, 400, 'units', 4, '', 'US', 25, 'USD', '', 'Dark brown', '2025-06-05 08:38:20', '2025-06-05 08:38:20', 0, 0, 0),
+(22, 'DM', '2025-06-05 00:00:00', 1000, 600, 'units', 110, '', 'US', 14, 'USD', '', 'Dark brown', '2025-06-05 10:39:38', '2025-06-06 13:00:29', 0, 0, 0),
+(23, 'BM', '2025-06-05 00:00:00', 1000, 700, 'units', 0, '', 'RU', 18, 'USD', '', 'Natural', '2025-06-05 11:59:21', '2025-06-05 12:00:03', 0, 0, 0),
+(24, 'Sable H', '2025-06-06 00:00:00', 2350, 110, 'units', 235, '', 'US', 7, 'USD', '', 'Mixed color', '2025-06-06 12:52:24', '2025-07-06 14:08:34', 0, 0, 0),
+(25, 'DM ', '2025-07-01 00:00:00', 500, 500, 'units', 0, 'London', 'US', 1.5, 'USD', 'return from dyeing on July 1st dyeing cost 2$', 'Dark brown', '2025-07-01 17:55:24', '2025-07-01 17:55:24', 0, 0, 0),
+(26, 'Sable ', '2025-07-08 00:00:00', 2000, 1500, 'units', 340, '', 'US', 0, 'USD', '', 'Natural', '2025-07-08 14:53:01', '2025-07-08 14:53:34', 0, 0, 0)
 as new_raw_materials
 ON DUPLICATE KEY UPDATE
-`name`=new_raw_materials.`name`, `purchased_at`=new_raw_materials.`purchased_at`, `purchase_quantity`=new_raw_materials.`purchase_quantity`, `remaining_quantity`=new_raw_materials.`remaining_quantity`, `quantity_units`=new_raw_materials.`quantity_units`, `units_per_kg`=new_raw_materials.`units_per_kg`, `vendor_name`=new_raw_materials.`vendor_name`, `origin_country`=new_raw_materials.`origin_country`, `price`=new_raw_materials.`price`, `currency`=new_raw_materials.`currency`, `notes`=new_raw_materials.`notes`, `color`=new_raw_materials.`color`, `created_at`=new_raw_materials.`created_at`, `updated_at`=new_raw_materials.`updated_at`, `created_by`=new_raw_materials.`created_by`, `updated_by`=new_raw_materials.`updated_by`;", 'SELECT \'Table raw_materials does not exist\'');
+`name`=new_raw_materials.`name`, `purchased_at`=new_raw_materials.`purchased_at`, `purchase_quantity`=new_raw_materials.`purchase_quantity`, `remaining_quantity`=new_raw_materials.`remaining_quantity`, `quantity_units`=new_raw_materials.`quantity_units`, `units_per_kg`=new_raw_materials.`units_per_kg`, `vendor_name`=new_raw_materials.`vendor_name`, `origin_country`=new_raw_materials.`origin_country`, `price`=new_raw_materials.`price`, `currency`=new_raw_materials.`currency`, `notes`=new_raw_materials.`notes`, `color`=new_raw_materials.`color`, `created_at`=new_raw_materials.`created_at`, `updated_at`=new_raw_materials.`updated_at`, `created_by`=new_raw_materials.`created_by`, `updated_by`=new_raw_materials.`updated_by`, `allow_shortening_babies_in_pairs`=new_raw_materials.`allow_shortening_babies_in_pairs`;", 'SELECT \'Table raw_materials does not exist\'');
         -- Execute the prepared statement
         PREPARE stmt FROM @sql;
         EXECUTE stmt; #USING @value1, @value2;
@@ -455,17 +455,17 @@ VALUES
 (230, 13, 10.5, 1912, 88),
 (243, 11, 9, 1000, 0),
 (248, 23, 11, 700, 0),
-(249, 23, 10.5, 1300, 0),
+(249, 23, 10.5, 1080, 220),
 (250, 23, 10, 1200, 0),
 (251, 23, 9.5, 900, 0),
-(252, 23, 9, 850, 0),
-(253, 23, 8.5, 1200, 0),
-(254, 23, 8, 1000, 0),
-(255, 23, 7.5, 1000, 0),
-(256, 23, 7, 800, 0),
-(257, 23, 6.5, 1450, 0),
-(258, 23, 6, 1300, 0),
-(259, 23, 5.5, 1200, 0),
+(252, 23, 9, 762, 88),
+(253, 23, 8.5, 1156, 44),
+(254, 23, 8, 912, 88),
+(255, 23, 7.5, 912, 88),
+(256, 23, 7, 712, 88),
+(257, 23, 6.5, 1362, 88),
+(258, 23, 6, 1124, 176),
+(259, 23, 5.5, 1156, 44),
 (260, 25, 10, 2200, 0),
 (261, 25, 9, 880, 0),
 (262, 25, 8, 1760, 0),
@@ -630,30 +630,32 @@ ON DUPLICATE KEY UPDATE
         -- Check if the table exists
         SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'wings');
         -- Prepare the INSERT statement only if the table exists
-        SET @sql = IF(@table_exists > 0, "INSERT INTO `wings` (`id`, `name`, `knife`, `customer_id`) 
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `wings` (`id`, `name`, `knife`, `customer_id`, `allow_shortening_babies_in_pairs`) 
 VALUES
-(1, 'RT65', 6.5, null),
-(2, 'RT70', 10, null),
-(3, 'RT85', 10, null),
-(5, 'תותח על', 10, null),
-(7, 'RT100', 12, null),
-(16, 'RT110', 12, null),
-(17, 'RT90', 12.5, null),
-(26, 'RT120', 12.5, null),
-(27, 'RT10020250529231135', 12, null),
-(28, 'RT9020250529232648', 12.5, null),
-(29, 'RT902025052923264820250529233014', 12.5, null),
-(30, 'RT8520250530112951', 10, null),
-(31, 'RT100 1217 T', 12.5, null),
-(32, 'RT8520250602143430', 10, null),
-(33, 'RT100 1217 T20250603223415', 12.5, null),
-(34, 'RT100 1217 T20250605184924', 12.5, null),
-(35, 'RT1217 BM', 12.5, null),
-(36, 'RT10020250606170845', 12, null),
-(37, 'Eli Shechter 10', 12.5, null)
+(1, 'RT65', 6.5, null, 0),
+(2, 'RT70', 10, null, 0),
+(3, 'RT85', 10, null, 0),
+(5, 'תותח על', 10, null, 0),
+(7, 'RT100', 12, null, 0),
+(16, 'RT110', 12, null, 0),
+(17, 'RT90', 12.5, null, 0),
+(26, 'RT120', 12.5, null, 0),
+(27, 'RT10020250529231135', 12, null, 0),
+(28, 'RT9020250529232648', 12.5, null, 0),
+(29, 'RT902025052923264820250529233014', 12.5, null, 0),
+(30, 'RT8520250530112951', 10, null, 0),
+(31, 'RT100 1217 T', 12.5, null, 1),
+(32, 'RT8520250602143430', 10, null, 0),
+(33, 'RT100 1217 T20250603223415', 12.5, null, 0),
+(34, 'RT100 1217 T20250605184924', 12.5, null, 0),
+(35, 'RT1217 BM', 12.5, null, 1),
+(36, 'RT10020250606170845', 12, null, 0),
+(37, 'Eli Shechter 10', 12.5, null, 0),
+(39, 'DM 159', 9, null, 0),
+(40, 'DM 15920250610204848', 9, null, 0)
 as new_wings
 ON DUPLICATE KEY UPDATE
-`name`=new_wings.`name`, `knife`=new_wings.`knife`, `customer_id`=new_wings.`customer_id`;", 'SELECT \'Table wings does not exist\'');
+`name`=new_wings.`name`, `knife`=new_wings.`knife`, `customer_id`=new_wings.`customer_id`, `allow_shortening_babies_in_pairs`=new_wings.`allow_shortening_babies_in_pairs`;", 'SELECT \'Table wings does not exist\'');
         -- Execute the prepared statement
         PREPARE stmt FROM @sql;
         EXECUTE stmt; #USING @value1, @value2;
@@ -1032,7 +1034,49 @@ VALUES
 (723, 37, 'R4', 7),
 (724, 37, 'R5', 7.5),
 (725, 37, 'R6', 8),
-(726, 37, 'R7', 8.5)
+(726, 37, 'R7', 8.5),
+(761, 39, 'TOP', 10),
+(762, 39, 'C1', 10),
+(763, 39, 'C2', 10),
+(764, 39, 'C3', 10),
+(765, 39, 'C4', 10),
+(766, 39, 'L1', 6),
+(767, 39, 'L2', 6),
+(768, 39, 'L3', 6.5),
+(769, 39, 'L4', 7),
+(770, 39, 'L5', 7.5),
+(771, 39, 'L6', 8),
+(772, 39, 'L7', 8.5),
+(773, 39, 'L8', 9),
+(774, 39, 'L9', 9.5),
+(775, 39, 'R1', 5.5),
+(776, 39, 'R2', 6),
+(777, 39, 'R3', 6.5),
+(778, 39, 'R4', 7),
+(779, 39, 'R5', 7.5),
+(780, 39, 'R6', 8),
+(781, 39, 'R7', 9),
+(782, 40, 'TOP', 10.5),
+(783, 40, 'C1', 10.5),
+(784, 40, 'C2', 10.5),
+(785, 40, 'C3', 10.5),
+(786, 40, 'C4', 10.5),
+(787, 40, 'L1', 6),
+(788, 40, 'L2', 6),
+(789, 40, 'L3', 6),
+(790, 40, 'L4', 6.5),
+(791, 40, 'L5', 7),
+(792, 40, 'L6', 7.5),
+(793, 40, 'L7', 8),
+(794, 40, 'L8', 8.5),
+(795, 40, 'L9', 9),
+(796, 40, 'R1', 5.5),
+(797, 40, 'R2', 6),
+(798, 40, 'R3', 6.5),
+(799, 40, 'R4', 7),
+(800, 40, 'R5', 7.5),
+(801, 40, 'R6', 8),
+(802, 40, 'R7', 9)
 as new_wings_babies
 ON DUPLICATE KEY UPDATE
 `parent_wing_id`=new_wings_babies.`parent_wing_id`, `position`=new_wings_babies.`position`, `length`=new_wings_babies.`length`;", 'SELECT \'Table wings_babies does not exist\'');
@@ -1047,19 +1091,20 @@ ON DUPLICATE KEY UPDATE
         -- Check if the table exists
         SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'customer_hats');
         -- Prepare the INSERT statement only if the table exists
-        SET @sql = IF(@table_exists > 0, "INSERT INTO `customer_hats` (`id`, `hat_material_id`, `crown_material_id`, `tails_material_id`, `wing_id`, `original_wing_name`, `wing_quantity`, `adjusted_wings_per_hat`, `customer_id`, `shorten_top_by`, `shorten_crown_by`, `wall_allocation_id`, `crown_allocation_id`, `tails_allocation_id`, `kippa_size`, `mayler_width`, `hr_hl_width`, `crown_visible`, `crown_length`, `white_hair`, `white_hair_notes`, `order_date`, `isurgent`, `order_notes`) 
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `customer_hats` (`id`, `hat_material_id`, `crown_material_id`, `tails_material_id`, `wing_id`, `original_wing_name`, `wing_quantity`, `adjusted_wings_per_hat`, `customer_id`, `shorten_top_by`, `shorten_crown_by`, `wall_allocation_id`, `crown_allocation_id`, `tails_allocation_id`, `tails_overdraft`, `kippa_size`, `mayler_width`, `hr_hl_width`, `crown_visible`, `crown_length`, `white_hair`, `white_hair_notes`, `order_date`, `isurgent`, `order_notes`) 
 VALUES
-(1, 21, 21, 24, 27, 'RT100', 44, '44', 10, 0, 0, 28, 28, 34, 55, 0.17, 0, 6.5, 10, 0, '', null, 0, ''),
-(2, 20, 20, 24, 28, 'RT90', 10, '5,5,10,10', 10, 0.5, 0, 13, 13, 35, 55, 0.17, 0, 6.5, 10, 0, '', null, 0, ''),
-(3, 20, 20, 24, 29, 'RT90', 10, '10,10,10', 10, 0.5, 0, 13, 13, 35, 55, 0.17, 0, 6.5, 10, 0, '', null, 0, ''),
-(4, 15, 15, 24, 30, 'RT85', 44, '44', 13, 0, 1, 17, 17, 36, 55, 0.17, 0, 6.5, 10, 0, '', null, 0, ''),
-(5, 20, 20, 24, 32, 'RT85', 44, '46,42', 10, 0, 0.5, 13, 13, 34, 55, 0.17, 0, 7, 10.5, 0, '', null, 0, ''),
-(6, 20, 20, 24, 33, 'RT100 1217 T', 29, '30', 10, 0, 0, 13, 13, 35, 55, 0.17, 0, 6.5, 10, 1, 'place little white hair ', null, 0, ''),
-(7, 20, 20, 24, 34, 'RT100 1217 T', 44, '44', 10, 0.5, 0, 13, 13, 35, 55, 0.17, 0, 6.5, 10, 0, '', null, 0, ''),
-(8, 16, 16, 24, 36, 'RT100', 44, '44', 10, 0, 0, 18, 18, 35, 55, 0.17, 0, 6.5, 10, 0, '', null, 0, '')
+(1, 21, 21, 24, 27, 'RT100', 44, '44', 10, 0, 0, 28, 28, 34, 0, 55, 0.17, 0, 6.5, 10, 0, '', null, 0, ''),
+(2, 20, 20, 24, 28, 'RT90', 10, '5,5,10,10', 10, 0.5, 0, 13, 13, 35, 0, 55, 0.17, 0, 6.5, 10, 0, '', null, 0, ''),
+(3, 20, 20, 24, 29, 'RT90', 10, '10,10,10', 10, 0.5, 0, 13, 13, 35, 0, 55, 0.17, 0, 6.5, 10, 0, '', null, 0, ''),
+(4, 15, 15, 24, 30, 'RT85', 44, '44', 13, 0, 1, 17, 17, 36, 0, 55, 0.17, 0, 6.5, 10, 0, '', null, 0, ''),
+(5, 20, 20, 24, 32, 'RT85', 44, '46,42', 10, 0, 0.5, 13, 13, 34, 0, 55, 0.17, 0, 7, 10.5, 0, '', null, 0, ''),
+(6, 20, 20, 24, 33, 'RT100 1217 T', 29, '30', 10, 0, 0, 13, 13, 35, 0, 55, 0.17, 0, 6.5, 10, 1, 'place little white hair ', null, 0, ''),
+(7, 20, 20, 24, 34, 'RT100 1217 T', 44, '44', 10, 0.5, 0, 13, 13, 35, 0, 55, 0.17, 0, 6.5, 10, 0, '', null, 0, ''),
+(8, 16, 16, 24, 36, 'RT100', 44, '44', 10, 0, 0, 18, 18, 35, 0, 55, 0.17, 0, 6.5, 10, 0, '', null, 0, ''),
+(10, 19, 19, 23, 40, 'DM 159', 44, '44', 12, 0, 0, 23, 23, 0, 44, 55, 0.17, 0, 10.5, 10.5, 0, '', null, 0, '')
 as new_customer_hats
 ON DUPLICATE KEY UPDATE
-`hat_material_id`=new_customer_hats.`hat_material_id`, `crown_material_id`=new_customer_hats.`crown_material_id`, `tails_material_id`=new_customer_hats.`tails_material_id`, `wing_id`=new_customer_hats.`wing_id`, `original_wing_name`=new_customer_hats.`original_wing_name`, `wing_quantity`=new_customer_hats.`wing_quantity`, `adjusted_wings_per_hat`=new_customer_hats.`adjusted_wings_per_hat`, `customer_id`=new_customer_hats.`customer_id`, `shorten_top_by`=new_customer_hats.`shorten_top_by`, `shorten_crown_by`=new_customer_hats.`shorten_crown_by`, `wall_allocation_id`=new_customer_hats.`wall_allocation_id`, `crown_allocation_id`=new_customer_hats.`crown_allocation_id`, `tails_allocation_id`=new_customer_hats.`tails_allocation_id`, `kippa_size`=new_customer_hats.`kippa_size`, `mayler_width`=new_customer_hats.`mayler_width`, `hr_hl_width`=new_customer_hats.`hr_hl_width`, `crown_visible`=new_customer_hats.`crown_visible`, `crown_length`=new_customer_hats.`crown_length`, `white_hair`=new_customer_hats.`white_hair`, `white_hair_notes`=new_customer_hats.`white_hair_notes`, `order_date`=new_customer_hats.`order_date`, `isurgent`=new_customer_hats.`isurgent`, `order_notes`=new_customer_hats.`order_notes`;", 'SELECT \'Table customer_hats does not exist\'');
+`hat_material_id`=new_customer_hats.`hat_material_id`, `crown_material_id`=new_customer_hats.`crown_material_id`, `tails_material_id`=new_customer_hats.`tails_material_id`, `wing_id`=new_customer_hats.`wing_id`, `original_wing_name`=new_customer_hats.`original_wing_name`, `wing_quantity`=new_customer_hats.`wing_quantity`, `adjusted_wings_per_hat`=new_customer_hats.`adjusted_wings_per_hat`, `customer_id`=new_customer_hats.`customer_id`, `shorten_top_by`=new_customer_hats.`shorten_top_by`, `shorten_crown_by`=new_customer_hats.`shorten_crown_by`, `wall_allocation_id`=new_customer_hats.`wall_allocation_id`, `crown_allocation_id`=new_customer_hats.`crown_allocation_id`, `tails_allocation_id`=new_customer_hats.`tails_allocation_id`, `tails_overdraft`=new_customer_hats.`tails_overdraft`, `kippa_size`=new_customer_hats.`kippa_size`, `mayler_width`=new_customer_hats.`mayler_width`, `hr_hl_width`=new_customer_hats.`hr_hl_width`, `crown_visible`=new_customer_hats.`crown_visible`, `crown_length`=new_customer_hats.`crown_length`, `white_hair`=new_customer_hats.`white_hair`, `white_hair_notes`=new_customer_hats.`white_hair_notes`, `order_date`=new_customer_hats.`order_date`, `isurgent`=new_customer_hats.`isurgent`, `order_notes`=new_customer_hats.`order_notes`;", 'SELECT \'Table customer_hats does not exist\'');
         -- Execute the prepared statement
         PREPARE stmt FROM @sql;
         EXECUTE stmt; #USING @value1, @value2;
@@ -1084,7 +1129,8 @@ VALUES
 (5, 5, 2),
 (6, 6, 1),
 (7, 7, 1),
-(8, 8, 1)
+(8, 8, 1),
+(10, 10, 1)
 as new_orders
 ON DUPLICATE KEY UPDATE
 `customer_hat_id`=new_orders.`customer_hat_id`, `num_of_hats`=new_orders.`num_of_hats`;", 'SELECT \'Table orders does not exist\'');
@@ -1108,7 +1154,8 @@ VALUES
 (5, 5, '2025-07-02 11:41:03', 'new'),
 (6, 6, '2025-07-03 20:18:01', 'new'),
 (7, 7, '2025-07-05 17:07:43', 'new'),
-(8, 8, '2025-07-06 14:09:51', 'new')
+(8, 8, '2025-07-06 14:09:51', 'new'),
+(10, 10, '2025-07-10 17:59:03', 'new')
 as new_orders_status
 ON DUPLICATE KEY UPDATE
 `order_id`=new_orders_status.`order_id`, `date`=new_orders_status.`date`, `order_status`=new_orders_status.`order_status`;", 'SELECT \'Table orders_status does not exist\'');
