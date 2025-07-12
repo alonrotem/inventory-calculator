@@ -16,7 +16,7 @@
         <div class="infotitle" [hidden]="loading">
             <div>
                 <span [hidden]="this.customer_id > 0"><strong>All orders.</strong></span>
-                <span [hidden]="this.customer_id <= 0"><strong>Orders for customer {{ this.customer_name }}.</strong></span>
+                <span [hidden]="this.customer_id <= 0"><strong>Orders for customer {{ (this.customer_name == "") ? ('#' + this.customer_id) : (this.customer_name) }}.</strong></span>
             </div>
             <div [hidden]="this.orders.length <= 0">
                 Total: {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'order':'orders' }}
@@ -49,7 +49,7 @@
         <tbody>           
           <tr 
             *ngFor="let order of this.orders" 
-            role="button" routerLink="/inventory/customer/order/editor" [queryParams]="{ id: order.id }">
+            role="button" routerLink="/inventory/customer/order/editor" [queryParams]="{ id: order.id, customer_id: customer_id }">
             <td>{{ order.order_id_with_customer }}</td>
             <td>{{ order.order_status }}</td>
             <td><input class="form-check-input" type="checkbox" onclick="return false;" [checked]="order.isurgent" /></td>

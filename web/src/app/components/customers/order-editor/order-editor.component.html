@@ -1,5 +1,15 @@
 <div class="row justify-content-center order-editor-container">
     <div class="col-12 col-md-8 order-editor">
+
+        <div class="toolbar">
+            <!--http://localhost:4200/inventory/customer/orders?customer_id=10-->
+            <button class="btn btn-warning" (click)="goToCustomersList()"><fa-icon [icon]="faArrowLeft"></fa-icon></button>
+            <button class="btn btn-secondary" (click)="print()"><span class="icon-printer"></span> Print</button>
+            <button class="btn btn-secondary" (click)="exportPdf()"><span class="icon-file-pdf"></span> PDF</button>
+            <button class="btn btn-success" *ngIf="unsaved_changes"><fa-icon [icon]="faSave"></fa-icon></button>
+        </div>
+
+        <div class="printable-content" #printSection>
     
         <!-- heading -->
         <div class="heading d-flex flex-nowrap flex-row justify-content-between align-items-center">
@@ -81,5 +91,6 @@
         
         </div>
 
+        </div>
     </div>
 </div>

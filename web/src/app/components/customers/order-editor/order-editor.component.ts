@@ -1,20 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastService } from '../../../services/toast.service';
 import { OrdersService } from '../../../services/orders.service';
 import { firstValueFrom } from 'rxjs';
 import { OrderDetails, Status } from '../../../../types';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faArrowsRotate, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faArrowRight, faArrowsRotate, faSave, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { DateStrPipe } from "../../../utils/pipes/date_pipe";
-import { NgFor } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { SortBabiesPipe } from "../../../utils/pipes/sort-babies-pipe";
 import { PrefixPipe } from "../../../utils/pipes/prefix-pipe";
+import html2pdf from 'html2pdf.js';
 
 @Component({
   selector: 'app-order-editor',
   standalone: true,
-  imports: [FaIconComponent, DateStrPipe, NgFor, SortBabiesPipe, PrefixPipe],
+  imports: [FaIconComponent, DateStrPipe, NgFor, SortBabiesPipe, PrefixPipe, NgIf],
   templateUrl: './order-editor.component.html',
   styleUrl: './order-editor.component.scss'
 })
@@ -51,7 +52,13 @@ export class OrderEditorComponent implements OnInit {
     babies: []
   };
   faArrowsRotate: IconDefinition = faArrowsRotate;
+  faSave: IconDefinition = faSave;
+  faArrowLeft: IconDefinition = faArrowLeft;
+  customer_id: number = 0;
   loading: boolean = false;
+  unsaved_changes: boolean = false;
+
+  @ViewChild('printSection') printSection!: ElementRef;
 
   constructor(
     private ordersService: OrdersService,
@@ -63,6 +70,7 @@ export class OrderEditorComponent implements OnInit {
 
   ngOnInit(): void {
       const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
+      this.customer_id = Number(this.activatedRoute.snapshot.queryParamMap.get('customer_id'));
       this.getOrder(id);
   }
 
@@ -71,6 +79,34 @@ export class OrderEditorComponent implements OnInit {
     this.orderDetails = await firstValueFrom(this.ordersService.getOrder(id));
     console.dir(this.orderDetails);
     this.loading = false;
+  }
+
+  goToCustomersList(){
+    this.router.navigate(['inventory/customer/orders'], { 
+      queryParams: {
+        customer_id: this.customer_id
+      },
+      state: {
+        info: {
+          customer_name: this.orderDetails.customer_name
+        }
+      }
+    });
+  }
+
+  print() {
+    window.print();
+  }
+
+  exportPdf(): void {
+    const options = {
+      margin:       10,
+      filename:     `order_${this.orderDetails.order_id_with_customer}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().from(this.printSection.nativeElement).set(options).save();
   }
 
 }

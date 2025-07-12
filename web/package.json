@@ -29,6 +29,7 @@
     "date-fns": "^4.1.0",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
+    "html2pdf.js": "^0.10.3",
     "jquery": "^3.7.1",
     "ngx-lightbox": "^3.0.0",
     "popper.js": "^1.16.1",

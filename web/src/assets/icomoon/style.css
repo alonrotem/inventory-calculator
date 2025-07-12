@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'romtech';
-  src:  url('fonts/romtech.eot?vzmtix');
-  src:  url('fonts/romtech.eot?vzmtix#iefix') format('embedded-opentype'),
-    url('fonts/romtech.ttf?vzmtix') format('truetype'),
-    url('fonts/romtech.woff?vzmtix') format('woff'),
-    url('fonts/romtech.svg?vzmtix#romtech') format('svg');
+  src:  url('fonts/romtech.eot?nh2ok7');
+  src:  url('fonts/romtech.eot?nh2ok7#iefix') format('embedded-opentype'),
+    url('fonts/romtech.ttf?nh2ok7') format('truetype'),
+    url('fonts/romtech.woff?nh2ok7') format('woff'),
+    url('fonts/romtech.svg?nh2ok7#romtech') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -25,137 +25,8 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-tail:before {
-  content: "\e914";
-}
-.icon-tails:before {
-  content: "\e913";
-}
-.icon-knife:before {
-  content: "\e90e";
-}
-.icon-wing:before {
-  content: "\e910";
-}
-.icon-wing-size:before {
-  content: "\e911";
-}
-.icon-times-circle-o:before {
-  content: "\f05c";
-}
-.icon-check-circle-o:before {
-  content: "\f05d";
-}
-.icon-ban:before {
-  content: "\f05e";
-}
-.icon-arrow-left:before {
-  content: "\f060";
-}
-.icon-arrow-right:before {
-  content: "\f061";
-}
-.icon-arrow-up:before {
-  content: "\f062";
-}
-.icon-arrow-down:before {
-  content: "\f063";
-}
-.icon-eye:before {
-  content: "\f06e";
-}
-.icon-eye-slash:before {
-  content: "\f070";
-}
-.icon-chevron-up:before {
-  content: "\f077";
-}
-.icon-chevron-down:before {
-  content: "\f078";
-}
-.icon-shopping-cart:before {
-  content: "\f07a";
-}
-.icon-external-link:before {
-  content: "\f08e";
-}
-.icon-flask:before {
-  content: "\f0c3";
-}
-.icon-caret-down:before {
-  content: "\f0d7";
-}
-.icon-caret-up:before {
-  content: "\f0d8";
-}
-.icon-caret-left:before {
-  content: "\f0d9";
-}
-.icon-caret-right:before {
-  content: "\f0da";
-}
-.icon-angle-double-left:before {
-  content: "\f100";
-}
-.icon-angle-double-right:before {
-  content: "\f101";
-}
-.icon-angle-double-up:before {
-  content: "\f102";
-}
-.icon-angle-double-down:before {
-  content: "\f103";
-}
-.icon-angle-left:before {
-  content: "\f104";
-}
-.icon-angle-right:before {
-  content: "\f105";
-}
-.icon-angle-up:before {
-  content: "\f106";
-}
-.icon-angle-down:before {
-  content: "\f107";
-}
-.icon-chevron-circle-left:before {
-  content: "\f137";
-}
-.icon-chevron-circle-right:before {
-  content: "\f138";
-}
-.icon-chevron-circle-up:before {
-  content: "\f139";
-}
-.icon-chevron-circle-down:before {
-  content: "\f13a";
-}
-.icon-shopping-bag:before {
-  content: "\f290";
-}
-.icon-shopping-basket:before {
-  content: "\f291";
-}
-.icon-save-as:before {
-  content: "\e90d";
-}
-.icon-floppy-o:before {
-  content: "\f0c7";
-}
-.icon-save:before {
-  content: "\f0c7";
-}
-.icon-folder-open-o:before {
-  content: "\f115";
-}
-.icon-new-hat:before {
-  content: "\e90c";
-}
-.icon-line-chart:before {
-  content: "\f201";
-}
-.icon-calculator1:before {
-  content: "\f1ec";
+.icon-printer:before {
+  content: "\e954";
 }
 .icon-menu:before {
   content: "\e9bd";
@@ -191,31 +62,31 @@
   content: "\e902";
 }
 .icon-babies:before {
-  content: "\e915";
-}
-.icon-logo-light:before {
   content: "\e903";
 }
-.icon-hat:before {
+.icon-logo-light:before {
   content: "\e904";
 }
-.icon-feather-wing:before {
+.icon-hat:before {
   content: "\e905";
 }
-.icon-feather-wing-r:before {
+.icon-feather-wing:before {
   content: "\e906";
 }
-.icon-crown:before {
+.icon-feather-wing-r:before {
   content: "\e907";
 }
-.icon-top:before {
+.icon-crown:before {
   content: "\e908";
 }
-.icon-home3:before {
+.icon-top:before {
   content: "\e909";
 }
-.icon-pencil:before {
+.icon-home3:before {
   content: "\e90a";
+}
+.icon-pencil:before {
+  content: "\e90c";
 }
 .icon-camera:before {
   content: "\e90f";
@@ -366,4 +237,136 @@
 }
 .icon-file-excel:before {
   content: "\eae2";
+}
+.icon-tail:before {
+  content: "\e913";
+}
+.icon-tails:before {
+  content: "\e914";
+}
+.icon-knife:before {
+  content: "\e90e";
+}
+.icon-wing:before {
+  content: "\e910";
+}
+.icon-wing-size:before {
+  content: "\e911";
+}
+.icon-times-circle-o:before {
+  content: "\f05c";
+}
+.icon-check-circle-o:before {
+  content: "\f05d";
+}
+.icon-ban:before {
+  content: "\f05e";
+}
+.icon-arrow-left:before {
+  content: "\f060";
+}
+.icon-arrow-right:before {
+  content: "\f061";
+}
+.icon-arrow-up:before {
+  content: "\f062";
+}
+.icon-arrow-down:before {
+  content: "\f063";
+}
+.icon-eye:before {
+  content: "\f06e";
+}
+.icon-eye-slash:before {
+  content: "\f070";
+}
+.icon-chevron-up:before {
+  content: "\f077";
+}
+.icon-chevron-down:before {
+  content: "\f078";
+}
+.icon-shopping-cart:before {
+  content: "\f07a";
+}
+.icon-external-link:before {
+  content: "\f08e";
+}
+.icon-flask:before {
+  content: "\f0c3";
+}
+.icon-caret-down:before {
+  content: "\f0d7";
+}
+.icon-caret-up:before {
+  content: "\f0d8";
+}
+.icon-caret-left:before {
+  content: "\f0d9";
+}
+.icon-caret-right:before {
+  content: "\f0da";
+}
+.icon-angle-double-left:before {
+  content: "\f100";
+}
+.icon-angle-double-right:before {
+  content: "\f101";
+}
+.icon-angle-double-up:before {
+  content: "\f102";
+}
+.icon-angle-double-down:before {
+  content: "\f103";
+}
+.icon-angle-left:before {
+  content: "\f104";
+}
+.icon-angle-right:before {
+  content: "\f105";
+}
+.icon-angle-up:before {
+  content: "\f106";
+}
+.icon-angle-down:before {
+  content: "\f107";
+}
+.icon-chevron-circle-left:before {
+  content: "\f137";
+}
+.icon-chevron-circle-right:before {
+  content: "\f138";
+}
+.icon-chevron-circle-up:before {
+  content: "\f139";
+}
+.icon-chevron-circle-down:before {
+  content: "\f13a";
+}
+.icon-shopping-bag:before {
+  content: "\f290";
+}
+.icon-shopping-basket:before {
+  content: "\f291";
+}
+.icon-save-as:before {
+  content: "\e90d";
+}
+.icon-floppy-o:before {
+  content: "\f0c7";
+}
+.icon-save:before {
+  content: "\f0c7";
+}
+.icon-folder-open-o:before {
+  content: "\f115";
+}
+.icon-new-hat:before {
+  content: "\e915";
+}
+.icon-line-chart:before {
+  content: "\f201";
+}
+.icon-calculator1:before {
+  content: "\f1ec";
 }

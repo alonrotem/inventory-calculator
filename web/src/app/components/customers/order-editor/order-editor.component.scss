@@ -3,6 +3,14 @@
     display: flex;
 }
 
+.toolbar {
+    margin: 15px 0px;
+}
+
+.toolbar button {
+    margin-right: 15px;
+}
+
 #loading_icon {
     height: 100vh !important;
     margin-top: -193px;
@@ -18,7 +26,7 @@
     background-color: white;
     color: black;
     height: 100%;
-    padding: 15px;
+    padding: 50px;
 }
 
 .heading, .fields-row {
@@ -31,7 +39,7 @@
 }
 
 .fields-row table td {
-    border: 3px solid black;
+    border: 2px solid black;
 }
 
 .heading img {
@@ -47,4 +55,37 @@
     /*height: 60px;*/
     padding: 7px;
     align-content: center;
+}
+
+.printable-content {
+  background-color: white;
+  color: black;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Print-specific A4 page layout */
+@media print {
+    body *, ::ng-deep * {
+        visibility: hidden;
+    }
+
+    .printable-content,
+    .printable-content * {
+        visibility: visible;
+    }
+
+    .printable-content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 210mm;
+        height: 297mm;
+        overflow: hidden;
+        page-break-after: avoid;
+    }
+
+    button {
+        display: none;
+    }
 }
