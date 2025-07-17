@@ -57,6 +57,8 @@ export class OrderEditorComponent implements OnInit {
   customer_id: number = 0;
   loading: boolean = false;
   unsaved_changes: boolean = false;
+  orders_list_back_to_link: string = "";
+  orders_list_back_to_text: string = "";
 
   @ViewChild('printSection') printSection!: ElementRef;
 
@@ -65,7 +67,16 @@ export class OrderEditorComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
     private router: Router, 
     private toastService: ToastService){
-    
+      let nav = router.getCurrentNavigation();
+
+      if (nav && nav.extras.state && nav.extras.state['info']) {
+        if(nav.extras.state['info']['orders_list_back_to_link']){
+          this.orders_list_back_to_link = nav.extras.state['info']['orders_list_back_to_link'];
+        }
+        if(nav.extras.state['info']['orders_list_back_to_text']){
+          this.orders_list_back_to_text = nav.extras.state['info']['orders_list_back_to_text'];
+        }
+      }      
   }
 
   ngOnInit(): void {
@@ -88,7 +99,9 @@ export class OrderEditorComponent implements OnInit {
       },
       state: {
         info: {
-          customer_name: this.orderDetails.customer_name
+          customer_name: this.orderDetails.customer_name,
+          back_to_link: this.orders_list_back_to_link,
+          back_to_text: this.orders_list_back_to_text
         }
       }
     });

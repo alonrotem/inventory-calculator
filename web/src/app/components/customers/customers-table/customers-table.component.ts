@@ -7,7 +7,7 @@ import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.com
 import { Router, RouterModule } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { IconDefinition, faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
+import { IconDefinition, faArrowsRotate, faBasketShopping } from '@fortawesome/free-solid-svg-icons';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { FormsModule } from '@angular/forms';
 import { DateStrPipe } from '../../../utils/pipes/date_pipe';
@@ -45,6 +45,7 @@ export class CustomersTableComponent extends NavigatedMessageComponent implement
   customers: CustomerListItem[] = [];
   @ViewChild("paginator") paginator!: PaginatorComponent;
   faArrowsRotate: IconDefinition = faArrowsRotate;
+  faBasketShopping: IconDefinition = faBasketShopping;
   loading: boolean = true;
   totalRecords: number = 0;
 
@@ -85,4 +86,19 @@ export class CustomersTableComponent extends NavigatedMessageComponent implement
   showSuccess(text: string) {
 		this.toastService.showError (text);
 	}
+
+    go_to_orders(customer_id: number, customer_name: string){
+    this.router.navigate(['/inventory/customer/orders'], {
+      queryParams: {
+        customer_id: customer_id
+      },
+      state: {
+        info: {
+          customer_name: customer_name,
+          back_to_link: '/inventory/customers',
+          back_to_text: 'Back to customers list'
+        }
+      },
+    });
+  }
 }

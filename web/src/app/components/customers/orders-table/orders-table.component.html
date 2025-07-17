@@ -12,7 +12,11 @@
       <!--<a id="btnNewRaw" class="btn btn-primary" routerLink="/inventory/customer/editor">+ New customer</a>-->
     
       <div style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start;">
-        <a [hidden]="this.customer_id <= 0" style="margin-right: 15px;" class="btn btn-warning" routerLink="/inventory/customer/hat-calculator" [queryParams]="{ id: this.customer_id}"><fa-icon [icon]="faArrowLeft"></fa-icon> Back to calculator</a>
+        <a [hidden]="this.customer_id <= 0" style="margin-right: 15px;" class="btn btn-warning" 
+          [routerLink]="back_button_link" 
+          [queryParams]="{ id: this.customer_id}">
+          <fa-icon [icon]="faArrowLeft"></fa-icon> {{ back_button_text }}
+        </a>
         <div class="infotitle" [hidden]="loading">
             <div>
                 <span [hidden]="this.customer_id > 0"><strong>All orders.</strong></span>
@@ -49,7 +53,7 @@
         <tbody>           
           <tr 
             *ngFor="let order of this.orders" 
-            role="button" routerLink="/inventory/customer/order/editor" [queryParams]="{ id: order.id, customer_id: customer_id }">
+            role="button" (click)="go_to_odrer(order.id, customer_id)">
             <td>{{ order.order_id_with_customer }}</td>
             <td>{{ order.order_status }}</td>
             <td><input class="form-check-input" type="checkbox" onclick="return false;" [checked]="order.isurgent" /></td>

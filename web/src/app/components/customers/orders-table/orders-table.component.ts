@@ -37,6 +37,8 @@ export class OrdersTableComponent extends NavigatedMessageComponent implements O
   totalRecords: number = 0;
   customer_id:number = 0;
   customer_name: string = '';
+  back_button_link: string = '/inventory/customer/hat-calculator';
+  back_button_text: string = 'Back to calculator';
 
   constructor(
     private ordersService: OrdersService, 
@@ -50,8 +52,16 @@ export class OrdersTableComponent extends NavigatedMessageComponent implements O
       super(toastService, stateService, router);
       this.showNavigationToastIfMessagePending();
 
-      if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['customer_name']){
-        this.customer_name = nav.extras.state['info']['customer_name'];
+      if (nav && nav.extras.state && nav.extras.state['info']) {
+        if(nav.extras.state['info']['customer_name']){
+          this.customer_name = nav.extras.state['info']['customer_name'];
+        }
+        if(nav.extras.state['info']['back_to_link']){
+          this.back_button_link = nav.extras.state['info']['back_to_link'];
+        }
+        if(nav.extras.state['info']['back_to_text']){
+          this.back_button_text = nav.extras.state['info']['back_to_text'];
+        }
       }
     }
 
@@ -91,5 +101,20 @@ export class OrdersTableComponent extends NavigatedMessageComponent implements O
 
     pageChange (page: number) {
       this.geOrders(page);
+    }
+
+  go_to_odrer(order_id: number, customer_id: number){
+    this.router.navigate(['/inventory/customer/order/editor'], {
+      queryParams: {
+        id: order_id,
+        customer_id: customer_id
+      },
+      state: {
+        info: {
+          orders_list_back_to_link: this.back_button_link,
+          orders_list_back_to_text: this.back_button_text
+        }
+      },
+    });      
     }
 }

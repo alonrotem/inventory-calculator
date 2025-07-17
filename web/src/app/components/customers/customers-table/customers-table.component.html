@@ -17,6 +17,7 @@
 <table class="table table-responsive table-striped table-hover">
     <thead>
       <tr>
+        <td></td>
         <th scope="col">Name</th>
         <th scope="col">Business name</th>
         <th scope="col" class="text-center">Raw material banks</th>
@@ -26,12 +27,16 @@
     <tbody>
       <tr 
         *ngFor="let customer of this.customers" 
-        routerLink="/inventory/customer/editor" 
-        [queryParams]="{ id: customer.id }" role="button">
-        <td>{{ customer.name }}</td>
-        <td>{{ customer.business_name }}</td>
-        <td class="text-center">{{ customer.bank_count }}</td>
-        <td class="text-center">{{ customer.allocation_count }}</td>
+        role="button">
+        <td style="width: 1px;">
+          <button class="btn btn-success" style="text-wrap-mode: nowrap;" (click)="go_to_orders(customer.id, customer.name)"><!--(click)="go_to_orders()"-->
+            <div><fa-icon [icon]="faBasketShopping"></fa-icon> Orders</div>
+          </button>
+        </td>
+        <td routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }">{{ customer.name }}</td>
+        <td routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }">{{ customer.business_name }}</td>
+        <td routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }" class="text-center">{{ customer.bank_count }}</td>
+        <td routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }" class="text-center">{{ customer.allocation_count }}</td>
       </tr>
     </tbody>
   </table>
