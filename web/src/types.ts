@@ -486,6 +486,7 @@ export interface OrderListItem {
     order_status: Status;
     isurgent: boolean;
     customer_name: string;
+    num_of_hats: number;
     wall: string,
     kippa_size: number;
     wing_quantity: number;

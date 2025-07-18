@@ -37,6 +37,7 @@
             <th scope="col" class="sticky-header">Status</th>
             <th scope="col" class="sticky-header">Urgent</th>
             <th scope="col" class="sticky-header">Name</th>
+            <th scope="col" class="sticky-header"># hats</th>
             <th scope="col" class="sticky-header">Wall</th>
             <th scope="col" class="sticky-header">Kippa</th>
             <th scope="col" class="sticky-header">Wings</th>
@@ -56,17 +57,18 @@
             role="button" (click)="go_to_odrer(order.id, customer_id)">
             <td>{{ order.order_id_with_customer }}</td>
             <td>{{ order.order_status }}</td>
-            <td><input class="form-check-input" type="checkbox" onclick="return false;" [checked]="order.isurgent" /></td>
+            <td class="text-center"><input class="form-check-input" type="checkbox" onclick="return false;" [checked]="order.isurgent" /></td>
             <td>{{ order.customer_name }}</td>
+            <td class="text-center">{{ order.num_of_hats }}</td>
             <td>{{ order.wall }}</td>
-            <td>{{ order.kippa_size }}</td>
-            <td>{{ order.adjusted_wings_per_hat | wingsPerHatShorthand }}</td>
+            <td class="text-center">{{ order.kippa_size }}</td>
+            <td class="text-center">{{ order.adjusted_wings_per_hat | wingsPerHatShorthand }}</td>
             <td>{{ order.crown }}</td>
-            <td>{{ order.crown_visible }}</td>
-            <td>{{ order.crown_length }}</td>
-            <td>{{ order.knife }}</td>
+            <td class="text-center">{{ order.crown_visible }}</td>
+            <td class="text-center">{{ order.crown_length }}</td>
+            <td class="text-center">{{ order.knife }}</td>
             <td><div class="shortened">{{ order.white_hair_notes }}</div></td>
-            <td><input class="form-check-input" type="checkbox" onclick="return false;" [checked]="order.white_hair" /></td>
+            <td class="text-center"><input class="form-check-input" type="checkbox" onclick="return false;" [checked]="order.white_hair" /></td>
             <td>{{ order.tails }}</td>
             <td>{{ order.date  | dateStr }}</td>
           </tr>
