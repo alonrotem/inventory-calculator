@@ -489,6 +489,7 @@ export interface OrderListItem {
     wall: string,
     kippa_size: number;
     wing_quantity: number;
+    adjusted_wings_per_hat: string;
     crown: string,
     crown_visible: number;
     crown_length: number;

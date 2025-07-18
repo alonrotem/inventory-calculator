@@ -17,11 +17,12 @@ import { ToastService } from '../../../services/toast.service';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { StateService } from '../../../services/state.service';
 import { SettingsService } from '../../../services/settings.service';
+import { WingsPerHatShorthandPipe } from "../../../utils/pipes/wings-per-hat-shorthand-pipe";
 
 @Component({
   selector: 'app-orders-table',
   standalone: true,
-  imports: [ NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe, ToastComponent, DecimalPipe, SingleHatCalculatorComponent ],
+  imports: [NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe, ToastComponent, DecimalPipe, SingleHatCalculatorComponent, WingsPerHatShorthandPipe],
   templateUrl: './orders-table.component.html',
   styleUrl: './orders-table.component.scss'
 })

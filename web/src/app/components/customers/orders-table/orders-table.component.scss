@@ -15,6 +15,12 @@
     padding-top: 85px;
 }
 
+.horizontal-scrollable .table thead th {
+  position: sticky !important;
+  top: 80px !important;
+  z-index: 9999 !important;
+}
+
 #loading_message {
     margin-top: 30px;
 }
@@ -54,7 +60,7 @@ h1 {
     */
 
 .horizontal-scrollable > .row {
-    overflow-x: auto;
+    /*overflow-x: auto;*/
     white-space: nowrap;
 }
 

@@ -306,6 +306,17 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.order_wing_adjustment.confirm.subscribe({
       next: () => {
         this.customerHat.adjusted_wings_per_hat = this.wings_per_hat_in_order.join(",");
+
+        //see if all hats have the same number of wings
+        //(check the first hat, then see if any hat has a different number of wings).
+        //if all hats have the same number of wings, set the order to reflect it.
+        if(this.wings_per_hat_in_order.length > 0){
+          let first_hat_wings = this.wings_per_hat_in_order[0];
+          let hats_contain_vadied_num_of_wings = this.wings_per_hat_in_order.find(w => w != first_hat_wings);
+          if(!hats_contain_vadied_num_of_wings){
+            this.customerHat.wing_quantity = first_hat_wings;
+          }
+        }
         this.placeOrderConfirmed();
       }
     });

@@ -75,7 +75,7 @@ export const routes: Routes = [
         path: 'settings',
         component: SettingsMainComponent,
         canDeactivate: [UnsavedChangesGuard]
-    },    
+    },
     { 
         path: '**', pathMatch: 'full',  
         component: PagenotfoundComponent 
