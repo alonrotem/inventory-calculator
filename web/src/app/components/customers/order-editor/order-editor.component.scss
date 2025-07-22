@@ -89,3 +89,20 @@
         display: none;
     }
 }
+
+.checks-table td {
+    padding: 15px 5px 0px 5px;
+}
+
+.checks-table, .checks-table td {
+    border: none !important;
+    width: 0;
+    min-width: fit-content;
+    white-space: nowrap;
+}
+.checks-table td:nth-child(3) div,
+.checks-table td:nth-child(5) div {
+    border-bottom: 2px solid black !important;
+    width: 205px !important;
+    height: 10px;
+}

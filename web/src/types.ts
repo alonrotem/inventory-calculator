@@ -177,35 +177,6 @@ export interface HatBasicInfo {
     wing_quantity:number;
 }
 */
-export interface CustomerHat {
-    id: number;
-	hat_material_id: number | null;
-	crown_material_id: number| null;
-	tails_material_id: number | null;
-    wing_quantity: number;
-    adjusted_wings_per_hat: string;
-    customer_id: number;
-    shorten_top_by: number;
-    shorten_crown_by: number;
-    wing: Wing | null;
-    original_wing_name: string;
-    wall_allocation_id: number;
-    crown_allocation_id: number;
-    tails_allocation_id: number | null;
-    tails_overdraft: number;
-
-    crown_visible: number;
-    crown_length: number;
-
-    kippa_size: number;
-    mayler_width: number;
-    hr_hl_width: number;
-    white_hair: boolean;
-    white_hair_notes: string;
-    order_date: Date | null;
-    isurgent: boolean;
-    order_notes: string;
-}
 
 export interface PaginationParams {
     [key:string]: string | number | boolean | ReadonlyArray<string | number | boolean>;
@@ -277,6 +248,7 @@ export class Point {
     updated_at: Date;
     created_by: number;
     updated_by: number;
+    order_seq_number: number;
 
     banks: Customer_Bank[];
     banks_baby_allocations: Customer_Bank_Baby_Allocation[];
@@ -417,45 +389,84 @@ export interface nameIdPair {
     id: number;
 }
 
+//customerHat contains the details of the hat specs the customer ordered
+//it holds an array of single hats by those specs, 
+//each single hat can have a different kippa, designated customer name and number of wings
+export interface CustomerHat {
+    id: number;
+	hat_material_id: number | null;
+	crown_material_id: number| null;
+	tails_material_id: number | null;
+    wing_quantity: number;
+    //adjusted_wings_per_hat: string;
+    customer_id: number;
+    shorten_top_by: number;
+    shorten_crown_by: number;
+    wing: Wing | null;
+    original_wing_name: string;
+    wall_allocation_id: number;
+    crown_allocation_id: number;
+    tails_allocation_id: number | null;
+    tails_overdraft: number;
+
+    crown_visible: number;
+    crown_length: number;
+
+    //kippa_size: number;
+    mayler_width: number;
+    hr_hl_width: number;
+    white_hair: boolean;
+    white_hair_notes: string;
+    order_date: Date | null;
+    isurgent: boolean;
+    order_notes: string;
+
+    single_hat_orders: Order[];
+}
+
+//this is a single hat in the CustomerHat specs
 export interface Order {
     id: number;
-    customer_hat: CustomerHat;
-    num_of_hats: number;
+    customer_order_seq_number: number;
+    wing_quantity: number;
+    kippa_size: number;
+    ordering_customer_name: string;
+    num_of_hats: number; //defaults to 1, this represents an order of a single hat
     status: OrderStatus;
 }
 
+//these details are fetched per hat for the work order screen
 export interface OrderDetails {
     id: number;
-    order_id_with_customer: string;
+    hat_id_with_customer: string;
     order_status: Status;
     isurgent: boolean;
     customer_name: string;
-wing_name: string;
-wall_material: string;
-wall_material_color: string;
+    wing_name: string;
+    wall_material: string;
+    wall_material_color: string;
     kippa_size: number;
     wing_quantity: number;
-crown_material: string;
-crown_material_color: string;
+    crown_material: string;
+    crown_material_color: string;
     crown_visible: number;
     crown_length: number;
     knife: number;
     white_hair_notes: string;
     white_hair: number;
-h_material: string;
-h_material_color: string;
+    h_material: string;
+    h_material_color: string;
     date: Date;
     //-----
-adjusted_wings_per_hat: string;
-shorten_top_by: number;
-shorten_crown_by: number;
-tails_overdraft: number;
-mayler_width: number;
-hr_hl_width: number;
-order_notes: string;
-original_order_date: Date | null;
+    shorten_top_by: number;
+    shorten_crown_by: number;
+    tails_overdraft: number;
+    mayler_width: number;
+    hr_hl_width: number;
+    order_notes: string;
+    original_order_date: Date | null;
 
-babies: WingBaby[];
+    babies: WingBaby[];
     //-----
 
 /* 
@@ -466,12 +477,12 @@ babies: WingBaby[];
 }
 
 export enum Status {
-    new = "new",
-    updated = "updated",
-    processing = "processing",
-    completed = "completed",
-    cancelled = "cancelled",
-    deleted = "deleted",
+	new = 'new',
+    inline = 'inline',
+    shipped = 'shipped',
+    onhold = 'onhold',
+    completed = 'completed',
+    cancelled = 'cancelled'
 }
 
 export interface OrderStatus {
@@ -480,13 +491,14 @@ export interface OrderStatus {
     order_status: Status;
 }
 
+//this is for the list of ordered hats
 export interface OrderListItem {
     id: number;
-    order_id_with_customer: string;
+    hat_id_with_customer: string;
     order_status: Status;
     isurgent: boolean;
     customer_name: string;
-    num_of_hats: number;
+    ordering_customer: string;
     wall: string,
     kippa_size: number;
     wing_quantity: number;
@@ -498,6 +510,7 @@ export interface OrderListItem {
     white_hair_notes: string;
     white_hair: number;
     tails: number;
+    tails_overdraft: number;
     date: Date;
 }
 

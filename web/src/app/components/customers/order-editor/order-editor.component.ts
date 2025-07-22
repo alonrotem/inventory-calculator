@@ -22,7 +22,7 @@ import html2pdf from 'html2pdf.js';
 export class OrderEditorComponent implements OnInit {
   orderDetails: OrderDetails = {
     id: 0,
-    order_id_with_customer: '',
+    hat_id_with_customer: '',
     order_status: Status.new,
     isurgent: false,
     customer_name: '',
@@ -41,7 +41,6 @@ export class OrderEditorComponent implements OnInit {
     h_material: '',
     h_material_color: '',
     date: new Date(),
-    adjusted_wings_per_hat: '',
     shorten_top_by: 0,
     shorten_crown_by: 0,
     tails_overdraft: 0,
@@ -114,7 +113,7 @@ export class OrderEditorComponent implements OnInit {
   exportPdf(): void {
     const options = {
       margin:       10,
-      filename:     `order_${this.orderDetails.order_id_with_customer}.pdf`,
+      filename:     `hat_order_${this.orderDetails.hat_id_with_customer}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
       html2canvas:  { scale: 2 },
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }

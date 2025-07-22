@@ -36,7 +36,7 @@
   [btnSaveText]="'Place order!'"
   [btnSaveClass]="(max_number_of_wings_in_all_allocations > 0)? 'btn-success' : 'd-none'"
   [btnCancelText]="(max_number_of_wings_in_all_allocations > 0)? 'Cancel': 'Close'"
-  [modalSize]="'l'">
+  [modalSize]="'xl'">
   <div class="order_adjustment_dialog" *ngIf="max_number_of_wings_in_all_allocations <= 0">
     You do not have sufficient wings to produce hats!
   </div>
@@ -58,20 +58,50 @@
       <th>Hat in order</th>
       <th class="text-center">Number of wings</th>
       <th class="text-center">Babies per hat</th>
-      <tr *ngFor="let num_of_wings of wings_per_hat_in_order; let i = index; trackBy: trackByIndex">
+      <th class="text-center" style="white-space: nowrap; width: 250px;">Customer</th>
+      <th>Kippa size</th>
+      <tr *ngFor="let order of this.customerHat.single_hat_orders; let i = index; trackBy: trackByOrder"><!--trackBy: trackByIndex-->
         <td>Hat #{{ i+1 }}</td>
         <td class="d-flex justify-content-center">
           <input 
             class="form-control" 
             type="number" 
-            [(ngModel)]="wings_per_hat_in_order[i]"
+            [(ngModel)]="order.wing_quantity"
             style="width: 120px; text-align: center;" 
             min="0"
-            [attr.max]="(max_number_of_wings_in_all_allocations) ? (num_of_wings + (max_number_of_wings_in_all_allocations - allWingsInOrder)) : 0"
+            [attr.max]="(max_number_of_wings_in_all_allocations) ? (order.wing_quantity + (max_number_of_wings_in_all_allocations - allWingsInOrder)) : 0"
             (input)="dont_exceed_max_wings($event, i)"
               />
         </td>
-        <td class="text-center">{{ wings_per_hat_in_order[i] * (this.customerHat.wing? this.customerHat.wing.babies.length : 0) }}</td>
+        <td class="text-center">{{ order.wing_quantity * (this.customerHat.wing? this.customerHat.wing.babies.length : 0) }}</td>
+        <td class="d-flex flex-row" style="padding: 0px 15px;">
+          <div [className]="(i==0? 'input-group':'')">
+            <input 
+              class="form-control" 
+              type="text"
+              [(ngModel)]="order.ordering_customer_name"
+              />
+             <div class="input-group-append" *ngIf="i==0">
+              <button 
+                class="btn btn-outline-primary"
+                style="border-top-left-radius: 0; border-bottom-left-radius: 0;"
+                type="button" (click)="duplicate_customer_name()"><!--[className]="'btn btn-primary ' + (i==0? '':'in') + 'visible'"-->
+                <fa-icon [icon]="faCopy"></fa-icon>
+                <fa-icon [icon]="faArrowDown"></fa-icon>
+              </button>
+            </div>
+          </div>
+        </td>
+        <td>
+          <select class="form-select" [(ngModel)]="order.kippa_size" style="max-width: 180px;">
+            <option 
+              *ngFor="let kippa of arr_kippa" 
+              value="{{ kippa }}"
+              >
+                {{ kippa  | number : '1.1-1' }} cm ({{ (kippa / inch_to_cm)  | number : '1.2-2' }}")
+            </option>
+          </select>      
+        </td>
       </tr>
     </table>
   </div>
@@ -443,7 +473,7 @@
           <label for="tempB">Kippa size:</label>
         </div>
         <div class="flex-grow-1" style="margin-left: 15px;">
-        <select class="form-select" [(ngModel)]="customerHat.kippa_size" #select_kippa>
+        <select class="form-select" [(ngModel)]="kippa_size" #select_kippa>
           <option 
             *ngFor="let kippa of arr_kippa" 
             value="{{ kippa }}" 

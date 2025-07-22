@@ -8,7 +8,7 @@ const wings = require('./wings');
 const customers = require('./customers');
 const { logger } = require("../logger");
 
-async function create(orderData, active_connection=null){
+async function create(customerHat, active_connection=null){
   //check if there is an active connection called from another function, or this call is a standalone
   let self_executing = false;
   if(!active_connection) {
@@ -21,149 +21,272 @@ async function create(orderData, active_connection=null){
     let hat_id = -1;
     let order_id = -1;
 
+    let total_num_of_hats = 0;
+    let total_num_of_wings = 0;
+    customerHat.single_hat_orders.forEach((hat_order) => {
+        //basically hat_order.num_of_hats should be 1 on every order
+        //but in theory duplicated hats can be requested,
+        //hence counting with this loop, to find hats and wings in total
+        total_num_of_hats += hat_order.num_of_hats;
+        total_num_of_wings += (hat_order.wing_quantity * hat_order.num_of_hats);
+    });
+
     // save the wing specs & babies
-    if(orderData.customer_hat.wing) {
-        let wing_info =  await wings.save(orderData.customer_hat.wing, active_connection);
+    if(customerHat.wing) {
+        let wing_info =  await wings.save(customerHat.wing, active_connection);
         wing_id = wing_info.wing_id;
 
         //reduce the material from the customer's banks
         await customers.moveBabiesToOrder(
-            orderData.num_of_hats,
             wing_id,
-            orderData.customer_hat.wing_quantity,
-            orderData.customer_hat.wall_allocation_id,
-            orderData.customer_hat.crown_allocation_id,
+            total_num_of_wings,
+            customerHat.wall_allocation_id,
+            customerHat.crown_allocation_id,
             active_connection
         );
     }
 
-    await customers.moveTailsToOrder(
-        orderData.customer_hat.tails_allocation_id, 
-        orderData.customer_hat.adjusted_wings_per_hat, 
+    let overdraft = await customers.moveTailsToOrder(
+        customerHat.tails_allocation_id, 
+        total_num_of_wings, 
         active_connection);
+    let total_tails_in_allocation = total_num_of_wings - overdraft;
 
     // save the hat specs
-    if(orderData.customer_hat){
-        const hat_save = await db.transaction_query(
-            `INSERT INTO customer_hats (
-                id, hat_material_id, crown_material_id, wing_id, wing_quantity, adjusted_wings_per_hat,
-                customer_id, shorten_top_by, shorten_crown_by, wall_allocation_id,
-                crown_allocation_id, tails_material_id, tails_allocation_id,
+    //if(customerHat){
+    const hat_save = await db.transaction_query(
+        `INSERT INTO customer_hats (
+            id,
+            hat_material_id,
+            crown_material_id,
+            tails_material_id,
+            wing_id,
+            original_wing_name,
+            customer_id,
+            shorten_top_by,
+            shorten_crown_by,
+            wall_allocation_id,
+            crown_allocation_id,
+            tails_allocation_id,
+            tails_overdraft,
+            mayler_width,
+            hr_hl_width,
+            crown_visible,
+            crown_length,
+            white_hair,
+            white_hair_notes,
+            order_date,
+            isurgent,
+            order_notes
+        )
+        VALUES 
+        ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_hats
+        ON DUPLICATE KEY UPDATE
+            id=new_hats.id,
+            hat_material_id=new_hats.hat_material_id,
+            crown_material_id=new_hats.crown_material_id,
+            tails_material_id=new_hats.tails_material_id,
+            wing_id=new_hats.wing_id,
+            original_wing_name=new_hats.original_wing_name,
+            customer_id=new_hats.customer_id,
+            shorten_top_by=new_hats.shorten_top_by,
+            shorten_crown_by=new_hats.shorten_crown_by,
+            wall_allocation_id=new_hats.wall_allocation_id,
+            crown_allocation_id=new_hats.crown_allocation_id,
+            tails_allocation_id=new_hats.tails_allocation_id,
+            tails_overdraft=new_hats.tails_overdraft,
+            mayler_width=new_hats.mayler_width,
+            hr_hl_width=new_hats.hr_hl_width,
+            crown_visible=new_hats.crown_visible,
+            crown_length=new_hats.crown_length,
+            white_hair=new_hats.white_hair,
+            white_hair_notes=new_hats.white_hair_notes,
+            order_date=new_hats.order_date,
+            isurgent=new_hats.isurgent,
+            order_notes=new_hats.order_notes
+            `,
+        [ 
+            customerHat.id,
+            customerHat.hat_material_id,
+            customerHat.crown_material_id,
+            customerHat.tails_material_id,
+            wing_id,
+            customerHat.original_wing_name,
+            customerHat.customer_id,
+            customerHat.shorten_top_by,
+            customerHat.shorten_crown_by,
+            customerHat.wall_allocation_id,
+            customerHat.crown_allocation_id,
+            customerHat.tails_allocation_id,
+            overdraft,
+            customerHat.mayler_width,
+            customerHat.hr_hl_width,
+            customerHat.crown_visible,
+            customerHat.crown_length,
+            customerHat.white_hair,
+            customerHat.white_hair_notes,
+            customerHat.order_date,
+            customerHat.isurgent,
+            customerHat.order_notes
+        ],
+        active_connection
+    );
+    hat_id = (customerHat.id == 0)? hat_save.insertId : customerHat.id;
 
-                kippa_size,
-                mayler_width,
-                hr_hl_width,
-                white_hair,
-                white_hair_notes,
-                order_date,
-                isurgent,
-                order_notes,
-
-                original_wing_name,
-                crown_visible,
-                crown_length,
-                tails_overdraft
-            )
-            VALUES 
-            ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_hats
-            ON DUPLICATE KEY UPDATE
-                id=new_hats.id,
-                hat_material_id=new_hats.hat_material_id,
-                crown_material_id=new_hats.crown_material_id,
-                wing_id=new_hats.wing_id,
-                wing_quantity=new_hats.wing_quantity,
-                adjusted_wings_per_hat=new_hats.adjusted_wings_per_hat,
-                customer_id=new_hats.customer_id,
-                shorten_top_by=new_hats.shorten_top_by,
-                shorten_crown_by=new_hats.shorten_crown_by,
-                wall_allocation_id=new_hats.wall_allocation_id,
-                crown_allocation_id=new_hats.crown_allocation_id,
-                tails_material_id=new_hats.tails_material_id,
-                tails_allocation_id=new_hats.tails_allocation_id,
-                
-                kippa_size=new_hats.kippa_size,
-                mayler_width=new_hats.mayler_width,
-                hr_hl_width=new_hats.hr_hl_width,
-                white_hair=new_hats.white_hair,
-                white_hair_notes=new_hats.white_hair_notes,
-                order_date=new_hats.order_date,
-                isurgent=new_hats.isurgent,
-                order_notes=new_hats.order_notes,
-                original_wing_name=new_hats.original_wing_name,
-                crown_visible=new_hats.crown_visible,
-                crown_length=new_hats.crown_length,
-                tails_overdraft=new_hats.tails_overdraft
-                `,
-            [ 
-                orderData.customer_hat.id, orderData.customer_hat.hat_material_id, orderData.customer_hat.crown_material_id,
-                wing_id, orderData.customer_hat.wing_quantity, orderData.customer_hat.adjusted_wings_per_hat,
-                orderData.customer_hat.customer_id, orderData.customer_hat.shorten_top_by, orderData.customer_hat.shorten_crown_by,
-                orderData.customer_hat.wall_allocation_id, orderData.customer_hat.crown_allocation_id,
-                orderData.customer_hat.tails_material_id, orderData.customer_hat.tails_allocation_id,
-
-                orderData.customer_hat.kippa_size,
-                orderData.customer_hat.mayler_width,
-                orderData.customer_hat.hr_hl_width,
-                orderData.customer_hat.white_hair,
-                orderData.customer_hat.white_hair_notes,
-                orderData.customer_hat.order_date,
-                orderData.customer_hat.isurgent,
-                orderData.customer_hat.order_notes,
-
-                orderData.customer_hat.original_wing_name,
-                orderData.customer_hat.crown_visible,
-                orderData.customer_hat.crown_length,
-                orderData.customer_hat.tails_overdraft
-            ],
-            active_connection
-        );
-        hat_id = (orderData.customer_hat.id == 0)? hat_save.insertId : orderData.customer_hat.id;
-
-        // save the order
-        const order_save = await db.transaction_query(
-            `INSERT INTO orders (
-                id, customer_hat_id, num_of_hats
-            )
-            VALUES 
-            ((?),(?),(?)) as new_orders
-            ON DUPLICATE KEY UPDATE
-                id=new_orders.id,
-                customer_hat_id=new_orders.customer_hat_id,
-                num_of_hats=new_orders.num_of_hats`,
-            [ 
-                orderData.id, hat_id, orderData.num_of_hats
-            ],
-            active_connection
-        );
-        order_id = (orderData.id == 0)? order_save.insertId : orderData.id;
-
-        // save the new order status
-        const order_status_save = await db.transaction_query(
-            `INSERT INTO orders_status (
-                id, order_id, date, order_status
-            )
-            VALUES 
-            ((?),(?),(?),(?)) as new_status
-            ON DUPLICATE KEY UPDATE
-                id=new_status.id,
-                order_id=new_status.order_id,
-                date=new_status.date,
-                order_status=new_status.order_status`,
-            [ 
-                orderData.status.id, 
-                order_id, 
-                helper.nowDateStr(),
-                orderData.status.order_status
-            ],
-            active_connection
-        );
-
-        message = 'Order placed successfully successfully.';
-        if(self_executing) {
-        await db.transaction_commit(active_connection);
-        }        
-        return {message};
+    let order_seq_id = 1;
+    const order_seq_number_rec_query = await db.query(`
+        select order_seq_number from customers where id=${customerHat.customer_id}`
+    );
+    const order_seq_number_rec = helper.emptyOrSingle(order_seq_number_rec_query);        
+    if(!helper.isEmptyObj(order_seq_number_rec)) {
+        order_seq_id = parseInt(order_seq_number_rec["order_seq_number"]);
     }
+    const original_order_seq = order_seq_id;
+
+    // save individual hat orders
+    if(customerHat.single_hat_orders && customerHat.single_hat_orders.length > 0){
+
+        //customerHat.single_hat_orders.forEach(async single_hat_order => {
+        for(let i=0; i < customerHat.single_hat_orders.length; i++){
+            let single_hat_order = customerHat.single_hat_orders[i];
+            
+            let id = 0;//(single_hat_order.id < 0)? 0: single_hat_order.id;
+            let num_of_hats = (single_hat_order.num_of_hats <= 0)? 1 : single_hat_order.num_of_hats;
+            let rec_overdraft = 0;
+
+            //total_num_of_wings
+            //overdraft
+            //total_tails_in_allocation
+            
+            //if we have enough tails in the allocation than the number of wings for this hat
+            if (total_tails_in_allocation >= single_hat_order.wing_quantity){
+                total_tails_in_allocation -= single_hat_order.wing_quantity;
+                rec_overdraft = 0;
+            }
+            else {
+                //we don't have enough tails in the allocation, but we have some
+                if(total_tails_in_allocation > 0){
+                    rec_overdraft = (single_hat_order.wing_quantity - total_tails_in_allocation);
+                    total_tails_in_allocation = 0;
+                }
+                else {
+                    rec_overdraft = single_hat_order.wing_quantity;
+                }
+            }
+            /* 
+            total wings	484
+            in allocation	 50
+            overdraft	434
+
+            hat-wings: 44
+            if hat-wings > in allocation
+                in allocation -= hat-wings
+                order.overdraft = 0
+
+            in allocation 4
+            hat-wings: 44
+            overdraft: 434
+            if in allocation > 0
+            if hat-wings <= in allocation
+                in allocation = 0
+                order.overdraft = (hat-wings - in allocation) //4
+                
+
+            in allocation 0
+            hat-wings: 44
+            overdraft: 394
+            if in allocation == 0
+                order.overdraft = hat-wings
+
+            overdraft -= order.overdraft        
+            */
+
+            const order_save = await db.transaction_query(
+                `INSERT INTO orders (
+                    id,
+                    customer_hat_id,
+                    customer_order_seq_number,
+                    wing_quantity,
+                    num_of_hats,
+                    kippa_size,
+                    ordering_customer_name,
+                    tails_overdraft
+                )
+                VALUES
+                ((?),(?),(?),(?),(?),(?),(?),(?)) as new_order
+                ON DUPLICATE KEY UPDATE
+                    id=new_order.id,
+                    customer_hat_id=new_order.customer_hat_id,
+                    customer_order_seq_number=new_order.customer_order_seq_number,
+                    wing_quantity=new_order.wing_quantity,
+                    num_of_hats=new_order.num_of_hats,
+                    kippa_size=new_order.kippa_size,
+                    ordering_customer_name=new_order.ordering_customer_name,
+                    tails_overdraft=new_order.tails_overdraft`,
+                    [
+                        id,
+                        hat_id,
+                        order_seq_id,
+                        single_hat_order.wing_quantity,
+                        num_of_hats,
+                        single_hat_order.kippa_size,
+                        single_hat_order.ordering_customer_name,
+                        rec_overdraft
+                    ],
+                    active_connection
+            );
+
+            order_seq_id++;
+            overdraft -= rec_overdraft;
+
+            let order_save_id = order_save.insertId;
+
+            const order_status_save = await db.transaction_query(
+                `INSERT INTO orders_status (
+                    id,
+                    order_id,
+                    date,
+                    order_status
+                )
+                VALUES
+                ((?),(?),(?),(?)) as new_order_status
+                ON DUPLICATE KEY UPDATE
+                    id=new_order_status.id,
+                    order_id=new_order_status.order_id,
+                    date=new_order_status.date,
+                    order_status=new_order_status.order_status
+                    `,
+                    [
+                        0,
+                        order_save_id,
+                        new Date(),
+                        'new'
+                    ],
+                    active_connection
+                );
+            }
+    }
+
+    if(original_order_seq != order_seq_id){
+        await db.transaction_query(
+            `update customers
+                set order_seq_number=(?) 
+                where id=(?)`
+                ,
+            [
+                order_seq_id,
+                customerHat.customer_id
+            ],
+            active_connection
+        );
+    }
+
+    message = 'Order placed successfully successfully.';
+    if(self_executing) {
+        await db.transaction_commit(active_connection);
+    }        
+    return {message};
+    //}
   }
   catch(error){
     logger.error(error.message);
@@ -193,38 +316,39 @@ async function get_orders_list(page = 1, perPage, customer_id){
     }    
 
     const rows = await db.query(
-        `
-select 
-o.id,
-CASE WHEN c.customer_code IS NOT NULL 
-       THEN concat(c.customer_code, o.id)
-       ELSE o.id
-END AS order_id_with_customer,
-os.order_status,
-ch.isurgent,
-c.name customer_name,
-o.num_of_hats,
-concat(ch.original_wing_name, ' ', rm_wall.name, ' ', rm_wall.color) wall,
-ch.kippa_size,
-ch.wing_quantity,
-ch.adjusted_wings_per_hat,
-concat(rm_crown.name, ' ', rm_crown.color) crown,
-ch.crown_visible,
-ch.crown_length,
-w.knife,
-ch.white_hair_notes,
-ch.white_hair,
-concat(rm_tails.name, ' ', rm_tails.color) tails,
-os.date
-from orders o 
-left join customer_hats ch on o.customer_hat_id=ch.id
-left join customers c on ch.customer_id=c.id
-left join orders_status os on os.order_id = o.id
-left join wings w on ch.wing_id = w.id
-left join raw_materials rm_wall on ch.hat_material_id=rm_wall.id
-left join raw_materials rm_crown on ch.crown_material_id=rm_crown.id
-left join raw_materials rm_tails on ch.tails_material_id=rm_tails.id
-where os.date = (select MAX(os2.date) FROM orders_status os2 where os.id = os2.id)
+        `select 
+                o.id,
+
+                CASE WHEN c.customer_code IS NOT NULL 
+                    THEN concat(c.customer_code, o.customer_order_seq_number)
+                    ELSE o.customer_order_seq_number
+                END AS hat_id_with_customer,
+                os.order_status,
+                ch.isurgent,
+                c.name customer_name,
+                o.ordering_customer_name ordering_customer,
+                concat(ch.original_wing_name, ' ', rm_wall.name, ' ', rm_wall.color) wall,
+                o.kippa_size,
+                o.wing_quantity,
+                concat(rm_crown.name, ' ', rm_crown.color) crown,
+                ch.crown_visible,
+                ch.crown_length,
+                w.knife,
+                ch.white_hair_notes,
+                ch.white_hair,
+                concat(rm_tails.name, ' ', rm_tails.color) tails,
+                o.tails_overdraft tails_overdraft,
+                os.date
+            from 
+                customer_hats ch 
+                left join orders o on o.customer_hat_id = ch.id
+                left join customers c on ch.customer_id = c.id
+                left join orders_status os on os.order_id = o.id
+                left join wings w on ch.wing_id = w.id
+                left join raw_materials rm_wall on ch.hat_material_id=rm_wall.id
+                left join raw_materials rm_crown on ch.crown_material_id=rm_crown.id
+                left join raw_materials rm_tails on ch.tails_material_id=rm_tails.id
+            where os.date = (select MAX(os2.date) FROM orders_status os2 where os.id = os2.id)
     ${customer_filter}
     order by date desc
     ${subset}`);
@@ -251,9 +375,9 @@ async function get_order_details(order_id){
 select 
 o.id,
 CASE WHEN c.customer_code IS NOT NULL 
-       THEN concat(c.customer_code, o.id)
-       ELSE o.id
-END AS order_id_with_customer,
+       THEN concat(c.customer_code, o.customer_order_seq_number)
+       ELSE o.customer_order_seq_number
+END AS hat_id_with_customer,
 os.order_status,
 ch.isurgent,
 c.name customer_name,
@@ -262,8 +386,8 @@ ch.original_wing_name wing_name,
 rm_wall.name wall_material,
 rm_wall.color wall_material_color,
 #------
-ch.kippa_size,
-ch.wing_quantity,
+o.kippa_size,
+o.wing_quantity,
 #-------
 rm_crown.name crown_material,
 rm_crown.color crown_material_color,
@@ -279,7 +403,6 @@ rm_tails.color h_material_color,
 #-------
 os.date,
 #===NEW
-ch.adjusted_wings_per_hat adjusted_wings_per_hat,
 ch.shorten_top_by shorten_top_by,
 ch.shorten_crown_by shorten_crown_by,
 ch.tails_overdraft tails_overdraft,

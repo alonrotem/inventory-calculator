@@ -29,6 +29,14 @@ drop table if exists settings;
 
 drop table if exists transaction_history;
 SET FOREIGN_KEY_CHECKS = 1;
+
+/*
+# Clean up all orders
+delete from wings where id in (select wing_id from customer_hats);
+delete from orders;
+delete from customer_hats;
+delete from orders_status;
+*/
 /*=================/CLEAN UP AND START FRESH =================*/
 
 # CREATE TABLES
@@ -397,7 +405,8 @@ CREATE TABLE  IF NOT EXISTS `customers` (
 	`created_at`    	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
 	`updated_at`    	DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`created_by`	 	int null,
-	`updated_by`	 	int null,    
+	`updated_by`	 	int null,
+    `order_seq_number`	int not null default 1,
     PRIMARY KEY (`id`)
 );
 
@@ -470,7 +479,7 @@ CREATE TABLE  IF NOT EXISTS transaction_history (
         
     PRIMARY KEY (`id`)
 );
-
+/*
 ALTER TABLE
     `transaction_history`
 MODIFY COLUMN
@@ -483,7 +492,7 @@ MODIFY COLUMN
         'customer_bank_allocation_merged'
     )
 NOT NULL;
-
+*/
 /*
 CREATE TABLE  IF NOT EXISTS wing_positions (
 	`id` 	INT NOT NULL,
@@ -503,7 +512,6 @@ CREATE TABLE  IF NOT EXISTS wings (
 	`id`    INT NOT NULL auto_increment,
     `name`	VARCHAR(255) NOT NULL,
     `knife`	float,
-    `customer_id` INT NULL,
     `allow_shortening_babies_in_pairs` boolean default false,
     PRIMARY KEY (`id`)
 );
@@ -558,10 +566,9 @@ CREATE TABLE  IF NOT EXISTS `hats_wings`
 
 
 /*
-Ordrers saves:
-	customer hat details
-    wing + babies
-    order status
+customerHat contains the details of the hat specs the customer ordered
+it holds an array of single hats by those specs, 
+each single hat can have a different kippa, designated customer name and number of wings
 */
 CREATE TABLE  IF NOT EXISTS `customer_hats`
 (
@@ -572,8 +579,6 @@ CREATE TABLE  IF NOT EXISTS `customer_hats`
     `wing_id`			INT NOT NULL,
     --
     `original_wing_name` varchar(255) not null,
-    `wing_quantity`		INT NOT NULL,
-    `adjusted_wings_per_hat` varchar(2048),
     `customer_id`		INT NOT NULL,
     `shorten_top_by`	float NULL,
     `shorten_crown_by`	float NULL,
@@ -582,7 +587,6 @@ CREATE TABLE  IF NOT EXISTS `customer_hats`
     `tails_allocation_id`	INT NULL,
     `tails_overdraft`		INT default 0,
     
-    `kippa_size`	FLOAT NULL,
     `mayler_width`	FLOAT NULL,
     `hr_hl_width`	FLOAT NULL default 0.17,
     --
@@ -618,7 +622,12 @@ CREATE TABLE  IF NOT EXISTS `customer_hats`
 CREATE TABLE IF NOT EXISTS `orders` (
 	`id`					INT NOT NULL auto_increment,
 	`customer_hat_id`		INT NOT NULL,
-    `num_of_hats`	INT NOT NULL,
+    `customer_order_seq_number` int not null,
+    `wing_quantity`		INT NOT NULL,
+    `num_of_hats`	INT NOT NULL default 1,
+    `kippa_size`	FLOAT NULL,
+    `ordering_customer_name`	VARCHAR(255) NULL,
+    `tails_overdraft` int not null default 0,
     PRIMARY KEY (`id`),
     CONSTRAINT fk_order_customer_hat_id
 	  FOREIGN KEY (`customer_hat_id`) REFERENCES customer_hats(`id`) ON DELETE CASCADE
@@ -630,11 +639,11 @@ CREATE TABLE IF NOT EXISTS `orders_status` (
 	`date`    	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`order_status`	ENUM(
 			'new',
-			'updated',
-			'processing',
-			'completed',
-            'cancelled',
-            'deleted'
+            'inline',
+            'shipped',
+            'onhold',
+            'completed',
+            'cancelled'
 		) NOT NULL,
 	PRIMARY KEY (`id`),
     CONSTRAINT fk_order_status_order

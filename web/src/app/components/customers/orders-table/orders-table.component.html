@@ -37,7 +37,7 @@
             <th scope="col" class="sticky-header">Status</th>
             <th scope="col" class="sticky-header">Urgent</th>
             <th scope="col" class="sticky-header">Name</th>
-            <th scope="col" class="sticky-header"># Hats</th>
+            <th scope="col" class="sticky-header">For customer</th>
             <th scope="col" class="sticky-header">Wall</th>
             <th scope="col" class="sticky-header">Kippa</th>
             <th scope="col" class="sticky-header">Wings</th>
@@ -45,8 +45,8 @@
             <th scope="col" class="sticky-header">Crown Visible</th>
             <th scope="col" class="sticky-header">Crown length</th>
             <th scope="col" class="sticky-header">Knife</th>
-            <th scope="col" class="sticky-header">White hair notes</th>
             <th scope="col" class="sticky-header">White hair</th>
+            <th scope="col" class="sticky-header">White hair notes</th>
             <th scope="col" class="sticky-header">Tails</th>
             <th scope="col" class="sticky-header">Date</th>
           </tr>
@@ -55,21 +55,21 @@
           <tr 
             *ngFor="let order of this.orders" 
             role="button" (click)="go_to_odrer(order.id, customer_id)">
-            <td>{{ order.order_id_with_customer }}</td>
+            <td>{{ order.hat_id_with_customer }}</td>
             <td>{{ order.order_status }}</td>
             <td class="text-center"><input class="form-check-input" type="checkbox" onclick="return false;" [checked]="order.isurgent" /></td>
             <td>{{ order.customer_name }}</td>
-            <td class="text-center">{{ order.num_of_hats }}</td>
+            <td>{{ order.ordering_customer }}</td>
             <td>{{ order.wall }}</td>
             <td class="text-center">{{ order.kippa_size }}</td>
-            <td class="text-center">{{ order.adjusted_wings_per_hat | wingsPerHatShorthand }}</td>
+            <td class="text-center">{{ order.wing_quantity }}</td>
             <td>{{ order.crown }}</td>
             <td class="text-center">{{ order.crown_visible }}</td>
             <td class="text-center">{{ order.crown_length }}</td>
             <td class="text-center">{{ order.knife }}</td>
-            <td><div class="shortened">{{ order.white_hair_notes }}</div></td>
             <td class="text-center"><input class="form-check-input" type="checkbox" onclick="return false;" [checked]="order.white_hair" /></td>
-            <td>{{ order.tails }}</td>
+            <td><div class="shortened">{{ order.white_hair_notes }}</div></td>
+            <td>{{ order.tails }} (overdrft: {{ order.tails_overdraft }})</td>
             <td>{{ order.date  | dateStr }}</td>
           </tr>
         </tbody>

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
-import { Order, OrderDetails, OrderListItem, OrdersList, PaginationParams } from '../../types';
+import { CustomerHat, Order, OrderDetails, OrderListItem, OrdersList, PaginationParams } from '../../types';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -11,10 +11,10 @@ export class OrdersService {
 
   constructor(private apiService: ApiService) { }
 
-  createOrder = (order: Order): Observable<any> => {
+  createOrder = (customerHat: CustomerHat): Observable<any> => {
     console.log("save hat in service");
-    console.dir(order);
-    let x = this.apiService.put(`${environment.serverUrl}/orders/`, order, { });
+    console.dir(customerHat);
+    let x = this.apiService.put(`${environment.serverUrl}/orders/`, customerHat, { });
     return x;
   };
 

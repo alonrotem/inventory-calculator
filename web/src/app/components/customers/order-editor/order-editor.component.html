@@ -37,7 +37,7 @@
                 </div>
                 <div class="col-3 d-flex flex-column">
                     <div class="detail-title">Hat #</div>
-                    <div class="detail-field flex-grow-1">{{ orderDetails.order_id_with_customer }}</div>
+                    <div class="detail-field flex-grow-1">{{ orderDetails.hat_id_with_customer }}</div>
                 </div>
                 <div class="col-3 d-flex flex-column">
                     <div class="detail-title">Hat style</div>
@@ -61,7 +61,7 @@
                 </div>
             </div>
         
-            <div class="row  fields-row">
+            <div class="row fields-row">
                 <div class="col-4">
                     <table>
                         <tr *ngFor="let baby of (orderDetails.babies | sortbabies | prefix: 'L' : false)">
@@ -87,9 +87,26 @@
                         </tr>
                     </table>
                 </div>
+            </div> <!-- babies list -->
+            
+            <div class="row fields-row">
+                <div class="col">
+                    <table class="checks-table">
+                        <tr><td>A</td><td>Crown</td><td><div></div></td><td>Checked A</td><td><div></div></td></tr>
+                        <tr><td>B</td><td>FR</td><td><div></div></td><td>Checked AB</td><td><div></div></td></tr>
+                        <tr><td>C</td><td>H</td><td><div></div></td><td>Checked ABC</td><td><div></div></td></tr>
+                        <tr><td>D</td><td>Sew</td><td><div></div></td><td>Checked ABCD</td><td><div></div></td></tr>
+                        <tr><td>E</td><td>2nd R</td><td><div></div></td><td>Checked ABCDE</td><td><div></div></td></tr>
+                        <tr><td>F</td><td>Cover</td><td><div></div></td><td>Checked ABCDEF</td><td><div></div></td></tr>
+                        <tr><td>G</td><td>Sewing on band</td><td><div></div></td><td>Checked ABCDEFG</td><td><div></div></td></tr>
+                        <tr><td>H</td><td>Glance</td><td><div></div></td><td>Checked ABCDEFGH</td><td><div></div></td></tr>
+                    </table>
+                </div>
             </div>
-        
-        </div>
+
+
+
+        </div><!--details area-->
 
         </div>
     </div>

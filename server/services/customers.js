@@ -7,7 +7,7 @@ const { logger } = require('../logger');
 async function getSingle(id){
   const rows = await db.query(
     `select 
-      c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.notes, c.customer_code,
+      c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.notes, c.customer_code, c.order_seq_number,
         c.created_at, c.updated_at, c.created_by, c.updated_by 
     from customers c where c.id=${id};`);
 
@@ -517,10 +517,20 @@ async function remove(id, active_connection=null){
 
   try {
 
+    // TODO!!!
+    // DELETE CUSTOMER ORDERS!
     const customer_banks_select = `from customer_banks where customer_id = ${id}`;
     const customer_banks_allocation_select = `from customer_banks_allocations where customer_bank_id in (select id ${customer_banks_select})`;
     const babies_select = `from allocation_babies where allocation_id in (select id ${customer_banks_allocation_select})`;
 
+    const customer_hat_id_selector = `from customer_hats where customer_id=${id}`;
+    const customer_hat_ids_select = `select id ${customer_hat_id_selector}`;
+    const order_id_select = `select id from orders where where customer_hat_id in (${customer_hat_ids_select})`;
+    const del_order_statuses = await db.transaction_query(`delete from orders_status where order_id in (${order_id_select})`);
+    const del_orders  = await db.transaction_query(`delete from orders where customer_hat_id in (${customer_hat_ids_select})`);
+    const del_customer_hats  = await db.transaction_query(`delete ${customer_hat_id_selector}`);
+
+    const del_customer_transactions = await db.transaction_query(`DELETE * from transaction_history where customer_id=${id}`);
     const del_babies_result = await db.transaction_query(`DELETE ${babies_select}`, [], active_connection);
     const del_banks_allocations_result = await db.transaction_query(`DELETE ${customer_banks_allocation_select}`, [], active_connection);
     const del_banksresult = await db.transaction_query(`DELETE ${customer_banks_select}`, [], active_connection);
@@ -702,9 +712,8 @@ async function sync_banks_for_raw_material(banks, raw_material_id, active_connec
 }
 
 async function moveBabiesToOrder(
-  num_of_hats, 
   wing_id, 
-  wing_quantity, 
+  total_num_of_wings_in_all_hats,
   wall_allocation_id, 
   crown_allocation_id,
   active_connection=null
@@ -718,18 +727,22 @@ async function moveBabiesToOrder(
     self_executing = true;
   }
   try {
+  
+  //this query returns: how many babies per each length we need for all the requested wings
+  //by counting: how many babies of each length make the wing * total number of wings
   const wall_babies_records = await db.transaction_query(
-    `select distinct length, count(length) * ${wing_quantity} * ${num_of_hats} count
+    `select distinct length, count(length) * ${total_num_of_wings_in_all_hats} count
       from wings_babies where parent_wing_id=${wing_id} and position not like 'C%'
     group by length`,
     [],
     active_connection
   );
-  
   const wall_babies_lengths_and_count_for_the_hat = helper.emptyOrRows(wall_babies_records);
 
+  //this query does the same as the previous one, 
+  //for counting the number of babies in the wing's crown per length
   const crown_babies_records = await db.transaction_query(
-    `select distinct length, count(length) * ${wing_quantity} * ${num_of_hats} count
+    `select distinct length, count(length) * ${total_num_of_wings_in_all_hats} count
       from wings_babies where parent_wing_id=${wing_id} and position like 'C%'
     group by length`,
     [],
@@ -811,9 +824,11 @@ async function moveBabiesToOrder(
 
 async function moveTailsToOrder(
   tails_allocation_id,
-  adjusted_wings_per_hat,
+  total_num_of_wings_in_all_hats,
   active_connection=null
 ){
+  let overdraft = total_num_of_wings_in_all_hats;
+
   //check if there is an active connection called from another function, or this call is a standalone
   let self_executing = false;
   if(!active_connection) {
@@ -821,34 +836,41 @@ async function moveTailsToOrder(
     self_executing = true;
   }
   try {
-    let arr_adjusted_wings_per_hat = adjusted_wings_per_hat.split(",");
-    const total_num_of_wings = arr_adjusted_wings_per_hat
-      .reduce((accumulator, currentValue) => { 
-        let curVal_num = parseInt(currentValue);
-        if(isNaN(curVal_num)){
-          curVal_num = 0;
-        }
-        return accumulator + curVal_num;
-      }, 0);
 
+  //check if there is an allocation at all
+  //total num of tails = total num of wings
+  //if(allocation)
+  //  if(tails in allocation <= total num of tails)
+  //    move tails to order
+  //  else
+  //    move all the tails to order
+  //    overdraft = total num of tails - the moved tails
+  //else
+  //  overdraft = total num of tails
+  //return overdraft
+    if(tails_allocation_id && tails_allocation_id != null && tails_allocation_id > 0){
       const current_tails_allocation = await db.query(`
         select tails_quantity, tails_in_orders 
         from customer_banks_allocations 
         where id=${ tails_allocation_id };`
       );
       const allocation = helper.emptyOrSingle(current_tails_allocation);
-      let adjusted_tails_quantity_in_allocation = 0;
-      let adjusted_tails_in_orders_in_allocation = 0;
-
       if(!helper.isEmptyObj(allocation)) {
-        if(allocation.tails_quantity >= total_num_of_wings) {
-          adjusted_tails_quantity_in_allocation = parseInt(allocation["tails_quantity"]) - total_num_of_wings;
-          adjusted_tails_in_orders_in_allocation = parseInt(allocation["tails_in_orders"]) + total_num_of_wings;
+        const tails_quantity_in_allocation = parseInt(allocation["tails_quantity"]);
+        const tails_quantity_in_orders = parseInt(allocation["tails_in_orders"]);
+        let adjusted_tails_quantity_in_allocation = tails_quantity_in_allocation;
+        let adjusted_tails_in_orders_in_allocation = tails_quantity_in_orders;
+
+        if(tails_quantity_in_allocation >= total_num_of_wings_in_all_hats) {
+          adjusted_tails_quantity_in_allocation = tails_quantity_in_allocation - total_num_of_wings_in_all_hats;
+          adjusted_tails_in_orders_in_allocation = tails_quantity_in_orders + total_num_of_wings_in_all_hats;
+          overdraft = 0;
         }
         else {
-          adjusted_tails_in_orders_in_allocation = parseInt(allocation["tails_quantity"]) + parseInt(allocation["tails_in_orders"]);
+          adjusted_tails_in_orders_in_allocation = tails_quantity_in_allocation + tails_quantity_in_orders;
           adjusted_tails_quantity_in_allocation = 0;
           //the remainder will be handled as overdraft at the customerHat definition
+          overdraft -= tails_quantity_in_allocation;
         }
 
         await db.transaction_query(`
@@ -861,6 +883,8 @@ async function moveTailsToOrder(
           active_connection
         );
       }
+    }
+    return overdraft;
   }
   catch(error){
     logger.error(error.message);

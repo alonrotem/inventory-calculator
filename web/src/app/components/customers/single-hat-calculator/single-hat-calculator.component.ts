@@ -9,7 +9,7 @@ import { PrefixPipe } from '../../../utils/pipes/prefix-pipe';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
 import { Lightbox, LightboxModule } from 'ngx-lightbox';
 import { GlobalsService } from '../../../services/globals.service';
-import { faArrowLeft, faArrowsRotate, faBasketShopping, faChartPie, faRecordVinyl, faRuler, faScissors, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faArrowDown, faArrowDown19, faArrowLeft, faArrowsRotate, faBasketShopping, faChartPie, faCopy, faRecordVinyl, faRuler, faScissors, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { AllocationPickerComponent } from '../allocation-picker/allocation-picker.component';
 import { StartsWithPipe } from '../../../utils/pipes/starts-with-pipe';
@@ -74,7 +74,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     id: 0, name: '', business_name: '', email: '', phone: '', tax_id: '',
     created_at: new Date(), updated_at: new Date(), created_by: 0, updated_by: 0,
     banks: [], banks_baby_allocations: [], babies: [],
-    customer_code: ''
+    customer_code: '', order_seq_number: 0
   };
 
   //wing representations:
@@ -92,7 +92,6 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     crown_allocation_id: 0,
     tails_material_id: null,
     tails_allocation_id: null,
-    kippa_size: 55,
     mayler_width: 0.17,
     hr_hl_width: 0,
     white_hair: false,
@@ -100,11 +99,11 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     order_date: null,
     isurgent: false,
     order_notes: '',
-    adjusted_wings_per_hat: '',
     original_wing_name: '',
     crown_visible: 0,
     crown_length: 0,
-    tails_overdraft: 0
+    tails_overdraft: 0,
+    single_hat_orders: []
   };
   //the wing without customizations (shorten top or crown)
   wing_unchanged: Wing | null = null;
@@ -126,6 +125,8 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   faRecordVinyl:IconDefinition = faRecordVinyl;
   faRuler:IconDefinition = faRuler;
   faTriangleExclamation:IconDefinition = faTriangleExclamation;
+  faCopy: IconDefinition = faCopy;
+  faArrowDown: IconDefinition = faArrowDown;
 
   summary_table_instructions: string = "";
   hat_babies: aggregated_babies[] = []; //containing aggregated babies with length, quantity and num of hats
@@ -133,6 +134,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
   order_amount: number = -1;
   total_babies_per_hat: number = 0;
+  kippa_size: number = 55;
   
   selected_wing_name:string = "";
 
@@ -183,7 +185,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   minDate = formatDate(Date.now(),'yyyy-MM-dd','en-US');
 
   wings_per_hat_in_order_previous_values: number[] = [];
-  wings_per_hat_in_order: number[] = [];
+  //wings_per_hat_in_order: number[] = [];
   max_number_of_wings_in_all_allocations: number = 0;
   allWingsInOrder: number = 0;
   calculated_hats_info: hats_calculated = {
@@ -305,6 +307,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
     this.order_wing_adjustment.confirm.subscribe({
       next: () => {
+        /*
         this.customerHat.adjusted_wings_per_hat = this.wings_per_hat_in_order.join(",");
 
         //see if all hats have the same number of wings
@@ -317,6 +320,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
             this.customerHat.wing_quantity = first_hat_wings;
           }
         }
+          */
         this.placeOrderConfirmed();
       }
     });
@@ -950,20 +954,45 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     //this.recauculate_overdraft_tails();
   }
 
+  duplicate_customer_name(){
+    if (this.customerHat.single_hat_orders.length > 1){
+      for(let i=0; i < this.customerHat.single_hat_orders.length; i++){
+        this.customerHat.single_hat_orders[i].ordering_customer_name = this.customerHat.single_hat_orders[0].ordering_customer_name;
+      }
+    }
+  }
+
   placeOrder(){
     let babies_in_wall_allocation = (this.wall_alocation)? (this.customer.babies.filter(b => b.allocation_id == this.wall_alocation?.id)) : [];
     let babies_in_crown_allocation = (this.crown_allocation)? (this.customer.babies.filter(b => b.allocation_id == this.crown_allocation?.id)) : [];
 
+    this.customerHat.single_hat_orders = Array(this.order_amount).fill(0)
+      .map((_, index) => ({
+        id: index, // or generate a unique ID
+        customer_order_seq_number: 0,
+        wing_quantity: this.customerHat.wing_quantity,
+        kippa_size: this.kippa_size,
+        ordering_customer_name: "",
+        num_of_hats: 1,
+        status: {
+          id: 0,
+          date: new Date(),
+          order_status: Status.new          
+        }
+      }));
+    /*
     this.wings_per_hat_in_order = Array(this.order_amount).fill(this.customerHat.wing_quantity);
     this.wings_per_hat_in_order_previous_values = Array(this.order_amount).fill(this.customerHat.wing_quantity);
     this.allWingsInOrder = this.wings_per_hat_in_order.reduce((partialSum, a) => partialSum + a, 0);
+    */
+   this.allWingsInOrder = this.customerHat.single_hat_orders.reduce((partialSum, a) => partialSum + a.wing_quantity, 0);
     
     this.max_number_of_wings_in_all_allocations = this.hatsCalculatorService.getMaxNumberOfWingsInAllocations(this.customerHat.wing,
       babies_in_wall_allocation,
       babies_in_crown_allocation,
       null,//this.tails_allocation, //ommit the tails, because they don't affect the wings per order (go to overdraft if needed)
       (this.wall_alocation?.id != this.crown_allocation?.id));
-    this.console.log("You can produce " + this.max_number_of_wings_in_all_allocations + " wings with your allocations, and you are producing " + this.allWingsInOrder);
+    //this.console.log("You can produce " + this.max_number_of_wings_in_all_allocations + " wings with your allocations, and you are producing " + this.allWingsInOrder);
     this.order_wing_adjustment.open();
     //this.order_confirmation.open();
   }
@@ -973,36 +1002,34 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     return index;
   }
 
+  trackByOrder(index: number, order: any): number {
+    return index;
+  }
+
   dont_exceed_max_wings(event:any, index: number): void {
     let max_gap = this.max_number_of_wings_in_all_allocations - this.allWingsInOrder;
-    let increased_value = this.wings_per_hat_in_order[index] - this.wings_per_hat_in_order_previous_values[index];
+    let increased_value = this.customerHat.single_hat_orders[index].wing_quantity - this.wings_per_hat_in_order_previous_values[index];
     if(increased_value > max_gap) {
       let limited_new_value = this.wings_per_hat_in_order_previous_values[index] + max_gap;
-      this.wings_per_hat_in_order[index] = limited_new_value;
+      this.customerHat.single_hat_orders[index].wing_quantity = limited_new_value;
       event.target.value = limited_new_value;
       this.wings_per_hat_in_order_previous_values[index] = limited_new_value;
     }
     else {
-      this.wings_per_hat_in_order_previous_values[index] = this.wings_per_hat_in_order[index];
-      event.target.value = this.wings_per_hat_in_order[index];
+      this.wings_per_hat_in_order_previous_values[index] = this.customerHat.single_hat_orders[index].wing_quantity;
+      event.target.value = this.customerHat.single_hat_orders[index].wing_quantity;
     }
-    this.allWingsInOrder = this.wings_per_hat_in_order.reduce((partialSum, a) => partialSum + a, 0);
+    //this.allWingsInOrder = this.wings_per_hat_in_order.reduce((partialSum, a) => partialSum + a, 0);
+    this.allWingsInOrder = this.customerHat.single_hat_orders.reduce((partialSum, a) => partialSum + a.wing_quantity, 0);
   }
 
   placeOrderConfirmed() {
     this.placing_order = true;
-    this.ordersService.createOrder({
-      id: 0,
-      customer_hat: this.customerHat,
-      num_of_hats: this.order_amount,
-      status: {
-        id: 0,
-        date: new Date(),
-        order_status: Status.new
-      }
-    }).subscribe(
+    
+    this.ordersService.createOrder(this.customerHat).subscribe(
       {
         next:(data) => { 
+          this.console.dir(data);
           this.toastService.showSuccess(data["message"]);
           this.customerHat.wing?.babies.forEach((hatBaby: WingBaby) => {
             let allocationBaby = hatBaby.position.toUpperCase().startsWith("C")?
@@ -1017,14 +1044,14 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
             }
           });
           //this.customerHat.tails_allocation_id
-          let arr_adjusted_wings_per_hat = this.customerHat.adjusted_wings_per_hat.split(",");
-          const total_num_of_wings = arr_adjusted_wings_per_hat
-            .reduce((accumulator, currentValue) => { 
-              let curVal_num = parseInt(currentValue);
-              if(isNaN(curVal_num)){
-                curVal_num = 0;
-              }
-              return accumulator + curVal_num;
+          //let arr_adjusted_wings_per_hat = this.customerHat.adjusted_wings_per_hat.split(",");
+          const total_num_of_wings = this.customerHat.single_hat_orders
+            .reduce((accumulator, currentItem) => { 
+              //let curVal_num = parseInt(currentItem.wing_quantity);
+              //if(isNaN(curVal_num)){
+              //  curVal_num = 0;
+              //}
+              return accumulator + currentItem.wing_quantity;
             }, 0);
           if(this.tails_allocation){
             if(this.tails_allocation.tails_quantity >= total_num_of_wings) {

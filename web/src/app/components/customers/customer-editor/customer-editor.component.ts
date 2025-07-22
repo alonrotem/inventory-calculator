@@ -48,7 +48,8 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     banks: [],
     banks_baby_allocations: [],
     babies: [],
-    customer_code: ''
+    customer_code: '',
+    order_seq_number: 0
   }
 
   title: string = "Create Customer";

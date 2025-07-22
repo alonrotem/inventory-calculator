@@ -35,7 +35,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     id: 0, name: '', business_name: '', email: '', phone: '', tax_id: '',
     created_at: new Date(), updated_at: new Date(), created_by: 0, updated_by: 0,
     banks: [], banks_baby_allocations: [], babies: [],
-    customer_code: ''
+    customer_code: '', order_seq_number: 0
   };    
   @Input() bank: Customer_Bank = {
     raw_material_name: '',
