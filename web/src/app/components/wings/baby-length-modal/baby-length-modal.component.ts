@@ -45,7 +45,7 @@ export class BabyLengthModalComponent implements ModalContentDirective, ModalDia
 
   onOpen() {
     this.object_changed = false;
-    this.console.dir(this.crown_babies_options);
+    //this.console.dir(this.crown_babies_options);
   }
 
   ngAfterViewInit(): void {

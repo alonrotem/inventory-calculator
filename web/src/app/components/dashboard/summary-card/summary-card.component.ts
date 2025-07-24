@@ -35,7 +35,7 @@ export class SummaryCardComponent implements OnInit {
   ngOnInit(): void {
     this.infoService.getStatistics().subscribe({
       next: (stats: Stats) => {
-        console.dir(stats);
+        //console.dir(stats);
         this.raw_material_records = stats.raw_material_records;
         //this.total_baby_records = stats.total_baby_records;
         //this.total_babies = stats.total_babies;

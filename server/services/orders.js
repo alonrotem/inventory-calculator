@@ -73,14 +73,10 @@ async function create(customerHat, active_connection=null){
             hr_hl_width,
             crown_visible,
             crown_length,
-            white_hair,
-            white_hair_notes,
-            order_date,
-            isurgent,
-            order_notes
+            order_date
         )
         VALUES 
-        ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_hats
+        ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_hats
         ON DUPLICATE KEY UPDATE
             id=new_hats.id,
             hat_material_id=new_hats.hat_material_id,
@@ -99,12 +95,7 @@ async function create(customerHat, active_connection=null){
             hr_hl_width=new_hats.hr_hl_width,
             crown_visible=new_hats.crown_visible,
             crown_length=new_hats.crown_length,
-            white_hair=new_hats.white_hair,
-            white_hair_notes=new_hats.white_hair_notes,
-            order_date=new_hats.order_date,
-            isurgent=new_hats.isurgent,
-            order_notes=new_hats.order_notes
-            `,
+            order_date=new_hats.order_date`,
         [ 
             customerHat.id,
             customerHat.hat_material_id,
@@ -123,11 +114,7 @@ async function create(customerHat, active_connection=null){
             customerHat.hr_hl_width,
             customerHat.crown_visible,
             customerHat.crown_length,
-            customerHat.white_hair,
-            customerHat.white_hair_notes,
-            customerHat.order_date,
-            customerHat.isurgent,
-            customerHat.order_notes
+            customerHat.order_date
         ],
         active_connection
     );
@@ -210,10 +197,14 @@ async function create(customerHat, active_connection=null){
                     num_of_hats,
                     kippa_size,
                     ordering_customer_name,
-                    tails_overdraft
+                    tails_overdraft,
+                    isurgent,
+                    white_hair,
+                    white_hair_notes,
+                    order_notes
                 )
                 VALUES
-                ((?),(?),(?),(?),(?),(?),(?),(?)) as new_order
+                ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_order
                 ON DUPLICATE KEY UPDATE
                     id=new_order.id,
                     customer_hat_id=new_order.customer_hat_id,
@@ -222,7 +213,11 @@ async function create(customerHat, active_connection=null){
                     num_of_hats=new_order.num_of_hats,
                     kippa_size=new_order.kippa_size,
                     ordering_customer_name=new_order.ordering_customer_name,
-                    tails_overdraft=new_order.tails_overdraft`,
+                    tails_overdraft=new_order.tails_overdraft,
+                    isurgent=new_order.isurgent
+                    white_hair=new_order.white_hair,
+                    white_hair_notes=new_order.white_hair_notes
+                    order_notes=new_order.order_notes`,
                     [
                         id,
                         hat_id,
@@ -231,7 +226,11 @@ async function create(customerHat, active_connection=null){
                         num_of_hats,
                         single_hat_order.kippa_size,
                         single_hat_order.ordering_customer_name,
-                        rec_overdraft
+                        rec_overdraft,
+                        customerHat.isurgent,
+                        customerHat.white_hair,
+                        customerHat.white_hair_notes,
+                        customerHat.order_notes
                     ],
                     active_connection
             );
@@ -317,14 +316,15 @@ async function get_orders_list(page = 1, perPage, customer_id){
 
     const rows = await db.query(
         `select 
-                o.id,
+                o.id order_id,
+                ch.id customer_hat_id,
 
                 CASE WHEN c.customer_code IS NOT NULL 
                     THEN concat(c.customer_code, o.customer_order_seq_number)
                     ELSE o.customer_order_seq_number
                 END AS hat_id_with_customer,
                 os.order_status,
-                ch.isurgent,
+                o.isurgent,
                 c.name customer_name,
                 o.ordering_customer_name ordering_customer,
                 concat(ch.original_wing_name, ' ', rm_wall.name, ' ', rm_wall.color) wall,
@@ -334,11 +334,12 @@ async function get_orders_list(page = 1, perPage, customer_id){
                 ch.crown_visible,
                 ch.crown_length,
                 w.knife,
-                ch.white_hair_notes,
-                ch.white_hair,
+                o.white_hair_notes,
+                o.white_hair,
                 concat(rm_tails.name, ' ', rm_tails.color) tails,
                 o.tails_overdraft tails_overdraft,
-                os.date
+                os.date,
+                o.order_notes
             from 
                 customer_hats ch 
                 left join orders o on o.customer_hat_id = ch.id
@@ -350,7 +351,7 @@ async function get_orders_list(page = 1, perPage, customer_id){
                 left join raw_materials rm_tails on ch.tails_material_id=rm_tails.id
             where os.date = (select MAX(os2.date) FROM orders_status os2 where os.id = os2.id)
     ${customer_filter}
-    order by date desc
+    order by c.customer_code, o.customer_order_seq_number desc, date desc
     ${subset}`);
 
     const total = await db.query(
@@ -379,7 +380,7 @@ CASE WHEN c.customer_code IS NOT NULL
        ELSE o.customer_order_seq_number
 END AS hat_id_with_customer,
 os.order_status,
-ch.isurgent,
+o.isurgent,
 c.name customer_name,
 #------
 ch.original_wing_name wing_name,
@@ -395,8 +396,8 @@ rm_crown.color crown_material_color,
 ch.crown_visible,
 ch.crown_length,
 w.knife,
-ch.white_hair_notes,
-ch.white_hair,
+o.white_hair_notes,
+o.white_hair,
 #-------
 rm_tails.name h_material,
 rm_tails.color h_material_color,
@@ -408,7 +409,7 @@ ch.shorten_crown_by shorten_crown_by,
 ch.tails_overdraft tails_overdraft,
 ch.mayler_width mayler_width,
 ch.hr_hl_width hr_hl_width,
-ch.order_notes order_notes,
+o.order_notes order_notes,
 ch.order_date original_order_date,
 ch.wing_id wing_id
 #=======
@@ -441,8 +442,60 @@ where os.date = (select MAX(os2.date) FROM orders_status os2 where os.id = os2.i
     return order_details;
 }
 
+async function update_order_property(propertyDetails, active_connection=null){
+    let self_executing = false;
+    if(!active_connection) {
+        active_connection = await db.trasnaction_start();
+        self_executing = true;
+    }
+    try {    
+        //order_id, property, value
+        const order_id = propertyDetails["order_id"];
+        const propertyName = propertyDetails["property"];
+        const propertyValue = propertyDetails["value"];
+        let query = "";
+        let params = [];
+        let bool_value = false;
+
+        switch(propertyName) {
+            case "isurgent":
+                bool_value = helper.var_to_bool(propertyValue);
+                query = `update orders set isurgent=(?) where id=(?)`;
+                params = [ bool_value, order_id ];
+                break;
+            case "white_hair":
+                bool_value = helper.var_to_bool(propertyValue);
+                query = `update orders set white_hair=(?) where id=(?)`;
+                params = [ bool_value, order_id ];
+                break;
+            case "white_hair_notes":
+            case "order_notes":
+                query = `update orders set ${propertyName}=(?) where id=(?)`;
+                params = [ propertyValue, order_id ];
+                break;
+        }
+        if(query != ""){
+            await db.transaction_query(query, params, active_connection);
+        }
+        await db.transaction_commit(active_connection);
+        return { "value": propertyValue };
+    }  
+    catch(error){
+        if(self_executing) {
+            await db.transaction_rollback(active_connection);
+        }
+        throw(error);
+    }
+    finally {
+        if(self_executing) {
+            await db.transaction_release(active_connection);
+        }
+    }
+}
+
 module.exports = {
     create,
     get_orders_list,
-    get_order_details
+    get_order_details,
+    update_order_property
 }

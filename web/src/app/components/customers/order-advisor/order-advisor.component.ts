@@ -111,7 +111,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
     //console.dir(this.wall_allocation)
     if(!this.wait_for_saved_changes || !this.pending_saved_changes) {
       this.calculating = true;
-      console.log("recalculating with " + this.numOfWingsPerHat + " wings per hat");
+      //console.log("recalculating with " + this.numOfWingsPerHat + " wings per hat");
       this.calculate(this.numOfWingsPerHat).then((data: OrderAdvisorWingOverall) => {
         this.calculating = false;
         //console.dir(this.suggestions);

@@ -56,7 +56,7 @@ export class ConfirmationDialogComponent implements OnInit, AfterViewInit {
     @HostListener('document:keyup.escape', ['$event']) onEscdownHandler(evt: KeyboardEvent) {
       if(this.isOpen) {
         evt.preventDefault();
-        console.log("ESC Caught");
+        //console.log("ESC Caught");
         this.cancel.emit();
         this.isOpen = false;
       }
@@ -65,7 +65,7 @@ export class ConfirmationDialogComponent implements OnInit, AfterViewInit {
     @HostListener('document:keyup.enter', ['$event']) onEnterdownHandler(evt: KeyboardEvent) {
       if(this.isOpen) {
         evt.preventDefault();
-        console.log("Enter Caught");
+        //console.log("Enter Caught");
         this.confirm.emit();
         this.isOpen = false;
       }

@@ -268,7 +268,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.length_editor.crown_babies_quantity_changed.subscribe((new_length: number) => this.crown_babies_quantity_changed(new_length));
     this.wingsService.getWings_for_customer(this.customer.id).subscribe(wingsListInfo => {
       this.wings = wingsListInfo.data.sort((w1:WingsListItem, w2:WingsListItem) => {
-        this.console.log(w1.name);
+        //this.console.log(w1.name);
         const w1_len = w1.name.match(/[^\d]*(\d*)[^\d]*/);
         const w2_len = w2.name.match(/[^\d]*(\d*)[^\d]*/);
         if(w1_len && w2_len && w1_len.length > 1 && w2_len.length > 1){
@@ -729,7 +729,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   }
 
   diagram_baby_clicked(baby_position:string){
-    this.console.log("baby clicked " + baby_position );
+    //this.console.log("baby clicked " + baby_position );
     let baby = this.customerHat.wing?.babies.find(b => b.position.toUpperCase() == baby_position.toUpperCase());
     if(this.customerHat.wing && baby){
       let crown_units = this.customerHat.wing.babies.filter((b) => b.position.startsWith("C")).length;
@@ -1029,7 +1029,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.ordersService.createOrder(this.customerHat).subscribe(
       {
         next:(data) => { 
-          this.console.dir(data);
+          //this.console.dir(data);
           this.toastService.showSuccess(data["message"]);
           this.customerHat.wing?.babies.forEach((hatBaby: WingBaby) => {
             let allocationBaby = hatBaby.position.toUpperCase().startsWith("C")?

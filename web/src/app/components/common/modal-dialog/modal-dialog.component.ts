@@ -36,6 +36,7 @@ export class ModalDialogComponent implements ModalDialog {
   @Input() fullscreen: boolean = false;
   @Input() modalBodyClass: string = "";
 
+  @Output() opened = new EventEmitter<any>();
   @Output() confirm = new EventEmitter<any>();
   @Output("cancel") cancel = new EventEmitter<void>();
   //@Input() editedItem: any;
@@ -57,6 +58,7 @@ export class ModalDialogComponent implements ModalDialog {
     //console.log(this.modalSize);
     this.modalReference = this.modalService.open(this.content, { centered: true, size: this.modalSize, fullscreen: this.fullscreen });
     //console.log("openning " +this.dialogContentComponent);
+    this.opened.emit();
     if(this.dialogContentComponent){
       this.dialogContentComponent.onOpen();
 
@@ -83,7 +85,7 @@ export class ModalDialogComponent implements ModalDialog {
   @HostListener('document:keyup.escape', ['$event']) onEscdownHandler(evt: KeyboardEvent) {
     if(this.isOpen) {
       evt.preventDefault();
-      console.log("ESC Caught");
+      //console.log("ESC Caught");
       this.onCancel();
     }
   }
@@ -91,7 +93,7 @@ export class ModalDialogComponent implements ModalDialog {
   @HostListener('document:keyup.enter', ['$event']) onEnterdownHandler(evt: KeyboardEvent) {
     if(this.isOpen) {
       evt.preventDefault();
-      console.log("Enter Caught");
+      //console.log("Enter Caught");
       this.onConfirm();
     }
   }

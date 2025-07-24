@@ -12,10 +12,7 @@ export class OrdersService {
   constructor(private apiService: ApiService) { }
 
   createOrder = (customerHat: CustomerHat): Observable<any> => {
-    console.log("save hat in service");
-    console.dir(customerHat);
-    let x = this.apiService.put(`${environment.serverUrl}/orders/`, customerHat, { });
-    return x;
+    return this.apiService.put(`${environment.serverUrl}/orders/`, customerHat, { });
   };
 
   getOrders = (params: PaginationParams, customer_id: number): Observable<OrdersList> => {
@@ -33,4 +30,9 @@ export class OrdersService {
       responseType: 'json'
     });
   };
+
+  updateOrderProperty(order_id: number, property: string, value: string):Observable<any> {
+    console.log("updateOrderProperty(order_id: "+order_id+", property: "+property+", value: "+value+")" );
+    return this.apiService.post(`${environment.serverUrl}/orders/property/`, { order_id, property, value }, { });
+  }
 }

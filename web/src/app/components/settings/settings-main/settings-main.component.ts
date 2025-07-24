@@ -76,13 +76,13 @@ export class SettingsMainComponent implements HasUnsavedChanges {
     for (const key in this.settings)
     {
       if(this.unchanged_settings[key] != this.settings[key]){
-        console.log("Detected change: [" + key + "] " + this.unchanged_settings[key] + " -> " + this.settings[key]);
+        //console.log("Detected change: [" + key + "] " + this.unchanged_settings[key] + " -> " + this.settings[key]);
         this.pending_changes = true;
         //break;
       }
     }
     if(!this.pending_changes){
-      console.log("Nothing changed, or everything back to normal!")
+      //console.log("Nothing changed, or everything back to normal!")
     }
   }
 

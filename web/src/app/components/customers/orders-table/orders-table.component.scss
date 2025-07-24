@@ -75,3 +75,8 @@ h1 {
   overflow: hidden;
   text-overflow: ellipsis; 
 }
+
+td.editable:hover {
+    background-color: var(--bs-body-color);
+    color: var(--bs-body-bg);
+}

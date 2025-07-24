@@ -177,8 +177,8 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
   get_colors(){
     this.rawMaterialsService.getRawMaterialColors().subscribe({
       next: (colors: string[]) => {
-        this.console.log("colorssss");
-        this.console.dir(colors);
+        //this.console.log("colorssss");
+        //this.console.dir(colors);
         this.colors = colors;
       },
       error: (error) => {

@@ -68,7 +68,7 @@ app.use((err, req, res, next) => {
 });
 
 process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received.');
+  //console.log('SIGTERM signal received.');
   logger.info('SIGTERM signal received.');
   if(server) {
     server.close(async () => {
@@ -81,7 +81,7 @@ process.on('SIGTERM', () => {
 });
 
 process.on('SIGINT', () => {
-  console.log('SIGINT signal received.');
+  //console.log('SIGINT signal received.');
   logger.info('SIGINT signal received.');
   if(server) {
     server.close(async () => {

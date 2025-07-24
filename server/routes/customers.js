@@ -108,7 +108,7 @@ router.delete('/:id', async function(req, res, next) {
       logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
       res.json(response);
     } catch (err) {
-      console.error(`Error deleting customer ${err.message}`);
+      logger.error(`Error deleting customer ${err.message}`);
       next(err);
     }
   });

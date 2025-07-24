@@ -62,7 +62,7 @@ export class BankAllocationDialogComponent implements ModalContentDirective, Mod
   };
   
   open(){
-    console.log("opening with AllocationType:"); console.dir(this.AllocationType);
+    //console.log("opening with AllocationType:"); console.dir(this.AllocationType);
     this.dialogWrapper.open();
   }
 
@@ -104,7 +104,7 @@ export class BankAllocationDialogComponent implements ModalContentDirective, Mod
     if(reason == DialogClosingReason.cancel) {
       return true;
     }
-    console.dir(this.editedObject);
+    //console.dir(this.editedObject);
     this.attemptedClose = true;
     this.quantityForm.form.markAllAsTouched();
     let okToClose = (this.CurrentQuantity > 0) && (this.CurrentQuantity <= this.MaxQuantity);

@@ -221,7 +221,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     //if(changes["crown_length"]["currentValue"] != changes["crown_length"]["previousValue"])  rebuild = true;
 
     if(rebuild){
-      console.log("Rebuilding!"); console.dir(changes);
+      //console.log("Rebuilding!"); console.dir(changes);
       this.Rebuild();
     }
   }
@@ -462,7 +462,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
   buildCrown(){
     // CROWN
     // ========
-    console.log(this.crown);
+    //console.log(this.crown);
     let crown_height = this.crown_bottom.y - this.rights_bottom.y;
     let crown_segment_height = crown_height / this.crown.length;
     let crown_part = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];

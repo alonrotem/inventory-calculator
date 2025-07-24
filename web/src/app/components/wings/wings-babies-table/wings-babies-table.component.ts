@@ -37,8 +37,8 @@ export class WingsBabiesTableComponent implements OnChanges {
   }
   
   ngOnChanges(changes: SimpleChanges): void {
-    console.log("CHANGES!");
-    console.dir(changes);
+    //console.log("CHANGES!");
+    //console.dir(changes);
     changes["wingsbabies"].currentValue = [];
   }
 

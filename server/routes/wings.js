@@ -80,16 +80,7 @@ router.get('/', async function(req, res, next) {
       next(err);
     }
   });
-/*
-  router.post('/', async function(req, res, next) {
-    try {
-      res.json(await wings.create(req.body));
-    } catch (err) {
-      console.error(`Error while creating wing `, err.message);
-      next(err);
-    }
-  });
-*/
+
   router.put('/', async function(req, res, next) {
     logger.info(`put /wings/`);
     try {
@@ -99,7 +90,7 @@ router.get('/', async function(req, res, next) {
       res.json(response);
     } 
     catch (err) {
-      console.error(`Error saving wing: ${err.message}`);
+      logger.error(`Error saving wing: ${err.message}`);
       next(err);
     }
   });

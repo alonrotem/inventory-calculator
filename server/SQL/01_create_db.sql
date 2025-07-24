@@ -593,11 +593,7 @@ CREATE TABLE  IF NOT EXISTS `customer_hats`
     `crown_visible` FLOAT not null default 0,
 	`crown_length`	float not null default 0,
     
-    `white_hair`	BOOL default False,
-    `white_hair_notes` Varchar(256) null,
     `order_date`	DATE NULL,
-    `isurgent`		BOOL default false,
-    `order_notes` Varchar(256) null,
  
 	PRIMARY KEY (`id`),
 	CONSTRAINT fk_customer_hats_wall_material_id
@@ -628,6 +624,10 @@ CREATE TABLE IF NOT EXISTS `orders` (
     `kippa_size`	FLOAT NULL,
     `ordering_customer_name`	VARCHAR(255) NULL,
     `tails_overdraft` int not null default 0,
+    `isurgent`		BOOL default false,
+    `white_hair`	BOOL default False,
+    `white_hair_notes` Varchar(256) null,
+    `order_notes` Varchar(256) null,    
     PRIMARY KEY (`id`),
     CONSTRAINT fk_order_customer_hat_id
 	  FOREIGN KEY (`customer_hat_id`) REFERENCES customer_hats(`id`) ON DELETE CASCADE

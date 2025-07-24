@@ -172,7 +172,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
       while(babies_to_delete.length > 0){
         let id_to_remove = babies_to_delete.pop();
         let index_of_baby_to_delete = this.babies.findIndex(b => b.id == id_to_remove);
-        console.log("poppin " + index_of_baby_to_delete);
+        //console.log("poppin " + index_of_baby_to_delete);
         if(index_of_baby_to_delete >= 0){
           this.babies.splice(index_of_baby_to_delete, 1);
         }
@@ -185,7 +185,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
       this.customerService.saveCustomer(this.customer).subscribe(
         {
           next:(data) => { 
-            console.log("SAVED CUSTOMER !!"); console.dir(data["customer"]);
+            //console.log("SAVED CUSTOMER !!"); console.dir(data["customer"]);
             //let alloc = this.banks_baby_allocations.find(alloc => alloc.id == this.pendingAllocationIdAction);
             //let pre_selected_allocation_id = 
             this.customer = { ...data["customer"] };
@@ -224,7 +224,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
       this.customerService.saveCustomer(this.customer).subscribe(
         {
           next:(data) => { 
-            console.log("SAVED!!!"); console.dir(data["customer"]);
+            //console.log("SAVED!!!"); console.dir(data["customer"]);
             this.customer = { ...data["customer"] };
             this.banks_baby_allocations = [...data["customer"]["banks_baby_allocations"]];
             this.babies = [... data["customer"]["babies"]];
@@ -483,7 +483,7 @@ recalculateBank(){
   }
 
   append_baby(baby_info: { length: number; quantity: number }){
-    console.log("append_baby:"); console.dir(baby_info);
+    //console.log("append_baby:"); console.dir(baby_info);
     let baby_to_modify = this.babies.find(b => b.allocation_id == this.pendingBabyAppendAllocation && b.length == baby_info.length);
 
     //edit mode:
@@ -555,7 +555,7 @@ recalculateBank(){
   }
 
   select_allocation(allocation: Customer_Bank_Baby_Allocation){
-    console.dir(this.bank);
+    //console.dir(this.bank);
     if(this.unsaved_changes){
       this.pendingAllocationIdAction = allocation.id;
       this.save_before_select.open();
@@ -573,14 +573,14 @@ recalculateBank(){
       return advisor.wall_allocation?.id == allocation_id;
     });
     if(origin_advisor) {
-      console.log("updating the advisor");
-      console.dir(this.babies);
+      //console.log("updating the advisor");
+      //console.dir(this.babies);
       origin_advisor.updateBabies(this.babies, this.babies);
     }
   }
 
   assistant_auto_add_babies(aggregatedBabies: any){
-    console.dir(aggregatedBabies);
+    //console.dir(aggregatedBabies);
     let changes_made = false;
     (aggregatedBabies.hat as aggregated_babies[]).forEach(baby_to_append => {
       if(baby_to_append.remaining > 0){  

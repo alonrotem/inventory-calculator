@@ -1,7 +1,7 @@
 <div>
 <button *ngIf="this.showOpenButton" class="btn btn-primary mt-3 mb-3" (click)="open()">{{ btnText }}</button>
 
-<ng-template class="modal-dialog modal-fullscreen" #content let-c="close" let-d="dismiss">
+<ng-template class="modal-dialog modal-fullscreen" #content let-c="close" let-d="dismiss" style="z-index: 99999;">
     <div class="modal-header">
         <h4 class="modal-title" id="modal-basic-title" [innerHTML]="modalTitle"></h4>
         <button type="button" class="btn-close" aria-label="Close" (click)="this.onCancel()"></button>

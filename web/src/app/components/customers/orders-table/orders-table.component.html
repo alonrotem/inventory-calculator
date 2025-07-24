@@ -1,3 +1,20 @@
+<app-modal-dialog 
+  #notes_editor
+  [modalTitle]="'Edit notes'"
+  [btnSaveIcon]="faPen"
+  [btnSaveText]="'Update'"
+  [btnSaveClass]="'btn-primary'"
+  [btnCancelText]="'Cancel'"
+  [modalSize]="'m'"
+  (confirm)="note_editor_confirmed()"
+  (cancel)="notes_editor_cancelled()"
+  (opened)="notes_editor_opened()">
+  <div>Edit white hair notes</div>
+  <div>
+    <textarea class="form-control" #txtNotes rows="2" (keyup.enter)="notes_editor_enter_pressed()" [(ngModel)]="notes_editor_placeholder"></textarea>
+  </div>
+</app-modal-dialog>
+
 <div class="row justify-content-center"><div class="col-12">
     <h1><fa-icon [icon]="faBasketShopping"></fa-icon> Orders</h1>
     
@@ -49,28 +66,28 @@
             <th scope="col" class="sticky-header">White hair notes</th>
             <th scope="col" class="sticky-header">Tails</th>
             <th scope="col" class="sticky-header">Date</th>
+            <th scope="col" class="sticky-header">Notes</th>
           </tr>
         </thead>
         <tbody>           
-          <tr 
-            *ngFor="let order of this.orders" 
-            role="button" (click)="go_to_odrer(order.id, customer_id)">
-            <td>{{ order.hat_id_with_customer }}</td>
-            <td>{{ order.order_status }}</td>
-            <td class="text-center"><input class="form-check-input" type="checkbox" onclick="return false;" [checked]="order.isurgent" /></td>
-            <td>{{ order.customer_name }}</td>
-            <td>{{ order.ordering_customer }}</td>
-            <td>{{ order.wall }}</td>
-            <td class="text-center">{{ order.kippa_size }}</td>
-            <td class="text-center">{{ order.wing_quantity }}</td>
-            <td>{{ order.crown }}</td>
-            <td class="text-center">{{ order.crown_visible }}</td>
-            <td class="text-center">{{ order.crown_length }}</td>
-            <td class="text-center">{{ order.knife }}</td>
-            <td class="text-center"><input class="form-check-input" type="checkbox" onclick="return false;" [checked]="order.white_hair" /></td>
-            <td><div class="shortened">{{ order.white_hair_notes }}</div></td>
-            <td>{{ order.tails }} (overdrft: {{ order.tails_overdraft }})</td>
-            <td>{{ order.date  | dateStr }}</td>
+          <tr *ngFor="let order of this.orders; index as i" role="button">
+            <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.hat_id_with_customer }}</td>
+            <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.order_status }}</td>
+            <td class="editable text-center" (click)="update_boolean_status(updating_urgent_status, i, 'isurgent')"><fa-icon *ngIf="updating_urgent_status[i]" [icon]="faArrowsRotate" [spin]="true"></fa-icon><input *ngIf="!updating_urgent_status[i]" class="form-check-input" type="checkbox" onclick="return false;" [checked]="order.isurgent" /></td>
+            <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.customer_name }}</td>
+            <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.ordering_customer }}</td>
+            <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.wall }}</td>
+            <td (click)="go_to_odrer(order.order_id, customer_id)" class="text-center">{{ order.kippa_size }}</td>
+            <td (click)="go_to_odrer(order.order_id, customer_id)" class="text-center">{{ order.wing_quantity }}</td>
+            <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.crown }}</td>
+            <td (click)="go_to_odrer(order.order_id, customer_id)" class="text-center">{{ order.crown_visible }}</td>
+            <td (click)="go_to_odrer(order.order_id, customer_id)" class="text-center">{{ order.crown_length }}</td>
+            <td (click)="go_to_odrer(order.order_id, customer_id)" class="text-center">{{ order.knife }}</td>
+            <td class="editable text-center" (click)="update_boolean_status(updating_white_hair_status, i, 'white_hair')"><fa-icon *ngIf="updating_white_hair_status[i]" [icon]="faArrowsRotate" [spin]="true"></fa-icon><input *ngIf="!updating_white_hair_status[i]" class="form-check-input" type="checkbox" onclick="return false;" [checked]="order.white_hair" /></td>
+            <td class="editable" (click)="edit_white_hair_notes(i)"><fa-icon *ngIf="updating_white_hair_notes_status[i]" [icon]="faArrowsRotate" [spin]="true"></fa-icon><div class="shortened" *ngIf="!updating_white_hair_notes_status[i]">{{ order.white_hair_notes }}</div></td>
+            <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.tails }} (overdrft: {{ order.tails_overdraft }})</td>
+            <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.date  | dateStr }}</td>
+            <td class="editable" (click)="edit_order_notes(i)"><fa-icon *ngIf="updating_order_notes_status[i]" [icon]="faArrowsRotate" [spin]="true"></fa-icon><div class="shortened" *ngIf="!updating_order_notes_status[i]">{{ order.order_notes }}</div></td>
           </tr>
         </tbody>
       </table>

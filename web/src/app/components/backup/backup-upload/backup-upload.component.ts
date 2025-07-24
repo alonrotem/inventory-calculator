@@ -54,7 +54,7 @@ export class BackupUploadComponent implements AfterViewInit {
         },
         error: (error) => {
           this.toast.showError("Failed to process backup");
-          console.dir(error);
+          //console.dir(error);
           this.file = null;
           this.filename = this.no_file_selected_message;        
           formData.delete("file");

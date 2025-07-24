@@ -23,7 +23,7 @@ export class RawMaterialChartComponent implements OnInit, OnChanges {
 
   constructor(private infoService: InfoService, private globalService: GlobalsService){
     globalService.themeChanged.subscribe((theme: string) => {
-      console.log("Theme: " + theme);
+      //console.log("Theme: " + theme);
       this.reloadChart(this.data);
     });
   }
@@ -50,7 +50,7 @@ export class RawMaterialChartComponent implements OnInit, OnChanges {
     this.infoService.getRawMaterialsQuantityHistory(this.raw_material_quantity_units).subscribe({
       next: (history_records:QuantityHistoryRecord[])=>{
         this.data = history_records.map((rec) => ({ x: this.dateStr(rec.date), y: rec.cumulative_amount }));
-        console.log(this.data);
+        //console.log(this.data);
         /*data = [
           { x: "2024-10-12", y: 10 },
           { x: "2024-10-13", y: 12 },
@@ -66,7 +66,7 @@ export class RawMaterialChartComponent implements OnInit, OnChanges {
   }
 
   reloadChart(data: any){
-    console.log(this.globalService.currentTheme());
+    //console.log(this.globalService.currentTheme());
     let grid_color = (this.globalService.currentTheme() == "dark") ?
       "rgba(255, 255, 255, 0.65)" : "black";
     

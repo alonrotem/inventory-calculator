@@ -16,12 +16,12 @@ export class ModalContentDirective implements ModalDialog {
     editedObject: any;
   
     onOpen() {
-      console.log("directive on open");
+      //console.log("directive on open");
       if (this.host?.onOpen) {
         this.host.onOpen(); // Call the component's implementation if provided
       } 
       else  {
-        console.log('onOpen called from ModalContentDirective (no override)');
+        //console.log('onOpen called from ModalContentDirective (no override)');
       }      
     }
     
@@ -30,7 +30,7 @@ export class ModalContentDirective implements ModalDialog {
         return this.host.beforeClose(reason); // Call the component's implementation if provided
       } 
       else {
-        console.log('beforeClose called from ModalContentDirective (no override)');
+        //console.log('beforeClose called from ModalContentDirective (no override)');
         return true;
       }
     }

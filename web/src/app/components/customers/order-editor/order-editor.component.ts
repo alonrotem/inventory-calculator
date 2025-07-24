@@ -37,7 +37,7 @@ export class OrderEditorComponent implements OnInit {
     crown_length: 0,
     knife: 0,
     white_hair_notes: '',
-    white_hair: 0,
+    white_hair: false,
     h_material: '',
     h_material_color: '',
     date: new Date(),
@@ -87,7 +87,7 @@ export class OrderEditorComponent implements OnInit {
   async getOrder(id: number){
     this.loading = true;
     this.orderDetails = await firstValueFrom(this.ordersService.getOrder(id));
-    console.dir(this.orderDetails);
+    //console.dir(this.orderDetails);
     this.loading = false;
   }
 

@@ -10,3 +10,7 @@ fa-icon:has(svg) {
     flex-direction: row-reverse;
     justify-content: flex-start;
 }
+
+::ng-deep .modal-content, ::ng-deep .modal {
+    z-index: 99999;
+}

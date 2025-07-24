@@ -49,7 +49,7 @@ export class HatAllocationEditorPickerComponent implements ModalContentDirective
   }
 
   onOpen(): void {
-    console.log("picker says: wing id is " + this.wing_id);
+    //console.log("picker says: wing id is " + this.wing_id);
     if(this.banks_table){
       this.banks_table.collapsed_babies_lists = true;
       this.banks_table.wing_id = this.wing_id;
@@ -62,8 +62,8 @@ export class HatAllocationEditorPickerComponent implements ModalContentDirective
     }
   }
 
-  babies_picker_open() { this.banksTableOpen = true; console.log("caught baby picker open! ok to close: " + (!this.banksTableOpen)); }
-  babies_picker_closed() { this.banksTableOpen = false;  this.banksTableJustClosedDontCloseJustYet= false; console.log("caught baby picker close! ok to close: " + (!this.banksTableOpen)); }
+  babies_picker_open() { this.banksTableOpen = true; /*console.log("caught baby picker open! ok to close: " + (!this.banksTableOpen));*/ }
+  babies_picker_closed() { this.banksTableOpen = false;  this.banksTableJustClosedDontCloseJustYet= false; /*console.log("caught baby picker close! ok to close: " + (!this.banksTableOpen));*/ }
 
   @HostListener('document:keyup.escape', ['$event']) onEscdownHandler(evt: KeyboardEvent) {
     if(this.banksTableOpen) {
@@ -76,7 +76,7 @@ export class HatAllocationEditorPickerComponent implements ModalContentDirective
   }
 
   beforeClose(reason: DialogClosingReason): Boolean {
-    console.log("---- ok to close: " + (!this.banksTableOpen) + ", banksTableJustClosedDontCloseJustYet:" + this.banksTableJustClosedDontCloseJustYet + " ----");
+    //console.log("---- ok to close: " + (!this.banksTableOpen) + ", banksTableJustClosedDontCloseJustYet:" + this.banksTableJustClosedDontCloseJustYet + " ----");
     if(this.banksTableOpen)
       return false;
     if(this.banksTableJustClosedDontCloseJustYet)

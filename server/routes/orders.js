@@ -46,4 +46,18 @@ const { logger } =  require('../logger');
       }
     });
 
+    router.post('/property', async function(req, res, next) {
+      logger.info(`post /orders/property`);
+      logger.debug(`Body: ${ JSON.stringify(req.body) }`)
+      try {
+        const response  = await orders.update_order_property(req.body);
+        logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+        res.json(response);
+      } 
+      catch (err) {
+        logger.error(`Error updating order property (post): ${err.message}`);
+        next(err);
+      }
+    });
+
   module.exports = router;

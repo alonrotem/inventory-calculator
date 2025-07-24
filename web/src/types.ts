@@ -453,7 +453,7 @@ export interface OrderDetails {
     crown_length: number;
     knife: number;
     white_hair_notes: string;
-    white_hair: number;
+    white_hair: boolean;
     h_material: string;
     h_material_color: string;
     date: Date;
@@ -493,7 +493,8 @@ export interface OrderStatus {
 
 //this is for the list of ordered hats
 export interface OrderListItem {
-    id: number;
+    order_id: number;
+    customer_hat_id: number;
     hat_id_with_customer: string;
     order_status: Status;
     isurgent: boolean;
@@ -508,10 +509,11 @@ export interface OrderListItem {
     crown_length: number;
     knife: number;
     white_hair_notes: string;
-    white_hair: number;
+    white_hair: boolean;
     tails: number;
     tails_overdraft: number;
     date: Date;
+    order_notes: string;
 }
 
 export interface OrdersList {

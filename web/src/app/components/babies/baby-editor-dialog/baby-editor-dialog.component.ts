@@ -100,9 +100,9 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
       }
     }
     */
-    console.log("subscribing...");
+    //console.log("subscribing...");
     this.dialogWrapper.cancel.subscribe({next: () => {
-      console.log("CAUCHT CLOSE");
+      //console.log("CAUCHT CLOSE");
     },
   error: (error: any)=> {
     alert(error);
@@ -110,13 +110,13 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
   }
 
   highlightNext(){
-    this.console.dir(this.highlighted_baby_length);
+    //this.console.dir(this.highlighted_baby_length);
     if(this.highlighted_baby_length < this.min_length || this.highlighted_baby_length > this.max_length){
       this.highlighted_baby_length = this.min_length;
     }
     this.length_picker.length = this.highlighted_baby_length;
     const baby_info = this.babies_to_edit.find(b => b.length == this.highlighted_baby_length);
-    this.console.log("baby info:");
+    //this.console.log("baby info:");
     
     this.highlighted_baby_quantity = (baby_info)? baby_info.quantity: 0;
 
@@ -131,7 +131,7 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
   beforeClose(reason: DialogClosingReason): Boolean {
     if(reason == DialogClosingReason.confirm)
       return false;
-    console.log("beforeClose...");
+    //console.log("beforeClose...");
     this.isSubmitted = true;
     return true;
     /*

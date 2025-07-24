@@ -66,7 +66,7 @@ router.post('/', async function(req, res, next) {
       res.json(response);
     } 
     catch (err) {
-      console.error(`Error while getting enum values: ${err.message}`);
+      logger.error(`Error while getting enum values: ${err.message}`);
       next(err);
     }
   });

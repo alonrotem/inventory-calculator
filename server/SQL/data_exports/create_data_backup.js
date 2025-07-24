@@ -22,18 +22,18 @@ async function get_table_info(table_name){
 }
 
 function construct_inserts(table_name, table_info, records){
-    console.log(`Constructing inserts for table ${table_name}\n${"-".repeat(table_name.length + 34)}`);
-    console.log(`Table conlumns: ${table_info.length}`);
-    console.log(`Table records: ${records.length}\n`);
+    //console.log(`Constructing inserts for table ${table_name}\n${"-".repeat(table_name.length + 34)}`);
+    //console.log(`Table conlumns: ${table_info.length}`);
+    //console.log(`Table records: ${records.length}\n`);
     let insert_statement = `# ${table_name.toUpperCase()}\n# ${"-".repeat(table_name.length + 2)}\n\n`;
     let onduplicate = `ON DUPLICATE KEY UPDATE\n${ table_info.filter(f=> f.Field != 'id').map((c) => c.Field + "=values("+c.Field+")").join(", ") };\n`;
     let values = "";
     if (!records || !records.length) {
-        console.log("No records to insert.");
+        //console.log("No records to insert.");
         insert_statement += "# No records to insert.\n";   
     }
     if (!table_info || !table_info.length) {
-        console.log("No columns in the table.");
+        //console.log("No columns in the table.");
         insert_statement += "# No columns in the table.\n";   
     }
     else {
@@ -81,7 +81,7 @@ function construct_inserts(table_name, table_info, records){
     fs.appendFileSync(outputFile, insert_statement + values + onduplicate + "\n\n");
 }
 
-console.log("Fetching...")
+//console.log("Fetching...")
 let data_promises = [];
 data_promises.push(get_table_info('raw_materials'));
 data_promises.push(get_table_info('babies'));
@@ -102,11 +102,11 @@ Promise.all(data_promises).then((allData) => {
     const wings = allData[6].data;
     const hats = allData[7].data;
 
-    console.log(" -> " + raw_materials.length + " raw materials.");
-    console.log(" -> " + babies.length + " babies.");
-    console.log(" -> " + wings.length + " wings.");
-    console.log(" -> " + hats.length + " hats.");
-    console.log();
+    //console.log(" -> " + raw_materials.length + " raw materials.");
+    //console.log(" -> " + babies.length + " babies.");
+    //console.log(" -> " + wings.length + " wings.");
+    //console.log(" -> " + hats.length + " hats.");
+    //console.log();
 
     construct_inserts("raw_materials", raw_materials_table, raw_materials);
     construct_inserts("babies", babies_table, babies);

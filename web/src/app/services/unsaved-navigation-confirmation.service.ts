@@ -47,7 +47,7 @@ export class UnsavedNavigationConfirmationService {
       const sub_discard_changes = confirmationDialog.discard_click
         .pipe() // take the first result only
         .subscribe(() => {
-          console.log("discard");
+          //console.log("discard");
           this.stateService.setState({ message: "Changes discarded", isError: false });
           observer.next(true);
         }); 
