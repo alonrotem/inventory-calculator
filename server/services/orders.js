@@ -306,7 +306,7 @@ async function get_orders_list(page = 1, perPage, customer_id){
     let customer_filter = '';
 
     if(customer_id && customer_id > 0) {
-        customer_filter = `and ch.customer_id=${customer_id}`;
+        customer_filter = `ch.customer_id=${customer_id}`;
     }
 
     if(page && perPage && page > 0 && perPage > 0) {
@@ -350,12 +350,12 @@ async function get_orders_list(page = 1, perPage, customer_id){
                 left join raw_materials rm_crown on ch.crown_material_id=rm_crown.id
                 left join raw_materials rm_tails on ch.tails_material_id=rm_tails.id
             where os.date = (select MAX(os2.date) FROM orders_status os2 where os.id = os2.id)
-    ${customer_filter}
+    ${(customer_filter=='')? ('') : (' and ' + customer_filter)}
     order by c.customer_code, o.customer_order_seq_number desc, date desc
     ${subset}`);
 
     const total = await db.query(
-        `select count(*) as count from orders o left join customer_hats ch on o.customer_hat_id=ch.id ${customer_filter};`
+        `select count(*) as count from orders o left join customer_hats ch on o.customer_hat_id=ch.id ${(customer_filter=='')? ('') : (' where ' + customer_filter)};`
     );
     const total_records = total[0].count;
 
