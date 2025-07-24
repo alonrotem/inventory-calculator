@@ -204,7 +204,7 @@ async function create(customerHat, active_connection=null){
                     order_notes
                 )
                 VALUES
-                ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_order
+                ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_order
                 ON DUPLICATE KEY UPDATE
                     id=new_order.id,
                     customer_hat_id=new_order.customer_hat_id,
@@ -214,9 +214,9 @@ async function create(customerHat, active_connection=null){
                     kippa_size=new_order.kippa_size,
                     ordering_customer_name=new_order.ordering_customer_name,
                     tails_overdraft=new_order.tails_overdraft,
-                    isurgent=new_order.isurgent
+                    isurgent=new_order.isurgent,
                     white_hair=new_order.white_hair,
-                    white_hair_notes=new_order.white_hair_notes
+                    white_hair_notes=new_order.white_hair_notes,
                     order_notes=new_order.order_notes`,
                     [
                         id,
