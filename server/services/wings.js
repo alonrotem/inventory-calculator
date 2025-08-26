@@ -6,7 +6,7 @@ const { logger } = require('../logger')
 
 async function getSingle(id){
     const rows = await db.query(
-      `select id, name, knife, allow_shortening_babies_in_pairs from wings where id=${id}` //width 5 - 11
+      `select id, name, knife, split_l1, crown_width, allow_shortening_babies_in_pairs from wings where id=${id}` //width 5 - 11
     );
     const data = helper.emptyOrSingle(rows);
     if(!helper.isEmptyObj(data)) {
@@ -32,7 +32,7 @@ from wings_babies
 
 async function getSingleWingByName(name){
   const rows = await db.query(
-    `select id, name, knife, allow_shortening_babies_in_pairs from wings where name=(?)`, [name]
+    `select id, name, knife, split_l1, crown_width, allow_shortening_babies_in_pairs from wings where name=(?)`, [name]
   );
   const data = helper.emptyOrSingle(rows);
   //console.log(helper.isEmptyObj(data));
@@ -65,9 +65,9 @@ async function getMultiple(page = 1, perPage, customer_id){
   
   const rows = await db.query(
     `select 
-      w.id, w.name, w.knife, ch.customer_id,
-      (SELECT COUNT(*) FROM wings_babies wb
-              WHERE wb.parent_wing_id = w.id and wb.position like'L%') as 'Left',
+      w.id, w.name, w.knife, ch.customer_id, w.split_l1, crown_width,
+      (SELECT COUNT(wb.id) + w.split_l1 FROM wings_babies wb, wings w
+              WHERE wb.parent_wing_id = 31 and w.id=31 and wb.position like'L%') as 'Left',
       (SELECT COUNT(*) FROM wings_babies wb
               WHERE wb.parent_wing_id = w.id and wb.position like'R%') as 'Right',
       (SELECT COUNT(*) FROM wings_babies wb
@@ -104,7 +104,7 @@ async function getAllNonCustomerWingsAndBabies(wing_id_filter) {
     wing_filter = `and w.id=${ wing_id_filter }`;
   }
   const rows = await db.query(
-    `select w.id w_id, w.name w_n, wb.id b_id, wb.position p, wb.length l 
+    `select w.id w_id, w.name w_n, w.split_l1 splt_l1, w.crown_width cr_wdt, wb.id b_id, wb.position p, wb.length l 
       from wings w 
       left join customer_hats ch on ch.wing_id=w.id
       left join wings_babies wb on wb.parent_wing_id=w.id
@@ -133,11 +133,12 @@ async function save(wing, active_connection=null){
       wing.babies.forEach(b => b.id = 0);
     }
     const result = await db.transaction_query(
-      `INSERT INTO wings (id, name, knife, allow_shortening_babies_in_pairs) 
-        VALUES ((?), (?), (?), (?)) as new_wing
+      `INSERT INTO wings (id, name, knife, allow_shortening_babies_in_pairs, split_l1, crown_width) 
+        VALUES ((?), (?), (?), (?), (?), (?)) as new_wing
         ON DUPLICATE KEY UPDATE
-        name=new_wing.name, knife=new_wing.knife, allow_shortening_babies_in_pairs=new_wing.allow_shortening_babies_in_pairs`, 
-        [ wing.id, wing.name, wing.knife, wing.allow_shortening_babies_in_pairs ],
+        name=new_wing.name, knife=new_wing.knife, allow_shortening_babies_in_pairs=new_wing.allow_shortening_babies_in_pairs, 
+        split_l1=new_wing.split_l1, crown_width=new_wing.crown_width`,
+        [ wing.id, wing.name, wing.knife, wing.allow_shortening_babies_in_pairs, wing.split_l1, wing.crown_width ],
         active_connection
     );
 

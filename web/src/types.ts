@@ -128,6 +128,8 @@ export interface Wing {
     name: string;
     knife: number;
     allow_shortening_babies_in_pairs: boolean;
+    crown_width: number;
+    split_l1: number;
     babies: WingBaby[];
 }
 
@@ -430,6 +432,7 @@ export interface Order {
     customer_order_seq_number: number;
     wing_quantity: number;
     kippa_size: number;
+    diameter_inches: number;
     ordering_customer_name: string;
     num_of_hats: number; //defaults to 1, this represents an order of a single hat
     status: OrderStatus;
@@ -446,6 +449,7 @@ export interface OrderDetails {
     wall_material: string;
     wall_material_color: string;
     kippa_size: number;
+    diameter_inches: number;
     wing_quantity: number;
     crown_material: string;
     crown_material_color: string;
@@ -502,6 +506,7 @@ export interface OrderListItem {
     ordering_customer: string;
     wall: string,
     kippa_size: number;
+    diameter_inches: number;
     wing_quantity: number;
     adjusted_wings_per_hat: string;
     crown: string,
@@ -534,6 +539,8 @@ export interface ShortWingsInfo {
     b_id: number;       //baby id
     p: string;          //baby position
     l: number;          //baby length
+    splt_l1: number;    //split L1 baby to 1-4 parts
+    cr_wdt: number;     //crown width
 }
 
 export interface OrderAdvisorHatsSuggestion {

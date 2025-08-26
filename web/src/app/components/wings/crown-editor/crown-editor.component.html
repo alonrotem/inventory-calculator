@@ -1,0 +1,60 @@
+<fieldset>
+<div class="d-flex flex-row flex-nowrap align-items-center justify-content-start" style="margin-bottom: 20px;">
+    <fa-icon [icon]="faRuler" style="margin-right:5px;"></fa-icon> Total crown width:
+    <select class="crown-size" [(ngModel)]="crown_width" name="select_crown_width" class="cm" (change)="crown_widthChange.emit(crown_width)">
+        <option *ngFor="let i of this.crown_width_options" value={{i}}>{{i}}</option>
+    </select>
+    <div class="cm">cm</div>    
+</div>
+
+<div class="crown-editor-row d-flex flex-column flex-nowrap align-items-start justify-content-start">
+
+<div class="form-check">
+  <input class="form-check-input" type="radio" name="crownLengthOption" id="crownLengthOption_all" [(ngModel)]="length_mode" (change)="length_mode_changed()" [value]="length_options.common">
+  <label class="form-check-label" for="crownLengthOption_all">
+    <fa-icon [icon]="faEquals" style="margin-right:5px;"></fa-icon> Common length for all crown babies
+  </label>
+  <div class="d-flex flex-row flex-nowrap align-items-center justify-content-start">
+    <fa-icon [icon]="faArrowsLeftRightToLine" style="margin-right:5px;"></fa-icon> Length for all babies: 
+    <select class="cm" [(ngModel)]="common_length" name="select_common_length_opt" (change)="common_length_changed()" [disabled]="length_mode == length_options.individual">
+        <option *ngFor="let common_length_opt of crown_length_options" [value]=common_length_opt>{{ common_length_opt  | number : '1.1-1' }}</option>
+    </select>
+    <div class="cm">cm</div>
+  </div>  
+</div>
+
+<div class="form-check crown-editor-row">
+  <input class="form-check-input" type="radio" name="crownLengthOption" id="crownLengthOption_separate" [(ngModel)]="length_mode" (change)="length_mode_changed()" [value]="length_options.individual">
+  <label class="form-check-label" for="crownLengthOption_separate">
+    <fa-icon [icon]="faChartBar" style="margin-right:5px;"></fa-icon> Individual length for each baby
+  </label>
+  <div>Set length of each crown baby individually</div>
+</div>
+</div>
+
+<div class="crown-chart-container">
+  <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex-wrap: nowrap;">
+    <button type="button" class="btn btn-primary" [disabled]="crown_babies.length >= max_babies_in_crown" (click)="add_baby()">+ Add baby</button>
+    <div [style.visibility]="(crown_babies.length >= max_babies_in_crown)?'visible':'hidden'" class="text-warning">* A crown can have no more than {{ max_babies_in_crown }} babies</div>
+  </div>
+  <table style="width: 400px; margin-top: 10px;">
+    <tr *ngFor="let cb of crown_babies | sortbabies : true; index as i">
+      <td style="display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: flex-start; align-items: center; padding-right: 10px;">
+        <select  class="narrow-select" [(ngModel)]="cb.length" (change)="emit_changes()" [disabled]="length_mode == length_options.common">
+          <option *ngFor="let common_length_opt of crown_length_options" [value]=common_length_opt>{{ common_length_opt | number : '1.1-1' }}</option>
+        </select>
+        <div class="cm">cm</div>
+      </td>
+      <td style="width: 100%;">
+        <div class="len" style="width:{{ ((cb.length) / max_crown_length) * 100  }}%">
+          {{ cb.position }}
+        </div>
+      </td>
+      <td (click)="remove_baby(crown_babies.length - i - 1)" style="padding-left: 10px; cursor: pointer;">
+        <!--<div>i={{i}}, remove: {{crown_babies.length - i - 1}}</div>-->
+        <fa-icon [icon]="faTrashCan" class="text-danger" *ngIf="i < crown_babies.length-1"></fa-icon>
+      </td>
+    </tr>
+  </table>
+</div>
+</fieldset>

@@ -24,6 +24,7 @@ export class WingsBabiesTableComponent implements OnChanges {
   @Input() position: string = '';
   @Input() wingsbabies: WingBaby[] = [];
   @Input() wingPrefix : string = '';
+  @Input() split_l1: number = 1;
   @Output() wingsbabiesChange = new EventEmitter();
   @Output() OnBabyClick = new EventEmitter();
   @ViewChild("picker") picker :BabiesLengthPickerComponent = new BabiesLengthPickerComponent();
@@ -39,7 +40,9 @@ export class WingsBabiesTableComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     //console.log("CHANGES!");
     //console.dir(changes);
-    changes["wingsbabies"].currentValue = [];
+    if(changes["wingsbabies"]) {
+      changes["wingsbabies"].currentValue = [];
+    }
   }
 
   addBabyToTable(){

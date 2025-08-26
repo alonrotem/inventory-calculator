@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="7.36667in"
+   height="16.6667in"
+   viewBox="0 0 2210 5000"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="knife-513-schematic.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="in"
+     showgrid="false"
+     inkscape:zoom="0.48312402"
+     inkscape:cx="353.94638"
+     inkscape:cy="800.00162"
+     inkscape:window-width="1920"
+     inkscape:window-height="991"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <path
+     id="Inner arrow"
+     fill="none"
+     stroke="black"
+     stroke-width="1"
+     d="M 1076.06,1495.57            C 1076.06,1495.57 1076.98,1620.48 1076.98,1620.48              1076.98,1620.48 1444.84,1620.56 1444.84,1620.56              1444.84,1620.56 1443.34,1541.70 1443.34,1541.70" />
+  <path
+     id="Outline (min points)"
+     fill="none"
+     stroke="black"
+     stroke-width="1"
+     d="M 352.96,943.30            C 352.96,943.30 153.07,944.24 153.07,944.24              153.07,944.24 194.72,3331.78 194.72,3331.78              194.72,3331.78 28.37,4971.98 28.37,4971.98              28.37,4971.98 1844.23,4972.14 1844.23,4972.14              1844.23,4972.14 1820.74,3771.19 1822.96,3014.38              1857.25,2664.60 1904.13,2424.51 1904.13,2424.51              1904.13,2424.51 2082.23,1743.49 2154.43,1339.98              2183.89,1005.64 2169.12,943.64 2169.12,943.64M 2189.25,976.69" />
+  <path
+     id="Top (min points)"
+     fill="none"
+     stroke="black"
+     stroke-width="1"
+     d="M 2169.89,943.60            C 2169.89,943.60 2170.26,275.99 1260.29,316.37              319.67,300.45 353.05,943.43 353.05,943.43" />
+</svg>

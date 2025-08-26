@@ -91,8 +91,9 @@ export class WingsService {
     */
   }
 
-  sort_babies(items: WingBaby[], reversed:boolean = false) : WingBaby[]{
-    return items.sort((a, b) => {
+  sort_babies(items: WingBaby[], reversed: boolean = false): WingBaby[] {
+    // ✅ Create a copy first - this prevents mutation of the original array
+    return [...items].sort((a, b) => {
         const parsePosition = (pos: string): { prefix: string; number: number } => {
             if (pos.toUpperCase() === 'TOP') {
                 return { prefix: 'TOP', number: 0 };
@@ -121,7 +122,7 @@ export class WingsService {
             return aPrefixIndex - bPrefixIndex;
         }
 
-        return (reversed)? (bParsed.number - aParsed.number) : (aParsed.number - bParsed.number);
+        return (reversed) ? (bParsed.number - aParsed.number) : (aParsed.number - bParsed.number);
     });
   }
 

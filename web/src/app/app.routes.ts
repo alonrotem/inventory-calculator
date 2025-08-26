@@ -15,6 +15,7 @@ import { SettingsMainComponent } from './components/settings/settings-main/setti
 import { SingleHatCalculatorComponent } from './components/customers/single-hat-calculator/single-hat-calculator.component';
 import { OrdersTableComponent } from './components/customers/orders-table/orders-table.component';
 import { OrderEditorComponent } from './components/customers/order-editor/order-editor.component';
+import { SignInComponent } from './components/users/signin/signin.component';
 
 export const routes: Routes = [
     {
@@ -76,6 +77,10 @@ export const routes: Routes = [
         component: SettingsMainComponent,
         canDeactivate: [UnsavedChangesGuard]
     },
+    {
+        path: 'signin',
+        component: SignInComponent,
+    },    
     { 
         path: '**', pathMatch: 'full',  
         component: PagenotfoundComponent 

@@ -17,6 +17,20 @@
     (crown_babies_quantity_changed)="crown_babies_quantity_changed($event)"
     (confirm)="length_editor_closed()" />
 
+<app-modal-dialog 
+  #crown_editor_dialog
+  [modalTitle]="'Edit crown'"
+  [btnSaveText]="'Close'"
+  [btnCancelClass]="'d-none'"
+  [modalSize]="'l'">
+    <app-crown-editor 
+        [crown_babies]="this.wing.babies | sortbabies | prefix: 'C'"
+        (crown_babiesChanged)="onCrownBabiesChanged($event)"
+        [wing_id]="this.wing.id"
+        [(crown_width)]="this.wing.crown_width"
+    />  
+</app-modal-dialog>
+
 
 <div class="row justify-content-center">
 <div class="col-lg-7 col-md-12">
@@ -90,6 +104,7 @@
                         [lefts]="this.wing.babies | sortbabies | prefix: 'L' : true"
                         [rights]="this.wing.babies | sortbabies | prefix: 'R' : true"
                         [top_length]="this.wing.babies | sortbabies | prefix: 'TOP' : true"
+                        [split_l1]="this.wing.split_l1"
                         [crown]="this.wing.babies | sortbabies | prefix: 'C' : true"
                         [knife]="wing.knife"
                         (babyClicked)="this.diagram_babyClicked($event)"
@@ -104,6 +119,7 @@
                             [rights]="this.wing.babies | sortbabies | prefix: 'R' : true"
                             [top_length]="this.wing.babies | sortbabies | prefix: 'TOP' : true"
                             [crown]="this.wing.babies | sortbabies | prefix: 'C' : true"
+                            [split_l1]="this.wing.split_l1"
                             [knife]="wing.knife"
                             [scale]=".3"
                             [show_tooltips]="false"
@@ -119,9 +135,17 @@
         <div class="row wing-babies-container">
             <div class="col">
                 <h4><span class="icon-feather-wing"></span> Left Babies</h4>
+                <div class="d-flex flex-row flex-nowrap align-items-center justify-content-start">
+                    <div>Split L1 baby into</div>
+                    <select class="form-select narrow-select" [(ngModel)]="wing.split_l1" name="wing_split_l1">
+                        <option *ngFor="let l1_part of SplitL1_options" value="{{ l1_part }}">{{ l1_part }}</option>
+                    </select>
+                    <div>parts</div>
+                </div>
                 <app-wings-babies-table 
                     [(wingsbabies)]="this.wing.babies" 
                     [wingPrefix]="'L'"
+                    [split_l1]="wing.split_l1"
                     (OnBabyClick)="this.openLengthModal($event)"
                     (wingsbabiesChange)="babies_length_clicked()"
                     />
@@ -155,19 +179,22 @@
         <div class="row wing-babies-container">
             <div class="col">
                 <h4><span class="icon-crown"></span> Crown</h4>
-                <div class="crown-size-wrapper">
-                    Select the number of crown babies
-                    <select class="crown-size" #crown_size (change)="set_crown()" [value]="crown_units">
-                        <option *ngFor="let i of this.crown_babies_options" value={{i}}>{{i}}</option>
-                    </select>
-                </div>
+
+                <app-crown-editor 
+                    [crown_babies]="this.wing.babies | sortbabies | prefix: 'C'"
+                    (crown_babiesChanged)="onCrownBabiesChanged($event)"
+                    [wing_id]="this.wing.id"
+                    [(crown_width)]="this.wing.crown_width"
+                />
+                <!--
                 <app-babies-length-picker
                     #crown_picker
                     [show_invalid_message]="false"
                     [title]="'Select the length of crown babies:'"
                     [length]="crown_length"
                     (lengthChange)="set_crown()"
-                />                
+                />
+                -->          
             </div>
         </div>
         <!--

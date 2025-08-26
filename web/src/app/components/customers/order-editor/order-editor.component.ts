@@ -29,6 +29,7 @@ export class OrderEditorComponent implements OnInit {
     wing_name: '',
     wall_material: '',
     wall_material_color: '',
+    diameter_inches: 12.5,
     kippa_size: 0,
     wing_quantity: 0,
     crown_material: '',

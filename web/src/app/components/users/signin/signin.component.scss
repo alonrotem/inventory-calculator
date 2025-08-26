@@ -1,0 +1,36 @@
+:host { 
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+}
+
+fieldset {
+    padding: 30px;
+    border-radius: 15px;    
+}
+
+.logo {
+    height: 70px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position-x: 50%;
+}
+
+.form-floating, .btn {
+    margin-top: 30px;
+}
+
+.form-check, .help-link {
+    margin-top: 10px;
+}
+
+.form-control, .btn {
+    width: 300px;
+}
+
+.form-title {
+    text-align: center;
+}

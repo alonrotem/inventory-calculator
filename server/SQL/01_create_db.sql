@@ -512,6 +512,8 @@ CREATE TABLE  IF NOT EXISTS wings (
 	`id`    INT NOT NULL auto_increment,
     `name`	VARCHAR(255) NOT NULL,
     `knife`	float,
+    `crown_width` float not null default 2, #(1-3, steps 0.5)
+    `split_l1` int not null default 1,
     `allow_shortening_babies_in_pairs` boolean default false,
     PRIMARY KEY (`id`)
 );
@@ -622,6 +624,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
     `wing_quantity`		INT NOT NULL,
     `num_of_hats`	INT NOT NULL default 1,
     `kippa_size`	FLOAT NULL,
+    `diameter_inches`	float not null default 12.5,
     `ordering_customer_name`	VARCHAR(255) NULL,
     `tails_overdraft` int not null default 0,
     `isurgent`		BOOL default false,

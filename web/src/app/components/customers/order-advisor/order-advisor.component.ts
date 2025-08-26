@@ -137,6 +137,8 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
         this.systemWings.push({
           id: w_id,
           name: wing.w_n,
+          split_l1: wing.splt_l1,
+          crown_width: wing.cr_wdt,
           knife: 0,
           babies: babies,
           allow_shortening_babies_in_pairs: false

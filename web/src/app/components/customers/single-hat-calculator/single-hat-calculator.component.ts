@@ -29,6 +29,7 @@ import { NavigatedMessageComponent } from '../../common/navigated-message/naviga
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { MiscUtils } from '../../../utils/misc-utils';
 import { SortBabiesPipe } from '../../../utils/pipes/sort-babies-pipe';
+import { CrownEditorComponent } from "../../wings/crown-editor/crown-editor.component";
 
 /*
 sohortening top/crown with slider:
@@ -56,7 +57,8 @@ apply the sliders after the load
     WingDiagramComponent, PrefixPipe, FilterPipe, StartsWithPipe, LightboxModule,
     AllocationPickerComponent, FaIconComponent, AutocompleteLibModule, BabyLengthModalComponent,
     FaIconComponent, ConfirmationDialogComponent, HatAllocationEditorPickerComponent, RouterLink,
-    OrderAdvisorComponent, ModalDialogComponent, JsonPipe, SortBabiesPipe
+    OrderAdvisorComponent, ModalDialogComponent, JsonPipe, SortBabiesPipe,
+    CrownEditorComponent
 ],
   templateUrl: './single-hat-calculator.component.html',
   styleUrl: './single-hat-calculator.component.scss'
@@ -109,6 +111,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   wing_unchanged: Wing | null = null;
   //the original wing loaded (uncustomized at all, in order to revert all changes)
   wing_original: Wing | null = null; //to track changes in the wing
+  crown_width_original : number | null = null;
   
   @ViewChild("wing_selector") wing_selector!: NgSelectComponent;
   @ViewChild("length_editor") length_editor!: BabyLengthModalComponent;
@@ -117,6 +120,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   @ViewChild("allocation_picker") allocation_picker!: HatAllocationEditorPickerComponent;
   @ViewChild("order_wing_adjustment") order_wing_adjustment!: ModalDialogComponent;
   @ViewChild("advisor") advisor!: OrderAdvisorComponent;
+  @ViewChild("crown_editor_dialog") crown_editor_dialog! :ModalDialogComponent;
   is_wing_customized: boolean = false;
   faArrowsRotate: IconDefinition = faArrowsRotate;
   faArrowLeft: IconDefinition = faArrowLeft;
@@ -134,7 +138,6 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
   order_amount: number = -1;
   total_babies_per_hat: number = 0;
-  kippa_size: number = 55;
   
   selected_wing_name:string = "";
 
@@ -166,8 +169,19 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     (this.max_kippa - this.min_kippa)*2+1)
     .fill(this.min_kippa)
     .map((_,i) => _ + i * this.kippa_steps);
-  //hat_kippa: number = this.min_kippa;
+
+  min_diameter:number = 12.5;
+  max_diameter:number = 16;
+  arr_diameter: number[] = Array(
+    (this.max_diameter - this.min_diameter)*2 + 1)
+    .fill(this.min_diameter)
+    .map((_,i) => _ + i/2);
+
+  kippa_size: number = this.min_kippa;
+  diameter_inches: number = this.min_diameter;
+  
   inch_to_cm: number = 2.54;
+  cm_to_inch: number = 0.393701;
 
   arr_mayler: number[] = [0.15, 0.17, 0.2];
   //hat_mayler = 0.17;
@@ -589,6 +603,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         this.customerHat.wing.name = this.generate_unique_hat_name();
         this.wing_original = (JSON.parse(JSON.stringify(w)));
         this.wing_unchanged = (JSON.parse(JSON.stringify(w)));
+        this.crown_width_original = w.crown_width;
         this.is_wing_customized = false;
         this.customerHat.original_wing_name = this.selected_wing_name;
 
@@ -616,6 +631,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         this.order_amount = this.total_num_of_possible_hats;
         this.recalculate_hat_size();
         this.calculateVisibleCrown();
+        this.calculate_wings_per_hat();
         //this.recauculate_overdraft_tails();
       });
     }
@@ -728,16 +744,41 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     }
   }
 
+  onCrownBabiesChanged(newBabies: WingBaby[]) {
+    if(this.customerHat && this.customerHat.wing){
+      // Update the parent's array with the new value from the child
+      let no_crown = this.customerHat.wing.babies.filter(b => !b.position.startsWith("C"));
+      this.customerHat.wing.babies = [...no_crown, ...newBabies];
+      this.check_for_wing_changes();
+      this.aggregateHatBabiesAndMatchingAllocations();
+      this.update_table_instructions();
+    }
+  }
+
+  onCrownWidthChanged(new_width: number) {
+    if(this.customerHat && this.customerHat.wing){
+      this.customerHat.wing.crown_width = new_width;
+      this.check_for_wing_changes();
+      this.calculate_wings_per_hat();
+    }
+  }
+
   diagram_baby_clicked(baby_position:string){
-    //this.console.log("baby clicked " + baby_position );
     let baby = this.customerHat.wing?.babies.find(b => b.position.toUpperCase() == baby_position.toUpperCase());
-    if(this.customerHat.wing && baby){
-      let crown_units = this.customerHat.wing.babies.filter((b) => b.position.startsWith("C")).length;
-      this.length_editor.editedObject = baby;
-      this.length_editor.dialogWrapper!.modalTitle = "Edit " + ((baby.position.toUpperCase().startsWith("C"))? "Crown" : baby.position);
-      this.length_editor.crown_units = crown_units;
-      //this.length_editor.crown_babies_options = [];
-      this.length_editor.dialogWrapper!.open();
+    if(baby){
+      if(!baby_position.startsWith("C")){
+        if(this.customerHat.wing && baby){
+          let crown_units = this.customerHat.wing.babies.filter((b) => b.position.startsWith("C")).length;
+          this.length_editor.editedObject = baby;
+          this.length_editor.dialogWrapper!.modalTitle = "Edit " + ((baby.position.toUpperCase().startsWith("C"))? "Crown" : baby.position);
+          this.length_editor.crown_units = crown_units;
+          //this.length_editor.crown_babies_options = [];
+          this.length_editor.dialogWrapper!.open();
+        }
+      }
+      else {
+        this.crown_editor_dialog.open();
+      }      
     }
   }
 
@@ -852,6 +893,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
           changed = true;
         }
       });
+      changed = ((this.crown_width_original != null) && (this.crown_width_original != this.customerHat.wing.crown_width));
     }
     this.is_wing_customized = changed;
     return changed;
@@ -906,6 +948,9 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.wing_unchanged = (JSON.parse(JSON.stringify(this.wing_original)));
     this.customerHat.shorten_top_by = 0;
     this.customerHat.shorten_crown_by = 0;
+    if(this.crown_width_original != null && this.customerHat.wing){
+      this.customerHat.wing.crown_width = this.crown_width_original;
+    }
     this.margins_changed();
     this.check_for_wing_changes();
     this.calculateVisibleCrown();
@@ -962,6 +1007,13 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     }
   }
 
+  calculate_wings_per_hat(){
+    if(this.customerHat && this.customerHat.wing){
+      let circomference_cm = (this.diameter_inches * this.inch_to_cm * Math.PI) - 1;
+      this.customerHat.wing_quantity = Math.floor(circomference_cm / this.customerHat.wing.crown_width);
+    }
+  }
+
   placeOrder(){
     let babies_in_wall_allocation = (this.wall_alocation)? (this.customer.babies.filter(b => b.allocation_id == this.wall_alocation?.id)) : [];
     let babies_in_crown_allocation = (this.crown_allocation)? (this.customer.babies.filter(b => b.allocation_id == this.crown_allocation?.id)) : [];
@@ -972,6 +1024,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         customer_order_seq_number: 0,
         wing_quantity: this.customerHat.wing_quantity,
         kippa_size: this.kippa_size,
+        diameter_inches: this.diameter_inches,
         ordering_customer_name: "",
         num_of_hats: 1,
         status: {

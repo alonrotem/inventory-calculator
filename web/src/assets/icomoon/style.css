@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'romtech';
-  src:  url('fonts/romtech.eot?nh2ok7');
-  src:  url('fonts/romtech.eot?nh2ok7#iefix') format('embedded-opentype'),
-    url('fonts/romtech.ttf?nh2ok7') format('truetype'),
-    url('fonts/romtech.woff?nh2ok7') format('woff'),
-    url('fonts/romtech.svg?nh2ok7#romtech') format('svg');
+  src:  url('fonts/romtech.eot?50cut4');
+  src:  url('fonts/romtech.eot?50cut4#iefix') format('embedded-opentype'),
+    url('fonts/romtech.ttf?50cut4') format('truetype'),
+    url('fonts/romtech.woff?50cut4') format('woff'),
+    url('fonts/romtech.svg?50cut4#romtech') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -246,6 +246,9 @@
 }
 .icon-knife:before {
   content: "\e90e";
+}
+.icon-knife-round:before {
+  content: "\e916";
 }
 .icon-wing:before {
   content: "\e910";

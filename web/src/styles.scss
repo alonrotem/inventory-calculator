@@ -24,6 +24,15 @@ a {
     background-image: url("/assets/images/romtech-w-logo-dark.png");
 }
 
+[data-bs-theme=light] .logo {
+    background-image: url("/assets/images/logo-light.png");
+}
+
+
+[data-bs-theme=dark] .logo {
+    background-image: url("/assets/images/logo-dark.png");
+}
+
 /* Global styling for ng-select https://github.com/ng-select/ng-select */
 .navbar-logo {
     width: 300px;

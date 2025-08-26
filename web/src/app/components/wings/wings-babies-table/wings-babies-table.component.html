@@ -12,7 +12,7 @@
     <tbody>
       <tr 
         *ngFor="let wingbaby of this.wingsbabies | sortbabies | prefix: this.wingPrefix; trackBy: trackItem; index as i" role="button"> <!-- -->
-        <td (click)="clicked(wingbaby)"> {{ wingbaby.position }}</td>
+        <td (click)="clicked(wingbaby)"> {{ wingbaby.position }} {{ (wingbaby.position.toUpperCase() == "L1" && split_l1 > 1)? (' x' + split_l1) :'' }}</td>
         <td (click)="clicked(wingbaby)"> {{ wingbaby.length.toFixed(1) }} cm</td>
         <td class="text-center" (click)="deleteBaby(wingbaby)" (mouseover)="show_append($event)" (mouseout)="hide_append($event)"><fa-icon class="text-danger" [icon]="faTrashAlt"  [title]="'Delete ' + wingbaby.position + ' (' + wingbaby.length.toFixed(1) + ' cm)'"></fa-icon></td>
         <td *ngIf="i < ((this.wingsbabies | prefix: this.wingPrefix).length)" class="expand-balloon" (mouseover)="show_me($event)" (mouseout)="hide_me($event)" (click)="insert_row(i)">+ Insert</td>

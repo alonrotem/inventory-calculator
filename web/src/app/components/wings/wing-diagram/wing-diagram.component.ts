@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { GlobalsService } from '../../../services/globals.service';
 import { Point } from '../../../../types';
-import { find_intersection_point, find_point_on_line, line_at_angle_from_point, line_length } from './graphics-helper';
+import { find_intersection_point, find_point_on_line, line_at_angle_from_point, line_length, divide_line } from './graphics-helper';
 
 @Component({
   selector: 'app-wing-diagram',
@@ -16,7 +16,8 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
   //inputs
   @Input() rights = [6, 8 , 10];//[5.5, 7, 8, 8.5,10];
   @Input() top_length = [0];
-  @Input() lefts =[5];//, 7, 8, 8.5, 10];
+  @Input() lefts = [5];//, 7, 8, 8.5, 10];
+  @Input() split_l1 = 1;
   @Input() crown = [10];
   //@Input() crown_length = 2;//4;
   @Input() knife = 10;
@@ -216,6 +217,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     if(!this.checkArrEquality(changes["rights"]["currentValue"], changes["rights"]["previousValue"])) rebuild = true;
     if(!this.checkArrEquality(changes["top_length"]["currentValue"], changes["top_length"]["previousValue"])) rebuild = true;
     if(!this.checkArrEquality(changes["crown"]["currentValue"], changes["crown"]["previousValue"])) rebuild = true;
+    if((changes["split_l1"]) && (changes["split_l1"]["currentValue"] != changes["split_l1"]["previousValue"])) rebuild = true;
     if((changes["knife"]) && (changes["knife"]["currentValue"] != changes["knife"]["previousValue"])) rebuild = true;
     //if(changes["crown"]["currentValue"] != changes["crown"]["previousValue"])  rebuild = true;
     //if(changes["crown_length"]["currentValue"] != changes["crown_length"]["previousValue"])  rebuild = true;
@@ -233,7 +235,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
   }
 
   public Rebuild(){
-    if(! this.diagram_canvas || ! this.diagram_canvas.nativeElement)
+    if(! this.diagram_canvas || !this.diagram_canvas.nativeElement)
       return;
 
     this.path_items = [];
@@ -241,7 +243,6 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     this.buildTop();
     this.buildRights();
     this.buildCrown();
-    
 
     this.ctx = this.diagram_canvas.nativeElement.getContext('2d');
   
@@ -342,12 +343,20 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
       //p4 is just the next point on the segments
       let p4 = this.adjustBoundariesToSize(new Point(segment_points_left_line[i+1].x, segment_points_left_line[i+1].y));
 
-      path.moveTo(p1.x, p1.y);
-      path.lineTo(p2.x, p2.y);
-      path.lineTo(p3.x, p3.y);
-      path.lineTo(p4.x, p4.y);
+      path.moveTo(p1.x, p1.y);  //lower left
+      path.lineTo(p2.x, p2.y);  //upper left
+      path.lineTo(p3.x, p3.y);  //upper right
+      path.lineTo(p4.x, p4.y);  //lower right
       path.closePath();
-      //console.log(p1, p2, p3, p4);
+
+      if(i==0 && this.split_l1 > 1) {
+        let bottom_points = divide_line(p1, p4, this.split_l1);
+        let top_points = divide_line(p2, p3, this.split_l1);
+        for(let divider=0; divider < bottom_points.length; divider++){
+          path.moveTo(bottom_points[divider].x, bottom_points[divider].y);
+          path.lineTo(top_points[divider].x, top_points[divider].y);
+        }
+      }
       
       curr_angle += left_angle_segment;
 
@@ -365,7 +374,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
         path: path,
         title: "L" + (i+1),
         length: this.lefts[i],
-        tooltip:  "<strong><span class='icon-feather-wing'></span> L" + (i+1) + "</strong><br/>" + this.lefts[i] + " cm",
+        tooltip:  `<strong><span class='icon-feather-wing'></span> L${(i+1)}</strong>${ (i == 0 && this.split_l1 > 1)? (' x' + this.split_l1):'' }<br/>${this.lefts[i]} cm`,
         mid_point: mid_shape_point,
         length_info_point: length_text_point,
         show_tooltip: true,
@@ -466,19 +475,21 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     let crown_height = this.crown_bottom.y - this.rights_bottom.y;
     let crown_segment_height = crown_height / this.crown.length;
     let crown_part = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+    console.log("rebuilding crown");
+    console.dir(this.crown);
     for(let c=0; c < this.crown.length; c++) {
       let crown_path = new Path2D();
-      crown_path.rect(this.rights_bottom.x, this.rights_bottom.y + ((this.crown.length - (c+1)) * crown_segment_height), this.crown[0] * this.cm_px,  crown_segment_height);
+      crown_path.rect(this.rights_bottom.x, this.rights_bottom.y + ((this.crown.length - (c+1)) * crown_segment_height), this.crown[c] * this.cm_px,  crown_segment_height);
       let info_point = (this.adjustBoundariesToSize(new Point(
-        this.rights_bottom.x + (this.crown[0] * this.cm_px) + this.text_margin + 5, 
+        this.rights_bottom.x + (this.crown[c] * this.cm_px) + this.text_margin + 5, 
         this.rights_bottom.y + (crown_segment_height * this.crown.length)/2))
       );
 
       this.path_items.push({
         title: "C" + [c+1],
         path: crown_path,
-        tooltip: "<strong><span class='icon-crown'></span> Crown " + "(" + crown_part[c] + ") </strong><br/>" + (c+1) + " x " + this.crown[0] + " cm",
-        length: this.crown[0],
+        tooltip: "<strong><span class='icon-crown'></span> Crown " + "(" + crown_part[c] + ") </strong><br/>" + (c+1) + " x " + this.crown[c] + " cm",
+        length: this.crown[c],
         mid_point: 0,//this.top_center_point,
         length_info_point: info_point,
         show_tooltip: true,

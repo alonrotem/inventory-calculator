@@ -196,6 +196,7 @@ async function create(customerHat, active_connection=null){
                     wing_quantity,
                     num_of_hats,
                     kippa_size,
+                    diameter_inches,
                     ordering_customer_name,
                     tails_overdraft,
                     isurgent,
@@ -204,7 +205,7 @@ async function create(customerHat, active_connection=null){
                     order_notes
                 )
                 VALUES
-                ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_order
+                ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_order
                 ON DUPLICATE KEY UPDATE
                     id=new_order.id,
                     customer_hat_id=new_order.customer_hat_id,
@@ -212,6 +213,7 @@ async function create(customerHat, active_connection=null){
                     wing_quantity=new_order.wing_quantity,
                     num_of_hats=new_order.num_of_hats,
                     kippa_size=new_order.kippa_size,
+                    diameter_inches=new_order.diameter_inches
                     ordering_customer_name=new_order.ordering_customer_name,
                     tails_overdraft=new_order.tails_overdraft,
                     isurgent=new_order.isurgent,
@@ -225,6 +227,7 @@ async function create(customerHat, active_connection=null){
                         single_hat_order.wing_quantity,
                         num_of_hats,
                         single_hat_order.kippa_size,
+                        single_hat_order.diameter_inches,
                         single_hat_order.ordering_customer_name,
                         rec_overdraft,
                         customerHat.isurgent,
@@ -329,6 +332,7 @@ async function get_orders_list(page = 1, perPage, customer_id){
                 o.ordering_customer_name ordering_customer,
                 concat(ch.original_wing_name, ' ', rm_wall.name, ' ', rm_wall.color) wall,
                 o.kippa_size,
+                o.diameter_inches,
                 o.wing_quantity,
                 concat(rm_crown.name, ' ', rm_crown.color) crown,
                 ch.crown_visible,
@@ -388,6 +392,7 @@ rm_wall.name wall_material,
 rm_wall.color wall_material_color,
 #------
 o.kippa_size,
+o.diameter_inches,
 o.wing_quantity,
 #-------
 rm_crown.name crown_material,

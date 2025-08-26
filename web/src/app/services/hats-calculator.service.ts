@@ -129,17 +129,17 @@ export class HatsCalculatorService {
           if(wingBaby.position.startsWith("C")){
             //keep crown babies separate
             if(crown_allocation?.id != wall_alocation?.id) {
-              hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.crown_babies, wingBaby, crown_allocation_babies, wing_quantity_in_hat, hats.total_num_of_possible_hats);
+              hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.crown_babies, wingBaby, crown_allocation_babies, wing_quantity_in_hat, wing.split_l1, hats.total_num_of_possible_hats);
               appended = true;
             }
             else {
-              hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.hat_babies, wingBaby, wall_alocation_babies, wing_quantity_in_hat, hats.total_num_of_possible_hats);
+              hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.hat_babies, wingBaby, wall_alocation_babies, wing_quantity_in_hat, wing.split_l1, hats.total_num_of_possible_hats);
               appended = true;
             }
           }
         }
         if(!appended) {
-          hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.hat_babies, wingBaby, wall_alocation_babies, wing_quantity_in_hat, hats.total_num_of_possible_hats);
+          hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.hat_babies, wingBaby, wall_alocation_babies, wing_quantity_in_hat, wing.split_l1, hats.total_num_of_possible_hats);
         }
       });
     }
@@ -222,7 +222,7 @@ export class HatsCalculatorService {
         let crowns = modified_wing.babies.filter((b: WingBaby) => b && b.position && b.position.toUpperCase().startsWith("C"));
         if(crowns){
           crowns.forEach((crown_baby: WingBaby) => {
-            crown_baby.length = crowns[0].length - reduce_crown_by;
+            crown_baby.length = crown_baby.length - reduce_crown_by;
           });
         }
       }
@@ -256,18 +256,20 @@ export class HatsCalculatorService {
     wingBaby: WingBaby,                     //the baby to append
     alocation_babies: Allocation_Baby[],      //the allocation of the baby (for quantity)
     wing_quantity: number,
+    split_l1: number,
     cur_max_hats: number)
   {
     let append_to_item = babies_collection.find(baby => baby.length == wingBaby.length);
     let baby_in_allocation_with_length = alocation_babies.find(b => b.length == wingBaby.length);
     let allocation_quantity = (baby_in_allocation_with_length)? baby_in_allocation_with_length.quantity : 0;
+    let position = wingBaby.position + ((wingBaby.position=="L1" && split_l1 > 1)? ("x" + split_l1) : "");
 
     if(append_to_item){
       let positions = append_to_item.position.split(", ");
-      if(positions.indexOf(wingBaby.position) < 0){
-        positions.push(wingBaby.position);
+      if(positions.indexOf(position) < 0){
+        positions.push(position);
       }
-      append_to_item.quantity += wing_quantity;
+      append_to_item.quantity += (wingBaby.position=="L1") ? (wing_quantity * split_l1) : wing_quantity;
       append_to_item.position = positions.join(", ");
       append_to_item.possible_num_of_hats = -1;
       append_to_item.remaining = 0;
@@ -275,8 +277,8 @@ export class HatsCalculatorService {
     else {
       append_to_item = {
         length: wingBaby.length,
-        quantity: wing_quantity,
-        position: wingBaby.position,
+        quantity: (wingBaby.position=="L1") ? (wing_quantity * split_l1) : wing_quantity,
+        position: position,
         quantity_in_allocation: allocation_quantity,
         possible_num_of_hats: -1,
         remaining: 0

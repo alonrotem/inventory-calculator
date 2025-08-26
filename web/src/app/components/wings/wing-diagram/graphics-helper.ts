@@ -59,3 +59,35 @@ export  function line_at_angle_from_point(origin_point: Point, distance: number,
   
       path.arc(arc_center.x, arc_center.y, radius, startAngle, endAngle, counter_clockwise);
   }
+
+/**
+ * Divides a line between two points into equal segments and returns the division points
+ * @param p1 - Starting point
+ * @param p2 - Ending point  
+ * @param segments - Number of equal segments to divide the line into
+ * @returns Array of points that divide the line (excludes the original endpoints)
+ */
+export function divide_line(p1: Point, p2: Point, segments: number): Point[] {
+    if (segments <= 0) {
+        throw new Error("Number of segments must be greater than 0");
+    }
+    
+    if (segments === 1) {
+        return []; // No division points needed for 1 segment
+    }
+    
+    const divisionPoints: Point[] = [];
+    
+    // Calculate the step size for each segment
+    const deltaX = (p2.x - p1.x) / segments;
+    const deltaY = (p2.y - p1.y) / segments;
+    
+    // Generate division points (excluding start and end points)
+    for (let i = 1; i < segments; i++) {
+        const x = p1.x + deltaX * i;
+        const y = p1.y + deltaY * i;
+        divisionPoints.push(new Point(x, y));
+    }
+    
+    return divisionPoints;
+  }

@@ -26,3 +26,11 @@ CALL add_column_if_not_exists('orders', 'order_notes', 'Varchar(256) null');
 CALL run_if_column_exists('customer_hats', 'order_notes',
   'update orders o join customer_hats ch on o.customer_hat_id=ch.id set o.order_notes=ch.order_notes;');
 CALL drop_column_if_exists('customer_hats', 'order_notes');
+
+# Split the L1 baby
+CALL add_column_if_not_exists('wings', 'split_l1', 'int not null default 1');
+# Set the crown width area (to calculate wings per diameter)
+CALL add_column_if_not_exists('wings', 'crown_width', 'float not null default 2');
+
+# Add hat diameter to the order
+CALL add_column_if_not_exists('orders', 'diameter_inches', 'float not null default 12.5');

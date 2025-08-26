@@ -21,13 +21,14 @@ import { UnsavedNavigationConfirmationService } from '../../../services/unsaved-
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { StateService } from '../../../services/state.service';
 import { SortBabiesPipe } from '../../../utils/pipes/sort-babies-pipe';
+import { CrownEditorComponent } from "../crown-editor/crown-editor.component";
 
 @Component({
   selector: 'app-wings-editor',
   standalone: true,
-  imports: [ ConfirmationDialogComponent, FormsModule, NgIf, NgFor, FaIconComponent, WingsBabiesTableComponent, 
-    WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent, BabyLengthModalComponent, 
-    UnsavedChangesDialogComponent, DecimalPipe, SortBabiesPipe ],
+  imports: [ConfirmationDialogComponent, FormsModule, NgIf, NgFor, FaIconComponent, WingsBabiesTableComponent,
+    WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent, BabyLengthModalComponent,
+    UnsavedChangesDialogComponent, DecimalPipe, SortBabiesPipe, CrownEditorComponent, ModalDialogComponent],
   templateUrl: './wings-editor.component.html',
   styleUrl: './wings-editor.component.scss',/*
   changeDetection: ChangeDetectionStrategy.OnPush*/
@@ -56,6 +57,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   @ViewChild('unsaved_changes_dialog') unsaved_changes_dialog!: UnsavedChangesDialogComponent;
   //@ViewChild("length_editor") length_editor! :ModalDialogComponent;
   @ViewChild("length_editor") length_editor! :BabyLengthModalComponent;
+  @ViewChild("crown_editor_dialog") crown_editor_dialog! :ModalDialogComponent;
 
   @ViewChild("crown_size", { read: ElementRef }) crown_size!: ElementRef;
   @ViewChild("crown_picker") crown_picker!: BabiesLengthPickerComponent;
@@ -69,9 +71,12 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
     name: '',
     knife: 0,
     babies: [],
+    crown_width: 2,
+    split_l1: 1,
     allow_shortening_babies_in_pairs: false
   }
   crown_babies_options = Array(5).fill(0).map((_, i)=> i+1);
+  SplitL1_options = Array(4).fill(0).map((_, i)=> i+1);
 
   // for opening the unsave changes dialog
   private confirmResult: boolean | null = null;
@@ -318,12 +323,17 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   }
 
   openLengthModal(obj: WingBaby){
-    this.length_editor.editedObject = obj;
-    this.length_editor.dialogWrapper!.modalTitle = "Edit " + ((obj.position.toUpperCase().startsWith("C"))? "Crown" : obj.position);
-    this.crown_units = this.wing.babies.filter((b) => b.position.startsWith("C")).length;
-    this.length_editor.crown_units = this.crown_units;
-    this.length_editor.crown_babies_options = this.crown_babies_options;
-    this.length_editor.dialogWrapper!.open();
+    if(!obj.position.startsWith("C")){
+      this.length_editor.editedObject = obj;
+      this.length_editor.dialogWrapper!.modalTitle = "Edit " + ((obj.position.toUpperCase().startsWith("C"))? "Crown" : obj.position);
+      this.crown_units = this.wing.babies.filter((b) => b.position.startsWith("C")).length;
+      this.length_editor.crown_units = this.crown_units;
+      this.length_editor.crown_babies_options = this.crown_babies_options;
+      this.length_editor.dialogWrapper!.open();      
+    }
+    else {
+      this.crown_editor_dialog.open();
+    }
   }
 
   length_editor_closed(){
@@ -346,6 +356,12 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
     this.wing.babies = this.wing.babies.map(el => Object.assign({}, el));
     this.form_touched();
     this.calculate_total_wing_height();
+  }
+
+  onCrownBabiesChanged(newBabies: WingBaby[]) {
+    // Update the parent's array with the new value from the child
+    let no_crown = this.wing.babies.filter(b => !b.position.startsWith("C"));
+    this.wing.babies = [...no_crown, ...newBabies];
   }
 
   form_touched() {
