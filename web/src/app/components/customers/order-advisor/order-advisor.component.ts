@@ -68,7 +68,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
 
   //wing construction assistant
   assistant_selected_wing_id: number  | null= null;
-  assistant_wing_quantity: number = 44;
+  //assistant_wing_quantity: number = 44;
   assistant_num_of_hats: number = 0;
   assistant_aggregated_hat_babies: aggregated_babies[] = []; //containing aggregated babies with length, quantity and num of hats
   assistant_aggregated_crown_babies: aggregated_babies[] = []; //crown_babies are used only if the allocations are split between hat and crown  
@@ -482,7 +482,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
       else {
         this.assistant_selected_wing_id = null;
       }
-      this.assistant_wing_quantity = 44;
+      //this.numOfWingsPerHat = 44;
       this.assistant_num_of_hats = 1;
       this.hat_creation_assistant.open();
       this.assistant_recalculate ();
@@ -499,7 +499,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
             null, 
             this.allocation_wall_babies, 
             this.allocation_crown_babies, 
-            this.assistant_wing_quantity, 
+            this.numOfWingsPerHat, 
             this.assistant_num_of_hats);
             //console.dir(aggregation);
 

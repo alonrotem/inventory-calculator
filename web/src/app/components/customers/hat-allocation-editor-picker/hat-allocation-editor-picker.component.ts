@@ -38,6 +38,7 @@ export class HatAllocationEditorPickerComponent implements ModalContentDirective
   @Input() banks: Customer_Bank[] = [];
   @Input() banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
   @Input() babies: Allocation_Baby[] = [];
+  @Input() num_wings_per_hat: number = 44;
   @Output() allocation_selected = new EventEmitter<Customer_Bank_Baby_Allocation>();
   @Output() customer_updated = new EventEmitter<Customer>();
   @Input() banks_baby_allocation_type_filter: Bank_Allocation_Type | null = null;

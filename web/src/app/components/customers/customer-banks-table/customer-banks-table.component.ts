@@ -54,6 +54,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   @Input() babies: Allocation_Baby[] = [];
   tails_allocation_in_this_bank: Customer_Bank_Baby_Allocation | undefined = undefined;
   @Input() banks_baby_allocation_type_filter: Bank_Allocation_Type | null = null;
+  @Input() num_wings_per_hat: number = 44;
   Bank_Allocation_Type = Bank_Allocation_Type; //for the template
 
   //Saving the original data in order to be able to reset changes

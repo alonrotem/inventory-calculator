@@ -21,6 +21,7 @@
 <app-hat-allocation-editor-picker 
   #allocation_picker 
   (customer_updated)="update_customer($event)"
+  [num_wings_per_hat]="this.customerHat.wing_quantity"
   />
 
 <app-baby-length-modal 
@@ -517,7 +518,7 @@
           <label for="tempB">Hat diameter:</label>
         </div>
         <div class="flex-grow-1" style="margin-left: 15px;">
-        <select class="form-select" [(ngModel)]="diameter_inches" #select_diameter (change)="calculate_wings_per_hat()">
+        <select class="form-select" [(ngModel)]="diameter_inches" #select_diameter (change)="diameter_changed()">
           <option 
             *ngFor="let diameter of arr_diameter" 
             value="{{ diameter }}" 

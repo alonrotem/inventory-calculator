@@ -1014,6 +1014,11 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     }
   }
 
+  diameter_changed(){
+    this.calculate_wings_per_hat();
+    this.aggregateHatBabiesAndMatchingAllocations();
+  }
+
   placeOrder(){
     let babies_in_wall_allocation = (this.wall_alocation)? (this.customer.babies.filter(b => b.allocation_id == this.wall_alocation?.id)) : [];
     let babies_in_crown_allocation = (this.crown_allocation)? (this.customer.babies.filter(b => b.allocation_id == this.crown_allocation?.id)) : [];
