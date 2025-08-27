@@ -760,6 +760,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       this.customerHat.wing.crown_width = new_width;
       this.check_for_wing_changes();
       this.calculate_wings_per_hat();
+      this.aggregateHatBabiesAndMatchingAllocations();
     }
   }
 
