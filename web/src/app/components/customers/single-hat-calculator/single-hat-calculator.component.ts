@@ -162,8 +162,8 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   min_height_for_wing:number = 0;
   max_height_for_wing:number = 0;
 
-  min_kippa:number = 55;
-  max_kippa:number = 60;
+  min_kippa:number = 51;
+  max_kippa:number = 61;
   kippa_steps: number = 0.5;
   arr_kippa: number[] = Array(
     (this.max_kippa - this.min_kippa)*2+1)
