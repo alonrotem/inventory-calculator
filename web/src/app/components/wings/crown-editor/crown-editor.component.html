@@ -2,7 +2,7 @@
 <div class="d-flex flex-row flex-nowrap align-items-center justify-content-start" style="margin-bottom: 20px;">
     <fa-icon [icon]="faRuler" style="margin-right:5px;"></fa-icon> Total crown width:
     <select class="crown-size" [(ngModel)]="crown_width" name="select_crown_width" class="cm" (change)="crown_widthChange.emit(crown_width)">
-        <option *ngFor="let i of this.crown_width_options" value={{i}}>{{i}}</option>
+        <option *ngFor="let i of this.crown_width_options" value={{i}}>{{ i  | number : '1.1-1' }}</option>
     </select>
     <div class="cm">cm</div>    
 </div>
