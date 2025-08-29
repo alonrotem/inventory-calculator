@@ -224,3 +224,34 @@ datalist {
   margin: 20px 0px;
   padding: 20px;
 }
+
+
+.option-table {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* 3 equal columns */
+  gap: 4px;
+  align-items: center;
+}
+
+.option-table .cell {
+  padding: 3px 1px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.option-table .cell:not(:first-child) {
+  border-left: 1px solid var(--bs-body-color);
+}
+
+::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
+  padding: 0px;
+}
+
+/* make selected item look like dropdown option instead of input */
+::ng-deep .ng-select .ng-value {
+  width: 100%;
+}
+
+::ng-deep .ng-select .ng-value .option-table {
+  margin: 0; /* remove extra spacing */
+}

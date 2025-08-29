@@ -141,6 +141,10 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   
   selected_wing_name:string = "";
 
+  inch_to_cm: number = 2.54;
+  cm_to_inch: number = 0.393701;
+
+
   min_knife:number = 4;
   max_knife:number = 12.5;
   knife_steps: number = 0.5;
@@ -172,17 +176,28 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
   min_diameter:number = 12.5;
   max_diameter:number = 16;
+  diameter_steps: number= 0.25;
+  min_box:number = 4;
+  box_steps:number = 0.25;
+  /*
   arr_diameter: number[] = Array(
     (this.max_diameter - this.min_diameter)*2 + 1)
     .fill(this.min_diameter)
     .map((_,i) => _ + i/2);
+  */
+  arr_diameter = Array((this.max_diameter - this.min_diameter) * ( 1/this.diameter_steps) + 1)
+    .fill(this.min_diameter).map((_,i) => { 
+      return { 
+        inches: (_ + i * this.diameter_steps), 
+        cm: ((_ + i * this.diameter_steps) * this.inch_to_cm), 
+        box: this.min_box + i * this.box_steps
+      }
+    }
+  );
 
   kippa_size: number = this.min_kippa;
   diameter_inches: number = this.min_diameter;
   
-  inch_to_cm: number = 2.54;
-  cm_to_inch: number = 0.393701;
-
   arr_mayler: number[] = [0.15, 0.17, 0.2];
   //hat_mayler = 0.17;
 
