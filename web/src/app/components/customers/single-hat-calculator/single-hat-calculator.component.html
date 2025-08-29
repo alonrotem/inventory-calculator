@@ -518,57 +518,29 @@
           <label for="tempB">Hat diameter:</label>
         </div>
         <div class="flex-grow-1" style="margin-left: 15px;">
-        <!--
-        <select class="form-select" [(ngModel)]="diameter_inches" #select_diameter (change)="diameter_changed()">
-          <option 
-            *ngFor="let diameter of arr_diameter" 
-            value="{{ diameter.inches }}">
-              {{ (diameter.cm) | number : '1.2-2' }}cm ({{ (diameter.inches)  | number : '1.2-2' }}") Box: {{ diameter.box }}
-          </option>
-        </select>
-        </div>
-      -->
-        <!-------------->
+
           <ng-select
-                  #allocation_type_selector
-                  placeholder="Allocation type"
-                  [items]="arr_diameter"
-                  bindLabel="caption"
-                  bindValue="inches"
-                  [(ngModel)]="diameter_inches"
-                  name="allocation_type_selector"
-                  [clearable]="false"
-                  [disabled]="false" 
-                  [searchable]="false"
-                  >
-                    <!-- template for the slected item -->
-                    <!-- Template for selected item -->
-                    <ng-template ng-label-tmp let-item="item">
-                      <div class="option-table">
-                      <div class="cell">{{ item.cm | number : '1.2-2' }} cm</div>
-                      <div class="cell">{{ item.inches| number : '1.2-2'  }}"</div>
-                      <div class="cell">Box: {{ item.box | number : '1.1-1' }}</div>
-                      </div>
-                    </ng-template>
-                    <!-- template for items in the list 
-                    <ng-template ng-option-tmp let-item="item" let-index="index">
-                      <div style="display:flex; flex-direction: row; flex-wrap: nowrap; justify-content: space-between; align-items: center;">
-                        <div>{{ item.cm }}cm</div>
-                        <div>{{ item.inches }}"</div>
-                        <div>Box: {{ item.box }}</div>
-                      </div>
-                    </ng-template>
-                  -->
-  <!-- Custom option template -->
-                  <ng-template ng-option-tmp let-item="item">
-                    <div class="option-table">
-                      <div class="cell">{{ item.cm | number : '1.2-2' }} cm</div>
-                      <div class="cell">{{ item.inches| number : '1.2-2'  }}"</div>
-                      <div class="cell">Box: {{ item.box | number : '1.1-1' }}</div>
-                    </div>
-                  </ng-template>                    
-                </ng-select>
-        <!-------------->
+            #diameter_selector
+            placeholder="Hat diameter"
+            [items]="arr_diameter"
+            bindLabel="caption"
+            bindValue="inches"
+            [(ngModel)]="diameter_inches"
+            (change)="diameter_changed()"
+            name="diameter_selector"
+            [clearable]="false"
+            [disabled]="false" 
+            [searchable]="false">
+
+              <!-- Template for default/selected item (ng-label-tmp), and for items in the select list (ng-option-tmp) -->
+              <ng-template ng-option-tmp ng-label-tmp let-item="item">
+                <div class="option-table">
+                  <div class="cell">{{ item.cm | number : '1.2-2' }} cm</div>
+                  <div class="cell">{{ item.inches| number : '1.2-2'  }}"</div>
+                  <div class="cell">Box: {{ item.box | number : '1.1-1' }}</div>
+                </div>
+              </ng-template>
+          </ng-select>
       </div>
       </div> 
 

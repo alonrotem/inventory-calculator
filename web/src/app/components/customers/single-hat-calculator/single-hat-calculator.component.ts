@@ -174,17 +174,12 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     .fill(this.min_kippa)
     .map((_,i) => _ + i * this.kippa_steps);
 
-  min_diameter:number = 12.5;
-  max_diameter:number = 16;
+  min_diameter:number = 11.5;
+  max_diameter:number = 16.5;
   diameter_steps: number= 0.25;
   min_box:number = 4;
-  box_steps:number = 0.25;
-  /*
-  arr_diameter: number[] = Array(
-    (this.max_diameter - this.min_diameter)*2 + 1)
-    .fill(this.min_diameter)
-    .map((_,i) => _ + i/2);
-  */
+  box_steps:number = 0.5;
+
   arr_diameter = Array((this.max_diameter - this.min_diameter) * ( 1/this.diameter_steps) + 1)
     .fill(this.min_diameter).map((_,i) => { 
       return { 
