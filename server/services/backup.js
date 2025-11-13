@@ -66,6 +66,9 @@ function construct_queries(table_name, table_info, records, keep_existing_record
                     ) {
                         values += mysql.escape(current_rec_value);
                     }
+                    else if (table_info[col].Type.toString().toLowerCase().startsWith("decimal")) { 
+                        values += current_rec_value;
+                    }
                     else {
                         switch(table_info[col].Type) {
                             case 'int':

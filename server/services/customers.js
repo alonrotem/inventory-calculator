@@ -15,7 +15,7 @@ async function getSingle(id){
   if(!helper.isEmptyObj(customer)) {
     const customer_banks_recs =  await db.query(
       `select 
-          rm.name raw_material_name, rm.color raw_material_color, rm.quantity_units raw_material_quantity_units, rm.allow_shortening_babies_in_pairs allow_shortening_babies_in_pairs, cb.id, cb.customer_id, cb.raw_material_id, cb.quantity, cb.remaining_quantity 
+          rm.name raw_material_name, rm.color raw_material_color, cb.quantity_units raw_material_quantity_units, rm.allow_shortening_babies_in_pairs allow_shortening_babies_in_pairs, cb.id, cb.customer_id, cb.raw_material_id, cb.quantity, cb.remaining_quantity 
         from customer_banks cb
         left join raw_materials rm on cb.raw_material_id = rm.id
         where cb.customer_id=${id};`);
@@ -622,21 +622,23 @@ async function sync_banks_for_raw_material(banks, raw_material_id, active_connec
       // NEW IMPLEMENTATION
       banks_with_existing_customers.forEach(async (bank) => {
         const result = await db.transaction_query(
-          `INSERT INTO customer_banks (id, customer_id, raw_material_id, quantity, remaining_quantity) 
+          `INSERT INTO customer_banks (id, customer_id, raw_material_id, quantity, remaining_quantity, quantity_in_kg) 
             VALUES 
-            ((?), (?), (?), (?), (?))
+            ((?), (?), (?), (?), (?), (?))
             as new_customer_banks
             ON DUPLICATE KEY UPDATE 
               customer_id=new_customer_banks.customer_id,
               raw_material_id=new_customer_banks.raw_material_id,
               quantity=new_customer_banks.quantity,
-              remaining_quantity=new_customer_banks.remaining_quantity;`,
+              remaining_quantity=new_customer_banks.remaining_quantity,
+              quantity_in_kg=new_customer_banks.quantity_in_kg;`,
               [ 
                 bank.id,
                 bank.customer_id,
                 raw_material_id,
                 bank.quantity,
-                bank.remaining_quantity
+                bank.remaining_quantity,
+                bank.quantity_in_kg
               ],
           active_connection
         );
@@ -659,21 +661,23 @@ async function sync_banks_for_raw_material(banks, raw_material_id, active_connec
         customers_created += new_customer.affectedRows;
         
         const add_banks_for_new = await db.transaction_query(
-          `INSERT INTO customer_banks (id, customer_id, raw_material_id, quantity, remaining_quantity) 
+          `INSERT INTO customer_banks (id, customer_id, raw_material_id, quantity, remaining_quantity, quantity_in_kg) 
             VALUES 
-            ((?), (?), (?), (?), (?))
+            ((?), (?), (?), (?), (?), (?))
             as new_customer_banks
             ON DUPLICATE KEY UPDATE 
               customer_id=new_customer_banks.customer_id,
               raw_material_id=new_customer_banks.raw_material_id,
               quantity=new_customer_banks.quantity,
-              remaining_quantity=new_customer_banks.remaining_quantity;`,
+              remaining_quantity=new_customer_banks.remaining_quantity,
+              quantity_in_kg=new_customer_banks.quantity_in_kg;`,
           [
             banks_with_new_customers[i].id,
             new_customer_id,
             raw_material_id, 
             banks_with_new_customers[i].quantity, 
-            banks_with_new_customers[i].remaining_quantity
+            banks_with_new_customers[i].remaining_quantity,
+            banks_with_new_customers[i].quantity_in_kg
           ],
           active_connection
         );

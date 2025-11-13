@@ -109,3 +109,34 @@ BEGIN
 END$$
 DELIMITER ;
 
+#--------------------------------------------------------
+# convert_column_type (if column exists)
+#--------------------------------------------------------
+DROP PROCEDURE IF EXISTS convert_column_type;
+DELIMITER $$
+CREATE PROCEDURE convert_column_type(
+    IN table_name VARCHAR(64),
+    IN column_name VARCHAR(64),
+    IN new_column_type VARCHAR(64)
+)
+BEGIN
+    DECLARE col_exists INT DEFAULT 0;
+    -- Check if column exists
+    SELECT COUNT(*) INTO col_exists
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = table_name
+      AND COLUMN_NAME = column_name;
+
+    -- If column exists, run the SQL statement
+    IF col_exists > 0 THEN
+	    SET @sql = CONCAT(
+	        'ALTER TABLE `', table_name, '` ',
+	        'MODIFY COLUMN `', column_name, '` ', new_column_type
+	    );
+	    PREPARE stmt FROM @sql;
+	    EXECUTE stmt;
+	    DEALLOCATE PREPARE stmt;
+    END IF;
+END$$
+DELIMITER ;

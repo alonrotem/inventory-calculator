@@ -3,7 +3,7 @@ const fs = require('fs');
 
 // Ensure 'uploads' directory exists
 const hats_pictures_path  = '/uploads/images/hats/';
-const  angular_app_path = '/web';
+const angular_app_path = '/web';
 const hatsUploadDir = path.join(path.resolve('.'), hats_pictures_path);
 const angularAppDir = path.join(path.resolve('.'), angular_app_path);
 if (!fs.existsSync(hatsUploadDir)) {
@@ -19,7 +19,8 @@ const config = {
       database: "inventory",
       connectTimeout: 60000,/*,
       debug: true*/
-      multipleStatements: true
+      multipleStatements: true,
+      decimalNumbers: true
     },
     listPerPage: 50,
     hats_pictures_path: hats_pictures_path,

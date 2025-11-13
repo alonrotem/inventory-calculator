@@ -369,9 +369,9 @@ CREATE TABLE  IF NOT EXISTS `raw_materials`
   `id`            	INT NOT NULL auto_increment,
   `name`          	VARCHAR(255) NOT NULL ,
   `purchased_at` 	DATE NOT NULL DEFAULT(CURRENT_DATE),
-  `purchase_quantity`   	    float NOT NULL ,  -- quantities are floats because they are measured in decimal kgs, or whole units
-  `remaining_quantity`   	    float NOT NULL ,
-  `quantity_units`	ENUM('kg', 'units') DEFAULT 'kg',
+  `purchase_quantity`   	    DECIMAL(15,2) not null ,  -- quantities are floats because they are measured in decimal kgs, or whole units
+  `remaining_quantity`   	    DECIMAL(15,2) not null,
+  `quantity_units`	ENUM('kg', 'units') DEFAULT 'units',
   `units_per_kg`	float NULL,
   `vendor_name`		varchar(255) NULL,
   `origin_country`	VARCHAR(2) NULL,
@@ -414,8 +414,10 @@ CREATE TABLE  IF NOT EXISTS `customer_banks` (
 	`id`            			INT NOT NULL auto_increment,
 	`customer_id`            	INT NOT NULL,
     `raw_material_id`            INT NOT NULL,
-	`quantity`   	    		float NOT NULL,
-    `remaining_quantity`   	    float NOT NULL ,
+	`quantity`   	    		DECIMAL(15,2) NOT NULL,
+    `remaining_quantity`   	    DECIMAL(15,2) NOT NULL,
+    `quantity_units`			ENUM('kg', 'units') DEFAULT 'units',
+    `quantity_in_kg`			DECIMAL(15,2) not null default 0,
 	PRIMARY KEY (`id`),
   CONSTRAINT fk_raw_material_customer
   FOREIGN KEY (`customer_id`) REFERENCES customers(`id`) ON DELETE CASCADE,
@@ -427,8 +429,8 @@ CREATE TABLE  IF NOT EXISTS `customer_banks` (
 CREATE TABLE  IF NOT EXISTS `customer_banks_allocations` (
 	`id`            			INT NOT NULL auto_increment,
     `customer_bank_id`          INT NOT NULL,
-	`quantity`   	    		float NOT NULL,
-    `remaining_quantity`   	    float NOT NULL ,
+	`quantity`   	    		DECIMAL(15,2) NOT NULL,
+    `remaining_quantity`   	    DECIMAL(15,2) NOT NULL ,
     `allocation_type`			ENUM('babies', 'tails') DEFAULT 'babies',
     
     # For allocations of type "tails"

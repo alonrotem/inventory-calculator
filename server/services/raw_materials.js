@@ -17,7 +17,8 @@ async function getSingle(id){
     const raw_material = helper.emptyOrSingle(rows);
     if(!helper.isEmptyObj(raw_material)){
       const customer_bank_rows = await db.query(
-        `select cb.id, c.name, c.business_name, cb.raw_material_id, cb.customer_id, cb.quantity, cb.remaining_quantity, rm.quantity_units
+        `select 
+        cb.id, c.name, c.business_name, cb.raw_material_id, cb.customer_id, cb.quantity, cb.remaining_quantity, cb.quantity_units, cb.quantity_in_kg
         FROM customer_banks cb left join customers c on cb.customer_id = c.id 
         left join raw_materials rm on rm.id=cb.raw_material_id
         WHERE cb.raw_material_id=${id} order by c.name;`);

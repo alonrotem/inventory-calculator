@@ -34,3 +34,14 @@ CALL add_column_if_not_exists('wings', 'crown_width', 'float not null default 2'
 
 # Add hat diameter to the order
 CALL add_column_if_not_exists('orders', 'diameter_inches', 'float not null default 12.5');
+
+# Change the precision of the raw_materials -> purchase_quantity column (decimal of up to 15 digits + 2 precision decimal places)
+call convert_column_type('raw_materials', 'purchase_quantity', 'DECIMAL(15,2) not null');
+call convert_column_type('raw_materials', 'remaining_quantity', 'DECIMAL(15,2) not null');
+
+CALL add_column_if_not_exists('customer_banks', 'quantity_in_kg', 'DECIMAL(15,2) not null default 0');
+CALL add_column_if_not_exists('customer_banks', 'quantity_units', 'ENUM(\'kg\', \'units\') DEFAULT \'units\'');
+call convert_column_type('customer_banks', 'quantity', 'DECIMAL(15,2) not null');
+call convert_column_type('customer_banks', 'remaining_quantity', 'DECIMAL(15,2) not null');
+call convert_column_type('customer_banks_allocations', 'quantity', 'DECIMAL(15,2) not null');
+call convert_column_type('customer_banks_allocations', 'remaining_quantity', 'DECIMAL(15,2) not null');
