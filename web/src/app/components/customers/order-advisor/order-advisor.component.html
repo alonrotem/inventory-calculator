@@ -164,7 +164,7 @@
 <div class="advisor">
     <div class="advisor-content" *ngIf="calculating && (!wait_for_saved_changes || !pending_saved_changes) && (!not_enough_data)">
         <div>
-            <fa-icon [icon]="faArrowsRotate" [spin]="true"></fa-icon>
+            <fa-icon [icon]="faArrowsRotate" [animation]="'spin'"></fa-icon>
         </div>
         <div>
             Calculating...

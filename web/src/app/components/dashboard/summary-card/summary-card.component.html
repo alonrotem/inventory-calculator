@@ -1,5 +1,5 @@
 <div class="card">
-    <div class="loading" [ngClass]="{'no_visibility': !loading }"><fa-icon [icon]="faArrowsRotate" [spin]="true" size="2x"></fa-icon><br/>Loading info...</div>
+    <div class="loading" [ngClass]="{'no_visibility': !loading }"><fa-icon [icon]="faArrowsRotate" [animation]="'spin'" size="2x"></fa-icon><br/>Loading info...</div>
     <div class="card-body" [ngClass]="{'no_visibility': loading }">
       <div class="stats-container">
         <h5>Invetory</h5>

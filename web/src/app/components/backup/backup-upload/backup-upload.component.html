@@ -35,7 +35,7 @@
   
   <button type="button" [className]="(!isProcessing)? 'btn btn-primary' :'btn btn-warning'" (click)="onUpload()" [disabled]="!file || isProcessing">
     <fa-icon [icon]="faCloudUpload" class="action-icon" *ngIf="!isProcessing"></fa-icon>
-    <fa-icon [icon]="faArrowsRotate" [spin]="true" class="action-icon" *ngIf="isProcessing"></fa-icon>
+    <fa-icon [icon]="faArrowsRotate" [animation]="'spin'" class="action-icon" *ngIf="isProcessing"></fa-icon>
     <span *ngIf="!isProcessing">Upload and restore backup</span>
     <span *ngIf="isProcessing">Processing...</span>
   </button>

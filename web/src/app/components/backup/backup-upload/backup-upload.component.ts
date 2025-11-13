@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 import { BackupService } from '../../../services/backup.service';
 import { faArrowsRotate, faCloudUpload, faFileImport, faFolderOpen, IconDefinition } from '@fortawesome/free-solid-svg-icons';
-import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { AnimationProp, FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ToastService } from '../../../services/toast.service';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 import { FormsModule, NgModel } from '@angular/forms';

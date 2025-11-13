@@ -20,7 +20,7 @@
     
     <div id="loading_icon" [hidden]="!loading">
       <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-        <div><fa-icon [icon]="faArrowsRotate" [spin]="true" size="3x"></fa-icon></div>
+        <div><fa-icon [icon]="faArrowsRotate" [animation]="'spin'" size="3x"></fa-icon></div>
         <div id="loading_message">Loading orders...</div>
       </div>
     </div>
@@ -73,7 +73,7 @@
           <tr *ngFor="let order of this.orders; index as i" role="button">
             <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.hat_id_with_customer }}</td>
             <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.order_status }}</td>
-            <td class="editable text-center" (click)="update_boolean_status(updating_urgent_status, i, 'isurgent')"><fa-icon *ngIf="updating_urgent_status[i]" [icon]="faArrowsRotate" [spin]="true"></fa-icon><input *ngIf="!updating_urgent_status[i]" class="form-check-input" type="checkbox" onclick="return false;" [checked]="order.isurgent" /></td>
+            <td class="editable text-center" (click)="update_boolean_status(updating_urgent_status, i, 'isurgent')"><fa-icon *ngIf="updating_urgent_status[i]" [icon]="faArrowsRotate" [animation]="'spin'"></fa-icon><input *ngIf="!updating_urgent_status[i]" class="form-check-input" type="checkbox" onclick="return false;" [checked]="order.isurgent" /></td>
             <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.customer_name }}</td>
             <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.ordering_customer }}</td>
             <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.wall }}</td>
@@ -83,11 +83,11 @@
             <td (click)="go_to_odrer(order.order_id, customer_id)" class="text-center">{{ order.crown_visible }}</td>
             <td (click)="go_to_odrer(order.order_id, customer_id)" class="text-center">{{ order.crown_length }}</td>
             <td (click)="go_to_odrer(order.order_id, customer_id)" class="text-center">{{ order.knife }}</td>
-            <td class="editable text-center" (click)="update_boolean_status(updating_white_hair_status, i, 'white_hair')"><fa-icon *ngIf="updating_white_hair_status[i]" [icon]="faArrowsRotate" [spin]="true"></fa-icon><input *ngIf="!updating_white_hair_status[i]" class="form-check-input" type="checkbox" onclick="return false;" [checked]="order.white_hair" /></td>
-            <td class="editable" (click)="edit_white_hair_notes(i)"><fa-icon *ngIf="updating_white_hair_notes_status[i]" [icon]="faArrowsRotate" [spin]="true"></fa-icon><div class="shortened" *ngIf="!updating_white_hair_notes_status[i]">{{ order.white_hair_notes }}</div></td>
+            <td class="editable text-center" (click)="update_boolean_status(updating_white_hair_status, i, 'white_hair')"><fa-icon *ngIf="updating_white_hair_status[i]" [icon]="faArrowsRotate" [animation]="'spin'"></fa-icon><input *ngIf="!updating_white_hair_status[i]" class="form-check-input" type="checkbox" onclick="return false;" [checked]="order.white_hair" /></td>
+            <td class="editable" (click)="edit_white_hair_notes(i)"><fa-icon *ngIf="updating_white_hair_notes_status[i]" [icon]="faArrowsRotate" [animation]="'spin'"></fa-icon><div class="shortened" *ngIf="!updating_white_hair_notes_status[i]">{{ order.white_hair_notes }}</div></td>
             <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.tails }} (overdrft: {{ order.tails_overdraft }})</td>
             <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.date  | dateStr }}</td>
-            <td class="editable" (click)="edit_order_notes(i)"><fa-icon *ngIf="updating_order_notes_status[i]" [icon]="faArrowsRotate" [spin]="true"></fa-icon><div class="shortened" *ngIf="!updating_order_notes_status[i]">{{ order.order_notes }}</div></td>
+            <td class="editable" (click)="edit_order_notes(i)"><fa-icon *ngIf="updating_order_notes_status[i]" [icon]="faArrowsRotate" [animation]="'spin'"></fa-icon><div class="shortened" *ngIf="!updating_order_notes_status[i]">{{ order.order_notes }}</div></td>
           </tr>
         </tbody>
       </table>

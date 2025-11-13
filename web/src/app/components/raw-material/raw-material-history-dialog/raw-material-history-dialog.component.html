@@ -7,7 +7,7 @@
 
   <div *ngIf="loading">
     <div style="height: 170px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-      <div><fa-icon [icon]="faArrowsRotate" [spin]="true" size="3x"></fa-icon></div>
+      <div><fa-icon [icon]="faArrowsRotate" [animation]="'spin'" size="3x"></fa-icon></div>
       <div id="loading_message" class="mt-4">Loading history records...</div>
     </div>
   </div>

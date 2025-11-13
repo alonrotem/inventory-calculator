@@ -7,6 +7,7 @@ import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { faArrowsRotate, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ExcelService } from '../../../services/excel.service';
+import { IconProp } from '@fortawesome/fontawesome-svg-core';
 
 @Component({
   selector: 'app-raw-material-history-dialog',
@@ -21,8 +22,8 @@ export class RawMaterialHistoryDialogComponent {
   raw_material_name: string ="";
   raw_material_units: string = "";
   loading: boolean = true;
-  faArrowsRotate: IconDefinition = faArrowsRotate;
-  faTriangleExclamation: IconDefinition = faTriangleExclamation;
+  faArrowsRotate: IconProp = faArrowsRotate;
+  faTriangleExclamation: IconProp = faTriangleExclamation;
   Math = Math;
 
   constructor(private transactionHistoryService: TransactionHistoryService, private excelService: ExcelService) {

@@ -15,13 +15,20 @@
     "@angular/compiler": "^18.0.6",
     "@angular/core": "^18.0.6",
     "@angular/forms": "^18.0.6",
+    "@angular/localize": "^20.3.11",
     "@angular/platform-browser": "^18.0.6",
     "@angular/platform-browser-dynamic": "^18.0.6",
     "@angular/router": "^18.0.6",
-    "@fortawesome/angular-fontawesome": "^0.14.0",
-    "@fortawesome/free-solid-svg-icons": "^6.5.2",
+
+  "@fortawesome/fontawesome-svg-core": "^6.5.2",
+  "@fortawesome/free-solid-svg-icons": "^6.5.2",
+  "@fortawesome/free-regular-svg-icons": "^6.5.2",
+  "@fortawesome/angular-fontawesome": "^0.15.0",
+  "@fortawesome/fontawesome-common-types": "^6.5.2",
+
     "@ng-bootstrap/ng-bootstrap": "^16.0.0",
     "@ng-select/ng-select": "^13.4.1",
+    "@popperjs/core": "^2.11.8",
     "angular-ng-autocomplete": "^2.0.12",
     "autonumeric": "^4.10.9",
     "bootstrap": "^5.3.3",
@@ -39,7 +46,7 @@
     "zone.js": "~0.14.3"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^18.0.7",
+    "@angular-devkit/build-angular": "^18.0.6",
     "@angular/cli": "^18.0.7",
     "@angular/compiler-cli": "^18.0.6",
     "@types/file-saver": "^2.0.7",

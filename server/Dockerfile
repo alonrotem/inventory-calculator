@@ -2,6 +2,8 @@
 # Node server app for Romtech
 # docker build -f Dockerfile -t romtech_server .
 # docker rm romtech_server; docker run -ti -p 3000:3000 --name romtech_server romtech_server
+
+# docker rm romtech_server; docker run -ti -p 3000:3000 -v ${PWD}/web:/web_temp -v ${PWD}/server:/server --name romtech_server romtech_server /bin/bash
 FROM ubuntu:latest
 
 RUN apt-get update && apt-get install -y \
@@ -36,7 +38,7 @@ ENV PATH="$NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH"
 RUN node --version && npm --version
 # ===============
 
-RUN npm install -g @angular/cli@latest
+RUN npm install -g @angular/cli@18.2.20
 
 # install the server packages
 WORKDIR /server
@@ -44,6 +46,7 @@ RUN npm install --force
 
 # install the web packages, build the production files, copy to the server
 WORKDIR /temp_web
+RUN npm config set legacy-peer-deps true
 RUN npm install --force
 RUN ng build --configuration=production
 RUN cp -r /temp_web/dist/inventory-calculator/browser/. /server/web
