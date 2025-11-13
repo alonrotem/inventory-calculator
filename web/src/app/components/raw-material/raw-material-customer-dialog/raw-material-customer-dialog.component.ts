@@ -1,20 +1,21 @@
-import { Component, EventEmitter, Input, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, ViewChild } from '@angular/core';
 import { CustomerListItem, Customers, ModalDialog, RawMaterialCustomerBank } from '../../../../types';
 import { AutocompleteLibModule } from 'angular-ng-autocomplete';
 import { CustomersService } from '../../../services/customers.service';
 import { FormsModule, NgForm } from '@angular/forms';
-import { NgClass, NgIf } from '@angular/common';
+import { NgClass, NgIf, DecimalPipe } from '@angular/common';
 import { ModalContentDirective } from '../../common/directives/modal-content.directive';
 import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
 import { DialogClosingReason, ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { CapacityBarComponent } from '../capacity-bar/capacity-bar.component';
+import { NumericInputDirective } from '../../../utils/directives/auto-numeric.directive';
 
 @Component({
   selector: 'app-raw-material-customer-dialog',
   standalone: true,
   imports: [ 
     AutocompleteLibModule, FormsModule, NgIf, NgClass, ModalDialogComponent, ModalContentDirective, 
-    ModalContentDirective, CapacityBarComponent 
+    ModalContentDirective, CapacityBarComponent, DecimalPipe, NumericInputDirective
   ],
   templateUrl: './raw-material-customer-dialog.component.html',
   styleUrl: './raw-material-customer-dialog.component.scss',
@@ -34,10 +35,13 @@ export class RawMaterialCustomerDialogComponent implements ModalContentDirective
     customer_id: 0,
     quantity: 0,
     remaining_quantity: 0,
-    quantity_units: '',
+    quantity_units: 'units',
+    quantity_in_kg: 0,
     transaction_record: null
   };
   @Input() banks: RawMaterialCustomerBank[] = [];
+  @Input() rawMaterialQuantityUnits: string = 'units';
+  @Input() rawMaterialUnitsPerKg: number = 0;
   //using a copy, not to update the customer until the dialog is confirmed to close.
   editedObjectCopy: RawMaterialCustomerBank = { ...this.editedObject };
   customers: CustomerListItem[] = [];
@@ -46,10 +50,16 @@ export class RawMaterialCustomerDialogComponent implements ModalContentDirective
   Math: any = Math;
   min_quantity = 0;
   max_quantity = 0;
+  //units_per_kg_translation = 0;
+  initial_bank_quantity = 0;
+  //curr_kg_quantity: number = 0;
+  console=console;
 
   @ViewChild("customerDialog") dialogWrapper!: ModalDialogComponent;
   @ViewChild("bankForm") bankForm!: NgForm;
   @ViewChild("meter") meter!: CapacityBarComponent;
+  @ViewChild('fine_tune_button') fine_tune_button!: ElementRef;
+  @ViewChild('collapse_fine_tune') collapse_fine_tune!: ElementRef;
   
   constructor(private customersService: CustomersService) {
     this.customersService.getCustomers({ } as any).subscribe({
@@ -61,29 +71,51 @@ export class RawMaterialCustomerDialogComponent implements ModalContentDirective
   }
 
   close: EventEmitter<any> = new EventEmitter<RawMaterialCustomerBank>();
-  
+
   onOpen() {
     this.bankForm.form.markAsPristine();
     this.bankForm.form.markAsUntouched();
     this.attemptedClose = false;
+    //this.units_per_kg_translation = this.rawMaterialUnitsPerKg;
+    this.console.dir(this.editedObject);
+    this.loadCustomerBank(this.editedObject);
+    this.collapse_fine_tune_accordion();
+  }
 
-    this.loadCustomerBank(this.editedObject)
+  collapse_fine_tune_accordion() {
+    if(this.fine_tune_button && this.collapse_fine_tune) {
+    this.fine_tune_button.nativeElement.setAttribute("aria-expanded", false);
+    this.fine_tune_button.nativeElement.classList.add("collapsed"); 
+    this.collapse_fine_tune.nativeElement.classList.remove("show");
+    }
   }
   
   loadCustomerBank(bank: RawMaterialCustomerBank){
     this.editedObjectCopy = { ...bank };
+
     //can't go below the quantity in use
     this.min_quantity = this.editedObjectCopy.quantity - this.editedObjectCopy.remaining_quantity;
-    this.max_quantity = this.editedObjectCopy.quantity + this.currentRawMaterialRemainingQuantity;
 
+    if(this.rawMaterialQuantityUnits == "kg"){
+      this.max_quantity = this.editedObjectCopy.quantity + (this.currentRawMaterialRemainingQuantity * this.rawMaterialUnitsPerKg);
+    }
+    else {
+      this.max_quantity = this.editedObjectCopy.quantity + this.currentRawMaterialRemainingQuantity;
+    }
+    
     this.meter.bankQuantity = this.editedObjectCopy.quantity;
+    this.initial_bank_quantity = this.editedObjectCopy.quantity;
     this.meter.materialInUse = this.min_quantity;
     this.meter.totalCapacity = this.max_quantity;
-    this.meter.recalculate();
+    this.quantityChanged(false);
+    //this.meter.recalculate();
   }
 
 
   beforeClose(reason: DialogClosingReason): Boolean {
+    if(reason == DialogClosingReason.cancel)
+      return true;
+    
     this.attemptedClose = true;
     this.bankForm.form.markAllAsTouched();
 
@@ -96,6 +128,8 @@ export class RawMaterialCustomerDialogComponent implements ModalContentDirective
       this.editedObject.quantity_units = this.editedObjectCopy.quantity_units;
       this.editedObject.raw_material_id = this.editedObjectCopy.raw_material_id;
       this.editedObject.remaining_quantity = ((this.editedObjectCopy.id <= 0) ? this.editedObjectCopy.quantity : this.editedObjectCopy.quantity - this.min_quantity );
+      this.editedObject.quantity_in_kg = (this.rawMaterialQuantityUnits == "kg")? this.editedObjectCopy.quantity_in_kg : 0;
+      this.editedObjectCopy.quantity = 0; // reset the quantity before closing, so that on the next load there is no boundaries issue
       return true;
     }
     setTimeout(() => {
@@ -130,7 +164,8 @@ export class RawMaterialCustomerDialogComponent implements ModalContentDirective
         customer_id: customer_id,
         quantity: 0,
         remaining_quantity: 0,
-        quantity_units: '',
+        quantity_units: 'units',
+        quantity_in_kg: 0,
         transaction_record: null
       });
     }
@@ -138,12 +173,24 @@ export class RawMaterialCustomerDialogComponent implements ModalContentDirective
   
   capacityBarChanged(quantity:number){
     this.editedObjectCopy.quantity = quantity;
+    this.quantityChanged(true);
   }
 
-  quantityChanged() {
-    if(this.editedObjectCopy.quantity >= this.min_quantity && this.editedObjectCopy.quantity <= this.max_quantity){
-      this.meter.bankQuantity = this.editedObjectCopy.quantity;
-      this.meter.recalculate();  
+  quantityChanged(update_kgs: boolean = false) {
+    if(update_kgs) {
+      this.editedObjectCopy.quantity_in_kg = Number(this.editedObjectCopy.quantity) / this.rawMaterialUnitsPerKg;
     }
+
+    if(this.editedObjectCopy.quantity <= this.min_quantity)
+    {
+      this.meter.bankQuantity = this.min_quantity;
+    }
+    else if (this.editedObjectCopy.quantity >= this.max_quantity) {
+      this.meter.bankQuantity = this.max_quantity;
+    }
+    else {
+      this.meter.bankQuantity = this.editedObjectCopy.quantity;
+    }
+    this.meter.recalculate();
   }
 }

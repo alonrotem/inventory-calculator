@@ -9,17 +9,21 @@
                     <div>
                         <span style="display: flex; flex-wrap: nowrap; justify-content: flex-start; align-items: center;">
                             <div class="form-floating" style="width: 100%; margin-right: 20px;">
-                            <input 
-                                type="number" 
-                                #topUpQuantity="ngModel" 
-                                class="form-control"
-                                placeholder="0" 
-                                [(ngModel)]="editedObject.top_up_quantity" 
-                                name="topUpQuantity" 
-                                required="true" 
-                                min="0" 
-                                [attr.max]="editedObject.max_topping > 0 ? editedObject.max_topping : null" 
-                                [ngClass]="{'form-control': true, 'invalid': (quantityForm.touched && (editedObject.top_up_quantity <=0 || (editedObject.max_topping > 0 ? editedObject.top_up_quantity > editedObject.max_topping : false)))}"> 
+                                <input 
+                                    type="text" 
+                                    [appNumericInput]="{
+                                        minimumValue: '0', 
+                                        maximumValue: (editedObject.max_topping > 0 ? editedObject.max_topping.toString() : '9999999999999'), 
+                                        emptyInputBehavior: 'null'
+                                    }"
+                                    inputmode="decimal"          
+                                    #topUpQuantity="ngModel" 
+                                    [ngClass]="{'form-control': true, 'invalid': (quantityForm.touched && (editedObject.top_up_quantity <=0 || (editedObject.max_topping > 0 ? editedObject.top_up_quantity > editedObject.max_topping : false)))}"
+                                    placeholder="0"
+                                    [(ngModel)]="editedObject.top_up_quantity"
+                                    name="topUpQuantity"
+                                    required
+                                    (input)="quantityChanged()"><!---->
                                 <label for="topUpQuantity">Top up quantity</label>
                             </div>
                             <span>{{ editedObject.quantity_units }}</span>
@@ -43,9 +47,12 @@
                         topUpQuantity.value > editedObject.top_up_quantity {{ topUpQuantity.value > editedObject.top_up_quantity }}<br/>
                         validation error {{ (attemptedClose && topUpQuantity.value!='' && editedObject.max_topping > 0 && topUpQuantity.value > editedObject.top_up_quantity) }}
                     </div-->
-                    <div class="text-success" *ngIf="editedObject.max_topping > 0 && topUpQuantity.value <= editedObject.max_topping">Maximum available material: {{ editedObject.max_topping }} {{ editedObject.quantity_units }}</div>
+                    <div class="text-success" *ngIf="editedObject.max_topping > 0 && topUpQuantity.value <= editedObject.max_topping">
+                        Maximum available material: 
+                        {{ editedObject.max_topping | number: (editedObject.quantity_units? '1.0-0': '1.2-2') }} {{ editedObject.quantity_units }}
+                    </div>
                     <div class="text-danger" *ngIf="(topUpQuantity.value!='' && editedObject.max_topping > 0 && topUpQuantity.value > editedObject.max_topping)">
-                        Not enough material, cannot top more than {{ editedObject.max_topping }} {{ editedObject.quantity_units }}
+                        Not enough material, cannot top more than {{ editedObject.max_topping | number: (editedObject.quantity_units? '1.0-0': '1.2-2') }} {{ editedObject.quantity_units }}
                     </div>
                     <!--
                     validation:
@@ -55,9 +62,46 @@
                     </div>-->
                 </div>
             </div>
+
+            <div class="row spaced-row" *ngIf="show_units_to_kg_adjustment && rawMaterialQuantityUnits=='kg'">
+                <div class="col-12">
+                    <!--ACCORD:-->
+                    <div class="accordion" id="accordion_quantities_tune">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                        <button #fine_tune_button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_fine_tune" aria-expanded="false" aria-controls="collapse_fine_tune">
+                            <strong>{{ this.editedObject.current_quantity_kg | number: '1.2-2' }} kg</strong>
+                            <span style="margin-left: 4px;">raw material.</span>
+                        </button>
+                        </h2>
+                        <div #collapse_fine_tune id="collapse_fine_tune" class="accordion-collapse collapse" data-bs-parent="#accordion_quantities_tune">
+                        <div class="accordion-body">
+                                <div class="horizontal">
+                                <div class="form-floating">
+                                    <input 
+                                        type="text" 
+                                        [appNumericInput]="{ decimalPlaces: 2 }"
+                                        inputmode="decimal"                    
+                                        placeholder="0"
+                                        [(ngModel)]="this.editedObject.current_quantity_kg"
+                                        name="curr_kg_quantity"
+                                        class="form-control"
+                                        readonly />
+                                    <label for="units_per_kg">kg quantity</label>
+                                </div>        
+                            kg of material used by this bank ({{ rawMaterialUnitsPerKg }} units/kg)
+                        </div>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                    <!--/ACCORD-->
+                </div>
+            </div>            
+
             <div class="row" style="margin-top:5px;">
                 <div class="col">
-                    Quantity will be topped up to {{ editedObject.current_quantity + editedObject.top_up_quantity }} {{ editedObject.quantity_units }} (Remaining to {{ editedObject.remaining_quantity + editedObject.top_up_quantity  }})
+                    Quantity will be topped up to {{ editedObject.current_quantity + editedObject.top_up_quantity }} {{ editedObject.quantity_units }} (Unallocated: {{ editedObject.remaining_quantity + editedObject.top_up_quantity  }})
                 </div>
             </div>
         </form>

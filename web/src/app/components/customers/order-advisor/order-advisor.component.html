@@ -42,11 +42,18 @@
 <app-modal-dialog 
     #hat_creation_assistant
     [btnSaveText]="'Add missing babies to my allocation'"
-    [btnSaveClass]="'btn-success'"
+    [btnSaveClass]="(sufficient_babies_in_allocations)? 'btn-success' : 'd-none'"
     [btnCancelText]="'Cancel'"
     [modalSize]="'xl'"
     [modalTitle]="'Auto-adjust allocation #' + wall_allocation?.id"
     (confirm)="assistant_add_babies()">
+
+        <div style="display:none"><!--Just for info-->
+            ID: {{ wall_allocation?.id }}<br/>
+            Available units in wall allocation: {{ wall_allocation?.remaining_quantity | number: '1.' }}<br/>
+            Available units in crown allocation: {{ crown_allocation?.remaining_quantity | number: '1.' }}
+        </div>
+
         <!------------>
         <table class="table table-responsive table-borderless assistant_table">
             <tbody>
@@ -114,13 +121,42 @@
                     </tr>
                 </tbody>
             </table>
+            <div>
+                <span>
+                    Total missing babies in {{ (wall_allocation?.id != crown_allocation?.id)?'allocations':'allocation' }}: {{ total_missing_babies | number: '1.' }}
+                </span>
+                <span *ngIf="wall_allocation?.id != crown_allocation?.id">
+                    ({{ total_missing_babies_wall | number: '1.' }} wall, {{ total_missing_babies_crown | number: '1.'}} crown)
+                </span>
+                
+                <div *ngIf="wall_allocation?.id != crown_allocation?.id">
+                    <!-- Different allocations: show how many babies are available in each allocation vs required -->
+                     <table class="table">
+                        <tr>
+                            <td>Units available in wall allocation</td>
+                            <td>{{ wall_allocation?.remaining_quantity | number: '1.' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Units available in crown allocation</td>
+                            <td>{{ crown_allocation?.remaining_quantity | number: '1.' }}</td>
+                        </tr>                        
+                     </table>
+                </div>
+                <div *ngIf="wall_allocation?.id == crown_allocation?.id">
+                    <!-- One allocation: show how many babies are available in the wall allocation vs required -->
+                     Units available in allocation: {{ wall_allocation?.remaining_quantity | number: '1.' }}
+                </div>
+                <div *ngIf="!sufficient_babies_in_allocations" class="bg-danger" style="padding: 10px; margin: 20px 0px;">
+                    No sufficient units in your {{ (wall_allocation?.id != crown_allocation?.id)?'allocations':'allocation' }}!
+                </div>
+            </div>
         </div>
         <div *ngIf="!assistant_selected_wing_id" class="assistant_info">
             <div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon></div>
             <div>
                 This tool can help add babies to your allocation to cover a selected hat to order
             </div>
-            <div>Choose a wing to get started.</div>
+            <div class="text-warning" style="margin: 50px 0px;">Choose a wing to get started.</div>
         </div>
         <!------------>
 </app-modal-dialog>

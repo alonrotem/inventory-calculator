@@ -47,7 +47,7 @@
         <td class="hover-warning" routerLink="/inventory/customer/editor" [queryParams]="{ id: bank.customer_id}"><span class="icon-address-book action-icon"></span>{{ bank.name }}<span class="text-success" [hidden]="bank.customer_id!=0" title="This non-existing customer will be created">*</span></td>
         <td>{{ bank.business_name }}</td>
         <td class="hover-warning" (click)="openCustomerEditor(bank)"><fa-icon class="action-icon" [icon]="faPencil"></fa-icon>
-          {{ bank.quantity }} {{ bank.quantity_units }} ({{ bank.remaining_quantity }} remaining)
+          {{ bank.quantity | number: (bank.quantity_units=='kg')?'1.2-2':'1.0-0' }} {{ bank.quantity_units }} ({{ bank.remaining_quantity | number: (bank.quantity_units=='kg')?'1.2-2':'1.0-0' }} not allocated)
         </td>
         <td class="text-center"><button class="btn btn-primary" (click)="top_up(bank)">+</button></td>
         <td class="text-center" (click)="deleteBank(i, bank)"><fa-icon class="text-danger" [icon]="faTrashCan"></fa-icon></td>

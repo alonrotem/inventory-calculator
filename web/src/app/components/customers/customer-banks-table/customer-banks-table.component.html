@@ -72,7 +72,15 @@
       </span>
     </div>
 
-    <div style="display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: flex-start; align-items: center;"><span>{{ bank.quantity }} {{ raw_material_quantity_units }} ({{ bank.remaining_quantity }} remaining)</span> <span><button class="btn btn-primary" style="padding: 0px 11px 3px 5px; margin-left: 10px;" *ngIf="(banks_baby_allocations | filter: 'customer_bank_id' : bank.id).length > 0" (click)="open_allocation_dialog(-999)">+ New work allocation</button></span></div>
+    <div style="display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: flex-start; align-items: center;">
+      <span>{{ bank.quantity | number: '1.0-0' }} {{ raw_material_quantity_units }} ({{ bank.remaining_quantity | number: '1.0-0' }} remaining)</span>
+      <span>
+        
+      </span>
+    </div>
+    <div>
+      <button class="btn btn-primary" style="padding: 0px 11px 3px 5px; margin-top: 10px;" *ngIf="(banks_baby_allocations | filter: 'customer_bank_id' : bank.id).length > 0" (click)="open_allocation_dialog(-999)">+ New work allocation</button>
+    </div>
 
 <div style="margin-top: 15px;">
   <div class="progress">
@@ -99,7 +107,8 @@
  <div class="allocation-area">
       <div>
         <strong><span class="icon-babies" style="margin-right:10px;"></span>Babies work allocation #{{ bank_allocation.id }}:</strong>
-        {{ bank_allocation.quantity  | number: '1.' }} {{ raw_material_quantity_units }}, {{ (babies | filter: "allocation_id" : bank_allocation.id) | sum: 'quantity' | number: '1.' }} babies 
+          <div>{{ bank_allocation.quantity  | number: '1.' }} {{ raw_material_quantity_units }} in allocation, {{ (babies | filter: "allocation_id" : bank_allocation.id) | sum: 'quantity' | number: '1.' }} babies cut.</div>
+          <div>{{ (bank_allocation.quantity - ((babies | filter: "allocation_id" : bank_allocation.id) | sum: 'quantity')) | number: '1.' }} available.</div>
         <div class="allocation-action-buttons">
           <button class="btn btn-warning" (click)="open_allocation_dialog(bank_allocation.id)">
             <fa-icon [icon]="faPencil"></fa-icon>
@@ -163,8 +172,8 @@
                 routerLink="/inventory/customer/editor" 
                 [queryParams]="{ id: customer.id }" role="button">-->
                 <td (click)="open_babies_dialog(bank_allocation.id, baby.length)">{{ baby.length | number : '1.1-1' }} cm</td>
-                <td (click)="open_babies_dialog(bank_allocation.id, baby.length)">{{ baby.quantity }}</td>
-                <td (click)="open_babies_dialog(bank_allocation.id, baby.length)">{{ baby.quantity_in_pending_orders }}</td>
+                <td (click)="open_babies_dialog(bank_allocation.id, baby.length)">{{ baby.quantity | number: '1.' }}</td>
+                <td (click)="open_babies_dialog(bank_allocation.id, baby.length)">{{ baby.quantity_in_pending_orders | number: '1.' }}</td>
                 <td class="text-center" style="cursor: pointer;" [attr.title]="(baby.quantity_in_pending_orders == 0)? 'Delete this baby': 'Cannot delete this baby (included in orders)'"><fa-icon *ngIf="baby.quantity_in_pending_orders == 0" class="text-danger" [icon]="faTrashCan" (click)="delete_baby(baby.id)"></fa-icon></td>
               </tr>
                 </ng-container>
@@ -223,7 +232,7 @@
  <div class="allocation-area">
       <div>
         <strong><span class="icon-tails" style="margin-right:10px;"></span>H material work allocation #{{ bank_allocation.id }}:</strong>
-        {{ bank_allocation.quantity }} {{ raw_material_quantity_units }}
+        {{ bank_allocation.quantity | number: '1.0-0' }} {{ raw_material_quantity_units }}
         <div>
           <button class="btn btn-warning" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="open_allocation_dialog(bank_allocation.id)">
             <fa-icon [icon]="faPencil"></fa-icon>
@@ -263,18 +272,20 @@
           <div class="d-flex flex-row align-items-center tails_editor_form">
             <div class="form-floating">
               <input 
-                type="number" 
+                type="text" 
+                appNumericInput
+                inputmode="decimal"
                 class="form-control tails_quantity" 
                 [id]="'tails_quantity' + bank_allocation.id"  
                 [(ngModel)]="bank_allocation.tails_quantity" 
                 (change)="tails_quantity_changed(bank_allocation.id)" 
                 (focus)="$any($event.target).select()"
-                oninput="this.value = Math.max(this.value, 0)"
+                
                 min="0">
               <label [for]="'tails_quantity' + bank_allocation.id">H Material tails</label>
             </div>
             <div>
-              In orders: {{ bank_allocation.tails_in_orders }}
+              In orders: {{ bank_allocation.tails_in_orders | number: '1.0-0'}}
             </div>
           </div>
         </div>

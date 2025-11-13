@@ -66,3 +66,14 @@ input.invalid, .ng-autocomplete.invalid ::ng-deep ng-autocomplete{
         background-color: red; /*var(--bs-danger)*/
     }
 }
+
+.horizontal {
+    display: flex ;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.horizontal .form-floating {
+    margin: 0px 10px 0px 0px;
+}

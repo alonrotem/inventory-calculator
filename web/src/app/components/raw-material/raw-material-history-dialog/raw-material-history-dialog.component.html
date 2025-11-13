@@ -44,15 +44,15 @@
             </td>
             <td [ngSwitch]="record.transaction_type" class="text-end">
               <span *ngSwitchCase="'raw_material_purchase'" class="text-success">
-                <span *ngIf="record.transaction_quantity >= 0">+</span>{{ record.transaction_quantity }} {{ raw_material_units }}
+                <span *ngIf="record.transaction_quantity >= 0">+</span>{{ record.transaction_quantity | number: ((raw_material_units == 'kg')? '1.2-2' : '1.0-0') }} {{ raw_material_units }}
               </span>
               <span *ngSwitchCase="'to_customer_bank'">
-                <span class="text-danger" *ngIf="record.transaction_quantity >= 0">-{{ record.transaction_quantity }}</span>
-                <span class="text-success" *ngIf="record.transaction_quantity < 0">+{{ Math.abs(record.transaction_quantity) }}</span> {{ raw_material_units }}
+                <span class="text-danger" *ngIf="record.transaction_quantity >= 0">-{{ record.transaction_quantity | number: ((raw_material_units == 'kg')? '1.2-2' : '1.0-0') }}</span>
+                <span class="text-success" *ngIf="record.transaction_quantity < 0">+{{ Math.abs(record.transaction_quantity) | number: ((raw_material_units == 'kg')? '1.2-2' : '1.0-0') }}</span> {{ raw_material_units }}
               </span>
               <span *ngSwitchCase="'deleted_customer_bank'" class="text-success">+{{ record.transaction_quantity }} {{ raw_material_units }}</span>
             </td>
-            <td class="text-end">{{ record.cur_raw_material_quantity }} {{ raw_material_units }}</td>
+            <td class="text-end">{{ record.cur_raw_material_quantity | number: ((raw_material_units == 'kg')? '1.2-2' : '1.0-0') }} {{ raw_material_units }}</td>
           </tr>
         </tbody>
       </table>

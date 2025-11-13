@@ -22,14 +22,17 @@ enum length_options {
 })
 export class CrownEditorComponent implements OnChanges {
 
+  min_crown_width: number = 1; //1-2 are counted in halves (1.0, 1.5, 2.0)
+  mid_crown_width: number = 2; //2-3 are counted in 0.1 steps (2.0, 2.1, 2.2 ... 3.0)
+  max_crown_width: number = 3;
+  crown_width_options1 = Array((this.mid_crown_width - this.min_crown_width)*2+1).fill(0).map((_,i) => i/2 + this.min_crown_width);
+  crown_width_options2 = Array((this.max_crown_width - this.mid_crown_width)*10).fill(0).map((_,i) => i/10 + 0.1 + this.mid_crown_width);
+  crown_width_options = this.crown_width_options1.concat(this.crown_width_options2);
+  
   min_crown_length: number = 5;
   max_crown_length: number = 13;
-  min_crown_width: number = 1;
-  max_crown_width: number = 3;
   max_babies_in_crown = 5;
-  
   num_crown_babies_options = Array(this.max_babies_in_crown).fill(0).map((_, i)=> i+1);
-  crown_width_options = Array((this.max_crown_width - this.min_crown_width)*2+1).fill(0).map((_,i) => i/2 + this.min_crown_width);
   crown_length_options = Array((this.max_crown_length - this.min_crown_length)*2 + 1).fill(0).map((_,i) => i/2 + this.min_crown_length);
 
   //individual_babies_length: boolean = true;

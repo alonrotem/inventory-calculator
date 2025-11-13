@@ -27,16 +27,35 @@
     <div class="text-danger" *ngIf="attemptedClose && customerName.value==''">Please enter a customer name</div>
     <div class="text-success" *ngIf="customerName.value!='' && customer_names.indexOf(customerName.value) == -1">New customer <strong>{{ customerName.value }}</strong> will be created</div>
 </div>
+<!-- fine tune kg <-> units -->
+<div class="row spaced-row" *ngIf="rawMaterialQuantityUnits=='kg'">
+
+</div>
+<div>min: {{ min_quantity }}, max: {{ max_quantity }}, quantity: {{ editedObjectCopy.quantity }}</div>
+@if (min_quantity!=null && min_quantity!=undefined && max_quantity && min_quantity >= 0 && max_quantity > 0) {
 <div class="row spaced-row">
     <div class="col-12">
-            <span style="display: flex; flex-wrap: nowrap; justify-content: flex-start; align-items: center;">
+            <div style="display: flex; flex-wrap: nowrap; justify-content: flex-start; align-items: center;">
                 <div class="form-floating" style="width: 100%; margin-right: 20px;">
-                <input type="number" #materialQuantity="ngModel" [ngClass]="{'form-control': true, 'invalid': ((bankForm.touched) && ((editedObjectCopy.quantity < min_quantity) || (editedObjectCopy.quantity > max_quantity)))}"
-                    placeholder="0" [(ngModel)]="editedObjectCopy.quantity" name="materialQuantity" required="true" min="{{ min_quantity }}" max="{{ max_quantity }}" (input)="quantityChanged()"> 
+                    <input 
+                        type="text" 
+                        [appNumericInput]="{
+                            minimumValue: min_quantity.toString(),
+                            maximumValue: max_quantity.toString()
+                        }"
+                        inputmode="decimal"                    
+                        #materialQuantity="ngModel" 
+                        [ngClass]="{'form-control': true, 'invalid': materialQuantity.invalid && (materialQuantity.touched || materialQuantity.dirty)}"
+                        placeholder="0"
+                        [(ngModel)]="editedObjectCopy.quantity"
+                        name="materialQuantity"
+                        required
+                        (input)="quantityChanged(true)">
                     <label for="materialQuantity">Quantity</label>
                 </div>
                 <span>{{ editedObjectCopy.quantity_units }}</span>
-            </span>
+            </div>
+            <!--<div *ngIf="rawMaterialQuantityUnits=='kg'" style="text-align: center;">({{ (editedObjectCopy.quantity * units_per_kg_translation) | number: '1.2-2'  }} kg)</div>-->
         </div>
 </div>
 <div class="row unspaced-row">
@@ -52,13 +71,51 @@
                 materialQuantity.value!='' && 
                 materialQuantity.value > max_quantity
             ) )">
-            Not enough raw material quantity (Max: {{ max_quantity }} {{editedObjectCopy.quantity_units }})
+            Not enough raw material quantity (Max: {{ max_quantity }} {{ editedObjectCopy.quantity_units }})
         </div>
         <div class="text-danger" *ngIf="(attemptedClose && (materialQuantity.value!='' && materialQuantity.value > 0 && materialQuantity.value < min_quantity) )">
             Cannot go below {{ min_quantity }} {{editedObjectCopy.quantity_units }}, already in use.
         </div>
     </div>
 </div>
+}
+
+<div class="row spaced-row" *ngIf="rawMaterialQuantityUnits=='kg'">
+    <div class="col-12">
+        <!--ACCORD:-->
+        <div class="accordion" id="accordion_quantities_tune">
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+            <button #fine_tune_button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_fine_tune" aria-expanded="false" aria-controls="collapse_fine_tune">
+                <strong>{{ this.editedObjectCopy.quantity_in_kg | number: '1.2-2' }} kg</strong>
+                <span style="margin-left: 4px;">raw material</span>
+            </button>
+            </h2>
+            <div #collapse_fine_tune id="collapse_fine_tune" class="accordion-collapse collapse" data-bs-parent="#accordion_quantities_tune">
+            <div class="accordion-body">
+                    <div class="horizontal">
+                    <div class="form-floating">
+                        <input 
+                            type="text" 
+                            [appNumericInput]="{ decimalPlaces: 2 }"
+                            inputmode="decimal"                    
+                            placeholder="0"
+                            [(ngModel)]="this.editedObjectCopy.quantity_in_kg"
+                            name="curr_kg_quantity"
+                            class="form-control"
+                            readonly />
+                        <label for="units_per_kg">kg quantity</label>
+                    </div>        
+                kg of material used by this bank ({{ rawMaterialUnitsPerKg }} units/kg)
+            </div>
+            </div>
+            </div>
+        </div>
+        </div>
+        <!--/ACCORD-->
+    </div>
+</div>
+
 <div>
     <div>
         <app-capacity-bar

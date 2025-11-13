@@ -79,6 +79,7 @@ export interface RawMaterialCustomerBank {
     quantity: number;
     remaining_quantity: number;
     quantity_units: string;
+    quantity_in_kg: number;
     transaction_record: TransactionRecord | null;
 }
 

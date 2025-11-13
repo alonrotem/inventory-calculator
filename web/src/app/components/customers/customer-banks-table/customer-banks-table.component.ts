@@ -19,6 +19,7 @@ import { aggregated_babies } from '../../../services/hats-calculator.service';
 import { ToastService } from '../../../services/toast.service';
 import { FormsModule } from '@angular/forms';
 import { MiscUtils } from '../../../utils/misc-utils';
+import { NumericInputDirective } from '../../../utils/directives/auto-numeric.directive';
 
 @Component({
   selector: 'app-customer-banks-table',
@@ -26,7 +27,7 @@ import { MiscUtils } from '../../../utils/misc-utils';
   imports: [RouterModule, NgFor, FilterPipe, NgIf, FaIconComponent, NgClass,
     DecimalPipe, ConfirmationDialogComponent, BankAllocationDialogComponent,
     BabyEditorDialogComponent, SortPipe, BankHistoryDialogComponent, AllocationPickerComponent,
-    SumPipe, OrderAdvisorComponent, FormsModule],
+    SumPipe, OrderAdvisorComponent, FormsModule, NumericInputDirective],
   templateUrl: './customer-banks-table.component.html',
   styleUrl: './customer-banks-table.component.scss'
 })
@@ -153,6 +154,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     });
 
     this.allocation_picker.dialogWrapper.confirm.subscribe((target_allocation_id: number) => {
+      let target_allocation = this.banks_baby_allocations.find(alloc => alloc.id == target_allocation_id);
       let babies_to_delete: number[] = [];
       this.babies.filter(b => b.allocation_id == this.pendingMergedSourceAllocationID).forEach(soure_baby => {
         // find a baby with the destination allocation id
@@ -162,6 +164,9 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
           target_baby => 
             target_baby.allocation_id == target_allocation_id && 
             target_baby.length == soure_baby.length);
+        if(target_allocation) {
+          target_allocation.quantity += soure_baby.quantity;
+        }
         if(destination_baby_with_same_length) {
           destination_baby_with_same_length.quantity += soure_baby.quantity;
           babies_to_delete.push(soure_baby.id);
@@ -218,7 +223,16 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     });
     */
     
+    this.banks_baby_allocations.forEach(alloc => this.recalculate_remaining_quantity_allocation(alloc));
     this.afterViewInit.emit();
+  }
+
+  recalculate_remaining_quantity_allocation(allocation: Customer_Bank_Baby_Allocation){
+    //{{ (bank_allocation.quantity - ((babies | filter: "allocation_id" : bank_allocation.id) | sum: 'quantity')) | number: '1.' }} available.</div>
+    let total_babies = this.babies
+      .filter(baby => baby.allocation_id == allocation.id)
+      .map(item => item['quantity']).reduce((prev, curr) => prev + curr, 0);
+    allocation.remaining_quantity = allocation.quantity - total_babies;
   }
 
   save_customer(){
@@ -475,6 +489,13 @@ recalculateBank(){
     //  this.babies_picker.babyEditMode = false;
     //this.babies_picker.dialogWrapper.modalTitle = "Add / Top-up babies";
     //}
+
+    //(bank_allocation.quantity - ((babies | filter: "allocation_id" : bank_allocation.id) | sum: 'quantity')) |
+    let num_of_babies_in_allocation = this.babies.filter(b => b.allocation_id == bank_allocation_id).reduce((n, {quantity}) => n + quantity, 0);
+    let allocation_quantity = this.banks_baby_allocations.find(al => al.id == bank_allocation_id)?.quantity ?? 0;
+    let units_available = allocation_quantity - num_of_babies_in_allocation;
+    this.babies_picker.units_available = units_available;
+
     this.babies_picker.babies_to_edit = babiesToEdit;
     this.babies_picker.highlighted_baby_length = baby_length;
     this.babies_picker.highlighted_baby_quantity = (curr_baby)? curr_baby.quantity : 0;
@@ -507,13 +528,15 @@ recalculateBank(){
         }
       }
       else {
-        this.babies.push({
-          id: 0,
-          allocation_id: this.pendingBabyAppendAllocation,
-          length: baby_info.length,
-          quantity: baby_info.quantity,
-          quantity_in_pending_orders: 0
-        });
+        if(baby_info.quantity > 0) {
+          this.babies.push({
+            id: 0,
+            allocation_id: this.pendingBabyAppendAllocation,
+            length: baby_info.length,
+            quantity: baby_info.quantity,
+            quantity_in_pending_orders: 0
+          });
+        }
       }
     }
 
@@ -583,6 +606,7 @@ recalculateBank(){
   assistant_auto_add_babies(aggregatedBabies: any){
     //console.dir(aggregatedBabies);
     let changes_made = false;
+    let allocation = this.banks_baby_allocations.find(alloc => alloc.id == aggregatedBabies.hat_alloc_id);
     (aggregatedBabies.hat as aggregated_babies[]).forEach(baby_to_append => {
       if(baby_to_append.remaining > 0){  
         let wall_baby_with_same_length = this.babies.find(
@@ -603,6 +627,9 @@ recalculateBank(){
           }];
         }
         this.customer = {...this.customer, babies: [...this.babies]};
+        if(allocation){
+          allocation.remaining_quantity -= baby_to_append.remaining;
+        }
         changes_made = true;
       }
     });

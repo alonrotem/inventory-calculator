@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
-import { Location, NgClass, NgFor, NgIf } from '@angular/common';
+import { DecimalPipe, Location, NgClass, NgFor, NgIf } from '@angular/common';
 import { Country, Currency, RawMaterial, RawMaterialCustomerBank, RawMaterialNameColor, TransactionType } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
 import { RouterLink, RouterOutlet, ActivatedRoute } from '@angular/router';
@@ -23,6 +23,7 @@ import { RawMaterialHistoryDialogComponent } from '../raw-material-history-dialo
 import { UnsavedChangesDialogComponent } from "../../common/unsaved-changes-dialog/unsaved-changes-dialog.component";
 import { StateService } from '../../../services/state.service';
 import { UnsavedNavigationConfirmationService } from '../../../services/unsaved-navigation-confirmation.service';
+import { NumericInputDirective } from '../../../utils/directives/auto-numeric.directive';
 
 
 @Component({
@@ -30,11 +31,11 @@ import { UnsavedNavigationConfirmationService } from '../../../services/unsaved-
   standalone: true,
   imports: [
     RouterModule, FormsModule,
-    DatePipe, NgSelectModule, DateStrPipe,
+    DatePipe, NgSelectModule, DateStrPipe, DecimalPipe,
     FaIconComponent, NgIf, ConfirmationDialogComponent, AutocompleteLibModule,
     RawMaterialCustomerTableComponent, RawMaterialQuantityDialogComponent,
     RawMaterialHistoryDialogComponent, NgClass,
-    UnsavedChangesDialogComponent, NgFor
+    UnsavedChangesDialogComponent, NgFor, NumericInputDirective
 ],
   templateUrl: './raw-material-editor.component.html',
   styleUrl: './raw-material-editor.component.scss'
@@ -152,7 +153,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
   hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
     return this.unsavedNavigationConfirmationService.handle({
       hasChanges: () =>
-        (!this.raw_material_form.pristine || this.customer_table.unsaved_changes),
+        { return (!this.raw_material_form.pristine || this.customer_table.unsaved_changes); },
 
       saveFn: () => this.rawMaterialsService.save(this.rawMaterialItem),
 
@@ -228,9 +229,9 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
             bank_id: b.id, 
             bank_name:b.name, 
             bank_quantity: b.quantity,
+            quantity_in_kg: b.quantity_in_kg,
             customer_id: b.customer_id
           }));
-
           this.recalculateRemaining();
         }
       },
@@ -251,8 +252,13 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
       let added_to_banks_since_last_load = 0;
       this.rawMaterialItem.customer_banks.forEach((bank: RawMaterialCustomerBank) => {
         let initial_bank_data = this.initial_totals_per_bank.find(b => b.bank_id == bank.id);
-        let initial_bank_quantity = (initial_bank_data)? initial_bank_data.bank_quantity : 0 ;
-        added_to_banks_since_last_load += (bank.quantity - initial_bank_quantity);
+        let initial_bank_quantity = (initial_bank_data)? 
+          ((this.rawMaterialItem.quantity_units=="kg")? 
+            ((initial_bank_data.quantity_in_kg)?             
+              initial_bank_data.quantity_in_kg : 0) 
+              : initial_bank_data.bank_quantity) 
+            : 0;
+        added_to_banks_since_last_load += (((this.rawMaterialItem.quantity_units=="kg")? bank.quantity_in_kg : bank.quantity) - initial_bank_quantity);
       });
 
       //purchased/reduced material
@@ -287,18 +293,21 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
         this.rawMaterialItem.customer_banks.forEach(customer_bank => {
           
           let initial_bank_data = this.initial_totals_per_bank.find(b => b.bank_id == customer_bank.id);
-          let initial_bank_quantity = (initial_bank_data)? initial_bank_data.bank_quantity : 0 ;
+          let initial_bank_quantity = (initial_bank_data)? 
+            ((this.rawMaterialItem.quantity_units=="kg")? initial_bank_data.quantity_in_kg : initial_bank_data.bank_quantity)
+            : 0 ;
 
-          counting_quantity -= (customer_bank.quantity-initial_bank_quantity);
+          counting_quantity -= (this.rawMaterialItem.quantity_units=="kg")? (customer_bank.quantity_in_kg - initial_bank_quantity) : (customer_bank.quantity - initial_bank_quantity);
           //this is a new bank, or the quantity has changed
-          if(initial_bank_quantity != customer_bank.quantity){
+          let current_bank_quantity = (this.rawMaterialItem.quantity_units=="kg")? customer_bank.quantity_in_kg : customer_bank.quantity;
+          if(initial_bank_quantity != current_bank_quantity){
             let date = new Date();
             date.setSeconds(date.getSeconds() + artificial_secs);
             customer_bank.transaction_record = {
               id: 0,
               date: date,
               added_by: 1,
-              transaction_quantity: (customer_bank.quantity - initial_bank_quantity),
+              transaction_quantity: (current_bank_quantity - initial_bank_quantity),
               transaction_type: TransactionType.to_customer_bank,
               raw_material_id: this.rawMaterialItem.id,
               customer_id: customer_bank.customer_id,
@@ -427,6 +436,8 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
     }
 
     this.delete_confirmation.confirm.subscribe((value: Boolean) => {
+      this.raw_material_form.form.markAsPristine();
+      this.customer_table.unsaved_changes == false;
       this.rawMaterialsService.deleteRawMaterial(this.rawMaterialItem.id).subscribe(
         {
           next:(data) => {
@@ -441,6 +452,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
         this.recalculateRemaining();
       }
     });
+    this.raw_material_form.form.markAsPristine();
   }
 
   closedQuantityEditor(top_up: number){
@@ -449,7 +461,10 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
 
   recalculateRemaining() {
     //console.log("recalculateRemaining");
-    this.curr_total_in_banks = this.rawMaterialItem.customer_banks.reduce((n, {quantity}) => n + quantity, 0);
+    this.curr_total_in_banks = (this.rawMaterialItem.quantity_units == "kg")? 
+      this.rawMaterialItem.customer_banks.reduce((n, { quantity_in_kg }) => n + quantity_in_kg, 0) :
+      this.rawMaterialItem.customer_banks.reduce((n, { quantity }) => n + quantity, 0);
+
     this.rawMaterialItem.remaining_quantity = this.rawMaterialItem.purchase_quantity - this.curr_total_in_banks;
     this.lock_quantity_control = this.curr_total_in_banks > 0;
     this.insufficient_quantity_for_banks = this.rawMaterialItem.remaining_quantity < 0;
@@ -462,9 +477,12 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
       current_quantity: this.rawMaterialItem.purchase_quantity,
       remaining_quantity: this.rawMaterialItem.remaining_quantity,
       quantity_units: this.rawMaterialItem.quantity_units,
+      current_quantity_kg: 0, // this is just for banks
       max_topping: 0
     };
     this.quantityDialog.dialogWrapper.modalTitle = "+ Top up quantity";
+    this.quantityDialog.rawMaterialQuantityUnits = this.rawMaterialItem.quantity_units;
+    this.quantityDialog.show_units_to_kg_adjustment = false;
     this.quantityDialog.open();
   }
 

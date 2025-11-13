@@ -2,7 +2,7 @@
     <div modalContent>
         <form novalidate #quantityForm="ngForm" [id]="'quantityForm'">
             <div class="row">
-                <div class="col-12">{{ (isNew)? "Create a work allocation" : "Edit work allocation" }} (Max: {{ MaxQuantity }} {{ QuantityUnits }})</div>
+                <div class="col-12">{{ (isNew)? "Create a work allocation" : "Edit work allocation" }} (Max: {{ MaxQuantity | number: ((QuantityUnits=='kg')? '1.2-2':'1.') }} {{ QuantityUnits }})</div>
             </div>
             <div class="row">
                 <div class="col-12 d-flex flex-row align-items-center">
@@ -36,7 +36,9 @@
                     <span style="display: flex; flex-wrap: nowrap; justify-content: flex-start; align-items: center;">
                         <div class="form-floating" style="width: 100%; margin-right: 20px;">
                         <input 
-                            type="number" 
+                            type="text" 
+                            appNumericInput
+                            inputmode="decimal"
                             #allocationQuantity="ngModel" 
                             class="form-control"
                             placeholder="0" 
@@ -53,7 +55,7 @@
                     </span>
                     </div>
                 <div class="text-danger" *ngIf="attemptedClose && CurrentQuantity <= 0">Please enter a valid quantity for this bank</div>
-                <div class="text-danger" *ngIf="CurrentQuantity > MaxQuantity">Not enough material in the bank (max for this allocation: {{ MaxQuantity}})</div>
+                <div class="text-danger" *ngIf="CurrentQuantity > MaxQuantity">Not enough material in the bank (max for this allocation: {{ MaxQuantity | number: '1.0-0' }})</div>
                 </div>
             </div>
             <div class="row">

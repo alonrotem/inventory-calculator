@@ -2,7 +2,7 @@ import { Component, ViewChild } from '@angular/core';
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { TransactionHistoryService } from '../../../services/transaction-history.service';
 import { HistoryReportRecord, RawMaterial, TransactionType } from '../../../../types';
-import { NgFor, NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
+import { DecimalPipe, NgFor, NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
 import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { faArrowsRotate, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -11,7 +11,7 @@ import { ExcelService } from '../../../services/excel.service';
 @Component({
   selector: 'app-raw-material-history-dialog',
   standalone: true,
-  imports: [ ModalDialogComponent, NgFor, NgSwitch, NgSwitchCase, NgIf, DateStrPipe, FaIconComponent, FontAwesomeModule ],
+  imports: [ ModalDialogComponent, NgFor, NgSwitch, NgSwitchCase, NgIf, DateStrPipe, FaIconComponent, FontAwesomeModule, DecimalPipe ],
   templateUrl: './raw-material-history-dialog.component.html',
   styleUrl: './raw-material-history-dialog.component.scss'
 })

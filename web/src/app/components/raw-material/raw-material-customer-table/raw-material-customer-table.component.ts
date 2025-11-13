@@ -16,7 +16,7 @@ import { RawMaterialQuantityDialogComponent } from '../raw-material-quantity-dia
   imports: [
     FaIconComponent, RouterModule, NgFor, NgIf,
     ConfirmationDialogComponent, 
-    RawMaterialCustomerDialogComponent, RawMaterialQuantityDialogComponent ],
+    RawMaterialCustomerDialogComponent, RawMaterialQuantityDialogComponent, DecimalPipe ],
   templateUrl: './raw-material-customer-table.component.html',
   styleUrl: './raw-material-customer-table.component.scss'
 })
@@ -73,6 +73,7 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
         let top_up = this.top_up_dialog.editedObject.top_up_quantity;
         if(top_up > 0) {
           this.topped_up_bank.quantity += top_up;
+          this.topped_up_bank.quantity_in_kg += this.top_up_dialog.editedObject.current_quantity_kg;
           this.topped_up_bank.remaining_quantity += top_up;
         }  
       }
@@ -103,8 +104,10 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   recalculateSums(){
     this.banks_summary_string = "";
     let totalQuantity = this.banks.reduce((acc, cur) => acc + cur.quantity, 0);
+    let totalQuantity_kg = this.banks.reduce((acc, cur) => acc + cur.quantity_in_kg, 0);
     if(totalQuantity > 0) {
-      this.banks_summary_string = totalQuantity + " " + this.parent_raw_material?.quantity_units + 
+      this.banks_summary_string = totalQuantity.toLocaleString('en-US', { minimumFractionDigits:0, maximumFractionDigits:0 }) + " units" + 
+      ((this.parent_raw_material?.quantity_units=="kg")? " (" + totalQuantity_kg.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 }) + " kg)" : "" ) + 
       " of material, used in " + this.banks.length + " customer " + ((this.banks.length == 1)? "bank":"banks");
     }
     else {
@@ -113,6 +116,8 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   }
 
   openCustomerEditor(bank: RawMaterialCustomerBank | null){
+    this.bank_editor.rawMaterialQuantityUnits = this.parent_raw_material!.quantity_units;
+    this.bank_editor.rawMaterialUnitsPerKg = this.parent_raw_material!.units_per_kg;
     if(bank) {
       this.bank_editor.dialogWrapper.modalTitle = "Edit customer bank";
       this.bank_editor.editMode = true;
@@ -129,7 +134,8 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
         customer_id: 0,
         quantity: 0,
         remaining_quantity: 0,
-        quantity_units: (this.parent_raw_material)? this.parent_raw_material.quantity_units : '',
+        quantity_units: 'units',
+        quantity_in_kg: 0,
         transaction_record: null
       };
     }
@@ -153,6 +159,7 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
       bankWithSameCustomerName.raw_material_id = bank.raw_material_id;
       bankWithSameCustomerName.remaining_quantity = bank.remaining_quantity;
       bankWithSameCustomerName.quantity = bank.quantity;
+      bankWithSameCustomerName.quantity_in_kg = bank.quantity_in_kg;
     }
     else {   
       this.banks.push(bank);
@@ -175,13 +182,18 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   top_up(bank :RawMaterialCustomerBank) {
     if(this.parent_raw_material && this.parent_raw_material.remaining_quantity > 0){
       this.top_up_dialog.dialogWrapper.modalTitle = "+ Top up customer bank";
+      this.top_up_dialog.show_units_to_kg_adjustment = (this.parent_raw_material.quantity_units == "kg");
+      this.top_up_dialog.rawMaterialQuantityUnits = this.parent_raw_material.quantity_units;
+      this.top_up_dialog.rawMaterialUnitsPerKg = this.parent_raw_material.units_per_kg;
       this.top_up_dialog.editedObject = {
         top_up_quantity: 0,
         current_quantity: bank.quantity,
+        current_quantity_kg: bank.quantity_in_kg,
         remaining_quantity: bank.remaining_quantity,
         quantity_units: bank.quantity_units,
         max_topping: this.parent_raw_material!.remaining_quantity
       };
+      this.top_up_dialog.rawMaterial_quantity_units = this.parent_raw_material.quantity_units;
       this.topped_up_bank = bank;
       this.top_up_dialog.open();
     }

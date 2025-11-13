@@ -23,6 +23,7 @@
     "@ng-bootstrap/ng-bootstrap": "^16.0.0",
     "@ng-select/ng-select": "^13.4.1",
     "angular-ng-autocomplete": "^2.0.12",
+    "autonumeric": "^4.10.9",
     "bootstrap": "^5.3.3",
     "chart.js": "^4.4.7",
     "chartjs-adapter-date-fns": "^3.0.0",

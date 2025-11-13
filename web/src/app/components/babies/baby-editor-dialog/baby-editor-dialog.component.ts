@@ -1,18 +1,21 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, ViewChild } from '@angular/core';
 import { Baby, ModalDialog } from '../../../../types';
 import { FormBuilder, FormControl, FormGroup, FormsModule, NgForm, NgSelectOption, ReactiveFormsModule, RequiredValidator, Validators } from '@angular/forms';
-import { NgIf } from '@angular/common';
+import { DecimalPipe, NgIf } from '@angular/common';
 import { NgOptionComponent, NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { BabiesLengthPickerComponent } from '../babies-length-picker/babies-length-picker.component';
 import { ToastService } from '../../../services/toast.service';
 import { DialogClosingReason, ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
 import { ModalContentDirective } from '../../common/directives/modal-content.directive';
+import { NumericInputDirective } from '../../../utils/directives/auto-numeric.directive';
 
 @Component({
   selector: 'app-baby-editor-dialog',
   standalone: true,
-  imports: [ FormsModule, NgIf, NgSelectModule, ReactiveFormsModule, BabiesLengthPickerComponent, ModalDialogComponent, ModalContentDirective ],
+  imports: [ 
+    FormsModule, NgIf, NgSelectModule, ReactiveFormsModule, NumericInputDirective,
+    BabiesLengthPickerComponent, ModalDialogComponent, ModalContentDirective, DecimalPipe ],
   templateUrl: './baby-editor-dialog.component.html',
   styleUrl: './baby-editor-dialog.component.scss',
   providers: [
@@ -31,6 +34,8 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
 
   @Input() babies_to_edit: { length: number; quantity: number }[] = [];
   @Input() highlighted_baby_length: number = 0;
+  @Input() units_available: number = 0;
+  highlighted_baby_quantity_before_change: number = 0;
   highlighted_baby_quantity: number = 0;
 
   //[ 5.0, 5.5, 6.0, 6.5, ... 13.0 ]
@@ -119,6 +124,7 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
     //this.console.log("baby info:");
     
     this.highlighted_baby_quantity = (baby_info)? baby_info.quantity: 0;
+    this.highlighted_baby_quantity_before_change = this.highlighted_baby_quantity;
 
     this.quantity.nativeElement.focus();
     //this.quantity.nativeElement.select();
@@ -165,10 +171,14 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
   }
 
   sendit(event:any){
+    if(this.highlighted_baby_quantity > this.units_available + this.highlighted_baby_quantity_before_change)
+      return;
+    
     this.appendBaby.emit({
       length: this.highlighted_baby_length,
       quantity: this.highlighted_baby_quantity
     });
+    this.units_available -= this.highlighted_baby_quantity - this.highlighted_baby_quantity_before_change;
     let baby_to_modify = this.babies_to_edit
       .find(b => b.length == this.highlighted_baby_length);
 

@@ -7,15 +7,15 @@
                 <div class="dynamic-border" (mousedown)="onMouseDown($event)"></div>
             </div>
     </div>
-    <div>{{ totalCapacity }}</div>
+    <div>{{ totalCapacity | number: '1.0-0' }}</div>
 </div>
 <div class="legend-row">
     <div class="fixed-capacity-legend" *ngIf="show_in_use">
-        <strong>In use</strong><br/>
-        {{ materialInUse }}
+        <strong>Allocated</strong><br/>
+        {{ materialInUse  | number: '1.0-0' }}
     </div>
     <div class="dynamic-capacity-legend">
-        <strong>Not in use</strong><br/>
+        <strong>Unallocated</strong><br/>
         {{ ((notInUseCapacity >= 0) ? (notInUseCapacity) : 0) | number: '1.0-0' }}
     </div>
     <div class="capacity-legend">

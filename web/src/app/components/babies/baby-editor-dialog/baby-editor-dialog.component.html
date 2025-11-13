@@ -2,6 +2,7 @@
 <app-modal-dialog #babyEditorDialog>
     <div modalContent>
 <!--<form novalidate #baby_editor_form="ngForm" [formGroup]="babyFormEditor">-->
+    <div class="text-warning">Available units: {{ units_available | number: '1.' }}</div>
     <div class="form-floating">
         <!--
         <ng-select name="length" #length formControlName="length" [formGroup]="babyFormEditor" [clearable]="false" style="display:none">
@@ -23,14 +24,45 @@
         </div>
     </div>
     <div class="form-floating mt-3">
-        <input type="number" class="form-control" placeholder="0" required min="1" #quantity [(ngModel)]="highlighted_baby_quantity" (focus)="$any($event.target).select()" (keyup.enter)="sendit($event)">
+        <!--
+        <input 
+            type="number" 
+            class="form-control" 
+            placeholder="0" 
+            required min="1" 
+            #quantity 
+            [(ngModel)]="highlighted_baby_quantity" 
+            (focus)="$any($event.target).select()" 
+            (keyup.enter)="sendit($event)">
+-->
+                        <input 
+                            #quantity 
+                            type="text" 
+                            [appNumericInput]="{ minimumValue: '0' }"
+                            inputmode="decimal"
+                            
+                            class="form-control"
+                            placeholder="1" 
+                            [(ngModel)]="highlighted_baby_quantity" 
+                            name="highlighted_baby_quantity" 
+                            required="true" 
+                            min="0" 
+                            (focus)="$any($event.target).select()" 
+                            (keyup.enter)="sendit($event)"><!--#highlighted_baby_quantity="ngModel" 
+                            maximumValue:( (units_available > 0 ? units_available : 0) + highlighted_baby_quantity_before_change).toString()-->
+
         <label for="quantity">Quantity</label>
     </div>
+    <div>Maximum: {{ units_available + highlighted_baby_quantity_before_change }}</div>
+    <div *ngIf="highlighted_baby_quantity > units_available + highlighted_baby_quantity_before_change" class="text-danger">Not enough available units. Maximum of {{ units_available | number: '1.' }} + {{ highlighted_baby_quantity_before_change | number: '1.' }} = {{ units_available + highlighted_baby_quantity_before_change | number: '1.' }}</div>
     <!--div class="text-danger" *ngIf="babyFormEditor.get('quantity')?.invalid && (babyFormEditor.get('quantity')?.touched || babyFormEditor.get('quantity')?.dirty || isSubmitted) && (babyFormEditor.get('quantity') && !babyFormEditor.get('quantity')?.value)"> 
         <span>Please enter a valid babies quantity</span>
     </div--> 
-    <div class="text-success d-flex justify-content-center">
+    <div *ngIf="units_available > 0" class="text-success d-flex justify-content-center">
         (Hit Enter to send and move next)
+    </div>
+    <div *ngIf="units_available <= 0" class="bg-danger" style="padding: 10px;">
+        No units available in this allocation to add more babies
     </div>
 <!--</form>-->
 </div>

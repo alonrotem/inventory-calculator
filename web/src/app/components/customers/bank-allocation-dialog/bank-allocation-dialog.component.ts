@@ -4,14 +4,15 @@ import { ModalContentDirective } from '../../common/directives/modal-content.dir
 import { DialogClosingReason, ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
 import { FormsModule, NgForm } from '@angular/forms';
-import { NgClass, NgIf } from '@angular/common';
+import { DecimalPipe, NgClass, NgIf } from '@angular/common';
 import { CapacityBarComponent } from '../../raw-material/capacity-bar/capacity-bar.component';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { NumericInputDirective } from '../../../utils/directives/auto-numeric.directive';
 
 @Component({
   selector: 'app-bank-allocation-dialog',
   standalone: true,
-  imports: [ ModalContentDirective, ModalDialogComponent, FormsModule, NgClass, NgIf, CapacityBarComponent, NgSelectModule  ],
+  imports: [ ModalContentDirective, ModalDialogComponent, FormsModule, NgClass, NgIf, CapacityBarComponent, NgSelectModule, DecimalPipe, NumericInputDirective ],
   templateUrl: './bank-allocation-dialog.component.html',
   styleUrl: './bank-allocation-dialog.component.scss',
   providers: [{

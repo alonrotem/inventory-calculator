@@ -34,7 +34,9 @@
         </td>
         <td>{{ rawMaterial.purchased_at | dateStr }}</td>
         <td>
-          {{ rawMaterial.purchase_quantity }} {{ rawMaterial.quantity_units }} ({{rawMaterial.remaining_quantity}} left)
+          {{ rawMaterial.purchase_quantity | number: ((rawMaterial.quantity_units=='kg')? ('1.2-2'): ('1.0')) }} 
+          {{ rawMaterial.quantity_units }} 
+          ({{ rawMaterial.remaining_quantity | number: ((rawMaterial.quantity_units=='kg')? ('1.2-2'): ('1.0')) }} left)
         </td>
         <td>{{ rawMaterial.updated_at | dateStr }}</td>
         <td>{{ rawMaterial.updated_by }}</td>

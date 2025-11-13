@@ -42,6 +42,10 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
 
   allocation_wall_babies: Allocation_Baby[] = [];
   allocation_crown_babies: Allocation_Baby[] = [];
+  total_missing_babies: number = 0;
+  total_missing_babies_wall: number = 0;
+  total_missing_babies_crown: number = 0;
+  sufficient_babies_in_allocations: boolean = false;
 
   calculating: boolean = false;
   not_enough_data: boolean = false;
@@ -118,7 +122,6 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
       });
     }
   }
-
 
   //aggregate the wings with their babies
   formatWingCalculationItemsAsWings(wingShortInfo: ShortWingsInfo[]){
@@ -447,6 +450,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     openAdviseTable() {
+      console.dir(this.wall_allocation);
       this.advisor_dialog.open();
     }
 
@@ -476,6 +480,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     helpCreateHat(){
+      console.dir(this.wall_allocation);
       if(this.systemWings.length == 1){
         this.assistant_selected_wing_id = this.systemWings[0].id;
       }
@@ -489,6 +494,10 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     assistant_recalculate () {
+      this.total_missing_babies = 0;
+      this.total_missing_babies_wall = 0;
+      this.total_missing_babies_crown = 0;
+      this.sufficient_babies_in_allocations = false;
       if(this.assistant_selected_wing_id && this.assistant_selected_wing_id > 0){
         let wing = this.systemWings.find(w => w.id == this.assistant_selected_wing_id);
         if(wing){
@@ -509,14 +518,30 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
             let total_needed_per_hat = wing_baby_info.quantity //number of babies in this length required per hat
             let total_for_all_hats = total_needed_per_hat * this.assistant_num_of_hats;
             wing_baby_info.remaining = Math.max(total_for_all_hats - wing_baby_info.quantity_in_allocation, 0);
+            this.total_missing_babies += wing_baby_info.remaining;
+            this.total_missing_babies_wall += wing_baby_info.remaining;
           });
           this.assistant_aggregated_crown_babies.forEach(wing_baby_info => {
             let total_needed_per_hat = wing_baby_info.quantity //number of babies in this length required per hat
             let total_for_all_hats = total_needed_per_hat * this.assistant_num_of_hats;
             wing_baby_info.remaining = Math.max(total_for_all_hats - wing_baby_info.quantity_in_allocation, 0);
+            this.total_missing_babies += wing_baby_info.remaining;
+            this.total_missing_babies_crown += wing_baby_info.remaining;
           });
         }
-      }      
+      }
+      //2 different allocations
+      if(this.wall_allocation && this.crown_allocation && this.wall_allocation.id != this.crown_allocation.id){
+        if(this.total_missing_babies_crown <= this.crown_allocation.remaining_quantity &&
+          this.total_missing_babies_wall <= this.wall_allocation.remaining_quantity) {
+            this.sufficient_babies_in_allocations = true;
+          }
+      }
+      else {
+        if(this.wall_allocation && this.total_missing_babies <= this.wall_allocation.remaining_quantity){
+          this.sufficient_babies_in_allocations = true;
+        }
+      }
     }
 
     assistant_add_babies() {

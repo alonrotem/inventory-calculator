@@ -32,6 +32,7 @@ RUN node --version && npm --version
 # ===============
 
 RUN npm install -g @angular/cli@latest
+RUN npm config set legacy-peer-deps true
 RUN npm install --force
 # RUN ng analytics off
 
