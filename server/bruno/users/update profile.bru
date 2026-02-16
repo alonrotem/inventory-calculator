@@ -1,0 +1,28 @@
+meta {
+  name: update profile
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{romtech_server}}/users/send-code
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "email_address": "alrotem@gmail.com"
+  }
+}
+
+script:post-response {
+  if(res.body.access_token) {
+    bru.setVar("auth_token", res.body.access_token);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

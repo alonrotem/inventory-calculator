@@ -106,9 +106,9 @@
  <hr  style="margin: 30px 0px;" />
  <div class="allocation-area">
       <div>
-        <strong><span class="icon-babies" style="margin-right:10px;"></span>Babies work allocation #{{ bank_allocation.id }}:</strong>
+        <strong><span class="icon-babies" style="margin-right:10px;"></span>Babies work allocation {{ ((bank_allocation.id <= 0)? '(unsaved allocation)': ('#' + bank_allocation.id)) }}:</strong>
           <div>{{ bank_allocation.quantity  | number: '1.' }} {{ raw_material_quantity_units }} in allocation, {{ (babies | filter: "allocation_id" : bank_allocation.id) | sum: 'quantity' | number: '1.' }} babies cut.</div>
-          <div>{{ (bank_allocation.quantity - ((babies | filter: "allocation_id" : bank_allocation.id) | sum: 'quantity')) | number: '1.' }} available.</div>
+          <div *ngIf="customer_banks_babies_reduce_from_allocation">{{ (bank_allocation.quantity - ((babies | filter: "allocation_id" : bank_allocation.id) | sum: 'quantity')) | number: '1.' }} available.</div>
         <div class="allocation-action-buttons">
           <button class="btn btn-warning" (click)="open_allocation_dialog(bank_allocation.id)">
             <fa-icon [icon]="faPencil"></fa-icon>
@@ -163,7 +163,7 @@
                 <th scope="col">Length</th>
                 <th scope="col">Quantity</th>
                 <th scope="col">In orders</th>
-                <th scope="col" class="text-center">Remove</th>
+                <th *ngIf="(user$ | async) | hasPermission: [{area: 'bank_baby_management', permission: 'D'}]" scope="col" class="text-center">Remove</th>
               </tr>
             </thead>
             <tbody>
@@ -174,7 +174,7 @@
                 <td (click)="open_babies_dialog(bank_allocation.id, baby.length)">{{ baby.length | number : '1.1-1' }} cm</td>
                 <td (click)="open_babies_dialog(bank_allocation.id, baby.length)">{{ baby.quantity | number: '1.' }}</td>
                 <td (click)="open_babies_dialog(bank_allocation.id, baby.length)">{{ baby.quantity_in_pending_orders | number: '1.' }}</td>
-                <td class="text-center" style="cursor: pointer;" [attr.title]="(baby.quantity_in_pending_orders == 0)? 'Delete this baby': 'Cannot delete this baby (included in orders)'"><fa-icon *ngIf="baby.quantity_in_pending_orders == 0" class="text-danger" [icon]="faTrashCan" (click)="delete_baby(baby.id)"></fa-icon></td>
+                <td *ngIf="(user$ | async) | hasPermission: [{area: 'bank_baby_management', permission: 'D'}]" class="text-center" style="cursor: pointer;" [attr.title]="(baby.quantity_in_pending_orders == 0)? 'Delete this baby': 'Cannot delete this baby (included in orders)'"><fa-icon *ngIf="baby.quantity_in_pending_orders == 0" class="text-danger" [icon]="faTrashCan" (click)="delete_baby(baby.id)"></fa-icon></td>
               </tr>
                 </ng-container>
             </tbody>
@@ -186,11 +186,11 @@
         <div><fa-icon [icon]="faTriangleExclamation" size="2x"></fa-icon></div>
         <div>No babies in this allocation</div>
       </div>
-      <div style="display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: center; align-items: center;">
+      <div *ngIf="(user$ | async) | hasPermission: [{area: 'bank_baby_management', permission: 'C'}]" style="display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: center; align-items: center;">
         <button class="btn btn-primary" style="width: 50%; padding: 2px 0px;" (click)="open_babies_dialog(bank_allocation.id, -999)">+ Add/Top-up babies</button>
       </div>
       <!--to-->
-      <div *ngIf="show_hat_advisor" class="row">
+      <div *ngIf="show_hat_advisor && customer.allow_calculation_advisor" class="row">
         <app-order-advisor 
           #order_advisor
           [show_options_button]="advisor_show_options_button"

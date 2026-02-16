@@ -1,0 +1,63 @@
+:host {
+    flex-grow: 1;
+    display: flex;
+}
+
+.forbidden-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.forbidden-container .banner-img { 
+    width: 430px;
+}
+
+h2 {
+    text-align: center;
+    text-shadow: 0px 0px 20px #000000;
+}
+
+.gohome {
+    margin-top: 25px;
+    justify-items: center;
+}
+
+.gohome a {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    font-weight: 700;
+    font-size: 23px;
+}
+
+.gohome img {
+    height: 27px;
+    margin-right: 10px;
+}
+
+.lower-text {
+    position: relative;
+    top: -30px;
+}
+/*
+@media screen and (mix-width: 768px) and (max-width: 992px) {
+    .icon-fox-hiding, .num4 {
+        font-size: 200px;
+        line-height: 200px;
+    }
+}
+*/
+@media screen and (max-width: 768px) {
+    .forbidden-container .banner-img { 
+        width: 300px;
+    }
+
+    .lower-text {
+        position: relative;
+        top: -20px;
+    }
+}
+

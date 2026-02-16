@@ -1,0 +1,34 @@
+.ng-select {
+    min-width: 300px;
+}
+
+.picked-customers-container {
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.customer {
+    border: 1px solid;
+    border-radius: var(--bs-border-radius);
+    padding: 0px 7px;
+    margin-right: 10px;
+    background-color: #FFEC82;
+    color: black;
+}
+
+.customer button {
+    padding: 6px;
+    color: #C83019;
+}
+
+.customer:hover {
+    background-color: #F3E076;
+}
+
+.customer:hover button{
+    color: #530000;
+}

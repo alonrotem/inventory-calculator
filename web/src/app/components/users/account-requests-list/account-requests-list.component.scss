@@ -1,0 +1,33 @@
+
+:host {
+    flex: 1 1 auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+
+h1 {
+    margin-top: 20px;
+}
+
+
+.infotitle {
+    margin: 20px 0px;
+}
+
+.status-pending {
+    color: var(--bs-warning);
+    text-transform: capitalize;
+}
+
+.status-approved {
+    color: var(--bs-success);
+    text-transform: capitalize;
+}
+
+.status-declined {
+    color: var(--bs-danger);
+    text-transform: capitalize;
+}

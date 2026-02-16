@@ -1,27 +1,35 @@
 const express = require("express");
 const cors = require("cors");
-const config = require("./config");
+const cookieParser = require('cookie-parser');
 const { logger, end_logger } = require("./logger");
 const os = require('os');
 const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+const config = require("./config");
+//const email= require("./services/email");
 
 const app = express();
 let server = null;
-app.use(cors());
 
+app.set('trust proxy', true);
+app.use(cookieParser());
+app.use(cors({ 
+  origin: [
+    'http://localhost:4200', 
+    'https://localhost:3000', 
+    'http://localhost:3000', 
+    'https://romtech.duckdns.org'
+  ], 
+  credentials: true
+}));
+
+
+/*
+let addresss = "lajasvjb@sharklasers.com";
+let isValid = email.validateAddress(addresss);
+console.log("Email " + addresss + " valid status: " + isValid);
+*/
 const port = 3000;
-const rawMaterialsRouter = require("./routes/raw_materials");
-const currenciesRouter = require("./routes/currencies");
-const countriessRouter = require("./routes/countries");
-const infoRouter = require("./routes/info");
-const wingsRouter = require("./routes/wings");
-//const hatsRouter = require("./routes/hats");
-const ordersRouter = require("./routes/orders");
-const customersRouter = require("./routes/customers");
-const transaction_historyRouter = require("./routes/transaction_history");
-const backupRouter = require("./routes/backup");
-const settingsRouter = require("./routes/settings");
-const systemlogsRouter = require("./routes/systemlogs");
 
 app.use(express.json());
 app.use(
@@ -32,6 +40,7 @@ app.use(
 
 // 1. Serve Angular static files
 app.use(config.hats_pictures_path, express.static(config.hatsUploadDir));
+app.use(config.user_pictures_path, express.static(config.userUploadDir));
 if(os.hostname != config.prod_server_hostname) {
   app.get("/", (req, res) => {
     res.json({ message: "Server is up on port "+ port +"!" });
@@ -42,17 +51,18 @@ else {
 }
 
 // 2. API routes
-app.use("/raw_materials", rawMaterialsRouter);
-app.use("/currencies", currenciesRouter);
-app.use("/countries", countriessRouter);
-app.use("/info", infoRouter);
-app.use("/wings", wingsRouter);
-app.use("/orders", ordersRouter);
-app.use("/customers", customersRouter);
-app.use("/transaction_history", transaction_historyRouter);
-app.use("/backup", backupRouter);
-app.use("/settings", settingsRouter);
-app.use("/systemlogs", systemlogsRouter);
+app.use("/raw_materials", require("./routes/raw_materials"));
+app.use("/currencies", require("./routes/currencies"));
+app.use("/countries", require("./routes/countries"));
+app.use("/info", require("./routes/info"));
+app.use("/wings", require("./routes/wings"));
+app.use("/orders", require("./routes/orders"));
+app.use("/customers", require("./routes/customers"));
+app.use("/transaction_history", require("./routes/transaction_history"));
+app.use("/backup", require("./routes/backup"));
+app.use("/settings", require("./routes/settings"));
+app.use("/systemlogs", require("./routes/systemlogs"));
+app.use("/users", require("./routes/users"));
 
 // 3. Catch-all: send Angular index.html for non-API routes
 app.get('*', (req, res) => {
@@ -91,6 +101,10 @@ process.on('SIGINT', () => {
       await new Promise(resolve => setTimeout(resolve, 5000));
     });
   }
+});
+
+process.on('uncaughtException', function (err) {
+  logger.error(`CAUGHT UNHANDLED SERVER EXCEPTION: ${err}`);
 });
 
 server = app.listen(port, () => {

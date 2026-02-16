@@ -9,12 +9,31 @@ const config = require('../config');
 const path = require('path');
 const fs = require("fs");
 const { logger } =  require('../logger');
+const auth_request = require('../middleware/auth_request');
 
 // Set up multer for file upload (store in memory or disk)
 const storage = multer.memoryStorage(); // Store file in memory buffer
 const upload = multer({ storage: storage });
 
-router.get('/zip', async function(req, res, next) {
+function add_all_files_in_folder_to_zip(zip, local_dir, relative_path_in_zip) {
+    const fileList = fs.readdirSync(local_dir);
+    fileList.forEach((file) => {
+      const filePath = path.join(local_dir, file);
+      const pathInZip = path.join(relative_path_in_zip, file)
+        .replaceAll(path.sep, path.posix.sep)
+        .replace(/^\/+/g, '');
+  
+      try {
+        const fileData = fs.readFileSync(filePath); // Read binary file
+        zip.file(pathInZip, fileData); // Add to ZIP
+      } 
+      catch (err) {
+        logger.error(`Error reading ${file}: ${err}`);
+      }
+    });
+}
+
+router.get('/zip', auth_request([{requiredArea: 'backup', requiredPermission:'R'}]) ,async function(req, res, next) {
   try {
     logger.info(`get /backup/zip/filename=${req.query.filename}&keep_existing_records=${req.query.keep_existing_records}`);
     let host = req.headers.host.split(":")[0];
@@ -28,22 +47,9 @@ router.get('/zip', async function(req, res, next) {
     const zip = new JSZip();
     zip.file('backup.sql', inserts);
     zip.file('hostname.txt', host); //check if we are on prod or dev
+    add_all_files_in_folder_to_zip(zip, config.hatsUploadDir, config.hats_pictures_path);
+    add_all_files_in_folder_to_zip(zip, config.userUploadDir, config.user_pictures_path);
 
-    const fileList = fs.readdirSync(config.hatsUploadDir);
-    fileList.forEach((file) => {
-      const filePath = path.join(config.hatsUploadDir, file);
-      const pathInZip = path.join(config.hats_pictures_path, file)
-        .replaceAll(path.sep, path.posix.sep)
-        .replace(/^\/+/g, '');
-  
-      try {
-        const fileData = fs.readFileSync(filePath); // Read binary file
-        zip.file(pathInZip, fileData); // Add to ZIP
-      } 
-      catch (err) {
-        logger.error(`Error reading ${file}: ${err}`);
-      }
-    });
     const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
 
     res.setHeader('Content-disposition', 'attachment; filename=' + backup_file_name);
@@ -58,8 +64,7 @@ router.get('/zip', async function(req, res, next) {
   }
 });
 
-
-router.post('/', upload.single('file'), async (req, res) => {
+router.post('/', auth_request([{requiredArea:'backup', requiredPermission:'C'}]), upload.single('file'), async (req, res) => {
   logger.info(`post /backup/`);
 
   try {
@@ -93,12 +98,12 @@ router.post('/', upload.single('file'), async (req, res) => {
           }
         } 
         else {
-          const filePath = path.join(path.resolve('.'), filename);
+          const filePath = path.join(__dirname, "..", filename);
           let outputDir = "";
           let pathParts = filename.split(path.posix.sep);
           if(pathParts.length > 1){
             pathParts.splice(pathParts.length-1, 1);
-            outputDir = path.join(path.resolve('.'), pathParts.join(path.posix.sep));
+            outputDir = path.join(__dirname, "..", pathParts.join(path.posix.sep));
           }
           if ((outputDir) && !fs.existsSync(outputDir)) {
               fs.mkdirSync(outputDir, { recursive: true });
@@ -116,7 +121,7 @@ router.post('/', upload.single('file'), async (req, res) => {
     } 
     catch (error) {
       logger.error(`Error restoring backup: ${error}`);
-      res.status(500).json({ error: "Error restoring backup!" });
+      res.status(500).json({ message: "Error restoring backup!" });
     }
   } 
   catch (error) {

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnInit, viewChild, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, viewChild, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { WingsService } from '../../../services/wings.service';
@@ -121,6 +121,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   @ViewChild("order_wing_adjustment") order_wing_adjustment!: ModalDialogComponent;
   @ViewChild("advisor") advisor!: OrderAdvisorComponent;
   @ViewChild("crown_editor_dialog") crown_editor_dialog! :ModalDialogComponent;
+  @ViewChild("knife_selector") knife_selector! :NgSelectComponent;
   is_wing_customized: boolean = false;
   faArrowsRotate: IconDefinition = faArrowsRotate;
   faArrowLeft: IconDefinition = faArrowLeft;
@@ -148,19 +149,34 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   min_knife:number = 4;
   max_knife:number = 12.5;
   knife_steps: number = 0.5;
+  /*
   arr_knives: number[] = Array(
     (this.max_knife - this.min_knife)*2+1)
     .fill(this.min_knife)
     .map((_,i) => _ + i * this.knife_steps);
+  */
+   arr_knives = Array((this.max_knife - this.min_knife) * ( 1/this.knife_steps) + 1)
+    .fill(this.min_knife).map((_,i) => { 
+      return { 
+        cm: ((_ + i * this.knife_steps) ),
+        inches: ((_ + i * this.knife_steps) * this.cm_to_inch), 
+      }
+    }
+  );
   wing_knife: number = 0;
   
   min_wing_total_height:number = 15;
   max_wing_total_height:number = 30;
   wing_height_steps: number = 0.5;
-  arr_wing_total_height: number[] = Array(
-    (this.max_wing_total_height - this.min_wing_total_height)*2+1)
-    .fill(this.min_wing_total_height)
-    .map((_,i) => _ + i * this.wing_height_steps);
+  arr_wing_total_height = Array((this.max_wing_total_height - this.min_wing_total_height) * ( 1/this.wing_height_steps) + 1)
+    .fill(this.min_wing_total_height).map((_,i) => { 
+      return { 
+        cm: ((_ + i * this.wing_height_steps) ),
+        inches: ((_ + i * this.wing_height_steps) * this.cm_to_inch),
+        disabled: false
+      }
+    }
+  );
   wing_total_height: number = 0;
 
   min_height_for_wing:number = 0;
@@ -169,10 +185,21 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   min_kippa:number = 51;
   max_kippa:number = 61;
   kippa_steps: number = 0.5;
+  /*
   arr_kippa: number[] = Array(
     (this.max_kippa - this.min_kippa)*2+1)
     .fill(this.min_kippa)
     .map((_,i) => _ + i * this.kippa_steps);
+  */
+  arr_kippa = Array((this.max_kippa - this.min_kippa) * ( 1/this.kippa_steps) + 1)
+    .fill(this.min_kippa).map((_,i) => { 
+      return { 
+        cm: ((_ + i * this.kippa_steps) ),
+        inches: ((_ + i * this.kippa_steps) * this.cm_to_inch),
+        disabled: false
+      }
+    }
+  );
 
   min_diameter:number = 11.5;
   max_diameter:number = 16.5;
@@ -272,7 +299,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     private ordersService: OrdersService,
     router: Router, 
     stateService: StateService,
-    toastService: ToastService      
+    toastService: ToastService     
   ) {
     super(toastService, stateService, router);
     this.showNavigationToastIfMessagePending();
@@ -853,12 +880,11 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   Total height changed -> calculate knife: total height - (L1 + C1)
   */
 
-  knife_changed(new_knife: string){
-    if(this.customerHat && this.customerHat.wing){
-      this.wing_knife = Number(new_knife);
-      this.customerHat.wing.knife = this.wing_knife;
-
-      this.recalculate_hat_size();
+  knife_changed(){
+    console.dir();
+    if(this.customerHat.wing && this.knife_selector.selectedValues.length > 0){
+     this.customerHat.wing.knife = this.knife_selector.selectedValues[0].cm;
+     this.recalculate_hat_size();
     }
   }
 
@@ -873,6 +899,16 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         this.wing_total_height += (L1_len + C1_len);
         this.min_height_for_wing = (this.min_knife + L1_len + C1_len);
         this.max_height_for_wing = (this.max_knife + L1_len + C1_len);
+
+        this.console.log("min: " + this.min_height_for_wing + "cm");
+        this.console.log("max: " + this.max_height_for_wing + "cm");
+        this.arr_wing_total_height.forEach(h => {
+          h.disabled = (h.cm < this.min_height_for_wing || h.cm > this.max_height_for_wing);
+        });
+        this.arr_wing_total_height =
+          this.arr_wing_total_height.map(item => ({
+            ...item
+          }));
       }
     }
   }  

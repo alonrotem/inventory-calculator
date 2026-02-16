@@ -3,12 +3,12 @@
 
     <app-summary-card />
 
-    <app-raw-material-chart 
+    <app-raw-material-chart *ngIf="(user$ | async) | hasPermission: [{area: 'raw_materials', permission: 'R'}]"
         [raw_material_quantity_units]="'kg'"
         [color]="'green'"
     />
 
-    <app-raw-material-chart 
+    <app-raw-material-chart *ngIf="(user$ | async) | hasPermission: [{area: 'raw_materials', permission: 'R'}]"
         [raw_material_quantity_units]="'units'"
         [color]="'#11A8CD'"
     />

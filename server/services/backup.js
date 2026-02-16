@@ -2,25 +2,48 @@ const db = require('./db');
 const mysql = require('mysql2');
 const helper = require('../helper');
 
-const tables = [
-    'customers',
-    'material_colors',
-    'raw_materials',
-    'customer_banks',
-    'customer_banks_babies',        //old table
-    'customer_banks_allocations',   //new table
-    'babies',                       //old table
-    'allocation_babies',            //new table
-    'transaction_history',
-    'wings',
-    'wings_babies',
-    'customer_hats',
-    'hats_wings',
-    'orders',
-    'orders_status',
-    'settings'
-];
+function escapeForScript(value) {
+  if (value === null || value === undefined) {
+    return 'NULL';
+  }
+  
+  if (typeof value === 'number') {
+    return isFinite(value) ? String(value) : 'NULL';
+  }
+  
+  if (typeof value === 'boolean') {
+    return value ? '1' : '0';
+  }
+  
+  if (typeof value === 'string') {
+    return "'" + value.replace(/'/g, "''") + "'";
+  }
+  
+  if (value instanceof Date) {
+    return "'" + value.toISOString().slice(0, 19).replace('T', ' ') + "'";
+  }
+  
+  if (Buffer.isBuffer(value)) {
+    return "X'" + value.toString('hex') + "'";
+  }
+  
+  return escapeForScript(value);//mysql.escape(value);
+}
 
+async function get_all_table_names(){
+    const tables_recs = helper.emptyOrRows(await db.query(
+        `select t.TABLE_NAME 
+            from information_schema.TABLES t 
+        where 
+            table_schema<>'mysql' 
+            and table_schema not like '%_schema' 
+            and table_schema<>'sys' 
+        order by table_name;`));
+    if(!helper.isEmptyObj(tables_recs)){
+        return tables_recs.map(table => table["TABLE_NAME"]);
+    }
+    return [];
+}
 
 async function get_table_info(table_name){
     const table_info = await db.query(`SHOW COLUMNS FROM ${table_name};`);
@@ -64,7 +87,7 @@ function construct_queries(table_name, table_info, records, keep_existing_record
                         table_info[col].Type.indexOf("varchar") == 0 || 
                         table_info[col].Type.indexOf("enum") == 0
                     ) {
-                        values += mysql.escape(current_rec_value);
+                        values += escapeForScript(current_rec_value);//mysql.escape(current_rec_value);
                     }
                     else if (table_info[col].Type.toString().toLowerCase().startsWith("decimal")) { 
                         values += current_rec_value;
@@ -139,18 +162,20 @@ async function create_table_backup_statement(table_name, keep_existing_records=f
 //https://stackoverflow.com/a/18471193
 async function get_backup(keep_existing_records) {
        
-    const statements =
-        "use inventory;\nSET @delete_records=" + (!(Boolean(keep_existing_records))).toString().toUpperCase() + ";\n\n";
+    let statements =
+        "use inventory;\nSET FOREIGN_KEY_CHECKS = 0;\nSET @delete_records=" + (!(Boolean(keep_existing_records))).toString().toUpperCase() + ";\n\n";
     let deletes = '# ========== DELETES ==========\n\n';
-    let inserts = '# ========== INSERTS ==========\n\n';;
-    
+    let inserts = '# ========== INSERTS ==========\n\n';;  
+
+    const tables = await get_all_table_names();
     for (const table of tables) {
         let queries = await create_table_backup_statement(table, keep_existing_records);
         deletes += queries.title + queries.deletes;
         inserts += queries.title + queries.inserts;
     }   
 
-    return statements + deletes + inserts;
+    statements += deletes + inserts + "\nSET FOREIGN_KEY_CHECKS = 1;\n"
+    return statements;
 }
 
 async function clean_table(table_name){
@@ -171,6 +196,8 @@ async function restore_backup(backup_sql, cleanup){
     else {
         if(cleanup) {
             //manually cleanup before running the restore
+
+            const tables = await get_all_table_names();
             tables.forEach(async (table) => {
                 await clean_table(table);
             });

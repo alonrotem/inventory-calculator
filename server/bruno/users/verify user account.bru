@@ -1,0 +1,28 @@
+meta {
+  name: verify user account
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{romtech_server}}/users/verify-user-account-code
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "code": "XBMV9L"
+  }
+}
+
+script:post-response {
+  if(res.body.access_token) {
+    bru.setVar("auth_token", res.body.access_token);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

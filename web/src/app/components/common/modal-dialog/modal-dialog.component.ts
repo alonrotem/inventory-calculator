@@ -43,6 +43,7 @@ export class ModalDialogComponent implements ModalDialog {
   @Input() reverseButtons: boolean = false;
   modal_content_close_subscription:any;
   isOpen : boolean = false;
+  @Input() canClose?: () => boolean; //an optional function to override closing on confirm
   
   @ContentChild(ModalContentDirective) dialogContentComponent!: ModalContentDirective;
 
@@ -99,11 +100,18 @@ export class ModalDialogComponent implements ModalDialog {
   }
 
   onConfirm() {
+    console.log("onConfirm");
     if(this.dialogContentComponent)
     {
       let okToClose = this.dialogContentComponent.beforeClose(DialogClosingReason.confirm);
       if(!okToClose)
       {
+        return;
+      }
+    }
+    if(this.canClose){
+      let okToClose = this.canClose();
+      if(!okToClose){
         return;
       }
     }

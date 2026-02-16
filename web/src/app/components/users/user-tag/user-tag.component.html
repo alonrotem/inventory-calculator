@@ -1,0 +1,13 @@
+<a [attr.href]="(user_id > 0)? 'users/'+ user_id : null">
+    <div class="tag horizontal">
+        <div class="user-initials">
+            <span *ngIf="!photo_url">{{ getInitials() }}</span>
+            <img *ngIf="photo_url" [src]="(photo_url)? (environment.serverUrl  + photo_url) : ''" />
+        </div>
+        <div *ngIf="firstname">{{ firstname }}</div>
+        <div *ngIf="lastname">{{ lastname }}</div> 
+        <div *ngIf="email">({{ email }})</div> 
+    </div>
+</a>
+
+

@@ -1,10 +1,15 @@
 <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
     <div class="container-fluid">
       <a class="navbar-brand" routerLink=""><div class="navbar-logo"></div></a>
-      <app-hamburger #hamburger />
+      
+      <div class="ms-auto d-flex align-items-center order-lg-last">
+      <app-user-menu />
+      <app-hamburger #hamburger *ngIf="(user$ | async) as user" />
+      </div>
+
       <div class="collapse navbar-collapse" id="navbarSupportedContent" #navbarToggler>
-        <ul class="ms-auto navbar-nav mb-2 mb-lg-0">
-          <li class="nav-item">
+        <ul [ngClass]="'ms-auto navbar-nav mb-2 mb-lg-0' + ((user$ | async)?'' :' d-none')">
+          <li class="nav-item" *ngIf="(user$ | async) | hasPermission: [{area: 'raw_materials', permission: 'R'}]">
             <a class="nav-link" aria-current="page" routerLink="inventory/raw"  [ngClass]="(currentUrl.indexOf('/inventory/raw') >= 0) ? 'active': ''"><span class="icon-home"></span> Raw materials</a>
           </li>
           <!--
@@ -13,7 +18,7 @@
           </li>
           -->
           
-          <li class="nav-item dropdown">
+          <li class="nav-item dropdown" *ngIf="(user$ | async) | hasPermission: [{area: 'customers', permission: 'R'}, {area: 'customer_resources_by_customer_id', permission: 'R'}]">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" [ngClass]="(currentUrl.indexOf('/inventory/') >= 0) ? 'active': ''">
               Sales
             </a>
@@ -22,14 +27,26 @@
               <!--<li><hr class="dropdown-divider"></li>-->
               <li><a class="dropdown-item" [routerLink]="'inventory/customer/orders'" [ngClass]="(currentUrl.indexOf('/inventory/customer/orders') >= 0) ? 'active': ''"><fa-icon [icon]="faBasketShopping"></fa-icon> Orders</a></li>
             </ul>
-          </li>          
+          </li>
 
-          <li class="nav-item">
+          <li class="nav-item" *ngIf="(user$ | async) | hasPermission: [{area: 'wings', permission: 'R'}]">
             <a class="nav-link" aria-current="page" routerLink="templates/wings"  [ngClass]="(currentUrl.indexOf('/templates/wings') >= 0) ? 'active': ''"><span class="icon-home"></span> Wings</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" aria-current="page" routerLink="/settings"  [ngClass]="(currentUrl.indexOf('/settings/') >= 0) ? 'active': ''"><span class="icon-home"></span> System</a> <!--active-->
-          </li>
+
+
+
+          <li class="nav-item dropdown" *ngIf="(user$ | async) | hasPermission: [{area: 'system_settings', permission: 'R'}]">
+            <a class="nav-link dropdown-toggle" hrkef="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" [ngClass]="(currentUrl.indexOf('/settings/') >= 0) ? 'active': ''">
+              System
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" routerLink="/settings/system" [ngClass]="(currentUrl.indexOf('/settings/system') >= 0) ? 'active': ''"><fa-icon [icon]="faGears"></fa-icon> Settings</a></li>
+              <li><a class="dropdown-item" [routerLink]="'/settings/users'" [ngClass]="(currentUrl.indexOf('/settings/users') >= 0) ? 'active': ''" *ngIf="(user$ | async) | hasPermission: [{area: 'user_management', permission: 'R'}]"><span class="icon-address-book"></span> Users</a></li>
+            </ul>
+          </li>          
+          
+          
+          
           <!--          
           <li class="nav-item">
             <a class="nav-link disabled" aria-disabled="true">Disabled</a>
@@ -38,6 +55,10 @@
           <li>
             <app-theme-selector />
           </li>
+          
+          <!-- USER 
+          <app-user-menu />
+          /USER-->
         </ul>
         <form class="d-flex d-none" role="search">
           <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">

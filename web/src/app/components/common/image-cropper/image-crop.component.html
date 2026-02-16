@@ -1,0 +1,81 @@
+<app-modal-dialog 
+    #image_adjust_modal
+    [modalTitle]="'Adjust image'"
+    [btnSaveClass]="'d-none'"
+    [btnCancelText]="'Close'"
+    [btnCancelClass]="'btn-primary'"
+    (cancel)="newImageLoaded()">
+    <div class="controls" *ngIf="imageChangedEvent">
+      <div class="zoom-controls">
+        <button class="btn btn-outline-info" (click)="zoomOut()" [disabled]="zoomLevel <= minZoom">
+          <fa-icon [icon]="faMagnifyingGlassMinus"></fa-icon>
+        </button>
+        <input 
+          type="range" 
+          [min]="minZoom" 
+          [max]="maxZoom" 
+          [step]="0.05" 
+          [value]="zoomLevel"
+          (input)="onZoomChange(+$any($event.target).value)"
+          class="form-range"
+        />
+        <button class="btn btn-outline-info" (click)="zoomIn()" [disabled]="zoomLevel >= maxZoom">
+          <fa-icon [icon]="faMagnifyingGlassPlus"></fa-icon>
+        </button>
+        <button class="btn btn-outline-info" (click)="resetZoom()">
+          <fa-icon [icon]="faCrop"></fa-icon>
+        </button>
+      </div>
+      <div class="zoom-value">
+          {{ (zoomLevel * 100).toFixed(0) }}%
+      </div>
+    </div>
+
+    <image-cropper
+      *ngIf="imageChangedEvent"
+      [imageChangedEvent]="imageChangedEvent"
+      [maintainAspectRatio]="true"
+      [aspectRatio]="1 / 1"
+      [roundCropper]="true"
+      [transform]="transform"
+      format="png"
+      (imageCropped)="imageCropped($event)"
+      (imageLoaded)="imageLoaded($event)"
+      (cropperReady)="cropperReady()"
+      (loadImageFailed)="loadImageFailed($event)"
+      #cropper>
+    </image-cropper>
+</app-modal-dialog>
+
+
+<div class="image-container" [class.dragging]="isDragging">
+    <div class="instructions">
+        Drag a picture or click below
+    </div>
+    <div class="main-image-container">
+        <div *ngIf="!croppedImage" class="main-image-message main-image-container-overlay">
+            <span class="text-warning">No picture</span><br/>
+            Drag a file here<br/>
+            or click to choose a file
+        </div>
+        <img class="main-image" [src]="croppedImage" />
+        <input 
+            type="file" 
+            (change)="fileChangeEvent($event)" 
+            accept="image/*" 
+            id="fileInput"
+            #fileInput
+            class="main-image-container-overlay file-selector"
+            />
+        <div class="main-image-overlay-browse-icon">
+            <fa-icon [icon]="faFolderOpen" class="text-success"></fa-icon>
+        </div>
+    </div>
+
+    <div class="button-area">
+        <label for="fileInput" class="btn btn-primary"><fa-icon [icon]="faFolderOpen"></fa-icon> Browse</label>
+        <button  type="button" class="btn btn-danger" (click)="clearImage()" [disabled]="!croppedImage"><fa-icon [icon]="faBan"></fa-icon> Clear</button>
+    </div>
+    <div>
+    </div>
+</div>

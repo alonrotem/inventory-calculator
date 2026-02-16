@@ -45,3 +45,6 @@ call convert_column_type('customer_banks', 'quantity', 'DECIMAL(15,2) not null')
 call convert_column_type('customer_banks', 'remaining_quantity', 'DECIMAL(15,2) not null');
 call convert_column_type('customer_banks_allocations', 'quantity', 'DECIMAL(15,2) not null');
 call convert_column_type('customer_banks_allocations', 'remaining_quantity', 'DECIMAL(15,2) not null');
+call convert_column_type('currencies', 'symbol', 'VARCHAR(3) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NULL');
+
+select "Migrations done", CURRENT_TIMESTAMP;

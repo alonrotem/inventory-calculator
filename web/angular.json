@@ -27,11 +27,14 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
-              "src/favicon-16x16.png",
-              "src/favicon-32x32.png",
-              "src/favicon-16x16.png",
               "src/site.webmanifest",
-              "src/assets"
+              "src/assets",
+              "src/assets/favicon-32x32.png",
+              "src/assets/favicon-16x16.png",
+              "src/assets/apple-touch-icon.png",
+              "src/assets/android-chrome-512x512.png",
+              "src/assets/android-chrome-192x192.png"
+
             ],
             "styles": [
               "node_modules/bootstrap/scss/bootstrap.scss",

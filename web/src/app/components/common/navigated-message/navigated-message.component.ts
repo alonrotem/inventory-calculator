@@ -15,7 +15,18 @@ export abstract class NavigatedMessageComponent {
     protected toastService: ToastService,
     protected stateService: StateService,
     protected router: Router) {
-    }
+  }
+
+  navigateWithToastMessage(destination: string, message: string, isError: boolean = false){
+    this.router.navigate([destination], {
+      state: {
+        info: { 
+          textInfo: message, 
+          isError: isError 
+        }
+      },
+    });
+  }
 
   showNavigationToastIfMessagePending(){
     let nav = this.router.getCurrentNavigation();

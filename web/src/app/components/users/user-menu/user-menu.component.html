@@ -1,0 +1,32 @@
+<div class="dropdown" *ngIf="(user$ | async) as user">
+  <a class="nav-link dropdown-toggle user-menu-link p-2" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <span *ngIf="!user.photo_url" class="user-initials-circle" [ngClass]="(currentUrl.indexOf('/profile') >= 0) ? 'active': ''">{{ initials }}</span>
+    <img class="user-initials-circle" *ngIf="user.photo_url" src="{{ environment.serverUrl }}{{ user.photo_url }}" />
+  </a>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li class="user-names">{{ user.firstname + " " + user.lastname }}</li>
+    <li class="user-role text-secondary">{{ user.roles[0] }}</li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" routerLink="profile" [ngClass]="(currentUrl.indexOf('/profile') >= 0) ? 'active': ''"><fa-icon [icon]="faAddressCard"></fa-icon> My profile</a></li>
+    <li><a class="dropdown-item" (click)="logout()" style="cursor: pointer;"><fa-icon [icon]="faArrowRightFromBracket"></fa-icon> Log out</a></li>
+  </ul>
+</div>
+<div class="nav-item" *ngIf="((!(user$ | async)) && (this.currentUrl != '/users/signin'))">
+  <a class="nav-link" routerLink="/users/signin"><fa-icon [icon]="faRightToBracket"></fa-icon> Sign in</a>
+</div>
+
+<!--
+<li class="nav-item dropdown" *ngIf="(user$ | async ) as user">
+  <a class="nav-link dropdown-toggle user-menu-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <span>{{ initials }}</span>
+  </a>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><a class="dropdown-item" routerLink="inventory/customers"><fa-icon [icon]="faAddressCard"></fa-icon> My profile</a></li>
+    <li><a class="dropdown-item" (click)="logout()"><fa-icon [icon]="faArrowRightFromBracket"></fa-icon> Log out</a></li>
+  </ul>
+</li> 
+
+<li class="nav-item" *ngIf="!(user$ | async)">
+  <a class="nav-link" aria-current="page">Login</a>
+</li>
+-->

@@ -1,0 +1,6 @@
+script:pre-request {
+  if(bru.getVar("auth_token")) {
+    req.headers.authorization = "Bearer " + bru.getVar("auth_token");
+  }
+  console.log("Setting header: " + bru.getVar("auth_token"));
+}

@@ -1,0 +1,34 @@
+meta {
+  name: manual_add_user_temp
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{romtech_server}}/users/manual_add_user_temp
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "username": "alrotemxxx",
+    "firstname": "Alon",
+    "lastname": "Rotem",
+    "email_address": "alrotemxxx@gmail.com",
+    "password": "12345",
+    "role_name": "administrator",
+    "customer_ids": [10]
+  }
+}
+
+script:post-response {
+  if(res.body.access_token) {
+    bru.setVar("auth_token", res.body.access_token);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

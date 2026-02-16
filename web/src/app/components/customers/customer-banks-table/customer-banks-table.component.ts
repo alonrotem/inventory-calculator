@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnInit, Output, QueryList, SimpleChanges, viewChild, ViewChild, ViewChildren } from '@angular/core';
-import { Baby, Customer, Allocation_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, HistoryReportRecord, TransactionRecord, TransactionType, Wing, ShortWingsInfo, Bank_Allocation_Type } from '../../../../types';
+import { Baby, Customer, Allocation_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, HistoryReportRecord, TransactionRecord, TransactionType, Wing, ShortWingsInfo, Bank_Allocation_Type, BasicUserInfoStatus } from '../../../../types';
 import { RouterModule } from '@angular/router';
-import { DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
+import { AsyncPipe, DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
 import { faChartPie, faCheck, faCodeMerge, faPencil, faSave, faTrashCan, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -20,6 +20,10 @@ import { ToastService } from '../../../services/toast.service';
 import { FormsModule } from '@angular/forms';
 import { MiscUtils } from '../../../utils/misc-utils';
 import { NumericInputDirective } from '../../../utils/directives/auto-numeric.directive';
+import { UsersService } from '../../../services/users.service';
+import { HasPermissionPipe } from '../../../utils/pipes/has-permission.pipe';
+import { tap } from 'rxjs';
+import { SettingsService } from '../../../services/settings.service';
 
 @Component({
   selector: 'app-customer-banks-table',
@@ -27,7 +31,7 @@ import { NumericInputDirective } from '../../../utils/directives/auto-numeric.di
   imports: [RouterModule, NgFor, FilterPipe, NgIf, FaIconComponent, NgClass,
     DecimalPipe, ConfirmationDialogComponent, BankAllocationDialogComponent,
     BabyEditorDialogComponent, SortPipe, BankHistoryDialogComponent, AllocationPickerComponent,
-    SumPipe, OrderAdvisorComponent, FormsModule, NumericInputDirective],
+    SumPipe, OrderAdvisorComponent, FormsModule, NumericInputDirective, AsyncPipe, HasPermissionPipe],
   templateUrl: './customer-banks-table.component.html',
   styleUrl: './customer-banks-table.component.scss'
 })
@@ -57,6 +61,16 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   @Input() banks_baby_allocation_type_filter: Bank_Allocation_Type | null = null;
   @Input() num_wings_per_hat: number = 44;
   Bank_Allocation_Type = Bank_Allocation_Type; //for the template
+  
+  userInfo: BasicUserInfoStatus | null = null;
+  selectedCar: number=1;
+    user$ = this.usersService.user$.pipe(
+      tap(user => {
+        if (user) {
+          this.userInfo = user;
+        }
+      })
+    );
 
   //Saving the original data in order to be able to reset changes
   unchanged_bank: Customer_Bank = {
@@ -79,7 +93,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   @Output() afterViewInit = new EventEmitter<void>();
   @Output() babies_updated = new EventEmitter<any>();
   @Output() customer_updated = new EventEmitter<Customer>();
-  @Input() show_hat_advisor: boolean = true;
+  @Input() show_hat_advisor: boolean = false;
   @Input() advisor_show_options_button: boolean = true;
   @ViewChild('delete_allocation_dialog') delete_allocation_dialog!: ConfirmationDialogComponent;
   @ViewChild('not_enough_material') not_enough_material!: ConfirmationDialogComponent;
@@ -103,9 +117,11 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   pendingMergedSourceAllocationID: number = -999;
   newAllocationIdCounter = -1;
   unsaved_changes: boolean = false;
+  customer_banks_babies_reduce_from_allocation: boolean = false;
 
   constructor(
-      private customerService: CustomersService, private wingsService: WingsService, private toastService: ToastService) {
+      private customerService: CustomersService, private wingsService: WingsService, 
+      private toastService: ToastService, private usersService: UsersService, private settingsService: SettingsService) {
   }
   ngOnInit(): void {
     if(this.banks_baby_allocation_type_filter == Bank_Allocation_Type.babies){}
@@ -124,6 +140,13 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   }
  
   ngAfterViewInit(): void {
+    this.settingsService.getSettings(["customer_banks_babies_reduce_from_allocation"]).subscribe({
+      next: (setting:Record<string, any>) => { 
+        this.customer_banks_babies_reduce_from_allocation = setting["customer_banks_babies_reduce_from_allocation"]; 
+      },
+      error: (err: any) => { console.error(err) }
+    });
+
     //Saving the original data in order to be able to reset changes
     this.unchanged_bank = (JSON.parse(JSON.stringify(this.bank)));
     this.unchanged_banks_baby_allocations = (JSON.parse(JSON.stringify(this.banks_baby_allocations)));
@@ -228,11 +251,12 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   }
 
   recalculate_remaining_quantity_allocation(allocation: Customer_Bank_Baby_Allocation){
-    //{{ (bank_allocation.quantity - ((babies | filter: "allocation_id" : bank_allocation.id) | sum: 'quantity')) | number: '1.' }} available.</div>
-    let total_babies = this.babies
-      .filter(baby => baby.allocation_id == allocation.id)
-      .map(item => item['quantity']).reduce((prev, curr) => prev + curr, 0);
-    allocation.remaining_quantity = allocation.quantity - total_babies;
+    if(this.customer_banks_babies_reduce_from_allocation){
+      let total_babies = this.babies
+        .filter(baby => baby.allocation_id == allocation.id)
+        .map(item => item['quantity']).reduce((prev, curr) => prev + curr, 0);
+      allocation.remaining_quantity = allocation.quantity - total_babies;
+    }
   }
 
   save_customer(){
@@ -469,6 +493,9 @@ recalculateBank(){
   }
 
   open_babies_dialog(bank_allocation_id: number, baby_length: number) {
+    if(!this.userInfo || (!this.userInfo.area_permissions.find(p => p.area=='bank_baby_management' && p.permissions.indexOf('C') >= 0))){
+      return;
+    }
     this.expand_allocation_table(bank_allocation_id);
 
     this.pendingBabyAppendAllocation = bank_allocation_id;
@@ -627,7 +654,7 @@ recalculateBank(){
           }];
         }
         this.customer = {...this.customer, babies: [...this.babies]};
-        if(allocation){
+        if(allocation && this.customer_banks_babies_reduce_from_allocation){
           allocation.remaining_quantity -= baby_to_append.remaining;
         }
         changes_made = true;

@@ -27,6 +27,7 @@ async function transaction_query(sql, params, connection) {
   }
   const formattedQuery = await mysql.format(sql, params);
   logger.debug(`Trasnsaction query: ${formattedQuery}`);
+  //console.log(`formattedQuery: ${formattedQuery}`)
 
   //const [results, ] = await connection.query(sql, params);
   const [results, ] = await connection.query(formattedQuery);

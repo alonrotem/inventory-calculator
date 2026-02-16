@@ -1,0 +1,23 @@
+meta {
+  name: refresh token
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{romtech_server}}/users/refresh
+  body: json
+  auth: inherit
+}
+
+script:post-response {
+  if(res.body.access_token) {
+    bru.setVar("auth_token", res.body.access_token);
+  }
+  console.log("refreshed token: " + bru.getVar("auth_token"));
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

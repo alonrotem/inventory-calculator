@@ -2,8 +2,11 @@ const express = require('express');
 const router = express.Router();
 const transaction_history = require('../services/transaction_history');
 const { logger } =  require('../logger');
+const auth_request = require('../middleware/auth_request');
 
-router.post('/', async function(req, res, next) {
+router.post('/', 
+  auth_request([{requiredArea:'raw_materials', requiredPermission:'U'}]),
+  async function(req, res, next) {
     try {
       logger.info(`post /transaction_history/`);
       logger.debug(`Body: ${ JSON.stringify(req.body) }`)
@@ -18,7 +21,9 @@ router.post('/', async function(req, res, next) {
   });
 
   //get all transaction history records for a raw material
-  router.get('/raw_material/:id', async function(req, res, next) {
+  router.get('/raw_material/:id', 
+    auth_request([{requiredArea:'raw_materials', requiredPermission:'R'}]),
+    async function(req, res, next) {
     logger.info(`get /transaction_history/raw_material/${req.params.id}`);
     try {
       const response = await transaction_history.get_all_raw_maerial_transactions(req.params.id);
@@ -32,7 +37,9 @@ router.post('/', async function(req, res, next) {
   });
 
   //get all transaction records for a customer bank
-  router.get('/customer_bank/:id', async function(req, res, next) {
+  router.get('/customer_bank/:id', 
+    auth_request([{requiredArea:'raw_materials', requiredPermission:'R'}]),
+    async function(req, res, next) {
     logger.info(`get /transaction_history/customer_bank/${req.params.id}`);
     try {
       const response = await transaction_history.get_all_customer_bank_transactions(req.params.id);
@@ -45,7 +52,9 @@ router.post('/', async function(req, res, next) {
     }
   });
 
-  router.get('/raw_quantity_history/:quantity_units', async function(req, res, next) {
+  router.get('/raw_quantity_history/:quantity_units', 
+    auth_request([{requiredArea:'raw_materials', requiredPermission:'R'}]),
+    async function(req, res, next) {
     logger.info(`get /transaction_history/raw_quantity_history/${req.params.quantity_units}`);
     try {
       const response = await transaction_history.get_raw_materials_quantity_history(req.params.quantity_units);

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const settings = require('../services/settings');
 const { logger } =  require('../logger');
+const auth_request = require('../middleware/auth_request');
 
   //using post in order to receive a list of keys to get (optional)
   /*
@@ -13,7 +14,7 @@ const { logger } =  require('../logger');
   # Get SOME settings
   curl -i -X POST -H 'Accept: application/json' -H 'Content-type: application/json' http://localhost:3000/settings/ --data "[\"alert_raw_material_total_kg\",\"alert_raw_material_total_units_below\"]"
   */
-  router.post('/', async function(req, res, next) {
+  router.post('/', auth_request(), async function(req, res, next) {
     logger.info(`post /settings/`);
     logger.debug(`Body: ${ JSON.stringify(req.body) }`)
     try {
@@ -27,7 +28,7 @@ const { logger } =  require('../logger');
     }
   });
 
-    router.put('/', async function(req, res, next) {
+    router.put('/', auth_request([{requiredArea:'system_settings', requiredPermission:'U'} ]), async function(req, res, next) {
       logger.info(`put /settings`);
       try {
         logger.debug(`Body: ${ JSON.stringify(req.body) }`);

@@ -97,3 +97,14 @@ h3 {
 .btn-hats-calculator .icon-calculator1 {
     margin-right: 10px;
 }
+
+.advanced-settings {
+    border: 1px solid var(--bs-danger);
+    color: var(--bs-danger);
+    border-radius: var(--bs-border-radius);
+}
+
+.advanced-row {
+    color: var(--bs-body-color);
+    margin: 20px 0px;
+}

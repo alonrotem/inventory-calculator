@@ -1,0 +1,20 @@
+meta {
+  name: Get countries
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{romtech_server}}/countries?page=1&perPage=20
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 1
+  perPage: 20
+}
+
+settings {
+  encodeUrl: true
+}

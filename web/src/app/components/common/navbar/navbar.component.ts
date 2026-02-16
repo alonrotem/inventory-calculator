@@ -1,30 +1,37 @@
 import { AfterViewInit, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { ThemeSelectorComponent } from '../theme-selector/theme-selector.component';
-import { Location, NgClass } from '@angular/common';
+import { AsyncPipe, Location, NgClass, NgIf } from '@angular/common';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { HamburgerComponent } from '../hamburger/hamburger.component';
-import { faBasketShopping, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faBasketShopping, faGears, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { UserMenuComponent } from '../../users/user-menu/user-menu.component';
+import { UsersService } from '../../../services/users.service';
+import { HasPermissionPipe } from "../../../utils/pipes/has-permission.pipe";
 
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [ ThemeSelectorComponent, NgClass, RouterLink, RouterOutlet, HamburgerComponent, FaIconComponent ],
+  imports: [ThemeSelectorComponent, NgClass, RouterLink, RouterOutlet, HamburgerComponent, FaIconComponent, UserMenuComponent, AsyncPipe, NgIf, HasPermissionPipe],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss'
 })
 export class NavbarComponent implements AfterViewInit {
   currentUrl: string = '';
   faBasketShopping:IconDefinition = faBasketShopping;
+  faGears: IconDefinition = faGears;
   @ViewChild('navbarToggler') navbarToggler!: ElementRef;
   @ViewChild('hamburger') hamburger!: HamburgerComponent;
+  //isLoggedIn$ = this.usersService.isLoggedIn$;
+  
+  user$ = this.usersService.user$;
 
   //exp: navbar-collapse collapse show
   //col: navbar-collapse collapse
 
-  constructor(private location: Location, private router: Router, private route:ActivatedRoute) {
+  constructor(private location: Location, private router: Router, private route:ActivatedRoute, protected usersService: UsersService) {
     router.events.subscribe(e => {
       if (e instanceof NavigationEnd) {
         this.currentUrl = e.url;

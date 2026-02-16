@@ -1,29 +1,78 @@
-<div>
-    <fieldset class="border">
-        <div class="logo"></div>
-    <div>
-        <h2 class="form-title">Sign in</h2>
-    </div>
+<app-prompt-dialog
+  #forgotPasswordPrompt
+  [modalTitle]="'Forgot your password?'"
+  [modalText]="'Enter your account\'s email address. If it belongs to a registered user, a reset password link will be sent.'"
+  [btnNoClass]="'d-none'"
+  [btnYesClass]="'btn-warning'"
+  [btnYesText]="'Send!'"
+  [btnYesIcon]="faEnvelopeCircleCheck"
+  (confirm)="forgot_Password_confirmed($event)"
+  />
 
-<div class="form-floating">
-  <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com">
-  <label for="floatingInput">User or email</label>
-</div>
-<div class="form-floating">
-  <input type="password" class="form-control" id="floatingPassword" placeholder="Password">
-  <label for="floatingPassword">Password</label>
-</div>
-<div class="form-check">
-  <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-  <label class="form-check-label" for="flexCheckDefault">
-    Remember me on this device
-  </label>
-</div>
-<button type="button" class="btn btn-success">Sign in</button>
-<div class="help-link">
-    <a href="#">Forgot your password?</a>
-</div>
-<div  class="help-link">No account? <a href="#">Click here to request one</a></div>
-</fieldset>
-</div>
+<app-modal-dialog 
+  #request_account_dialog 
+  [modalSize]="'lg'" 
+  (confirm)="request_account()" 
+  [canClose]="canCloseAccountRequest"
+  [modalTitle]="'Request an account'"
+  [btnSaveClass]="'btn-warning'"
+  [btnSaveText]="'Send request'"
+  [btnSaveIcon]="faEnvelopeCircleCheck"
+  [btnCancelText]="'Cancel'">
+  <app-request-account #request_account_form modalContent />
+</app-modal-dialog>
 
+<app-modal-dialog 
+  #request_sent 
+  [modalSize]="'m'" 
+  [modalTitle]="'Account request sent'"
+  [btnSaveClass]="'d-none'"
+  [btnCancelText]="'OK'"
+  [btnCancelClass]="'btn-primary'">
+  <div>
+    Your account request was sent successfully.<br/>
+    An administrator will review and respond shortly.<br/>
+    You will receive confirmation once your request is handled.
+  </div>
+</app-modal-dialog>
+
+<form novalidate #signin_form="ngForm" [id]="'signin_form'" (keyup.enter)="signin()">
+  <div>
+      <fieldset class="border">
+          <div class="logo"></div>
+      <div>
+          <h2 class="form-title">Sign in</h2>
+      </div>
+
+  <div class="form-floating">
+    <input [(ngModel)]="signInData.username_or_email" #input_username="ngModel" name="input_username" type="text" class="form-control" id="input_username" placeholder="name@example.com" [required]="true">
+    <label for="input_username">Username or email<span class="text-danger">*</span></label>
+  </div>
+  <div class="text-danger" *ngIf="input_username.invalid && (input_username.touched || input_username.dirty)" > 
+      <span *ngIf="input_username.errors?.['required']">Username or email address is required</span>
+  </div>
+  <div class="form-floating">
+    <input [(ngModel)]="signInData.password" #input_password="ngModel" name="input_password" type="password" class="form-control" id="input_password" placeholder="Password" [required]="true">
+    <label for="input_password">Password<span class="text-danger">*</span></label>
+  </div>
+  <div class="text-danger" *ngIf="input_password.invalid && (input_password.touched || input_password.dirty)" > 
+      <span *ngIf="input_password.errors?.['required']">Password is required</span>
+  </div>
+  <div class="form-check">
+    <input class="form-check-input" type="checkbox" value="" id="chkRemember" [(ngModel)]="signInData.remember" #remember="ngModel" name="chkRemember">
+    <label class="form-check-label" for="chkRemember">
+      Remember me on this device
+    </label>
+  </div>
+  <div [ngClass]="'message text-center text-danger ' + ((error)?'visible':'invisible')" style="margin-top: 15px; min-height: 24px;">{{ error }}</div>
+  <button type="button" class="btn btn-success" (click)="signin()" [disabled]="signing_in"  style="margin-top: 15px;">
+    <span *ngIf="!signing_in"><fa-icon [icon]="faRightToBracket"></fa-icon> Sign in</span>
+    <fa-icon [icon]="faArrowsRotate" [animation]="'spin'" class="action-icon" *ngIf="signing_in"></fa-icon>
+  </button>
+  <div class="help-link">
+      <a href="javascript:void(0);" (click)="open_forgot_password_prompt()">Forgot your password?</a>
+  </div>
+  <div  class="help-link">No account? <a href="javascript:void(0);" (click)="open_request_account()">Click here to request one</a></div>
+  </fieldset>
+  </div>
+</form>

@@ -252,6 +252,7 @@ export class Point {
     created_by: number;
     updated_by: number;
     order_seq_number: number;
+    allow_calculation_advisor?: boolean;
 
     banks: Customer_Bank[];
     banks_baby_allocations: Customer_Bank_Baby_Allocation[];
@@ -572,4 +573,144 @@ export interface LogfileListItem {
     filename: string;
     size: number;
     date: Date;
+}
+
+export interface SignInData {
+    username_or_email: string; 
+    password: string; 
+    remember: boolean;
+    origin_geolocation: string; //lattitude,longitude
+    origin_city: string;
+	origin_country: string;
+    origin_os: string;
+    origin_browser: string;
+}
+
+export interface RefreshResponse {
+  access_token: string;
+}
+/*
+export interface SignInUserInfo {
+        hello: string;
+        roles: [];
+        userId: number;
+        username: string;
+}
+*/
+
+export interface SignInResponse {
+    access_token: string; 
+    userInfo: BasicUserInfoStatus
+}
+
+export interface BasicUserInfoStatus {
+  id: number;
+  firstname: string;
+  lastname: string;
+  username: string;
+  email: string;
+  photo_url: string;
+  roles: nameIdPair[];
+  customers: nameIdPair[];
+  area_permissions: UserAreaPermissions[];
+}
+
+//those are enforced on the server too, but returned to the client for better UX
+export interface UserAreaPermissions {
+    area: string;
+    permissions: string;
+}
+
+export interface UserProfile extends BasicUserInfoStatus {
+    pending_new_email: string;
+    phone: string;
+    registered_on: Date;
+}
+
+export interface UpdateProfile {
+  id: number;
+  username?: string;
+  firstname: string;
+  lastname: string;
+  email: string;
+  phone: string;
+  password: string;
+  new_password: string;
+  photo_url: string;
+}
+
+export interface GeoCoordinates {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+  altitude?: number | null;
+  altitudeAccuracy?: number | null;
+  heading?: number | null;
+  speed?: number | null;
+}
+
+export interface LoginInfo {
+    id: number;
+    logged_in_at: Date,
+    origin_geolocation: string; //lattitude,longitude
+    origin_city: string;
+	origin_country: string;
+    origin_os: string;
+    origin_browser: string;
+    origin_ip_address: string;
+    is_current_login: boolean;
+}
+
+//for a user without an account to send a request
+export interface AccountRequestInfo {
+  firstname: string;
+  lastname: string;
+  email: string;
+  phone: string;
+  details: string;
+}
+
+// to show in the list of account requests
+export interface AccountRequestListItem {
+  id: number;
+  firstname: string;
+  lastname: string;
+  email: string;
+  request_date: Date;
+  request_status: string;
+}
+
+//the actual list of account requests
+export interface AccountsRequestList {
+    data: AccountRequestListItem[];
+    meta: { 
+        page: number;
+        total_records: number;
+        total_pages: number;
+        total_babies: number;
+    };
+}
+
+//get all the details of the request and created user
+export interface AccountRequestDetails {
+    id: number;
+    firstname: string;
+    lastname: string;
+    email: string;
+    phone: string;
+    details: string;
+    request_date: Date;
+    last_update: Date;
+    approved_account_user_id: number;
+    approver_user_id: number;
+    request_status: string;
+    user_firstname: string;
+    user_lastname: string;
+    user_photo_url: string;
+    approver_firstname: string;
+    approver_lastnme: string;
+    approver_photo_url: string;
+    role: nameIdPair;
+    customers: nameIdPair[];
+    create_new_customer: boolean;
 }

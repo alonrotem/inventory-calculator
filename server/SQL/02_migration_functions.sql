@@ -117,7 +117,7 @@ DELIMITER $$
 CREATE PROCEDURE convert_column_type(
     IN table_name VARCHAR(64),
     IN column_name VARCHAR(64),
-    IN new_column_type VARCHAR(64)
+    IN new_column_type VARCHAR(256)
 )
 BEGIN
     DECLARE col_exists INT DEFAULT 0;
@@ -140,3 +140,5 @@ BEGIN
     END IF;
 END$$
 DELIMITER ;
+
+select "Migration functions done", CURRENT_TIMESTAMP;

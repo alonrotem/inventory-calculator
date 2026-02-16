@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, OnInit,QueryList,ViewChild, ViewChildren } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
+import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { Customer, Allocation_Baby, TransactionType } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
@@ -22,13 +22,16 @@ import { WingsService } from '../../../services/wings.service';
 import { StateService } from '../../../services/state.service';
 import { UnsavedNavigationConfirmationService } from '../../../services/unsaved-navigation-confirmation.service';
 import { UnsavedChangesDialogComponent } from "../../common/unsaved-changes-dialog/unsaved-changes-dialog.component";
+import { UsersService } from '../../../services/users.service';
+import { HasPermissionPipe } from '../../../utils/pipes/has-permission.pipe';
 
 @Component({
   selector: 'app-customer-editor',
   standalone: true,
   imports: [RouterModule, FormsModule, NgSelectModule, DateStrPipe,
     FaIconComponent, NgIf, NgFor, ConfirmationDialogComponent, AutocompleteLibModule,
-    CustomerBanksTableComponent, HatsCalculatorDialogComponent, AllocationPickerComponent, FilterPipe, UnsavedChangesDialogComponent],
+    CustomerBanksTableComponent, HatsCalculatorDialogComponent, AllocationPickerComponent, FilterPipe, 
+    UnsavedChangesDialogComponent, HasPermissionPipe, AsyncPipe],
   templateUrl: './customer-editor.component.html',
   styleUrl: './customer-editor.component.scss'
 })
@@ -49,7 +52,8 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     banks_baby_allocations: [],
     babies: [],
     customer_code: '',
-    order_seq_number: 0
+    order_seq_number: 0,
+    allow_calculation_advisor: undefined
   }
 
   title: string = "Create Customer";
@@ -68,6 +72,8 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
   private confirmResult: boolean | null = null;
   private modalSubscription: any; // Track the subscription
 
+  user$ = this.usersService.user$;
+
   //@ViewChild("materialName", { read: ElementRef }) materialName!: ElementRef;
   @ViewChild("customerName", { read: ElementRef }) customerName! :ElementRef;
   @ViewChild('customer_form') customer_form!: NgForm;
@@ -83,7 +89,8 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
     private router: Router, 
     private toastService: ToastService,
     private stateService: StateService,
-    private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService
+    private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService,
+    private usersService: UsersService
     ) { 
   }
   

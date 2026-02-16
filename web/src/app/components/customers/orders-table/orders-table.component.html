@@ -36,7 +36,7 @@
         </a>
         <div class="infotitle" [hidden]="loading">
             <div>
-                <span [hidden]="this.customer_id > 0"><strong>All orders.</strong></span>
+                <span [hidden]="this.customer_id > 0"><strong>All orders available to you.</strong></span>
                 <span [hidden]="this.customer_id <= 0"><strong>Orders for customer {{ (this.customer_name == "") ? ('#' + this.customer_id) : (this.customer_name) }}.</strong></span>
             </div>
             <div [hidden]="this.orders.length <= 0">

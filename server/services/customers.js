@@ -4,12 +4,24 @@ const transaction_history = require('./transaction_history');
 const { raw } = require('mysql2');
 const { logger } = require('../logger');
 
-async function getSingle(id){
+async function getSingle(id, currentUserId){
+
+  if(!canUserAccessThisCustomer(id, currentUserId, "R")){
+    let err = new Error("User has no permissions to view this customer");
+    err.status = 403;
+    throw err;
+  }
+
+  const advanced_fields = 
+    (canUserAccessAdvancedCustomerFeatures(currentUserId, "R"))? 
+      ', c.allow_calculation_advisor': 
+      '';
+
   const rows = await db.query(
     `select 
       c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.notes, c.customer_code, c.order_seq_number,
-        c.created_at, c.updated_at, c.created_by, c.updated_by 
-    from customers c where c.id=${id};`);
+        c.created_at, c.updated_at, c.created_by, c.updated_by ${advanced_fields}
+     from customers c where c.id=(?);`, [id]);
 
   const customer = helper.emptyOrSingle(rows);
   if(!helper.isEmptyObj(customer)) {
@@ -18,7 +30,7 @@ async function getSingle(id){
           rm.name raw_material_name, rm.color raw_material_color, cb.quantity_units raw_material_quantity_units, rm.allow_shortening_babies_in_pairs allow_shortening_babies_in_pairs, cb.id, cb.customer_id, cb.raw_material_id, cb.quantity, cb.remaining_quantity 
         from customer_banks cb
         left join raw_materials rm on cb.raw_material_id = rm.id
-        where cb.customer_id=${id};`);
+        where cb.customer_id=(?);`, [id]);
     const customer_banks = helper.emptyOrRows(customer_banks_recs);
     customer.banks = customer_banks;
 
@@ -26,7 +38,7 @@ async function getSingle(id){
       `select 
         cbb.id, cbb.customer_bank_id, cbb.quantity, cbb.remaining_quantity, cbb.allocation_type, cbb.tails_quantity, cbb.tails_in_orders
       from customer_banks_allocations cbb 
-      where cbb.customer_bank_id in (select cb.id from customer_banks cb where cb.customer_id=${id});`);
+      where cbb.customer_bank_id in (select cb.id from customer_banks cb where cb.customer_id=(?));`, [id]);
     const customer_banks_allocations = helper.emptyOrRows(customer_banks_allocations_recs);
     customer.banks_baby_allocations = customer_banks_allocations;
 
@@ -35,7 +47,8 @@ async function getSingle(id){
         b.id, b.allocation_id, b.length, b.quantity, quantity_in_pending_orders
       from allocation_babies b 
       where b.allocation_id in (select cbb.id
-      from customer_banks_allocations cbb where cbb.customer_bank_id in (select cb.id from customer_banks cb where cb.customer_id=${id}));;`);
+      from customer_banks_allocations cbb 
+      where cbb.customer_bank_id in (select cb.id from customer_banks cb where cb.customer_id=(?)));`,[id]);
 
     const customer_babies = helper.emptyOrRows(customer_baby_recs);
     customer.babies = customer_babies;
@@ -43,7 +56,7 @@ async function getSingle(id){
   return customer;
 }
 
-async function getMultiple(page = 1, perPage){
+async function getMultiple(page = 1, perPage=0, currentUserId){
   let subset =  '';
   if(page && perPage && page > 0 && perPage > 0)
   {
@@ -51,6 +64,7 @@ async function getMultiple(page = 1, perPage){
     subset = `LIMIT ${offset},${perPage}`
   }
   const rows = await db.query(
+  /*    
     `SELECT c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.created_at, c.updated_at, c.created_by, c.updated_by,
         COUNT(cb.customer_id) AS bank_count,
         COALESCE(SUM(work_allocations.allocation_count), 0) AS allocation_count
@@ -60,10 +74,96 @@ async function getMultiple(page = 1, perPage){
         (SELECT customer_bank_id,  COUNT(*) AS allocation_count FROM customer_banks_allocations
         GROUP BY customer_bank_id) work_allocations 
     ON cb.id = work_allocations.customer_bank_id
-    GROUP BY  c.id  ${subset}`
-  );
+    GROUP BY  c.id  ${subset}`*/
+
+  //New query: retrieve only the customers assigned to the current user, by their role(s)
+  `WITH user_permissions AS (
+    select 
+      rp.area,
+      rp.permissions
+    FROM users u
+    JOIN user_roles ur ON ur.user_id = u.id
+    JOIN roles r ON r.id = ur.role_id
+    JOIN role_permissions rp ON rp.role_id = r.id
+    WHERE u.id = (?)
+  )
+  SELECT DISTINCT c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.created_at, c.updated_at, c.created_by, c.updated_by,
+  COUNT(cb.customer_id) AS bank_count,
+          COALESCE(SUM(work_allocations.allocation_count), 0) AS allocation_count
+  FROM customers c
+  LEFT JOIN user_customers uc ON uc.customer_id = c.id AND uc.user_id = (?)
+  LEFT JOIN  customer_banks cb ON c.id = cb.customer_id
+      LEFT JOIN 
+          (SELECT customer_bank_id,  COUNT(*) AS allocation_count FROM customer_banks_allocations
+          GROUP BY customer_bank_id) work_allocations 
+      ON cb.id = work_allocations.customer_bank_id
+
+  WHERE 
+    -- Must have 'R' permission on 'customers' area
+    (
+      -- Case 1: Has 'customers' R but NO 'customer_resources_by_customer_id' R
+      -- Return all customers
+      (
+        NOT EXISTS (
+          SELECT 1 FROM user_permissions
+          WHERE area = 'customer_resources_by_customer_id'
+            AND permissions LIKE '%R%'
+        )
+      )
+      OR
+      -- Case 2: Has both 'customers' R AND 'customer_resources_by_customer_id' R
+      -- Return only linked customers
+      (
+        EXISTS (
+          SELECT 1 FROM user_permissions
+          WHERE area = 'customer_resources_by_customer_id'
+            AND permissions LIKE '%R%'
+        )
+        AND uc.user_id IS NOT NULL
+      )
+    )     GROUP BY c.id ${subset};`,
+    [currentUserId, currentUserId]);
+
+  //New query: count only the customers assigned to the current user, by their role(s)
   const total = await db.query(
-    `SELECT count(*) as count FROM customers`
+    `WITH user_permissions AS (
+      select 
+        rp.area,
+        rp.permissions
+      FROM users u
+      JOIN user_roles ur ON ur.user_id = u.id
+      JOIN roles r ON r.id = ur.role_id
+      JOIN role_permissions rp ON rp.role_id = r.id
+      WHERE u.id=(?)
+    )
+    SELECT count(DISTINCT c.id) count
+    FROM customers c
+    LEFT JOIN user_customers uc ON uc.customer_id = c.id AND uc.user_id=(?)
+    WHERE 
+      -- Must have 'R' permission on 'customers' area
+      (
+        -- Case 1: Has 'customers' R but NO 'customer_resources_by_customer_id' R
+        -- Return all customers
+        (
+          NOT EXISTS (
+            SELECT 1 FROM user_permissions
+            WHERE area = 'customer_resources_by_customer_id'
+              AND permissions LIKE '%R%'
+          )
+        )
+        OR
+        -- Case 2: Has both 'customers' R AND 'customer_resources_by_customer_id' R
+        -- Return only linked customers
+        (
+          EXISTS (
+            SELECT 1 FROM user_permissions
+            WHERE area = 'customer_resources_by_customer_id'
+              AND permissions LIKE '%R%'
+          )
+          AND uc.user_id IS NOT NULL
+        )
+      );`,
+    [currentUserId, currentUserId]
   );
   const total_records = total[0].count;
 
@@ -85,43 +185,138 @@ async function getNames(){
   return (data);
 }
 
-async function save(customer){
-  //console.dir(customer);
-  // logger.info("transaction start 1");
-  let connection = await db.trasnaction_start();
+async function canUserAccessThisCustomer(customerId, userId, required_permission_level) {
+  //no user? no access
+  if(!userId || userId <= 0){
+    return false;
+  }
+
+  const user_customer_permissions = helper.emptyOrRows(await db.query(
+    `select rp.area, rp.permissions
+      from 
+        users u 
+        inner join user_roles ur on u.id=ur.user_id
+        inner join role_permissions rp on rp.role_id=ur.role_id 
+      where 
+        u.id=? and rp.area in ('customers', 'customer_resources_by_customer_id')`,
+      [userId]));
+
+    if(user_customer_permissions.length > 0){
+        const permissions_for_all_customers = user_customer_permissions.find(p => p["area"] == 'customers');
+        const permissions_for_assigned_customers = user_customer_permissions.find(p => p["area"] == 'customer_resources_by_customer_id');
+
+        //user has no permissions for all orders
+        if(!permissions_for_all_customers || permissions_for_all_customers["permissions"].indexOf(required_permission_level) < 0) {
+            const assigned_user_customers = helper.emptyOrRows(await db.query(
+                `select customer_id from user_customers where user_id=(?);`, 
+                [userId]));
+            
+            const user_has_permissions_for_specific_customer = assigned_user_customers.find(assigned_customer => assigned_customer["customer_id"] == customerId);
+
+            //check permissions to create specific customer's orders
+            if(!permissions_for_assigned_customers || 
+                permissions_for_assigned_customers["permissions"].indexOf(required_permission_level) < 0 || 
+                !user_has_permissions_for_specific_customer) {
+                return false;
+            }
+        }
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+async function canUserAccessAdvancedCustomerFeatures(currentUserId, required_permission_level){
+    const advanced_customer_permissions = helper.emptyOrSingle(await db.query(
+    `select rp.area, rp.permissions  
+        from users u inner join user_roles ur on u.id=ur.user_id
+        inner join roles r on r.id=ur.role_id
+        inner join role_permissions rp on rp.role_id=r.id
+      where u.id=(?) and rp.area='customers_advanced_features';`, [currentUserId]));
+
+  if(
+    (!helper.isEmptyObj(advanced_customer_permissions)) && 
+    (advanced_customer_permissions["permissions"].indexOf(required_permission_level) >=0))
+  {
+    return true;
+  }
+  return false;
+}
+
+async function save(customer, currentUserId, active_connection=null){
+
+  if(!await canUserAccessThisCustomer(customer.id, currentUserId, ((customer.id)<=0)? "C": "U")){
+    let err = new Error("User has no permissions to save this customer");
+    err.status = 403;
+    throw err;    
+  }
+
+  //check if there is an active connection called from another function, or this call is a standalone
+  let self_executing = false;
+  if(!active_connection) {
+    // logger.info("transaction start 2");
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
+  }
+
   try {
-    const isNew = customer.id <= 0;
-    const result = await db.transaction_query(`
-      INSERT INTO customers (id, name, business_name, email, phone, tax_id, customer_code, created_at, updated_at, created_by, updated_by)
-      VALUES 
-      ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?)) 
-      as new_customers
-      ON DUPLICATE KEY UPDATE
-      name=new_customers.name, business_name=new_customers.business_name, email=new_customers.email, 
-      phone=new_customers.phone, tax_id=new_customers.tax_id, customer_code=new_customers.customer_code, created_at=new_customers.created_at, 
-      updated_at=new_customers.updated_at, created_by=new_customers.created_by, updated_by=new_customers.updated_by`,
-      [
-        customer.id,
-        customer.name,
-        customer.business_name,
-        customer.email,
-        customer.phone,
-        customer.tax_id,
-        customer.customer_code,
-        (isNew)? helper.nowDateStr(): helper.formatDate(customer.created_at),
-        helper.nowDateStr(),
-        customer.created_by,
-        customer.updated_by
-      ],
-      connection);
-      customer.id = (isNew)? result.insertId : customer.id;
-      let bank_ids_info = await sync_customer_banks(customer, connection);
+  const isNew = customer.id <= 0;
+   
+   let columns = [
+    "id", "name", "business_name", "email", "phone", "tax_id", 
+    "customer_code", "created_at", "updated_at", "created_by", "updated_by"
+  ];
+  let values = [
+    customer.id, customer.name, customer.business_name, customer.email, customer.phone,
+    customer.tax_id, customer.customer_code, (isNew)? helper.nowDateStr(): helper.formatDate(customer.created_at),
+    helper.nowDateStr(), customer.created_by, customer.updated_by 
+  ];
+  
+  if(await canUserAccessAdvancedCustomerFeatures(currentUserId, 'U') && (customer.allow_calculation_advisor != null) && (customer.allow_calculation_advisor != undefined)){
+    columns.push("allow_calculation_advisor");
+    values.push(customer.allow_calculation_advisor);
+  }
 
-      await db.transaction_commit(connection);
+  const result = await db.transaction_query(`
+    INSERT INTO customers (${columns.join(", ")})
+    VALUES 
+    (${columns.map(c => "(?)").join(", ")}) 
+    as new_customers
+    ON DUPLICATE KEY UPDATE
+    ${columns.map(c => c+"=new_customers." + c).join(", ")}`,
+    values,
+    active_connection);
 
-      const saved_customer = await getSingle(customer.id);
-      //console.dir(bank_ids_info, {depth: null});
-      
+    customer.id = (isNew)? result.insertId : customer.id;
+    let bank_ids_info = await sync_customer_banks(customer, active_connection);
+
+    if(self_executing) {
+      await db.transaction_commit(active_connection);
+    }
+
+    let saved_customer = await getSingle(customer.id);
+    //if this is a part of a different transaction (e.g. assigning a new customer to a user),
+    //the saved_customer will be empty. Just temporarily manually populate it.
+    if(helper.isEmptyObj(saved_customer)){
+      saved_customer = {
+        id: customer.id,
+        name: customer.name,
+        business_name: customer.business_name,
+        email: customer.email,
+        phone: customer.phone,
+        tax_id: customer.tax_id,
+        customer_code: customer.customer_code,
+        order_seq_number: 1,
+        created_at: helper.nowDateStr(),
+        updated_at: helper.nowDateStr(),
+        created_by: 0,
+        updated_by:0
+      }
+    }
+    //console.dir(bank_ids_info, {depth: null});
+    
+    if(saved_customer.banks){
       saved_customer.banks.forEach(saved_bank => {
         let bank_id = bank_ids_info.bank_ids.find(bank_id_info => bank_id_info.post_save_id == saved_bank.id);
         //console.log("found saved bank info. before: " + bank_id.pre_save_id + " -after-> " + saved_bank.id);
@@ -133,24 +328,27 @@ async function save(customer){
         //console.log("found saved allocation info. before: " + alloc_id.pre_save_id + " -after-> " + saved_allocation.id);
         saved_allocation.pre_save_id = alloc_id.pre_save_id;
       });
+    }
 
-      return { 
-        message: "Saved successfully",
-        customer: saved_customer
-      };
+    return { 
+      message: "Saved successfully",
+      customer: saved_customer
+    };
   }
   catch(error){
-    db.transaction_rollback(connection);
+    db.transaction_rollback(active_connection);
     throw(error);
   }
   finally {
-    db.transaction_release(connection);
+    if(self_executing){
+      db.transaction_release(active_connection);
+    }
   }      
 }
 
 //makes sure to delete all the banks, allocations and babies
 //by where_rule (customer id, bank ides etc)
-async function delete_all_customer_banks(where_rule, force=false, active_connection){
+async function delete_all_customer_banks(where_rule, force=false, active_connection=null){
   //check if there is an active connection called from another function, or this call is a standalone
   let self_executing = false;
   if(!active_connection) {
@@ -506,7 +704,14 @@ async function sync_customer_banks(customer, active_connection){
 
 
 
-async function remove(id, active_connection=null){
+async function remove(id, currentUserId, active_connection=null){
+
+  if(!canUserAccessThisCustomer(id, currentUserId, "D")){
+    let err = new Error("User has no permissions to delete this customer");
+    err.status = 403;
+    throw err;    
+  }
+
   //check if there is an active connection called from another function, or this call is a standalone
   let self_executing = false;
   if(!active_connection) {

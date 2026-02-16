@@ -8,7 +8,52 @@ const wings = require('./wings');
 const customers = require('./customers');
 const { logger } = require("../logger");
 
-async function create(customerHat, active_connection=null){
+async function can_user_access_customer_orders(user_id, customer_id, required_permission_level){
+    //check the user's type of permissions for orders
+    const current_user_permissions = helper.emptyOrRows(await db.query(
+        `select rp.area, rp.permissions
+        from 
+            role_permissions rp 
+            inner join user_roles ur on rp.role_id=ur.role_id 
+            inner join users u on u.id=ur.user_id
+        where 
+            u.id=(?) and area in ('orders', 'orders_resources_by_customer_id')`, 
+        [user_id]));
+
+    if(current_user_permissions.length > 0){
+        const permissions_for_all_orders = current_user_permissions.find(p => p["area"] == 'orders');
+        const permissions_for_assigned_customers_orders = current_user_permissions.find(p => p["area"] == 'orders_resources_by_customer_id');
+
+        //user has no permissions for all orders
+        if(!permissions_for_all_orders || permissions_for_all_orders["permissions"].indexOf(required_permission_level) < 0) {
+            const assigned_user_customers = helper.emptyOrRows(await db.query(
+                `select customer_id from user_customers where user_id=(?);`, 
+                [user_id]));
+            
+            const user_has_permissions_for_specific_customer = assigned_user_customers.find(assigned_customer => assigned_customer["customer_id"] == customer_id);
+
+            //check permissions to create specific customer's orders
+            if(!permissions_for_assigned_customers_orders || 
+                permissions_for_assigned_customers_orders["permissions"].indexOf(required_permission_level) < 0 || 
+                !user_has_permissions_for_specific_customer) {
+                return false;
+            }
+        }
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+async function create(customerHat, currentUserId, active_connection=null){
+
+    if(!await can_user_access_customer_orders(currentUserId, customerHat.customer_id, "C")){
+        let err = new Error("User has no permissions to create orders for this customer");
+        err.status = 403;
+        throw err;
+    }
+
   //check if there is an active connection called from another function, or this call is a standalone
   let self_executing = false;
   if(!active_connection) {
@@ -304,14 +349,62 @@ async function create(customerHat, active_connection=null){
   }  
 }
 
-async function get_orders_list(page = 1, perPage, customer_id){
+async function get_orders_list(page = 1, perPage, customer_id, currentUserId){
     let subset =  '';
     let customer_filter = '';
 
-    if(customer_id && customer_id > 0) {
-        customer_filter = `ch.customer_id=${customer_id}`;
-    }
+    //check the user's type of permissions for orders
+    const current_user_permissions = helper.emptyOrRows(await db.query(
+        `select rp.area, rp.permissions
+        from 
+            role_permissions rp 
+            inner join user_roles ur on rp.role_id=ur.role_id 
+            inner join users u on u.id=ur.user_id
+        where 
+            u.id=(?) and area in ('orders', 'orders_resources_by_customer_id')`, 
+        [currentUserId]));
+    if(current_user_permissions.length > 0){
+        const permissions_for_all_orders = current_user_permissions.find(p => p["area"] == 'orders');
+        const permissions_for_assigned_customers_orders = current_user_permissions.find(p => p["area"] == 'orders_resources_by_customer_id');
 
+        if(permissions_for_all_orders && permissions_for_all_orders["permissions"].indexOf("R") >= 0){
+            //user is allowed to view all customers and orders.
+            //still filter the requested custmer
+            if(customer_id && customer_id > 0) {
+                customer_filter = `ch.customer_id=${customer_id}`;
+            }             
+        }
+        else {
+            if(permissions_for_assigned_customers_orders && permissions_for_assigned_customers_orders["permissions"].indexOf("R") >= 0){
+                //user is allowed specific customers orders only
+                const assigned_user_customers = helper.emptyOrRows(await db.query(
+                    `select customer_id from user_customers where user_id=(?);`, 
+                    [currentUserId]));
+
+                if(customer_id && customer_id > 0) {
+                    const is_customer_allowed = assigned_user_customers.find(c => c["customer_id"] == customer_id);
+                    if(is_customer_allowed) {
+                        customer_filter = `ch.customer_id=${customer_id}`;
+                    }
+                    else {
+                        let err = new Error("User is not allowed to access orders from this customer");
+                        err.status = 403;
+                        throw err;
+                    }
+                }
+                else {
+                    const allowed_customer_ids = assigned_user_customers.map(c => c["customer_id"]).join(",");
+                    customer_filter = `ch.customer_id in (${allowed_customer_ids})`;
+                }
+            }
+        }
+    }
+    else {
+        let err = new Error("User has no permissions to access orders");
+        err.status = 403;
+        throw err;
+    }
+    
     if(page && perPage && page > 0 && perPage > 0) {
         const offset = helper.getOffset(page, perPage);
         subset = `LIMIT ${offset},${perPage}`
@@ -374,59 +467,78 @@ async function get_orders_list(page = 1, perPage, customer_id){
 }
 
 
-async function get_order_details(order_id){
+async function get_order_details(order_id, currentUserId){
+
+    //check the order exists, and who the customer is and check permissiosn (before running the heavy query)
+    let order_customer_id=-1;
+    const order_rec = helper.emptyOrSingle(await db.query(
+        `select ch.customer_id from orders o inner join customer_hats ch on o.customer_hat_id=ch.id where o.id=(?);`,
+        [order_id]));
+    if(helper.isEmptyObj(order_rec)){
+        let err = new Error("Invalid order number");
+        err.status = 404;
+        throw err;
+    }
+    else {
+        order_customer_id = order_rec["customer_id"];
+    }
+    if(!await can_user_access_customer_orders(currentUserId, order_customer_id, "R")){
+        let err = new Error("User is not allowed to access orders from this customer");
+        err.status = 403;
+        throw err;
+    }
+
     const rows = await db.query(
-        `
-select 
-o.id,
-CASE WHEN c.customer_code IS NOT NULL 
-       THEN concat(c.customer_code, o.customer_order_seq_number)
-       ELSE o.customer_order_seq_number
-END AS hat_id_with_customer,
-os.order_status,
-o.isurgent,
-c.name customer_name,
-#------
-ch.original_wing_name wing_name,
-rm_wall.name wall_material,
-rm_wall.color wall_material_color,
-#------
-o.kippa_size,
-o.diameter_inches,
-o.wing_quantity,
-#-------
-rm_crown.name crown_material,
-rm_crown.color crown_material_color,
-#-------
-ch.crown_visible,
-ch.crown_length,
-w.knife,
-o.white_hair_notes,
-o.white_hair,
-#-------
-rm_tails.name h_material,
-rm_tails.color h_material_color,
-#-------
-os.date,
-#===NEW
-ch.shorten_top_by shorten_top_by,
-ch.shorten_crown_by shorten_crown_by,
-ch.tails_overdraft tails_overdraft,
-ch.mayler_width mayler_width,
-ch.hr_hl_width hr_hl_width,
-o.order_notes order_notes,
-ch.order_date original_order_date,
-ch.wing_id wing_id
-#=======
-from orders o 
-left join customer_hats ch on o.customer_hat_id=ch.id
-left join customers c on ch.customer_id=c.id
-left join orders_status os on os.order_id = o.id
-left join wings w on ch.wing_id = w.id
-left join raw_materials rm_wall on ch.hat_material_id=rm_wall.id
-left join raw_materials rm_crown on ch.crown_material_id=rm_crown.id
-left join raw_materials rm_tails on ch.tails_material_id=rm_tails.id
-where os.date = (select MAX(os2.date) FROM orders_status os2 where os.id = os2.id)
+    `select 
+        o.id,
+        CASE WHEN c.customer_code IS NOT NULL 
+            THEN concat(c.customer_code, o.customer_order_seq_number)
+            ELSE o.customer_order_seq_number
+        END AS hat_id_with_customer,
+        os.order_status,
+        o.isurgent,
+        c.name customer_name,
+        #------
+        ch.original_wing_name wing_name,
+        rm_wall.name wall_material,
+        rm_wall.color wall_material_color,
+        #------
+        o.kippa_size,
+        o.diameter_inches,
+        o.wing_quantity,
+        #-------
+        rm_crown.name crown_material,
+        rm_crown.color crown_material_color,
+        #-------
+        ch.crown_visible,
+        ch.crown_length,
+        w.knife,
+        o.white_hair_notes,
+        o.white_hair,
+        #-------
+        rm_tails.name h_material,
+        rm_tails.color h_material_color,
+        #-------
+        os.date,
+        #===NEW
+        ch.shorten_top_by shorten_top_by,
+        ch.shorten_crown_by shorten_crown_by,
+        ch.tails_overdraft tails_overdraft,
+        ch.mayler_width mayler_width,
+        ch.hr_hl_width hr_hl_width,
+        o.order_notes order_notes,
+        ch.order_date original_order_date,
+        ch.wing_id wing_id
+        #=======
+        from orders o 
+        left join customer_hats ch on o.customer_hat_id=ch.id
+        left join customers c on ch.customer_id=c.id
+        left join orders_status os on os.order_id = o.id
+        left join wings w on ch.wing_id = w.id
+        left join raw_materials rm_wall on ch.hat_material_id=rm_wall.id
+        left join raw_materials rm_crown on ch.crown_material_id=rm_crown.id
+        left join raw_materials rm_tails on ch.tails_material_id=rm_tails.id
+        where os.date = (select MAX(os2.date) FROM orders_status os2 where os.id = os2.id)
    and o.id=${order_id}`);
 
     let order_details = helper.emptyOrSingle(rows);
@@ -447,7 +559,28 @@ where os.date = (select MAX(os2.date) FROM orders_status os2 where os.id = os2.i
     return order_details;
 }
 
-async function update_order_property(propertyDetails, active_connection=null){
+async function update_order_property(propertyDetails, currentUserId, active_connection=null){
+
+    //check the order exists, and who the customer is and check permissiosn (before running the heavy query)
+    let order_customer_id=-1;
+    const order_rec = helper.emptyOrSingle(await db.query(
+        `select ch.customer_id from orders o inner join customer_hats ch on o.customer_hat_id=ch.id where o.id=(?);`,
+        [propertyDetails["order_id"]]));
+    if(helper.isEmptyObj(order_rec)){
+        let err = new Error("Invalid order number");
+        err.status = 404;
+        throw err;
+    }
+    else {
+        order_customer_id = order_rec["customer_id"];
+    }
+    if(!await can_user_access_customer_orders(currentUserId, order_customer_id, "U")){
+        let err = new Error("User is not allowed to update orders from this customer");
+        err.status = 403;
+        throw err;
+    }    
+
+
     let self_executing = false;
     if(!active_connection) {
         active_connection = await db.trasnaction_start();

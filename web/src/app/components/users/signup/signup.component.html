@@ -1,0 +1,153 @@
+<div class="container">
+      <div class="row justify-content-center">
+      <div class="col-lg-8 col-12">
+
+    <fieldset class="border">
+        <div class="logo"></div>
+    <div>
+        <h2 class="form-title">Admin account sign up</h2>
+    </div>
+
+    <form novalidate #signup_form="ngForm" [id]="'signup_form'"  (keyup.enter)="send_signup()">
+
+    
+    <div *ngIf="error" class="bg-danger" style="padding: 10px 30px;">{{ error }}</div>
+
+    <div class="row">
+    
+    <div class="col-12 col-sm-6">
+      <div class="form-floating">
+        <input 
+          type="text" 
+          class="form-control" 
+          id="input_firstname" 
+          placeholder="First name" 
+          [(ngModel)]="signupData.firstname" 
+          #input_firstname="ngModel" 
+          name="input_firstname" 
+          [required]="true"
+          [pattern]="'^[a-zA-Z\\ \\-]*$'">
+        <label for="input_firstname">First name <span class="text-danger">*</span></label>
+      </div> 
+      <div class="text-danger" *ngIf="input_firstname.invalid && (input_firstname.touched || input_firstname.dirty)" > 
+          <span *ngIf="input_firstname.errors?.['required']">First name is required</span>
+          <span *ngIf="input_firstname.errors?.['pattern']">Use only letters, space or -</span>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6">
+      <div class="form-floating">
+        <input 
+          type="text" 
+          class="form-control" 
+          id="input_lastname" 
+          placeholder="Last name" 
+          [(ngModel)]="signupData.lastname" 
+          #input_lastname="ngModel" 
+          name="input_lastname" 
+          [required]="true"
+          [pattern]="'^[a-zA-Z\\ \\-]*$'">
+        <label for="input_lastname">Last name <span class="text-danger">*</span></label>
+      </div> 
+      <div class="text-danger" *ngIf="input_lastname.invalid && (input_lastname.touched || input_lastname.dirty)" > 
+          <span *ngIf="input_lastname.errors?.['required']">Last name is required</span>
+          <span *ngIf="input_lastname.errors?.['pattern']">Use only letters, space or -</span>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6">
+      <div class="form-floating">
+        <input 
+          type="text" 
+          class="form-control" 
+          id="input_username" 
+          placeholder="Username" 
+          [(ngModel)]="signupData.username" 
+          #input_username="ngModel" 
+          name="input_username" 
+          [required]="true"
+          [pattern]="'^[a-zA-Z][a-zA-Z0-9\\-_]*$'">
+        <label for="input_username">Username <span class="text-danger">*</span></label>
+      </div> 
+      <div class="text-danger" *ngIf="input_username.invalid && (input_username.touched || input_username.dirty)" > 
+          <span *ngIf="input_username.errors?.['required']">Username is required</span>
+          <Span *ngIf="input_username.errors?.['pattern']">Only letters, numbers, - and _. Start with a letter</Span>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6">
+      <div class="form-floating">
+        <input 
+          type="email" 
+          class="form-control" 
+          id="input_email" 
+          placeholder="name@example.com" 
+          [(ngModel)]="signupData.email" 
+          #input_email="ngModel" 
+          name="input_email" 
+          [required]="true"
+          [email]="true">
+        <label for="input_email">email <span class="text-danger">*</span></label>
+      </div>
+      <div class="text-danger" *ngIf="input_email.invalid && (input_email.touched || input_email.dirty)" > 
+          <span *ngIf="input_email.errors?.['required']">Email is required</span>
+      </div>
+      <div class="text-danger" *ngIf="input_email.errors?.['email'] && (input_email.touched || input_email.dirty)" > 
+          <span *ngIf="input_email.errors?.['email']">Please enter a valid email</span>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6">
+      <div class="form-floating">
+        <input 
+          type="password" 
+          class="form-control" 
+          id="input_password" 
+          placeholder="Password" 
+          [(ngModel)]="signupData.password" 
+          #input_password="ngModel" 
+          name="input_password" 
+          [required]="true">
+        <label for="input_password">Password <span class="text-danger">*</span></label>
+      </div>
+      <div class="text-danger" *ngIf="input_password.invalid && (input_password.touched || input_password.dirty)" > 
+          <span *ngIf="input_password.errors?.['required']">Password is required</span>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6">
+      <div class="form-floating">
+        <input 
+          type="password"
+          class="form-control"
+          id="input_password_confirm"
+          placeholder="Confirm password"
+          [(ngModel)]="signupData.password_confirm" 
+          #input_password_confirm="ngModel" 
+          name="input_password_confirm" 
+          [required]="true">
+        <label for="input_password_confirm">Confirm password <span class="text-danger">*</span></label>
+      </div>
+      <div class="text-danger" *ngIf="input_password_confirm.invalid && (input_password_confirm.touched || input_password_confirm.dirty)" > 
+          <span *ngIf="input_password_confirm.errors?.['required']">Password confirmation is required</span>
+      </div>
+      <div class="text-danger" *ngIf="(input_password_confirm.touched || input_password_confirm.dirty) && input_password_confirm.value !='' && input_password.value != input_password_confirm.value" > 
+          <span>Passwords do not match</span>
+      </div>
+    </div>
+
+    <div class="col-12 btn-container">
+      <button type="button" class="btn btn-success" (click)="send_signup()" [disabled]="signing_up">
+        <span *ngIf="!signing_up">Sign up</span>
+        <fa-icon [icon]="faArrowsRotate" [animation]="'spin'" class="action-icon" *ngIf="signing_up"></fa-icon>
+      </button>
+    </div>
+  
+  </div>
+
+</form>
+</fieldset>
+      </div>
+    </div>
+</div>
+

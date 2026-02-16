@@ -2,7 +2,7 @@
 
 <app-modal-dialog #confirmation_dialog [reverseButtons]="reverseButtons">
     <div #modalContent style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center;">
-        <div *ngIf="dialogIcon != null" class="text-warning" style="margin-right: 20px; font-size: 28px;">
+        <div *ngIf="dialogIcon != null" [class]="dialogIconClass" style="margin-right: 20px; font-size: 28px;">
             <fa-icon [icon]="dialogIcon"></fa-icon>
         </div>
         <div [innerHTML]="modalText"></div>

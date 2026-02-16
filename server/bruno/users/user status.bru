@@ -1,0 +1,16 @@
+meta {
+  name: user status
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{romtech_server}}/users/status
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

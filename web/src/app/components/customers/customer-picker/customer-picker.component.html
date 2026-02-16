@@ -1,0 +1,27 @@
+
+<div class="picked-customers-container">
+    <div *ngFor="let customer of pickedCustomers">
+        <div *ngIf="((customers) && (customers | filter: 'id' : customer.id))" class="customer">
+            {{ (((customers | filter: 'id' : customer.id )| first))['name'] }}
+            <button class="btn" (click)="removeCustomer(customer.id)"><fa-icon [icon]="faX"></fa-icon><br/></button>
+        </div>
+    </div>
+    <div class="{{ (!multi && pickedCustomers.length >= 1)?'d-none':'' }}">
+        <button class="btn btn-primary {{ picking? 'd-none':'' }}" (click)="pick()">+ Add customer</button>
+
+        <div class="{{ !picking? 'd-none':'' }}">
+            <ng-select         
+                #customer_select 
+                [items]="customers" 
+                name="custoemer" 
+                [multiple]="false" 
+                bindLabel="name" 
+                bindValue="id" 
+                (change)="customerPicked($event)" 
+                [placeholder]="'Pick a customer'"
+                />
+            
+            <div class="text-danger">{{ user_message }}</div>
+        </div>
+    </div>
+</div>

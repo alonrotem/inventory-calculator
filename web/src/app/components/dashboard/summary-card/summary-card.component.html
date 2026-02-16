@@ -20,10 +20,10 @@
         <p class="card-text"><span class="icon-hat"></span> Ordered hats: {{ total_hats | number: '1.0-0' }}</p>
       </div>
       <div class="shortcuts">
-        <a href="/inventory/raw" class="card-link" title="Go to raw materials management"><span class="icon-leaf"></span></a>
+        <a href="/inventory/raw" *ngIf="(user$ | async) | hasPermission: [{area: 'raw_materials', permission: 'R'}]" class="card-link" title="Go to raw materials management"><span class="icon-leaf"></span></a>
         <!--<a href="/inventory/babies" class="card-link" title="Go to babies list"><span class="icon-baby"></span></a>-->
-        <a href="/templates/wings" class="card-link" title="Go to wings management"><span class="icon-feather-wing"></span></a>
-        <a href="/inventory/customer/orders" class="card-link" title="Go to orders"><fa-icon [icon]="faBasketShopping"></fa-icon></a>
+        <a href="/templates/wings" *ngIf="(user$ | async) | hasPermission: [{area: 'wings', permission: 'R'}]" class="card-link" title="Go to wings management"><span class="icon-feather-wing"></span></a>
+        <a href="/inventory/customer/orders" class="card-link" *ngIf="(user$ | async) | hasPermission: [{area: 'orders', permission: 'R'}, {area: 'orders_resources_by_customer_id', permission: 'R'}]" title="Go to orders"><fa-icon [icon]="faBasketShopping"></fa-icon></a>
         <!--<a href="/templates/hats" class="card-link" title="Go to hats management"><span class="icon-hat"></span></a>-->
       </div>
     </div>

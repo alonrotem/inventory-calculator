@@ -1,0 +1,45 @@
+<div class="row justify-content-center" style="flex-grow: 1; ">
+  <div class="col-12 col-md-9 d-flex flex-column">
+<h1><fa-icon [icon]="faUserPlus"></fa-icon> User account requests</h1>
+
+<app-page-loading [loading_message]="'Loading requests...'" [icon_size]="'3x'" [hidden]="!loading" />
+
+<div [hidden]="loading" style="flex-grow:1">
+
+  <div class="infotitle" [hidden]="loading || this.account_requests.length <= 0">Total: {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'request':'requests' }}</div>
+
+  <div [hidden]="loading || this.account_requests.length == 0">
+<table class="table table-responsive table-striped table-hover">
+    <thead>
+      <tr>
+        <th scope="col">From</th>
+        <th scope="col">Email</th>
+        <th scope="col">Requested at</th>
+        <th scope="col">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr 
+        *ngFor="let request of this.account_requests" 
+        routerLink="/users/account_request_details/" 
+        [queryParams]="{ id: request.id }" role="button">
+
+        <td>{{ request.firstname }} {{ request.lastname }}</td>
+        <td>{{ request.email }}</td>
+        <td>{{ request.request_date | dateStr }}</td>
+        <td class="status-{{ request.request_status }}">{{ request.request_status }}</td>
+
+      </tr>
+    </tbody>
+  </table>
+
+  <app-paginator #paginator [pages]=4  (onPageChange)="pageChange($event)" />
+</div>
+
+  <div [hidden]="loading || this.account_requests.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;">
+    No account requests found in the system.<br/>
+    When users send them, they will be listed here.
+  </div>
+</div>
+</div>
+</div>

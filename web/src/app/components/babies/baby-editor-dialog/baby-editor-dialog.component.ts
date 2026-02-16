@@ -9,6 +9,7 @@ import { DialogClosingReason, ModalDialogComponent } from '../../common/modal-di
 import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
 import { ModalContentDirective } from '../../common/directives/modal-content.directive';
 import { NumericInputDirective } from '../../../utils/directives/auto-numeric.directive';
+import { SettingsService } from '../../../services/settings.service';
 
 @Component({
   selector: 'app-baby-editor-dialog',
@@ -50,6 +51,7 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
 
   public editedObject: null = null;
   appendBaby: EventEmitter<{ length: number; quantity: number }> = new EventEmitter<{ length: number; quantity: number }>();
+  customer_banks_babies_reduce_from_allocation: boolean = false;
 
   /*
     babyFormEditor = this.fb.group({
@@ -66,16 +68,22 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
   isSubmitted : boolean = false;
   babyEditMode: boolean = false; // babyEditmode: editing an existing baby. Otherwise in add mode
 
-  constructor(private fb: FormBuilder, private toastService: ToastService) {
+  constructor(private fb: FormBuilder, private toastService: ToastService, private settingsService: SettingsService) {
   }
 
   close: EventEmitter<any> = new EventEmitter<Baby>();
 
   ngAfterViewInit(): void {
+    this.settingsService.getSettings(["customer_banks_babies_reduce_from_allocation"]).subscribe({
+      next: (setting:Record<string, any>) => { 
+        this.customer_banks_babies_reduce_from_allocation = setting["customer_banks_babies_reduce_from_allocation"]; 
+      },
+      error: (err: any) => { console.error(err) }
+    });    
     this.length_picker.lengthChange.subscribe((value: number) => {
       this.highlighted_baby_length = value;
       this.highlightNext();
-    });
+    });    
   }
 
 
@@ -171,14 +179,16 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
   }
 
   sendit(event:any){
-    if(this.highlighted_baby_quantity > this.units_available + this.highlighted_baby_quantity_before_change)
+    if(this.customer_banks_babies_reduce_from_allocation && this.highlighted_baby_quantity > this.units_available + this.highlighted_baby_quantity_before_change)
       return;
     
     this.appendBaby.emit({
       length: this.highlighted_baby_length,
       quantity: this.highlighted_baby_quantity
     });
-    this.units_available -= this.highlighted_baby_quantity - this.highlighted_baby_quantity_before_change;
+    if(this.customer_banks_babies_reduce_from_allocation) {
+      this.units_available -= this.highlighted_baby_quantity - this.highlighted_baby_quantity_before_change;
+    }
     let baby_to_modify = this.babies_to_edit
       .find(b => b.length == this.highlighted_baby_length);
 

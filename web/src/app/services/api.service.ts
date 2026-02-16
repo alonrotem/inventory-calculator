@@ -19,7 +19,8 @@ export class ApiService {
   get_file(url: string): Observable<HttpResponse<Blob>> {
     return this.httpClient.get(url, {
       observe: 'response',
-      responseType: 'blob'
+      responseType: 'blob',
+      withCredentials: true
     }).pipe(
       catchError(err => {
         if (err.error instanceof Blob) {

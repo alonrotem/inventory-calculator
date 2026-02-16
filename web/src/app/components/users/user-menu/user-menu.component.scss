@@ -1,0 +1,39 @@
+.user-names {
+    padding: var(--bs-dropdown-item-padding-y) var(--bs-dropdown-item-padding-x);
+}
+
+.user-role {
+    text-transform: capitalize;
+    padding: 0 var(--bs-dropdown-item-padding-x);
+}
+
+.user-menu-link {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.user-menu-link span {    
+    font-size: 12px;
+    border: 1px solid;
+    padding: 12px 8px;
+    border-radius: 50%;
+    min-width: 43px;
+    text-align: center;
+    border-color: var(--bs-nav-link-color);
+}
+
+.user-menu-link img{
+    padding: 0px;
+    border-radius: 50%;
+    width: 43px;    
+}
+
+.user-menu-link span.active{
+    border-color: var(--bs-primary);
+    /*color: var(--bs-navbar-active-color);*/
+}
+
+fa-icon {
+    margin-right: 5px;
+}

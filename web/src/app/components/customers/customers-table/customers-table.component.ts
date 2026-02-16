@@ -1,6 +1,6 @@
-import { Component, inject, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { Customer, CustomerListItem, Customers } from '../../../../types';
-import { DecimalPipe, NgFor, NgIf } from '@angular/common';
+import { Component, inject, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { BasicUserInfoStatus, Customer, CustomerListItem, Customers } from '../../../../types';
+import { AsyncPipe, DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { PaginatorComponent } from "../../common/paginator/paginator.component";
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
@@ -17,13 +17,15 @@ import { CustomersService } from '../../../services/customers.service';
 import { SingleHatCalculatorComponent } from '../single-hat-calculator/single-hat-calculator.component';
 import { StateService } from '../../../services/state.service';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, tap } from 'rxjs';
 import { SettingsService } from '../../../services/settings.service';
+import { HasPermissionPipe } from '../../../utils/pipes/has-permission.pipe';
+import { UsersService } from '../../../services/users.service';
 
 @Component({
   selector: 'app-customers-table',
   standalone: true,
-  imports: [ NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe, ToastComponent, DecimalPipe, SingleHatCalculatorComponent ],
+  imports: [ NgFor, PaginatorComponent, PaginatorComponent,  HasPermissionPipe, AsyncPipe, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe, ToastComponent, DecimalPipe, SingleHatCalculatorComponent ],
   templateUrl: './customers-table.component.html',
   styleUrl: './customers-table.component.scss'
 })
@@ -35,7 +37,8 @@ export class CustomersTableComponent extends NavigatedMessageComponent implement
     private settingsService: SettingsService,
     router: Router, 
     stateService: StateService,
-    toastService: ToastService) {
+    toastService: ToastService, 
+    private usersService: UsersService) {
       super(toastService, stateService, router);
       this.showNavigationToastIfMessagePending();
   }
@@ -48,11 +51,17 @@ export class CustomersTableComponent extends NavigatedMessageComponent implement
   faBasketShopping: IconDefinition = faBasketShopping;
   loading: boolean = true;
   totalRecords: number = 0;
+  @Input() showTitle : boolean = true;
+  @Input() stretchWidth: boolean = false;
+  @Input() paged: boolean = true;
 
-  selectedCar: number=1;
+  user$ = this.usersService.user$;
 
   getCustomers(page: number){
-    this.customersService.getCustomers({ page: page, perPage:this.rowsPerPage }).subscribe(
+    this.customersService.getCustomers({ 
+      page: page, 
+      perPage: ((this.paged)? this.rowsPerPage : -1)
+    }).subscribe(
     {
       next: (customers: Customers) => {
         this.loading = false;

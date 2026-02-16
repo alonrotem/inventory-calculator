@@ -1,0 +1,14 @@
+<app-modal-dialog #prompt_dialog [reverseButtons]="reverseButtons">
+    <div modalContent style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center;">
+        <div *ngIf="dialogIcon != null" class="text-warning" style="margin-right: 20px; font-size: 28px;">
+            <fa-icon [icon]="dialogIcon"></fa-icon>
+        </div>
+
+        <div>
+            <div [innerHTML]="modalText"></div>
+            <div style="width: 100%; margin-top: 15px;">
+                <input #txt_prompt class="form-control form-control-lg" style="width: 100%;" type="text" [(ngModel)]="modalValue" class="code" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            </div>
+        </div>
+    </div>
+</app-modal-dialog>

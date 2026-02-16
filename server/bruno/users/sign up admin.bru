@@ -1,0 +1,33 @@
+meta {
+  name: sign up admin
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{romtech_server}}/users/signup
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "username": "alrotem",
+    "firstname": "Alon",
+    "lastname": "Rotem",
+    "email": "alrotem@gmail.com",
+    "password": "12345",
+    "role": "administrator"
+  }
+}
+
+script:post-response {
+  if(res.body.access_token) {
+    bru.setVar("auth_token", res.body.access_token);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

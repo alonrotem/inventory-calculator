@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const customers = require('../services/customers');
 const { logger } =  require('../logger');
+const auth_request = require('../middleware/auth_request');
 
 /* GET customers */
 /* curl -i -X GET \
@@ -9,16 +10,23 @@ const { logger } =  require('../logger');
     -H 'Content-type: application/json' \
         http://localhost:3000/customers/
 */
-router.get('/', async function(req, res, next) {
+router.get('/',
+  auth_request([{requiredArea:'customers', requiredPermission:'R'}, {requiredArea:'customer_resources_by_customer_id', requiredPermission:'R'}]), 
+  async function(req, res, next) {
   try {
     logger.info(`get /customers/ page=${req.query.page}, perPage=${req.query.perPage}`);
-    let response = await customers.getMultiple(req.query.page, req.query.perPage);
+    let response = await customers.getMultiple(req.query.page, req.query.perPage, req["auth_token"].id);
     logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
     res.json(response);
   } 
   catch (err) {
     logger.error(`Error getting all customers: ${err.message}`);
-    next(err);
+    if(err.status){
+      res.status(err.status).json({message: err.message});
+    }
+    else {
+      next(err);
+    }
   }
 });
 
@@ -29,7 +37,9 @@ curl -i -X GET \
     -H 'Content-type: application/json' \
         http://localhost:3000/customers/10
 */
-router.get('/single/:id', async function(req, res, next) {
+router.get('/single/:id', 
+  auth_request([{requiredArea:'customers', requiredPermission:'R'}, {requiredArea:'customer_resources_by_customer_id', requiredPermission:'R'}]), 
+  async function(req, res, next) {
     try {
       logger.info(`get /customers/single/${req.params.id}`);
 
@@ -38,11 +48,18 @@ router.get('/single/:id', async function(req, res, next) {
       res.json(response);
     } catch (err) {
       logger.error(`Error getting customer with ID ${ req.params.id }`, err.message);
-      next(err);
+      if(err.status){
+        res.status(err.status).json({message: err.message});
+      }
+      else {
+        next(err);
+      }
     }
   });
 
-  router.get('/names', async function(req, res, next) {
+  router.get('/names',
+    auth_request([{requiredArea:'customers', requiredPermission:'R'}, {requiredArea:'customer_resources_by_customer_id', requiredPermission:'R'}]), 
+    async function(req, res, next) {
     try {
       logger.info(`get /customers/names/`);
       let response = await customers.getNames();
@@ -51,6 +68,12 @@ router.get('/single/:id', async function(req, res, next) {
     } catch (err) {
       logger.error(`Error getting customers names: ${err.message}`);
       next(err);
+      if(err.status){
+        res.status(err.status).json({message: err.message});
+      }
+      else {
+        next(err);
+      }      
     }
   });
 
@@ -80,17 +103,24 @@ router.post('/', async function(req, res, next) {
         --data "{  \"name\":\"Alon's\",  \"purchased_at\": \"2024-05-01\", \"weight\": 100, \"updated_by\": 4 }" \
         http://localhost:3000/babies/12
   */
-  router.put('/', async function(req, res, next) {
+  router.put('/', 
+    auth_request([{requiredArea:'customers', requiredPermission:'U'}, {requiredArea:'customer_resources_by_customer_id', requiredPermission:'U'}]), 
+    async function(req, res, next) {
     try {
       logger.info(`put /customers/`);
       logger.debug(JSON.stringify(req.body));
 
-      let response = await customers.save(req.body);
+      let response = await customers.save(req.body, req["auth_token"].id);
       logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
       res.json(response);     
     } catch (err) {
       logger.error(`Error updating customer ${ err.message }`);
-      next(err);
+      if(err.status){
+        res.status(err.status).json({message: err.message});
+      }
+      else {
+        next(err);
+      }
     }
   });
 
@@ -101,7 +131,9 @@ curl -i -X DELETE \
     -H 'Content-type: application/json' \
         http://localhost:3000/babies/10
 */
-router.delete('/:id', async function(req, res, next) {
+router.delete('/:id', 
+  auth_request([{requiredArea:'customers', requiredPermission:'D'}, {requiredArea:'customer_resources_by_customer_id', requiredPermission:'D'}]), 
+  async function(req, res, next) {
     try {
       logger.info(`delete /customers/${id}`);
       let response = await customers.remove(req.params.id);
@@ -109,7 +141,12 @@ router.delete('/:id', async function(req, res, next) {
       res.json(response);
     } catch (err) {
       logger.error(`Error deleting customer ${err.message}`);
-      next(err);
+      if(err.status){
+        res.status(err.status).json({message: err.message});
+      }
+      else {
+        next(err);
+      }
     }
   });
 

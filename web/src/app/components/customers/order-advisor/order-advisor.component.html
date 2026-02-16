@@ -42,8 +42,8 @@
 <app-modal-dialog 
     #hat_creation_assistant
     [btnSaveText]="'Add missing babies to my allocation'"
-    [btnSaveClass]="(sufficient_babies_in_allocations)? 'btn-success' : 'd-none'"
-    [btnCancelText]="'Cancel'"
+    [btnSaveClass]="(((user$ | async) | hasPermission: ([{area: 'bank_baby_management', permission: 'C'}])) && sufficient_babies_in_allocations)? 'btn-success' : 'd-none'"
+    [btnCancelText]="(((user$ | async) | hasPermission: ([{area: 'bank_baby_management', permission: 'C'}])) && sufficient_babies_in_allocations)? 'Cancel' : 'Close'"
     [modalSize]="'xl'"
     [modalTitle]="'Auto-adjust allocation #' + wall_allocation?.id"
     (confirm)="assistant_add_babies()">

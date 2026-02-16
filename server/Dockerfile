@@ -23,7 +23,8 @@ COPY ./web/. /temp_web
 # ===============
 # Set environment variables
 ENV NVM_DIR=/root/.nvm \
-    NODE_VERSION=22.16.0
+    NODE_VERSION=22.16.0 \
+    NODE_ENV=production
 
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash \
     && . "$NVM_DIR/nvm.sh" \

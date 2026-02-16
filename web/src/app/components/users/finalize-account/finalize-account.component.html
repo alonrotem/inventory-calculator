@@ -1,0 +1,175 @@
+<app-unsaved-changes-dialog #unsaved_changes_dialog></app-unsaved-changes-dialog>
+<app-modal-dialog 
+    #invalid_code_dialog
+    [modalTitle]="'Invalid code'"
+    [btnSaveClass]="'d-none'"
+    [btnCancelClass]="'btn-primary'"
+    [btnCancelText]="'Go home'"
+    (cancel)="gotoHome()">
+    <div>Invalid code, or account already finalized.</div>
+</app-modal-dialog>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8 col-xl-10">
+
+        <h3><fa-icon [icon]="faAddressCard"></fa-icon> Finalize your profile: {{ user.username }}</h3>
+
+        <app-page-loading 
+            [stretch_height]="true" 
+            [loading_message]="'Loading user details'" 
+            [hidden]="!loading" />
+
+        <form novalidate #profile_form="ngForm" [id]="'profile_form'">
+            <div [hidden]="loading">
+            <div class="container-fluid">
+            <div class="row">
+
+            <div class="col-12 mb-3" 
+                [innerHTML]="
+                ((user.roles)? 
+                '<strong>Role' + ((user.roles.length == 1)?'':'s') + ':</strong> ' + ((user.roles | map: 'name').join(', ')) + '. ' :
+                '') + 
+                '<strong>Registered on </strong>' + (user.registered_on | dateStr)"
+                >
+            </div>
+
+            <div class="col-12"><!--col-12 col-md-12 col-lg-8 order-2 order-lg-1-->
+                <div class="profile-section">
+                    <div>Personal details</div>
+
+                        <div class="row section-row">
+                            <div class="col-12 col-xl-7 order-2 order-xl-1">
+
+                            <div class="mb-3">
+                            <div class="input-group">
+                                <div class="form-floating">
+                                    <input type="text" 
+                                        id="user_username" class="form-control" placeholder="0" [(ngModel)]="user.username" name="user_username" #user_username="ngModel" [required]="true" [pattern]="'^[a-zA-Z][a-zA-Z0-9\\-_]*$'">
+                                    <label for="user_username">Username<span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                            <div class="text-danger" *ngIf="user_username.invalid && (user_username.touched || user_username.dirty)" > 
+                                <span *ngIf="user_username.errors?.['required']">Username is required</span>
+                                <Span *ngIf="user_username.errors?.['pattern']">Only letters, numbers, - and _. Start with a letter</Span>
+                            </div>
+                            </div>                                  
+
+                            <div class="mb-3">
+                            <div class="input-group">
+                                <div class="form-floating">
+                                    <input type="text" 
+                                        id="user_firstname" class="form-control" placeholder="0" [(ngModel)]="user.firstname" name="user_firstname" #user_firstname="ngModel" [required]="true" [pattern]="'^[a-zA-Z][a-zA-Z\\-_]*$'">
+                                    <label for="user_firstname">First name<span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                            <div class="text-danger" *ngIf="user_firstname.invalid && (user_firstname.touched || user_firstname.dirty)" > 
+                                <span *ngIf="user_firstname.errors?.['required']">First name is required</span>
+                                <span *ngIf="user_firstname.errors?.['pattern']">Use only letters, space or -</span>
+                            </div>
+                            </div>             
+
+                            <div class="mb-3">
+                            <div class="input-group">
+                                <div class="form-floating">
+                                    <input type="text" 
+                                        id="user_lastname" class="form-control" placeholder="0" [(ngModel)]="user.lastname" name="user_lastname" #user_lastname="ngModel"  [required]="true" [pattern]="'^[a-zA-Z][a-zA-Z\\-_]*$'">
+                                    <label for="user_lastname">Last name<span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                            <div class="text-danger" *ngIf="user_lastname.invalid && (user_lastname.touched || user_lastname.dirty)" > 
+                                <span *ngIf="user_lastname.errors?.['required']">Last name is required</span>
+                                <span *ngIf="user_lastname.errors?.['pattern']">Use only letters, space or -</span>
+                            </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                            <div class="input-group">
+                                <div class="form-floating">
+                                    <input type="text" 
+                                        id="user_email" class="form-control" placeholder="0" [(ngModel)]="user.email" name="user_email" #user_email="ngModel" [required]="true" [email]="true">
+                                    <label for="user_email">Email address<span class="text-danger">*</span></label>
+                                </div>
+                            </div>                
+                            <div class="text-danger" *ngIf="user_email.invalid && (user_email.touched || user_email.dirty)" > 
+                                <span *ngIf="user_email.errors?.['required']">Email is required</span>
+                            </div>  
+                            <div class="text-danger" *ngIf="user_email.errors?.['email'] && (user_email.touched || user_email.dirty)" > 
+                                <span *ngIf="user_email.errors?.['email']">Invalid email</span>
+                            </div>
+                            </div>            
+
+                            <div class="mb-3">
+                            <div class="input-group">
+                                <div class="form-floating">
+                                    <input type="tel" 
+                                        id="user_phone" class="form-control" placeholder="0" [(ngModel)]="user.phone" name="user_phone" #user_phone="ngModel">
+                                    <label for="user_phone">Phone number</label>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-xl-5 order-1 order-xl-2 d-flex justify-content-xl-end justify-content-center mb-3 mb-xl-0">
+                            <app-image-crop 
+                                #profile_photo 
+                                [image_url]="(user.photo_url)? (environment.serverUrl  + user.photo_url) : ''"
+                                (imageCleared)="photo_cleared()" 
+                                (newimageLoaded)="photo_loaded()"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-section">
+                    <div class="row">
+                        <div class="col col-12 col-md-6  mt-3 mt-md-0 mb-3 mb-md-0">
+                        Set your password
+                        </div>
+                        <div class="col col-12 col-md-6  mt-3 mt-md-0 mb-3 mb-md-0">
+
+                        <div class="input-group mt-3">
+                            <div class="form-floating">
+                                <input type="password" 
+                                    id="user_new_pass" class="form-control" placeholder="0" [(ngModel)]="password_change.new_password" name="user_new_pass" #user_new_pass="ngModel" (change)="checkPasswords()" [required]="true">
+                                <label for="user_new_pass">Password<span class="text-danger">*</span></label>
+                            </div>
+                        </div>
+                        <div class="text-danger" *ngIf="password_change_errors.new_password" > 
+                            {{ password_change_errors.new_password }}
+                        </div>
+
+                        <div class="input-group mt-3">
+                            <div class="form-floating">
+                                <input type="password" 
+                                    id="user_new_pass2" class="form-control" placeholder="0" [(ngModel)]="password_change.repeat_new_password" name="user_new_pass2" #user_new_pass2="ngModel" (change)="checkPasswords()" [required]="true">
+                                <label for="user_new_pass2">Repeat password<span class="text-danger">*</span></label>
+                            </div>
+                        </div>                                
+                        <div class="text-danger" *ngIf="password_change_errors.repeat_new_password" > 
+                            {{ password_change_errors.repeat_new_password }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+    <div class="row mb-3">
+        <div class="col d-flex justify-content-center">
+
+        <button class="btn btn-success save-button" (click)="save()" [disabled]="saving">
+            <span *ngIf="!saving">
+                <fa-icon [icon]="faSave" ></fa-icon>
+                <span style="margin-left: 10px;">Save changes</span>
+            </span>
+            <fa-icon [icon]="faArrowsRotate" [animation]="'spin'" class="action-icon" *ngIf="saving"></fa-icon>
+        </button>
+
+    </div>
+</div>
+</div>
+
+</form>
+</div>
+</div>

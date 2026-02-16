@@ -7,7 +7,66 @@ npm install --save bootstrap
 
 ng generate component home
 
-NEXT TODOS:     
+
+## User flows
+
+### First admin creation
+ * If there is admin in the system, the first opening navigates to the sign-up form.
+ * User receives an email to verify their address
+ * User is sent to the login screen
+
+## User has no account
+ * User clicks "Request account" on the login screen and fills their details
+ * Administrators receive a notification for a new request
+ * Administrator clicks review request, sets a role and potential customers, approves/denies
+ * User receives a notification that their account was approved + code
+ * They go to fill their missing profile details: username and password, photo
+ * User can login
+
+## Administrator invites a new user
+ * Filling in details
+ * Invitation email is sent to the user
+ * They go to fill their missing profile details: username and password, photo
+ * User can login
+
+## Account disabled/deleted
+
+NEXT TODOS:
+=== USER MANAGEMENT ===
+❎ Profile page
+  ❎ picture + crop
+  ❎ Names
+  ❎ Email change
+  ❎ Change password
+  ❎ Logins info
+  ❎ Connected customers, if available
+  ⏹️ Email notification on logins
+  ⏹️ MFA -> Email assisted
+  ❎ Role
+  ⏹️ Delete my account
+❎ Add login geolocation and browser info, first signed in and last seen
+
+    https://medium.com/@sehban.alam/how-to-integrate-google-maps-in-angular-latest-2025-guide-88c1e665bdb0 -> AIzaSyAzw9gP8zrxK4eqE-Mkm77gXFBllL9K4D0
+
+❎ Add option to cancel login, or all logins per user
+❎ Add user is_disabled
+⏹️ Invite new users
+    ⏹️ Set role
+    ⏹️ Names, email
+⏹️ List users
+❎ See user info
+    ❎ Profile info
+    ❎ Connected customer(s)
+    ❎ Active logins
+    ❎ Enable/disable
+    ❎ Set role
+❎ Reset password
+    ❎ Limited time code
+❎ Request account
+❎ See pending account requests
+⏹️ Manually create a user and send for email verification
+===/USER MANAGEMENT ===
+
 ❎ Customer entity
 	- name
 	- business name

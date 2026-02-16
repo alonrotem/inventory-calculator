@@ -104,12 +104,20 @@ async function getAllNonCustomerWingsAndBabies(wing_id_filter) {
     wing_filter = `and w.id=${ wing_id_filter }`;
   }
   const rows = await db.query(
+    /*
     `select w.id w_id, w.name w_n, w.split_l1 splt_l1, w.crown_width cr_wdt, wb.id b_id, wb.position p, wb.length l 
       from wings w 
       left join customer_hats ch on ch.wing_id=w.id
       left join wings_babies wb on wb.parent_wing_id=w.id
       where ch.customer_id is null ${wing_filter}
-      order by w.id, wb.position`);
+      order by w.id, wb.position`);*/
+      `select w.id w_id, w.name w_n, w.split_l1 splt_l1, w.crown_width cr_wdt, wb.id b_id, wb.position p, wb.length l  
+        from wings w 
+        left join wings_babies wb on wb.parent_wing_id=w.id
+        where
+        w.id not in (select distinct wing_id from customer_hats)
+        ${wing_filter}
+        order by w.id, wb.position;`);
   return helper.emptyOrRows(rows);
 }
 

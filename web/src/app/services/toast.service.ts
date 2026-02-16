@@ -30,4 +30,6 @@ export class ToastService {
   showError(text: string) {
 		this.show({ text: text, classname: 'bg-danger text-light', delay: 4000 });
 	}
+
+	
 }

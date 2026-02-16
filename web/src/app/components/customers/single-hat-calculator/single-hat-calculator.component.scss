@@ -228,9 +228,22 @@ datalist {
 
 .option-table {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr; /* 3 equal columns */
+  grid-template-columns: 1fr 1fr; /* 2 equal columns */
   gap: 4px;
   align-items: center;
+  
+}
+
+.no-pad {
+  padding: 0px;
+}
+
+.option-2-col {
+  grid-template-columns: 1fr 1fr;
+}
+
+.option-3-col {
+  grid-template-columns: 1fr 1fr 1fr;
 }
 
 .option-table .cell {
@@ -243,9 +256,11 @@ datalist {
   border-left: 1px solid var(--bs-body-color);
 }
 
+/*
 ::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
   padding: 0px;
 }
+*/
 
 /* make selected item look like dropdown option instead of input */
 ::ng-deep .ng-select .ng-value {

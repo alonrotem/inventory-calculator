@@ -1,0 +1,40 @@
+<div class="row justify-content-center"><div class="col-12 col-md-6 col-lg-5">
+<h1 class="margined-horizon"><fa-icon [icon]="faEnvelope"></fa-icon> Verify your email</h1>
+
+<div *ngIf="!verified">
+    <div class="margined-horizon">
+        <p>We sent a message to your email address<span [innerHTML]="user_email? ', <span class=\'text-warning\'>' + user_email + '</span>, ' :''"></span> with a verification code.</p>
+        <p>To verify your account, please enter the code below:</p>
+    </div>
+
+    <div class="margined-horizon">
+        <input class="form-control form-control-lg" type="text" [(ngModel)]="user_verification_code" class="code" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" (keyup)="code_keyup($event)">
+        <div [ngClass]="'message text-center text-danger ' + ((error)?'visible':'invisible')">{{ (error)?error: 'Error' }}</div>
+
+    </div>
+
+    <div class="centralized">
+        <button type="button" class="btn-verify btn btn-success" (click)="verify_code()" [disabled]="verifying">
+            <span *ngIf="!verifying">Verify me!</span>
+            <fa-icon [icon]="faArrowsRotate" [animation]="'spin'" class="action-icon" *ngIf="verifying"></fa-icon>
+        </button>
+    </div>
+    <div class="centralized" style="margin-top: 10px;">Already verified? <a href="/profile" style="margin-left:10px;">Click here to go to your profile</a>.</div>
+</div>
+
+<div *ngIf="verified">
+    <div *ngIf="verified_successfully">
+        <h3><div class="text-success"><fa-icon [icon]="faCheck"></fa-icon> Your new email is now verified.</div></h3>
+        <a href="/profile" style="margin-left:10px;">Click here to go to your profile</a>
+    </div>
+
+    <div *ngIf="verified_error">
+        <h3><div class="text-danger"><fa-icon [icon]="faX"></fa-icon> Invalid code, or alredy verified.</div></h3>
+        <a href="/profile" style="margin-left:10px;">Click here to go to your profile</a>
+    </div>
+
+    <div *ngIf="cancelled_address">
+        <h3><div class="text-danger"><fa-icon [icon]="faX"></fa-icon> Your email change was cancelled.</div></h3>
+        <a href="/profile" style="margin-left:10px;">Click here to go to your profile</a>
+    </div>
+</div>

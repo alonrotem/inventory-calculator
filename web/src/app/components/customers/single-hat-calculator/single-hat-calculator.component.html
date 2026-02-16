@@ -57,7 +57,7 @@
     You do not have sufficient wings to produce hats!
   </div>
   <div class="order_adjustment_dialog" *ngIf="max_number_of_wings_in_all_allocations > 0">
-    <!--
+    
     <div>You can produce a total of {{ max_number_of_wings_in_all_allocations }} wings with your allocations</div>
     <div>In all hats, you are now using {{ allWingsInOrder }} wings</div>
     <div class="d-flex flex-row align-items-center" style="margin: 15px 0px;">
@@ -70,7 +70,7 @@
       </div>
       <div>{{ max_number_of_wings_in_all_allocations }}</div>
     </div>
-  -->
+
 
     <table class="table table-responsive">
       <th>Hat in order</th>
@@ -81,8 +81,8 @@
       <tr *ngFor="let order of this.customerHat.single_hat_orders; let i = index; trackBy: trackByOrder"><!--trackBy: trackByIndex-->
         <td>Hat #{{ i+1 }}</td>
         <td class="d-flex justify-content-center">
-          {{order.wing_quantity}}
-          <!--
+          <!--{{order.wing_quantity}}-->
+          
           <input 
             class="form-control" 
             type="number" 
@@ -91,7 +91,7 @@
             min="0"
             [attr.max]="(max_number_of_wings_in_all_allocations) ? (order.wing_quantity + (max_number_of_wings_in_all_allocations - allWingsInOrder)) : 0"
             (input)="dont_exceed_max_wings($event, i)"
-              />-->
+              />
         </td>
         <td class="text-center">{{ order.wing_quantity * (this.customerHat.wing? this.customerHat.wing.babies.length : 0) }}</td>
         <td class="d-flex flex-row" style="padding: 0px 15px;">
@@ -113,6 +113,7 @@
           </div>
         </td>
         <td>
+          <!--
           <select class="form-select" [(ngModel)]="order.kippa_size" style="max-width: 180px;">
             <option 
               *ngFor="let kippa of arr_kippa" 
@@ -120,7 +121,26 @@
               >
                 {{ kippa  | number : '1.1-1' }} cm
             </option>
-          </select>      
+          </select>
+        -->
+       <ng-select
+          #select_kippa
+          placeholder="Kippa size"
+          [(ngModel)]="kippa_size"
+          name="select_kippa"
+          [clearable]="false"
+          [disabled]="false"
+          [searchable]="false">
+          <ng-option
+            *ngFor="let item of arr_kippa"
+            [value]="item.cm"
+            [disabled]="item.disabled">
+            <div  [ngClass]="{ 'option-table': true, 'option-2-col': true, 'no-pad':true, 'text-danger': item.disabled }">
+              <div class="cell">{{ item.cm | number:'1.2-2' }} cm</div>
+              <div class="cell">{{ item.inches | number:'1.2-2' }}"</div>
+            </div>
+          </ng-option>
+        </ng-select>              
         </td>
       </tr>
     </table>
@@ -470,9 +490,27 @@
           <label for="tempB">Knife:</label>
         </div>
         <div class="flex-grow-1" style="margin-left: 15px;">
-        <select class="form-select" [value]="customerHat.wing?.knife" #select_knife (change)="knife_changed(select_knife.value)">
-          <option *ngFor="let knife of arr_knives" value="{{ knife }}">{{ knife  | number : '1.1-1' }} cm</option>
-        </select>
+
+        <ng-select
+          #knife_selector
+          placeholder="Hat knife"
+          [ngModel]="customerHat.wing?.knife"
+          (ngModelChange)="knife_changed()"
+          name="knife_selector"
+          [clearable]="false"
+          [disabled]="false"
+          [searchable]="false">
+          <ng-option
+            *ngFor="let item of arr_knives"
+            [value]="item.cm">
+            <div class="option-table option-2-col">
+              <div class="cell">{{ item.cm | number:'1.2-2' }} cm</div>
+              <div class="cell">{{ item.inches | number:'1.2-2' }}"</div>
+            </div>
+          </ng-option>
+
+        </ng-select>
+      
         </div>
       </div>
 
@@ -482,16 +520,27 @@
           <label for="tempB">Total height:</label>
         </div>
         <div class="flex-grow-1" style="margin-left: 15px;">
-        <select class="form-select" [value]="wing_total_height" #select_height (change)="height_changed(select_height.value)">
-          <option 
-            *ngFor="let height of arr_wing_total_height" 
-            value="{{ height }}" 
-            [disabled]="height < min_height_for_wing || height > max_height_for_wing"
-            [ngClass]="(height < min_height_for_wing || height > max_height_for_wing)? 'text-danger': ''"
-            >
-              {{ height  | number : '1.1-1' }} cm
-          </option>
-        </select>
+
+        <ng-select
+          #select_height
+          placeholder="Total height"
+          [(ngModel)]="wing_total_height"
+          (ngModelChange)="height_changed($event.toString())"
+          name="select_height"
+          [clearable]="false"
+          [disabled]="false"
+          [searchable]="false">
+          <ng-option
+            *ngFor="let item of arr_wing_total_height"
+            [value]="item.cm"
+            [disabled]="item.disabled">
+            <div  [ngClass]="{ 'option-table': true, 'option-2-col': true, 'text-danger': item.disabled }">
+              <div class="cell">{{ item.cm | number:'1.2-2' }} cm</div>
+              <div class="cell">{{ item.inches | number:'1.2-2' }}"</div>
+            </div>
+          </ng-option>
+        </ng-select>
+  
         </div>
       </div>
 
@@ -501,6 +550,7 @@
           <label for="tempB">Kippa size:</label>
         </div>
         <div class="flex-grow-1" style="margin-left: 15px;">
+        <!--
         <select class="form-select" [(ngModel)]="kippa_size" #select_kippa>
           <option 
             *ngFor="let kippa of arr_kippa" 
@@ -509,6 +559,26 @@
               {{ kippa  | number : '1.1-1' }} cm
           </option>
         </select>
+        -->
+
+        <ng-select
+          #select_kippa
+          placeholder="Kippa size"
+          [(ngModel)]="kippa_size"
+          name="select_kippa"
+          [clearable]="false"
+          [disabled]="false"
+          [searchable]="false">
+          <ng-option
+            *ngFor="let item of arr_kippa"
+            [value]="item.cm"
+            [disabled]="item.disabled">
+            <div  [ngClass]="{ 'option-table': true, 'option-2-col': true, 'text-danger': item.disabled }">
+              <div class="cell">{{ item.cm | number:'1.2-2' }} cm</div>
+              <div class="cell">{{ item.inches | number:'1.2-2' }}"</div>
+            </div>
+          </ng-option>
+        </ng-select>        
         </div>
       </div>
 
@@ -531,13 +601,12 @@
             [clearable]="false"
             [disabled]="false" 
             [searchable]="false">
-
               <!-- Template for default/selected item (ng-label-tmp), and for items in the select list (ng-option-tmp) -->
               <ng-template ng-option-tmp ng-label-tmp let-item="item">
-                <div class="option-table">
+                <div class="option-table option-2-col">
                   <div class="cell">{{ item.cm | number : '1.2-2' }} cm</div>
                   <div class="cell">{{ item.inches| number : '1.2-2'  }}"</div>
-                  <div class="cell">Box: {{ item.box | number : '1.1-1' }}</div>
+                  <!--<div class="cell d-none">Box: {{ item.box | number : '1.1-1' }}</div>-->
                 </div>
               </ng-template>
           </ng-select>
@@ -800,7 +869,7 @@
         Your max allocation is limited to a max of {{ total_num_of_possible_hats }} hats
       </div>
     </div>
-    <div *ngIf="customerHat.tails_material_id == null || customerHat.tails_material_id <= 0">
+    <div *ngIf="customerHat.tails_material_id == null || customerHat.tails_material_id <= 0" class="text-danger">
       Choose H material to place an order
     </div>
 

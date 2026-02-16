@@ -11,6 +11,13 @@ body {
     -ms-transition: background-color 200ms linear;
 }
 
+@font-face {
+  font-family: 'SpaceMono';
+  font-style: normal;
+  font-weight: normal;
+  src: url('assets/fonts/space-mono/SpaceMono-Regular.ttf') format('truetype');
+}
+
 *:focus {
     outline: none;
 }

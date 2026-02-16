@@ -1,14 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { InfoService } from '../../../services/info.service';
 import { Stats } from '../../../../types';
-import { DecimalPipe, NgClass } from '@angular/common';
+import { AsyncPipe, DecimalPipe, NgClass, NgIf } from '@angular/common';
 import { faArrowsRotate, faBasketShopping, faTrashCan, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { HasPermissionPipe } from '../../../utils/pipes/has-permission.pipe';
+import { UsersService } from '../../../services/users.service';
 
 @Component({
   selector: 'app-summary-card',
   standalone: true,
-  imports: [ DecimalPipe, FaIconComponent, NgClass ],
+  imports: [ DecimalPipe, FaIconComponent, NgClass, HasPermissionPipe, AsyncPipe, NgIf ],
   templateUrl: './summary-card.component.html',
   styleUrl: './summary-card.component.scss'
 })
@@ -29,7 +31,9 @@ export class SummaryCardComponent implements OnInit {
   faArrowsRotate: IconDefinition = faArrowsRotate;
   faBasketShopping: IconDefinition = faBasketShopping;
 
-  constructor(private infoService: InfoService) {
+  user$ = this.usersService.user$;
+
+  constructor(private infoService: InfoService, private usersService: UsersService) {
   }
 
   ngOnInit(): void {

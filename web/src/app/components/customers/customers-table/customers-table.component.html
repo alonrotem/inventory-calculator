@@ -1,5 +1,5 @@
-<div class="row justify-content-center"><div class="col-12 col-md-9">
-<h1><span class="icon-address-book"></span> Customers</h1>
+<div class="row justify-content-center"><div [attr.class]="'col-12 ' + ((stretchWidth)?'':'col-md-9')">
+<h1 *ngIf="showTitle"><span class="icon-address-book"></span> Customers</h1>
 
 <div id="loading_icon" [hidden]="!loading">
   <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
@@ -9,7 +9,7 @@
 </div>
 
 <div [hidden]="loading">
-  <a id="btnNewRaw" class="btn btn-primary" routerLink="/inventory/customer/editor">+ New customer</a>
+  <a id="btnNewRaw" *ngIf="showTitle && ((user$ | async) | hasPermission: [{area: 'customers', permission: 'C'}])" class="btn btn-primary" routerLink="/inventory/customer/editor">+ New customer</a>
 
   <div class="infotitle" [hidden]="loading || this.customers.length <= 0">Total: {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'customer':'customers' }}</div>
 

@@ -34,12 +34,15 @@
                     <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>
                 </button>
             </div>
-            <div class="col-2">
-                <button #btn_save class="btn btn-success upper-button" type="submit" (click)="save()" title="Save changes"><!--[disabled]="!raw_material_form.form.valid"-->
+            <div class="col-2" *ngIf="
+                    (is_new_customer && (user$ | async) | hasPermission: [{area: 'customers', permission: 'C'}]) || 
+                    ((!is_new_customer) && ((user$ | async) | hasPermission: [{area: 'customers', permission: 'U'}, {area: 'customer_resources_by_customer_id', permission: 'U'}]))">
+                <button 
+                #btn_save class="btn btn-success upper-button" type="submit" (click)="save()" title="Save changes"><!--[disabled]="!raw_material_form.form.valid"-->
                     <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
                 </button>
             </div>
-            <div class="col-2" *ngIf="!this.is_new_customer">
+            <div class="col-2" *ngIf="(!this.is_new_customer) && ((user$ | async) | hasPermission: [{area: 'customers', permission: 'D'}])">
                 <button class="btn btn-danger upper-button" (click)="confirm_delete()" title="Delete customer">
                     <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>
                 </button>
@@ -92,6 +95,22 @@
             </div>
         </div>
 
+        <div class="row advanced-settings" *ngIf="(user$ | async) | hasPermission: [{area: 'customers_advanced_features', permission: 'R'}]">
+            <div class="col">
+                <h4>Advanced customer settings</h4>
+                <div>Only you can see this</div>
+
+                <div class="advanced-row">
+                    <div class="switch-group form-check form-switch">
+                        <input class="form-check-input" type="checkbox" #chkAllowalCalculationAdvisor="ngModel" name="chkAllowalCalculationAdvisor" [(ngModel)]="customerItem.allow_calculation_advisor">
+                        <label class="form-check-label" for="chkAllowalCalculationAdvisor">
+                            Show the smart hats calculation advisor
+                        </label>
+                    </div>
+                </div>               
+            </div>
+        </div>
+
 
 
     </div>
@@ -127,6 +146,7 @@
                     (bank_changed)="recalculateBanks()"
                     (babies_updated)="customer_bank_babies_updated($event)"
                     #customer_banks_tables
+                    [show_hat_advisor]="customerItem.allow_calculation_advisor?? false"
                 />
             </div>
         </div>
@@ -147,13 +167,15 @@
         </button>
     </div>
 
-        <div class="col-12 d-flex justify-content-center {{ this.is_new_customer? 'col-md-6':'col-md-4' }}">
+        <div class="col-12 d-flex justify-content-center {{ this.is_new_customer? 'col-md-6':'col-md-4' }}" *ngIf="
+                    (is_new_customer && (user$ | async) | hasPermission: [{area: 'customers', permission: 'C'}]) || 
+                    ((!is_new_customer) && ((user$ | async) | hasPermission: [{area: 'customers', permission: 'U'}, {area: 'customer_resources_by_customer_id', permission: 'U'}]))">
             <button #btn_save class="btn btn-success" type="submit" (click)="save()"><!--[disabled]="!raw_material_form.form.valid"-->
                 <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
                 <div>Save Customer</div>
             </button>
         </div>
-        <div class="col-12 d-flex justify-content-center col-md-4" *ngIf="!this.is_new_customer">
+        <div class="col-12 d-flex justify-content-center col-md-4" *ngIf="(!this.is_new_customer) && ((user$ | async) | hasPermission: [{area: 'customers', permission: 'D'}])">
             <button class="btn btn-danger" (click)="confirm_delete()">
                 <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>
                 <div>Delete Customer</div>

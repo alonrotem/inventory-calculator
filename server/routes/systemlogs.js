@@ -6,8 +6,9 @@ const fs = require('fs');
 const path = require('path');
 const JSZip = require("jszip");
 const systemlogs = require('../services/systemlogs');
+const auth_request = require('../middleware/auth_request');
 
-router.get('/', async function(req, res, next) {
+router.get('/', auth_request([{requiredArea:'system_logs', requiredPermission:'R'} ]), async function(req, res, next) {
     try {
         logger.info(`get /systemlogs/`);
         const files = systemlogs.getAllLogFilesList();
@@ -19,7 +20,7 @@ router.get('/', async function(req, res, next) {
     }
 });
 
-router.get('/getlog/:filename', function(req, res){
+router.get('/getlog/:filename', auth_request([{requiredArea:'system_logs', requiredPermission:'R'} ]), function(req, res){
     let host = req.headers.host.split(":")[0];
     const filename = req.params.filename;
     const filepath = path.join(logFilesPath, filename);
@@ -39,7 +40,7 @@ router.get('/getlog/:filename', function(req, res){
     }
 });
 
-router.get('/getall/', async function(req, res){
+router.get('/getall/', auth_request([{requiredArea:'system_logs', requiredPermission:'R'} ]), async function(req, res){
     let host = req.headers.host.split(":")[0];
     let logs_archive_file_name = helper.dateStr(new Date()) + `-${host}-logs.zip`;
     const zipBuffer = await systemlogs.getAllFilesZipped();
@@ -56,7 +57,7 @@ router.get('/getall/', async function(req, res){
     }
 });
 
-router.get('/getlogtail/:filename', async function(req, res){
+router.get('/getlogtail/:filename', auth_request([{requiredArea:'system_logs', requiredPermission:'R'} ]), async function(req, res){
     const filename = req.params.filename;
     const filepath = path.join(logFilesPath, req.params.filename);
 
@@ -70,7 +71,7 @@ router.get('/getlogtail/:filename', async function(req, res){
     }
 });
 
-router.delete('/', async function(req, res, next) {
+router.delete('/', auth_request([{requiredArea:'system_logs', requiredPermission:'D'} ]), async function(req, res, next) {
     try {
         systemlogs.deleteAllLogs();
         files = systemlogs.getAllLogFilesList();
@@ -82,7 +83,7 @@ router.delete('/', async function(req, res, next) {
     }
 });
 
-router.delete('/:filename', async function(req, res, next) {
+router.delete('/:filename', auth_request([{requiredArea:'system_logs', requiredPermission:'D'} ]), async function(req, res, next) {
     const filename = req.params.filename;
     const filepath = path.join(logFilesPath, req.params.filename);
 

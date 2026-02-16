@@ -16,6 +16,7 @@ drop table if exists babies; -- old
 drop table if exists allocation_babies; -- new
 drop table if exists countries;
 drop table if exists currencies;
+drop table if exists users;
 
 # drop table if exists wing_positions;
 drop table if exists wings;
@@ -26,6 +27,14 @@ drop table if exists hats_wings;
 drop table if exists orders;
 drop table if exists orders_status;
 drop table if exists settings;
+
+drop table if exists users;
+drop table if exists logins;
+drop table if exists roles;
+drop table if exists user_roles;
+drop table if exists user_customers;
+drop table if exists role_permissions;
+drop table if exists account_requests;
 
 drop table if exists transaction_history;
 SET FOREIGN_KEY_CHECKS = 1;
@@ -317,7 +326,7 @@ CREATE TABLE  IF NOT EXISTS `currencies`
 (
   `code`  VARCHAR(3) NOT NULL,
   `name`  VARCHAR(64) NOT NULL,
-  `symbol` VARCHAR(3) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci  NULL,
+  `symbol` VARCHAR(3) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NULL,
   `order` int default(999),
   PRIMARY KEY (`code`)
 );
@@ -379,8 +388,8 @@ CREATE TABLE  IF NOT EXISTS `raw_materials`
   `currency`		varchar(3) NULL,
   `notes`			varchar(255) NULL,
   `color`			varchar(128) null,
-  `created_at`    	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
-  `updated_at`    	DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+  `created_at`    	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at`    	DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `created_by`	 	int null,
   `updated_by`	 	int null,
   `allow_shortening_babies_in_pairs` boolean default false,
@@ -402,6 +411,7 @@ CREATE TABLE  IF NOT EXISTS `customers` (
 	`tax_id`     		VARCHAR(255) NULL ,
     `customer_code`		VARCHAR(127) NULL,
     `notes`				varchar(255) NULL,
+    `allow_calculation_advisor` BOOL default false,
 	`created_at`    	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
 	`updated_at`    	DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`created_by`	 	int null,
@@ -655,6 +665,190 @@ CREATE TABLE IF NOT EXISTS `orders_status` (
 	  FOREIGN KEY (`order_id`) REFERENCES orders(`id`) ON DELETE CASCADE        
 );
 
+CREATE TABLE IF NOT EXISTS `users` (
+	`id`					INT NOT NULL auto_increment,
+	`firstname`				VARCHAR(255) NOT null,
+	`lastname`				VARCHAR(255) NOT null,
+	`username`				VARCHAR(255) NOT null,
+	`email`					VARCHAR(255) NOT null,
+	`password`				VARCHAR(255) NOT null,
+	`is_verified`			BOOL not null default false,
+	`is_disabled`			BOOL not null default false,
+	`pending_verfication_code` VARCHAR(255) null,
+	`verification_code_expiration` DATETIME null,
+	`pending_new_email`			VARCHAR(255) null,
+	`pending_new_email_code`	VARCHAR(255) null,
+	`photo_url`					VARCHAR(255) null,
+	`phone`						VARCHAR(255) null,
+	#`customer_ids`			int null, #If set, this user can access only the specific customer ids. Otherwise, access according to the role
+	`created_at`			Datetime not null,
+	PRIMARY KEY (`id`),
+	Unique(`username`),
+	Unique(`email`)
+);
+
+CREATE TABLE IF NOT EXISTS `account_requests` (
+	`id`			INT NOT NULL auto_increment,
+	`firstname`		VARCHAR(255) NOT null,
+	`lastname`		VARCHAR(255) NOT null,
+	`email`			VARCHAR(255) NOT null,
+	`phone`			VARCHAR(255) not null,
+	`details`		VARCHAR(1000) null,
+	`request_date`	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`last_update`	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`approver_user_id`	int default 0,
+	`approved_account_user_id` int null,
+	# `account_creation_code`		VARCHAR(255) null,
+	`account_role_id`	int default 0,
+	`request_status`	ENUM(
+			'pending',
+            'approved',
+            'declined'
+		) NOT NULL,
+	PRIMARY KEY (`id`),
+	CONSTRAINT fk_account_request_user_account
+	  FOREIGN KEY (`approved_account_user_id`) REFERENCES users(`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS `logins` (
+	`id`						INT NOT NULL auto_increment,
+	`user_id`					INT NOT NULL,
+	`origin_ip_address`			VARCHAR(255) NOT null,
+	`logged_in_at`				DATETIME NOT NULL,
+	`last_refresh_token_time` 	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`refresh_token_expiration`	DATETIME NOT null,
+	`refresh_token`				VARCHAR(255) NOT null,
+	`origin_geolocation`		VARCHAR(255) null,
+	`origin_city`				VARCHAR(255) null,
+	`origin_country`			VARCHAR(255) null,
+	`origin_os`					VARCHAR(255) null,
+	`origin_browser`			VARCHAR(255) null,
+	PRIMARY KEY (`id`),
+	CONSTRAINT fk_logins_user
+	  FOREIGN KEY (`user_id`) REFERENCES users(`id`) ON DELETE cascade,
+	Unique(`refresh_token`)
+);
+
+CREATE TABLE IF NOT EXISTS `roles` (
+	`id`		INT NOT NULL auto_increment,
+	`name`		VARCHAR(255) NOT null,
+	PRIMARY KEY (`id`)
+);
+
+insert into `roles` (`name`) values
+	('administrator'),	# Allowed everything
+	('customer'),		# Allowed access to specific customer ids data and orders
+	('employee'),		# Allowed access to orders and readonly customer info
+	('guest');			# Allowed view permissions to data
+
+CREATE TABLE IF NOT EXISTS `user_roles` (
+	`user_id`					INT NOT NULL,
+	`role_id`					INT NOT NULL,
+	CONSTRAINT fk_role_user
+	  FOREIGN KEY (`user_id`) REFERENCES users(`id`) ON DELETE cascade,
+	CONSTRAINT fk_role_role
+	  FOREIGN KEY (`role_id`) REFERENCES roles(`id`) ON DELETE cascade,
+	CONSTRAINT uc_user_roles UNIQUE (`user_id`, `role_id`) 
+);
+
+CREATE TABLE IF NOT EXISTS `user_customers` (
+	`user_id`					INT NOT NULL,
+	`customer_id`					INT NOT NULL,
+	CONSTRAINT fk_customer_user
+	  FOREIGN KEY (`user_id`) REFERENCES users(`id`) ON DELETE cascade,
+	CONSTRAINT fk_customer_customer
+	  FOREIGN KEY (`customer_id`) REFERENCES customers(`id`) ON DELETE cascade,
+	CONSTRAINT uc_user_roles UNIQUE (`user_id`, `customer_id`) 
+);
+
+CREATE TABLE IF NOT EXISTS `role_permissions` (
+	`id`		INT NOT NULL auto_increment,
+	`role_id`	VARCHAR(255) NOT null,
+	 `area` 	ENUM(
+			  		'dashboard',
+					'raw_materials', 
+					'bank_baby_management', # allowed to manage the customer's bank and add/remove babies in allocation
+					'customers', 
+					'customers_advanced_features', # for switching adviror on/off per customer, and other features. Available to admins
+					'orders', 
+					'wings', 
+					'wings_through_orders', # allowing access to wings through the customer(s) orders
+					'system_settings', 
+					'backup', 
+					'system_logs',
+					'user_management',
+					'customer_resources_by_customer_id', # allowing access to customers assigned to the user
+					'orders_resources_by_customer_id'	# allowing access to orders of customers assigned to the user
+				) NOT NULL,
+	`permissions` VARCHAR(255) null, # R, W, RW or nothing
+	PRIMARY KEY (`id`)
+);
+
+Insert into `role_permissions` (`role_id`, `area`, `permissions`)
+values
+((select id from roles where name='administrator'), 'dashboard', 'CRUD'),
+((select id from roles where name='administrator'), 'raw_materials', 'CRUD'),
+((select id from roles where name='administrator'), 'bank_baby_management', 'CRUD'),
+((select id from roles where name='administrator'), 'customers', 'CRUD'),
+((select id from roles where name='administrator'), 'customers_advanced_features', 'RU'),
+((select id from roles where name='administrator'), 'orders', 'CRUD'),
+((select id from roles where name='administrator'), 'wings', 'CRUD'),
+((select id from roles where name='administrator'), 'wings_through_orders', ''),
+((select id from roles where name='administrator'), 'system_settings', 'CRUD'),
+((select id from roles where name='administrator'), 'backup', 'CRUD'),
+((select id from roles where name='administrator'), 'system_logs', 'CRUD'),
+((select id from roles where name='administrator'), 'user_management', 'CRUD'),
+((select id from roles where name='administrator'), 'customer_resources_by_customer_id', ''),
+((select id from roles where name='administrator'), 'orders_resources_by_customer_id', ''),
+
+((select id from roles where name='customer'), 'dashboard', 'R'),		# Readonly
+((select id from roles where name='customer'), 'raw_materials', ''), 	# No access
+((select id from roles where name='customer'), 'bank_baby_management', ''),
+((select id from roles where name='customer'), 'customers', ''),	 	# Limited by customer id
+((select id from roles where name='customer'), 'customers_advanced_features', ''),
+((select id from roles where name='customer'), 'orders', ''),		 	# Limited by customer id
+((select id from roles where name='customer'), 'wings', ''),		 	# No access
+((select id from roles where name='customer'), 'wings_through_orders', 'CR'),
+((select id from roles where name='customer'), 'system_settings', ''),	# No access 
+((select id from roles where name='customer'), 'backup', ''),			# No access
+((select id from roles where name='customer'), 'system_logs', ''),		# No access
+((select id from roles where name='customer'), 'user_management', ''),
+((select id from roles where name='customer'), 'customer_resources_by_customer_id', 'RU'), # Limited by customer id
+((select id from roles where name='customer'), 'orders_resources_by_customer_id', 'CRUD'), # Limited by customer id
+
+((select id from roles where name='employee'), 'dashboard', 'R'),		# Readonly
+((select id from roles where name='employee'), 'raw_materials', 'R'),	# Readonly
+((select id from roles where name='employee'), 'bank_baby_management', 'CRUD'),
+((select id from roles where name='employee'), 'customers', 'R'),		# Readonly
+((select id from roles where name='customer'), 'customers_advanced_features', ''),
+((select id from roles where name='employee'), 'orders', 'RUD'),		# Accessible
+((select id from roles where name='employee'), 'wings', 'R'),			# Readonly
+((select id from roles where name='employee'), 'wings_through_orders', ''),
+((select id from roles where name='employee'), 'system_settings', ''),	# No access
+((select id from roles where name='employee'), 'backup', ''),			# No access
+((select id from roles where name='employee'), 'user_management', ''),
+((select id from roles where name='employee'), 'system_logs', ''),		# No access
+((select id from roles where name='employee'), 'customer_resources_by_customer_id', ''), # No access
+((select id from roles where name='employee'), 'orders_resources_by_customer_id', ''), # Limited by customer id
+
+((select id from roles where name='guest'), 'dashboard', 'R'),			# Readonly
+((select id from roles where name='guest'), 'raw_materials', ''),		# No access
+((select id from roles where name='guest'), 'bank_baby_management', ''),
+((select id from roles where name='guest'), 'customers', ''),			# No access
+((select id from roles where name='guest'), 'customers_advanced_features', ''),
+((select id from roles where name='guest'), 'orders', ''),				# No access
+((select id from roles where name='guest'), 'wings', ''),				# No access
+((select id from roles where name='guest'), 'wings_through_orders', ''),
+((select id from roles where name='guest'), 'system_settings', ''),		# No access
+((select id from roles where name='guest'), 'user_management', ''),
+((select id from roles where name='guest'), 'backup', ''),				# No access
+((select id from roles where name='guest'), 'system_logs', ''),			# No access
+((select id from roles where name='guest'), 'customer_resources_by_customer_id', ''),
+((select id from roles where name='guest'), 'orders_resources_by_customer_id', ''); # No access
+
+/* Raw material totals */
+-- Alert when raw material total kg quantity below ___ kg
+
 CREATE TABLE  IF NOT EXISTS `settings`
 (
   `key`		VARCHAR(255) NOT NULL,
@@ -667,6 +861,7 @@ CREATE TABLE  IF NOT EXISTS `settings`
 	) NOT NULL,
 	PRIMARY KEY (`key`)
 );
+
 Insert into `settings` (`key`, `value`, `default_value`, `value_type`)
 VALUES
 /* Raw material totals */
@@ -714,13 +909,15 @@ VALUES
 
 /*------- UI Settings ---------*/
 ('ui_settings_grid_paging', '1', '1', 'boolean'),
-('ui_settings_grid_page_size', '20', '20', 'number')
+('ui_settings_grid_page_size', '20', '20', 'number'),
 
-AS new_settings
+/*------ Customer Banks Management Settings ------*/
+('customer_banks_babies_reduce_from_allocation', '0', '0', 'boolean')
+as new_settings
 ON DUPLICATE KEY UPDATE
 	value=new_settings.value, 
 	default_value=new_settings.default_value, 
 	value_type=new_settings.value_type;
 
 SET FOREIGN_KEY_CHECKS = 1;
-select "All done";
+select "Creation done", CURRENT_TIMESTAMP;

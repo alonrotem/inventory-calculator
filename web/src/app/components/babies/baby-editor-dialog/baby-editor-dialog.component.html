@@ -53,8 +53,8 @@
 
         <label for="quantity">Quantity</label>
     </div>
-    <div>Maximum: {{ units_available + highlighted_baby_quantity_before_change }}</div>
-    <div *ngIf="highlighted_baby_quantity > units_available + highlighted_baby_quantity_before_change" class="text-danger">Not enough available units. Maximum of {{ units_available | number: '1.' }} + {{ highlighted_baby_quantity_before_change | number: '1.' }} = {{ units_available + highlighted_baby_quantity_before_change | number: '1.' }}</div>
+    <div *ngIf="customer_banks_babies_reduce_from_allocation">Maximum: {{ units_available + highlighted_baby_quantity_before_change }}</div>
+    <div *ngIf="customer_banks_babies_reduce_from_allocation && highlighted_baby_quantity > units_available + highlighted_baby_quantity_before_change" class="text-danger">Not enough available units. Maximum of {{ units_available | number: '1.' }} + {{ highlighted_baby_quantity_before_change | number: '1.' }} = {{ units_available + highlighted_baby_quantity_before_change | number: '1.' }}</div>
     <!--div class="text-danger" *ngIf="babyFormEditor.get('quantity')?.invalid && (babyFormEditor.get('quantity')?.touched || babyFormEditor.get('quantity')?.dirty || isSubmitted) && (babyFormEditor.get('quantity') && !babyFormEditor.get('quantity')?.value)"> 
         <span>Please enter a valid babies quantity</span>
     </div--> 

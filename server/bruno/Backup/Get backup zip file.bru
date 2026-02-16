@@ -1,0 +1,16 @@
+meta {
+  name: Get backup zip file
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{romtech_server}}/backup/zip
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

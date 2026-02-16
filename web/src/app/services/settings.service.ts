@@ -10,7 +10,7 @@ export class SettingsService {
 
   constructor(private apiService: ApiService) { }
 
-  getSettings = (keys: string[]): Observable<Record<string, string>> => {
+  getSettings = (keys: string[]): Observable<Record<string, any>> => {
     return this.apiService.post(`${environment.serverUrl}/settings/`, keys, { });
   };
 

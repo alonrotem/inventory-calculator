@@ -1,0 +1,30 @@
+meta {
+  name: sign in (customer)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{romtech_server}}/users/signin
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "username_or_email": "alrotem@walla.co.il",
+    "password": "12345",
+    "remember": true
+  }
+}
+
+script:post-response {
+  if(res.body.access_token) {
+    bru.setVar("auth_token", res.body.access_token);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

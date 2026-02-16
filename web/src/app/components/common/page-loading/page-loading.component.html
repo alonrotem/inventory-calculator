@@ -1,0 +1,6 @@
+<div class="{{ (stretch_height)?'loading_icon':'' }}">
+  <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+    <div><fa-icon [icon]="loading_icon" [animation]="animation" [size]="icon_size"></fa-icon></div>
+    <div id="loading_message">{{ loading_message }}...</div>
+  </div>
+</div>

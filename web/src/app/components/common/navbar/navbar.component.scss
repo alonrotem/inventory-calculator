@@ -1,0 +1,19 @@
+.navbar-nav {
+    align-items: center;
+}
+
+@media (max-width: 992px) {
+    .navbar-nav {
+        align-items: end !important;
+    }
+}
+
+.nav-link {
+    text-align: end;
+}
+
+/* Ensure the container of the user menu and hamburger don't wrap */
+.container-fluid {
+  display: flex;
+  align-items: center;
+}

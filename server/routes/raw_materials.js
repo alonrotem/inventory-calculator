@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const raw_materials = require('../services/raw_materials');
 const { logger } =  require('../logger');
+const users = require('../services/users');
+const auth_request = require('../middleware/auth_request');
 
 /* GET raw materials */
 /* curl -i -X GET \
@@ -9,7 +11,7 @@ const { logger } =  require('../logger');
     -H 'Content-type: application/json' \
         http://localhost:3000/raw_materials/
 */
-router.get('/', async function(req, res, next) {
+router.get('/', auth_request([{ requiredArea: 'raw_materials', requiredPermission: 'R' }]), async function(req, res, next) {
   logger.info(`get /raw_materials/ page=${req.query.page}, perPage=${req.query.perPage}`);
   try {
     const response = await raw_materials.getMultiple(req.query.page, req.query.perPage);
@@ -29,7 +31,7 @@ curl -i -X GET \
     -H 'Content-type: application/json' \
         http://localhost:3000/raw_materials/10
 */
-router.get('/single/:id', async function(req, res, next) {
+router.get('/single/:id', auth_request([{ requiredArea: 'raw_materials', requiredPermission: 'R' }]), async function(req, res, next) {
     logger.info(`get /raw_materials/single/${req.params.id}`);
     try {
       const response = await raw_materials.getSingle(req.params.id);
@@ -42,7 +44,7 @@ router.get('/single/:id', async function(req, res, next) {
     }
   });
 
-  router.get('/names/:customer_id', async function(req, res, next) {
+  router.get('/names/:customer_id', auth_request(), async function(req, res, next) {
     logger.info(`get /raw_materials/names/${req.params.id}`);
     try {
       const response = await raw_materials.getNames(req.params.customer_id);
@@ -90,7 +92,7 @@ router.get('/single/:id', async function(req, res, next) {
         --data "{  \"name\":\"Alon's\",  \"purchased_at\": \"2024-05-01\", \"weight\": 100, \"updated_by\": 4 }" \
         http://localhost:3000/raw_materials/12
   */
-  router.put('/', async function(req, res, next) {
+  router.put('/', auth_request([{ requiredArea: 'raw_materials', requiredPermission: 'U' }]), async function(req, res, next) {
     logger.info(`put /raw_materials`);
     try {
       logger.debug(`Body: ${ JSON.stringify(req.body) }`);
@@ -111,7 +113,7 @@ curl -i -X DELETE \
     -H 'Content-type: application/json' \
         http://localhost:3000/raw_materials/10
 */
-router.delete('/:id', async function(req, res, next) {
+router.delete('/:id', auth_request([{ requiredArea: 'raw_materials', requiredPermission: 'D' }]), async function(req, res, next) {
   logger.info(`delete /raw_materials/${req.params.id}`);
   try {
     const response = await raw_materials.remove(req.params.id);

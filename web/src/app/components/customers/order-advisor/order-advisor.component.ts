@@ -3,17 +3,20 @@ import { WingsService } from '../../../services/wings.service';
 import { aggregated_babies, HatsCalculatorService } from '../../../services/hats-calculator.service';
 import { Allocation_Baby, Customer_Bank_Baby_Allocation, Wing, WingBaby, ShortWingsInfo, OrderAdvisorWingOverall, OrderAdvisorHatsSuggestionAlternative, Customer_Bank, OrderAdvisorHatsSuggestion } from '../../../../types';
 import { Router, withEnabledBlockingInitialNavigation } from '@angular/router';
-import { DecimalPipe, NgFor, NgIf } from '@angular/common';
+import { AsyncPipe, DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { faArrowsRotate, faLightbulb, faSave, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.component";
 import { NgSelectModule } from '@ng-select/ng-select';
 import { FormsModule } from '@angular/forms';
+import { UsersService } from '../../../services/users.service';
+import { HasPermissionPipe } from '../../../utils/pipes/has-permission.pipe';
+import { SettingsService } from '../../../services/settings.service';
 
 @Component({
   selector: 'app-order-advisor',
   standalone: true,
-  imports: [NgIf, NgFor, FaIconComponent, ModalDialogComponent, NgSelectModule, FormsModule, DecimalPipe ],
+  imports: [NgIf, NgFor, FaIconComponent, ModalDialogComponent, NgSelectModule, FormsModule, DecimalPipe, AsyncPipe, HasPermissionPipe ],
   templateUrl: './order-advisor.component.html',
   styleUrl: './order-advisor.component.scss'
 })
@@ -39,6 +42,8 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
 
   @ViewChild("advisor_dialog") advisor_dialog!: ModalDialogComponent;
   @ViewChild("hat_creation_assistant") hat_creation_assistant!: ModalDialogComponent;
+
+  user$ = this.usersService.user$
 
   allocation_wall_babies: Allocation_Baby[] = [];
   allocation_crown_babies: Allocation_Baby[] = [];
@@ -77,17 +82,27 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   assistant_aggregated_hat_babies: aggregated_babies[] = []; //containing aggregated babies with length, quantity and num of hats
   assistant_aggregated_crown_babies: aggregated_babies[] = []; //crown_babies are used only if the allocations are split between hat and crown  
   @Output() assistantAutoAddBabies = new EventEmitter<any>();
+  customer_banks_babies_reduce_from_allocation: boolean = false;
 
   constructor(
     private wingsSerice: WingsService, 
     private hatsCalculatorService: HatsCalculatorService,
-    private router: Router) 
+    private router: Router,
+    private usersService: UsersService, 
+    private settingsService: SettingsService) 
   {  }
 
   ngOnInit(): void {
   }
 
   ngAfterViewInit(): void {
+    this.settingsService.getSettings(["customer_banks_babies_reduce_from_allocation"]).subscribe({
+      next: (setting:Record<string, any>) => { 
+        this.customer_banks_babies_reduce_from_allocation = setting["customer_banks_babies_reduce_from_allocation"]; 
+      },
+      error: (err: any) => { console.error(err) }
+    });
+    console.dir();
     this.runCalculations();
   }
 
@@ -417,15 +432,12 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
             this.exceed_number_shorten_top = highest_alternative?.shorten_top ?? -1;
             this.exceed_number_shorten_crown = highest_alternative?.shorten_crown ?? -1;
           }
+
           this.already_at_max_num_of_hats = false;
         }
         else {
-          //if(hats_info.total_num_of_possible_hats > 0) {
-            this.exceed_number_of_hats_message = "You are already at the max number of hats for this allocation";
-          //}
-          //else {
-          //  this.exceed_number_of_hats_message = "You don't have sufficient quotas to produce this hat -> " + hats_info.total_num_of_possible_hats;
-          //}
+          this.exceed_number_of_hats_message = "You are already at the max number of hats for this allocation";
+
           this.already_at_max_num_of_hats = true;
           this.exceed_number_shorten_top = -1;
           this.exceed_number_shorten_crown = -1;
@@ -497,7 +509,12 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
       this.total_missing_babies = 0;
       this.total_missing_babies_wall = 0;
       this.total_missing_babies_crown = 0;
-      this.sufficient_babies_in_allocations = false;
+      //according to the system setting, if we do not reduce babies from the allocation, it does not matter how many babies are needed
+      //it's up to the employee to cut the babies as necessary.
+      //(customer cannot add/remove babies anyway)
+      if(this.customer_banks_babies_reduce_from_allocation){
+        this.sufficient_babies_in_allocations = false;
+      }
       if(this.assistant_selected_wing_id && this.assistant_selected_wing_id > 0){
         let wing = this.systemWings.find(w => w.id == this.assistant_selected_wing_id);
         if(wing){
