@@ -31,6 +31,8 @@ ENV PATH="$NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH"
 RUN node --version && npm --version
 # ===============
 
+RUN rm -rf node_modules
+RUN rm -rf ./package-lock.json
 RUN npm install -g @angular/cli@latest
 RUN npm config set legacy-peer-deps true
 RUN npm install --force

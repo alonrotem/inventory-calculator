@@ -1,57 +1,40 @@
-# node
-# Node server app for Romtech
-# docker build -f Dockerfile -t romtech_server .
-# docker rm romtech_server; docker run -ti -p 3000:3000 --name romtech_server romtech_server
+# --- STAGE 1: Build the Angular Web App ---
+FROM node:22.16.0-slim AS web-builder
 
-# docker rm romtech_server; docker run -ti -p 3000:3000 -v ${PWD}/web:/web_temp -v ${PWD}/server:/server --name romtech_server romtech_server /bin/bash
-FROM ubuntu:latest
+ENV NODE_ENV=production
 
-RUN apt-get update && apt-get install -y \
-    software-properties-common \
-    wget \
-    nano \
-    curl
-
-# copy the server files
-RUN mkdir /server
-COPY ./server/. /server
-
-# copy the web files (in production, angular is served statically)
-RUN mkdir /temp_web
-COPY ./web/. /temp_web
-
-# ===============
-# Set environment variables
-ENV NVM_DIR=/root/.nvm \
-    NODE_VERSION=22.16.0 \
-    NODE_ENV=production
-
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash \
-    && . "$NVM_DIR/nvm.sh" \
-    && nvm install $NODE_VERSION \
-    && nvm alias default $NODE_VERSION \
-    && nvm use default
-
-# Add NVM to PATH
-ENV PATH="$NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH"
-
-# Verify installation
-RUN node --version && npm --version
-# ===============
-
-RUN npm install -g @angular/cli@18.2.20
-
-# install the server packages
-WORKDIR /server
-RUN npm install --force
-
-# install the web packages, build the production files, copy to the server
 WORKDIR /temp_web
-RUN npm config set legacy-peer-deps true
-RUN npm install --force
-RUN ng build --configuration=production
-RUN cp -r /temp_web/dist/inventory-calculator/browser/. /server/web
 
-# run it all
+# Set npm config to handle dependency conflicts
+RUN npm config set legacy-peer-deps true
+
+# Copy only package files first to leverage Docker layer caching
+COPY ./web/package*.json ./
+RUN npm install --force
+
+# Copy the rest of the web source and build
+COPY ./web/ .
+# Using npx ensures we use the local @angular-devkit version
+RUN npx ng build --configuration=production
+
+
+# --- STAGE 2: Setup the Node Server ---
+FROM node:22.16.0-slim
 WORKDIR /server
+
+# Copy server dependency files
+COPY ./server/package*.json ./
+RUN npm install --production
+
+# Copy server source code
+COPY ./server/ .
+
+# Ensure the destination directory exists
+RUN mkdir -p /server/web
+
+# THE CRITICAL STEP: 
+# Grab the built files from the first stage and put them in /server/web
+COPY --from=web-builder /temp_web/dist/inventory-calculator/browser/. /server/web/
+
+EXPOSE 3000
 CMD ["node", "index.js", "0.0.0.0"]
