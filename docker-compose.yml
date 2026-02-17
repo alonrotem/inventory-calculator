@@ -26,6 +26,7 @@ services:
     build: 
       dockerfile: ./server/Dockerfile
       context: ./
+      no_cache: true
     #ports:
     #  - "3000:3000"
     network_mode: "host"
@@ -36,7 +37,10 @@ services:
       - ./server/uploads:/server/uploads
 
   db:
-    build: ./server/SQL/
+    build: 
+      dockerfile: ./Dockerfile
+      context:  ./server/SQL/
+      no_cache: true
     # command: /bin/bash -c 'mysql -u root -p12345678 < /docker-entrypoint-initdb.d/create_db.sql'
     #ports:
     #  - "3306:3306"
