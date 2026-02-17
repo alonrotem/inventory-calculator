@@ -227,7 +227,7 @@ async function manual_add_user_temp(user_details, active_connection=null){
 
     if(user_details["customer_ids"] && user_details["customer_ids"].length > 0){
       await db.transaction_query(
-        `insert into user_customers (user_id, customer_id) values (${user_details["customer_ids"].map(id => "(?),(?)").join(",")})`,
+        `insert into user_customers (user_id, customer_id) values ${user_details["customer_ids"].map(id => "((?),(?))").join(",")}`,
         user_details["customer_ids"].map(id => [new_user_id, id]).flat(), 
         active_connection);
     }
