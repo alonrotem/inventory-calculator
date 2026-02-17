@@ -382,10 +382,10 @@
     <!-- Wing number picker -->
     <div class="hat-info-section" [hidden]="raw_material_names.length == 0">
       <div><strong>Number of wings:</strong></div>
-      <div>{{ (customerHat.wing)? this.selected_wing_name : 'Loading wing' }} x {{ customerHat.wing_quantity }}
-        <!--
+      <div>{{ (customerHat.wing)? this.selected_wing_name : 'Loading wing' }} x <!--{{ customerHat.wing_quantity }}-->
+        
         <input type="number" [(ngModel)]="customerHat.wing_quantity" style="width: 70px; text-align: center;" (change)="num_of_wings_changed()" (keyup)="num_of_wings_changed()" min="1" />
-        -->
+      
       </div>
       <div style="font-size: 12px;">
         Based on diameter {{ this.diameter_inches }}" and crown width {{ this.customerHat.wing?.crown_width }} cm
