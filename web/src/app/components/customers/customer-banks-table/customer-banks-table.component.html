@@ -231,7 +231,7 @@
  <hr  style="margin: 30px 0px;" />
  <div class="allocation-area">
       <div>
-        <strong><span class="icon-tails" style="margin-right:10px;"></span>H material work allocation #{{ bank_allocation.id }}:</strong>
+        <strong><span class="icon-tails" style="margin-right:10px;"></span>H material work allocation {{ ((bank_allocation.id <= 0)? '(unsaved allocation)': ('#' + bank_allocation.id)) }}:</strong>
         {{ bank_allocation.quantity | number: '1.0-0' }} {{ raw_material_quantity_units }}
         <div>
           <button class="btn btn-warning" style="padding: 0px 11px 1px 5px; margin-left: 10px;" (click)="open_allocation_dialog(bank_allocation.id)">

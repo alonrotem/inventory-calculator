@@ -1,0 +1,16 @@
+meta {
+  name: Get all non-customer wings & babies
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{romtech_server}}/wings/allwingsandbabies/0
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
