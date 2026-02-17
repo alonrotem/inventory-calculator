@@ -217,7 +217,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     }
   );
 
-  kippa_size: number = this.min_kippa;
+  kippa_size: number = 56;//this.min_kippa;
   diameter_inches: number = this.min_diameter;
   
   arr_mayler: number[] = [0.15, 0.17, 0.2];
