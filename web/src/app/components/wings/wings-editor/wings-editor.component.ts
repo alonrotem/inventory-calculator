@@ -1,11 +1,11 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, HostListener, OnDestroy, OnInit, viewChild, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, viewChild, ViewChild } from '@angular/core';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 import { faArrowLeft, faArrowUp, faL, faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { Wing, WingBaby } from '../../../../types';
 import { FormsModule, NgForm } from '@angular/forms';
 import { WingsService } from '../../../services/wings.service';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { DecimalPipe, NgFor, NgIf, PlatformLocation } from '@angular/common';
+import { DecimalPipe, NgFor, NgIf, PlatformLocation, NgClass } from '@angular/common';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { WingsBabiesTableComponent } from '../wings-babies-table/wings-babies-table.component';
 import { WingDiagramComponent } from '../wing-diagram/wing-diagram.component';
@@ -15,7 +15,7 @@ import { BabyLengthModalComponent } from '../baby-length-modal/baby-length-modal
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { ToastService } from '../../../services/toast.service';
 import { HasUnsavedChanges } from '../../../guards/unsaved-changes-guard';
-import { Observable } from 'rxjs';
+import { EMPTY, empty, Observable } from 'rxjs';
 import { UnsavedChangesDialogComponent } from '../../common/unsaved-changes-dialog/unsaved-changes-dialog.component';
 import { UnsavedNavigationConfirmationService } from '../../../services/unsaved-navigation-confirmation.service';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
@@ -28,13 +28,13 @@ import { CrownEditorComponent } from "../crown-editor/crown-editor.component";
   standalone: true,
   imports: [ConfirmationDialogComponent, FormsModule, NgIf, NgFor, FaIconComponent, WingsBabiesTableComponent,
     WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent, BabyLengthModalComponent,
-    UnsavedChangesDialogComponent, DecimalPipe, SortBabiesPipe, CrownEditorComponent, ModalDialogComponent],
+    UnsavedChangesDialogComponent, DecimalPipe, SortBabiesPipe, CrownEditorComponent, ModalDialogComponent, NgClass],
   templateUrl: './wings-editor.component.html',
   styleUrl: './wings-editor.component.scss',/*
   changeDetection: ChangeDetectionStrategy.OnPush*/
   
 })
-export class WingsEditorComponent extends NavigatedMessageComponent implements OnInit, AfterViewInit,/*, OnDestroy*/ HasUnsavedChanges {
+export class WingsEditorComponent extends NavigatedMessageComponent implements OnInit, AfterViewInit,/*, OnDestroy*/ HasUnsavedChanges, OnChanges {
 
   faSave: IconDefinition = faSave;
   faTrashAlt:IconDefinition = faTrashAlt;
@@ -64,17 +64,12 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   @ViewChild("diagram_container", { read: ElementRef }) diagram_container!: ElementRef;
   @ViewChild("wing_preview", { read: ElementRef }) wing_preview!: ElementRef;
 
+  @Input() wing: Wing | null = null;
+  unedited_wing: Wing | null = null;
+  @Input() stretch_width: boolean = false;
+  @Input() show_titles_buttons: boolean = true;
   wing_id: number = 0;
 
-  public wing : Wing = {
-    id: 0,
-    name: '',
-    knife: 0,
-    babies: [],
-    crown_width: 2,
-    split_l1: 1,
-    allow_shortening_babies_in_pairs: false
-  }
   crown_babies_options = Array(5).fill(0).map((_, i)=> i+1);
   SplitL1_options = Array(4).fill(0).map((_, i)=> i+1);
 
@@ -99,32 +94,50 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
       hasChanges: () =>
         (!this.wingForm.pristine),
 
-      saveFn: () => this.wingsService.saveWing(this.wing),
+      saveFn: () => (this.wing)? this.save() : EMPTY,
 
       confirmationDialog: this.unsaved_changes_dialog
     });
   }
 
   ngOnInit(): void {
-    this.is_new_wing = !this.activatedRoute.snapshot.queryParamMap.has('id');
+    this.is_new_wing = (!this.activatedRoute.snapshot.queryParamMap.has('id') && (this.wing == null));
     if(!this.is_new_wing)
     {
       this.title = "Edit Wing";
       this.is_new_wing = false;
-      this.wing_id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
-      this.getWing(this.wing_id);
+      if(this.wing){
+        this.loadWing(this.wing);
+      }
+      else {
+        this.wing_id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
+        this.getWing(this.wing_id);
+      }
+    }
+    else {
+      this.wing = {
+        id: 0,
+        name: '',
+        knife: 0,
+        babies: [],
+        crown_width: 2,
+        split_l1: 1,
+        allow_shortening_babies_in_pairs: false
+      };
     }
   }
+
+    ngOnChanges(changes: SimpleChanges): void {
+      if(changes["wing"] && changes["wing"]["currentValue"]) {
+        this.loadWing(changes["wing"] && changes["wing"]["currentValue"])
+      }
+    }
 
   getWing(id: number){
     this.wingsService.getWing(id).subscribe(
     {
       next: (wing: Wing) => {
-        this.wing = wing;
-        let crownBabies = this.wing.babies.filter((b) => b.position.startsWith("C"));
-        this.crown_units = crownBabies.length;
-        this.crown_length = (crownBabies.length > 0)? crownBabies[0].length: 0;
-        this.calculate_total_wing_height();
+        this.loadWing(wing);
       },
       error: (error) => {
         console.log(error);
@@ -132,13 +145,24 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
     })
   }
 
+  loadWing(wing: Wing){
+    this.wing = wing;
+    this.unedited_wing = {...this.wing, babies: [...this.wing.babies ] };
+    let crownBabies = this.wing.babies.filter((b) => b.position.startsWith("C"));
+    this.crown_units = crownBabies.length;
+    this.crown_length = (crownBabies.length > 0)? crownBabies[0].length: 0;
+    this.calculate_total_wing_height();
+  }
+
   calculate_total_wing_height(){
-    this.total_wing_height = this.wing.knife;
-    const L1 = this.wing.babies.find(b => b.position.toUpperCase()=="L1");
-    const C1 = this.wing.babies.find(b => b.position.toUpperCase()=="C1");
-    const L1_len = (L1)? L1.length : 0;
-    const C1_len = (C1)? C1.length : 0;
-    this.total_wing_height += (L1_len + C1_len);
+    if(this.wing){
+      this.total_wing_height = this.wing.knife;
+      const L1 = this.wing.babies.find(b => b.position.toUpperCase()=="L1");
+      const C1 = this.wing.babies.find(b => b.position.toUpperCase()=="C1");
+      const L1_len = (L1)? L1.length : 0;
+      const C1_len = (C1)? C1.length : 0;
+      this.total_wing_height += (L1_len + C1_len);
+    }
   }
 
   babies_length_clicked() {
@@ -147,31 +171,39 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   }
 
   babyLengths(pos: string){
-    return this.wing.babies.filter((b)=> b.position.startsWith(pos) ).map((b)=> b.length);
+    if(this.wing){
+      return this.wing.babies.filter((b)=> b.position.startsWith(pos) ).map((b)=> b.length);
+    }
+    return [];
   }
 
   //get the length to the picker
   get_top() :number {
-    let tops = this.wing.babies.filter(b => b.position == "TOP");
-    return (tops.length == 0)? 0: tops[0].length;
+    if(this.wing){
+      let tops = this.wing.babies.filter(b => b.position == "TOP");
+      return (tops.length == 0)? 0: tops[0].length;
+    }
+    return 0;
   }
   
   //set the length from the picker
   set_top() {
-    let tops = this.wing.babies.filter(b => b.position == "TOP");
-    let new_length = this.top_picker.get_length();
-    if(tops.length == 0) {
-      this.wing.babies.push({
-        id: 0,
-        position: "TOP",
-        length: new_length,
-        wing_id: this.wing_id
-      });
+    if(this.wing){
+      let tops = this.wing.babies.filter(b => b.position == "TOP");
+      let new_length = this.top_picker.get_length();
+      if(tops.length == 0) {
+        this.wing.babies.push({
+          id: 0,
+          position: "TOP",
+          length: new_length,
+          wing_id: this.wing_id
+        });
+      }
+      else {
+        tops[0].length = new_length;
+      }
+      this.calculate_total_wing_height();
     }
-    else {
-      tops[0].length = new_length;
-    }
-    this.calculate_total_wing_height();
   }
 
   //set the crown controls according to the babies objects
@@ -182,62 +214,54 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   }
 
   crown_babies_quantity_changed(new_crown_quantity: number){
-    this.crown_units = new_crown_quantity;
-    let new_length = this.crown_picker.get_length();
-    this.crown_length = new_length;
+    if(this.wing){
+      this.crown_units = new_crown_quantity;
+      let new_length = this.crown_picker.get_length();
+      this.crown_length = new_length;
 
-    this.wing.babies = this.wing.babies.filter(b => !b.position.startsWith("C"));
-    for(let i=0; i < new_crown_quantity; i++) {
-      this.wing.babies.push({
-        id: 0,
-        length: new_length,
-        position: "C" + (i+1),
-        wing_id: this.wing_id
-      })
+      this.wing.babies = this.wing.babies.filter(b => !b.position.startsWith("C"));
+      for(let i=0; i < new_crown_quantity; i++) {
+        this.wing.babies.push({
+          id: 0,
+          length: new_length,
+          position: "C" + (i+1),
+          wing_id: this.wing_id
+        })
+      }
+      this.calculate_total_wing_height();
     }
-    this.calculate_total_wing_height();
-
   }
 
-  save(goToHatEditor: boolean = false)
+  save(goToHatEditor: boolean = false): Observable<any>
   {
     this.wingForm.form.markAllAsTouched();
     if(this.wingForm.form.valid)
     {
       this.wingForm.form.markAsPristine();
-      /*
-      //edit
-      if(!this.is_new_wing)
-      {
-        const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
-        this.updateWing(id, this.wing, goToHatEditor);
+      if(this.wing){
+        return this.saveWing(this.wing, goToHatEditor);
       }
-      //add
-      else
-      {
-        this.saveNewWing(this.wing, goToHatEditor);
-      }
-      */
-      this.saveWing(this.wing, goToHatEditor);
     }
     else {
       let form = document.getElementById('wingForm');
       if(form){
         let firstInvalidControl = form.getElementsByClassName('ng-invalid')[0];
         firstInvalidControl.classList.remove("ng-invalid");
-        firstInvalidControl.scrollIntoView();
+        const yOffset = -70; 
+        const y = (firstInvalidControl as HTMLElement).getBoundingClientRect().top + window.scrollY + yOffset;
+        window.scrollTo({top: y, behavior: 'smooth'});
         (firstInvalidControl as HTMLElement).focus();
         firstInvalidControl.classList.add("ng-invalid");
       }
     }
+    return EMPTY;
   }
 
-  saveWing(wing:Wing, goToHatEditor: boolean)
+  saveWing(wing:Wing, goToHatEditor: boolean): Observable<any>
   {
     this.btn_save.nativeElement.classList.add("disabled");
-
-    this.wingsService.saveWing(wing).subscribe(
-      {
+    let save_result = this.wingsService.saveWing(wing);
+    save_result.subscribe({
         next:(data) => { 
           this.btn_save.nativeElement.classList.remove("disabled");
           if(goToHatEditor){
@@ -253,6 +277,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
           this.toastService.showError(error.error["message"]); }
       }
     );
+    return save_result;
   }
 /*
   updateWing(id: number, wing:Wing, goToHatEditor: boolean)
@@ -275,16 +300,20 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   }
 */
   ngAfterViewInit() {
-    this.wingName.nativeElement.focus();
-    this.wingName.nativeElement.select();
+    if(this.wingName){
+      this.wingName.nativeElement.focus();
+      this.wingName.nativeElement.select();
+    }
 
     this.delete_confirmation.confirm.subscribe((value: Boolean) => {
-      this.wingsService.deleteWing(this.wing.id).subscribe(
+      if(this.wing){
+        this.wingsService.deleteWing(this.wing.id).subscribe(
         {
           next:(data) => {
             this.gotoWingsList(data['message'], false);
           }
         });
+      }
     });    
   }
 
@@ -316,23 +345,27 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   }
   
   diagram_babyClicked(baby_pos: string){
-    let b = this.wing.babies.find((baby) => baby.position.toUpperCase() == baby_pos.toUpperCase());
-    if(b) {
-      this.openLengthModal(b);
+    if(this.wing){    
+      let b = this.wing.babies.find((baby) => baby.position.toUpperCase() == baby_pos.toUpperCase());
+      if(b) {
+        this.openLengthModal(b);
+      }
     }
   }
 
   openLengthModal(obj: WingBaby){
-    if(!obj.position.startsWith("C")){
-      this.length_editor.editedObject = obj;
-      this.length_editor.dialogWrapper!.modalTitle = "Edit " + ((obj.position.toUpperCase().startsWith("C"))? "Crown" : obj.position);
-      this.crown_units = this.wing.babies.filter((b) => b.position.startsWith("C")).length;
-      this.length_editor.crown_units = this.crown_units;
-      this.length_editor.crown_babies_options = this.crown_babies_options;
-      this.length_editor.dialogWrapper!.open();      
-    }
-    else {
-      this.crown_editor_dialog.open();
+    if(this.wing){
+      if(!obj.position.startsWith("C")){
+        this.length_editor.editedObject = obj;
+        this.length_editor.dialogWrapper!.modalTitle = "Edit " + ((obj.position.toUpperCase().startsWith("C"))? "Crown" : obj.position);
+        this.crown_units = this.wing.babies.filter((b) => b.position.startsWith("C")).length;
+        this.length_editor.crown_units = this.crown_units;
+        this.length_editor.crown_babies_options = this.crown_babies_options;
+        this.length_editor.dialogWrapper!.open();      
+      }
+      else {
+        this.crown_editor_dialog.open();
+      }
     }
   }
 
@@ -344,24 +377,28 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   }
 
   modal_length_Changed(obj: WingBaby){
+    if(this.wing){
       //for crown, don't close immediately, but update the crown length
       if(obj.position.toUpperCase().startsWith("C")) {
-      this.crown_length = obj.length;
-    }
-    else {
-      this.length_editor.dialogWrapper!.onConfirm();
-    }
+        this.crown_length = obj.length;
+      }
+      else {
+        this.length_editor.dialogWrapper!.onConfirm();
+      }
 
-    //"refresh" the array, to detect the change
-    this.wing.babies = this.wing.babies.map(el => Object.assign({}, el));
-    this.form_touched();
-    this.calculate_total_wing_height();
+      //"refresh" the array, to detect the change
+      this.wing.babies = this.wing.babies.map(el => Object.assign({}, el));
+      this.form_touched();
+      this.calculate_total_wing_height();
+    }
   }
 
   onCrownBabiesChanged(newBabies: WingBaby[]) {
-    // Update the parent's array with the new value from the child
-    let no_crown = this.wing.babies.filter(b => !b.position.startsWith("C"));
-    this.wing.babies = [...no_crown, ...newBabies];
+    if(this.wing){
+      // Update the parent's array with the new value from the child
+      let no_crown = this.wing.babies.filter(b => !b.position.startsWith("C"));
+      this.wing.babies = [...no_crown, ...newBabies];
+    }
   }
 
   form_touched() {

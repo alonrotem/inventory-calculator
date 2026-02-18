@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { GlobalsService } from '../../../services/globals.service';
 import { Point } from '../../../../types';
 import { find_intersection_point, find_point_on_line, line_at_angle_from_point, line_length, divide_line } from './graphics-helper';
@@ -11,7 +11,7 @@ import { find_intersection_point, find_point_on_line, line_at_angle_from_point, 
   styleUrl: './wing-diagram.component.scss'
 })
 
-export class WingDiagramComponent implements AfterViewInit, OnChanges {
+export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   //inputs
   @Input() rights = [6, 8 , 10];//[5.5, 7, 8, 8.5,10];
@@ -26,10 +26,21 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
   @Input() highlight_mouseover_baby = true;
   @Input() show_texts = true;
   @Input() preset_theme = "";
+  @Input() min_width: number | null = null;
+  @Input() max_width: number | null = null;
+  @Input() min_height: number | null = null;
+  @Input() max_height: number | null = null;  
   @Output() babyClicked = new EventEmitter<string>();
 
   @ViewChild("diagram_canvas", { read: ElementRef }) diagram_canvas!: ElementRef;
   @ViewChild("tooltip", { read: ElementRef }) tooltip!: ElementRef;
+
+  private resizeObserver!: ResizeObserver;
+
+  // The diagram's pixel width at scale=1.0 (measured from the base shape coordinates)
+  // crown_bottom.x (510) - leftmost x (221) = 289 base units * 15px = ~435px.
+  // We measure dynamically instead, so this is just a fallback.
+  private readonly BASE_SCALE = 1.0;
 
   //defaults
   text_margin: number = 0;
@@ -69,7 +80,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
   
   path_items:any = [];
   
-  constructor (private globalService: GlobalsService){
+  constructor (private globalService: GlobalsService, private ngZone: NgZone){
     this.setColors(this.globalService.currentTheme());
     this.globalService.themeChanged.subscribe({
       next: (theme: string)=> {
@@ -79,7 +90,68 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
   }
 
   ngAfterViewInit(): void {
+    this.rebuildBaseShape();
+    this.wing_width_caption_point = new Point(0, 0);
+    this.Rebuild();
 
+    // Set up ResizeObserver to respond to container size changes
+    this.ngZone.runOutsideAngular(() => {
+      this.resizeObserver = new ResizeObserver(() => {
+        this.ngZone.run(() => this.fitToContainer());
+      });
+      this.resizeObserver.observe(
+        this.diagram_canvas.nativeElement.parentElement
+      );
+    });
+
+    requestAnimationFrame(() => { this.drawDiagram(); });
+  }
+
+  fitToContainer(): void {
+    if(!this.diagram_canvas){
+      return;
+    }
+    const container: HTMLElement = this.diagram_canvas.nativeElement.parentElement;
+    let availableWidth = container.clientWidth;
+    let availableHeight = container.clientHeight;
+    if (!availableWidth) return;
+
+    // Apply constraints
+    if (this.max_width !== null)  availableWidth  = Math.min(availableWidth,  this.max_width);
+    if (this.min_width !== null)  availableWidth  = Math.max(availableWidth,  this.min_width);
+    if (this.max_height !== null) availableHeight = Math.min(availableHeight, this.max_height);
+    if (this.min_height !== null) availableHeight = Math.max(availableHeight, this.min_height);
+
+    // Dry run at scale=1 to find natural dimensions
+    const savedScale = this.scale;
+    this.scale = 1.0;
+    this.rebuildBaseShape();
+    this.buildLefts();
+    this.buildTop();
+    this.buildRights();
+    this.buildCrown();
+    const naturalWidth  = (this.bottom_right_bondaries.x - this.top_left_bondaries.x) + 30;
+    const naturalHeight = (this.bottom_right_bondaries.y - this.top_left_bondaries.y) + 30;
+    this.scale = savedScale;
+
+    // Compute scale for each axis, then take the more restrictive one
+    // so the diagram always fits within both bounds without distortion
+    const scaleByWidth  = availableWidth  / naturalWidth;
+    const scaleByHeight = (availableHeight > 0) ? availableHeight / naturalHeight : scaleByWidth;
+    const computedScale = Math.min(scaleByWidth, scaleByHeight);
+
+    const MIN_SCALE = 0.3;
+    const MAX_SCALE = 2.0;
+    this.scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, computedScale));
+
+    this.Rebuild();
+  }
+
+  ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+  }
+
+  rebuildBaseShape(){
     //console.log("oninit scale: " + this.scale);
     //defaults
     this.text_margin = 10;
@@ -141,12 +213,6 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     ];
     this.height_of_base_shape = this.rights_top.y - this.base_shape_bottom;
     this.width_of_base_shape = this.crown_bottom.x - 221 * this.scale + this.pan.x;
-
-    this.wing_width_caption_point = new Point(0,0);
-
-    this.Rebuild();
-    
-    requestAnimationFrame(() => { this.drawDiagram(); });
   }
 
   adjustBoundariesToSize(p: Point){
@@ -178,8 +244,6 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     }
     return p;
   }
-
-
 
   mouseMove(e: any){
     this.cursor.x = e.offsetX;
@@ -219,12 +283,12 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
     if(!this.checkArrEquality(changes["crown"]["currentValue"], changes["crown"]["previousValue"])) rebuild = true;
     if((changes["split_l1"]) && (changes["split_l1"]["currentValue"] != changes["split_l1"]["previousValue"])) rebuild = true;
     if((changes["knife"]) && (changes["knife"]["currentValue"] != changes["knife"]["previousValue"])) rebuild = true;
+    if((changes["scale"]) && (changes["scale"]["currentValue"] != changes["scale"]["previousValue"])) rebuild = true;
     //if(changes["crown"]["currentValue"] != changes["crown"]["previousValue"])  rebuild = true;
     //if(changes["crown_length"]["currentValue"] != changes["crown_length"]["previousValue"])  rebuild = true;
 
-    if(rebuild){
-      //console.log("Rebuilding!"); console.dir(changes);
-      this.Rebuild();
+    if (rebuild) {
+      this.fitToContainer(); // replaces direct Rebuild() call so constraints are respected
     }
   }
 
@@ -239,6 +303,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges {
       return;
 
     this.path_items = [];
+    this.rebuildBaseShape();
     this.buildLefts();
     this.buildTop();
     this.buildRights();

@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, viewChild, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, HostListener, Input, OnInit, viewChild, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { WingsService } from '../../../services/wings.service';
@@ -9,7 +9,7 @@ import { PrefixPipe } from '../../../utils/pipes/prefix-pipe';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
 import { Lightbox, LightboxModule } from 'ngx-lightbox';
 import { GlobalsService } from '../../../services/globals.service';
-import { faArrowDown, faArrowDown19, faArrowLeft, faArrowsRotate, faBasketShopping, faChartPie, faCopy, faRecordVinyl, faRuler, faScissors, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faArrowDown, faArrowDown19, faArrowLeft, faArrowsRotate, faBasketShopping, faChartPie, faCopy, faRecordVinyl, faRuler, faSave, faScissors, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { AllocationPickerComponent } from '../allocation-picker/allocation-picker.component';
 import { StartsWithPipe } from '../../../utils/pipes/starts-with-pipe';
@@ -30,6 +30,7 @@ import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.com
 import { MiscUtils } from '../../../utils/misc-utils';
 import { SortBabiesPipe } from '../../../utils/pipes/sort-babies-pipe';
 import { CrownEditorComponent } from "../../wings/crown-editor/crown-editor.component";
+import { WingsEditorComponent } from "../../wings/wings-editor/wings-editor.component";
 
 /*
 sohortening top/crown with slider:
@@ -58,7 +59,8 @@ apply the sliders after the load
     AllocationPickerComponent, FaIconComponent, AutocompleteLibModule, BabyLengthModalComponent,
     FaIconComponent, ConfirmationDialogComponent, HatAllocationEditorPickerComponent, RouterLink,
     OrderAdvisorComponent, ModalDialogComponent, JsonPipe, SortBabiesPipe,
-    CrownEditorComponent
+    CrownEditorComponent,
+    WingsEditorComponent
 ],
   templateUrl: './single-hat-calculator.component.html',
   styleUrl: './single-hat-calculator.component.scss'
@@ -122,6 +124,8 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   @ViewChild("advisor") advisor!: OrderAdvisorComponent;
   @ViewChild("crown_editor_dialog") crown_editor_dialog! :ModalDialogComponent;
   @ViewChild("knife_selector") knife_selector! :NgSelectComponent;
+  @ViewChild("advanced_wing_editor_dialog") advanced_wing_editor_dialog! :ModalDialogComponent;
+  @ViewChild("advanced_wing_editor") advanced_wing_editor! :WingsEditorComponent;
   is_wing_customized: boolean = false;
   faArrowsRotate: IconDefinition = faArrowsRotate;
   faArrowLeft: IconDefinition = faArrowLeft;
@@ -132,6 +136,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   faTriangleExclamation:IconDefinition = faTriangleExclamation;
   faCopy: IconDefinition = faCopy;
   faArrowDown: IconDefinition = faArrowDown;
+  faSave: IconDefinition = faSave;
 
   summary_table_instructions: string = "";
   hat_babies: aggregated_babies[] = []; //containing aggregated babies with length, quantity and num of hats
@@ -939,8 +944,22 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         if(updated_baby && updated_baby.length != original_baby.length){
           changed = true;
         }
+        else if (!updated_baby){
+          changed = true;
+        }
       });
-      changed = ((this.crown_width_original != null) && (this.crown_width_original != this.customerHat.wing.crown_width));
+      this.customerHat.wing.babies.forEach(current_baby => {
+        let updated_baby = this.wing_original?.babies.find(b => b.position.toUpperCase() == current_baby.position.toUpperCase());
+        if(updated_baby && updated_baby.length != current_baby.length){
+          changed = true;
+        }
+        else if (!updated_baby){
+          changed = true;
+        }
+      });      
+      if(!changed){
+        changed = ((this.crown_width_original != null) && (this.crown_width_original != this.customerHat.wing.crown_width));
+      }
     }
     this.is_wing_customized = changed;
     return changed;
@@ -1217,4 +1236,52 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       },
     });
   }
+
+  @HostListener('window:resize', ['$event'])
+    onResize(event: Event) {
+        this.console.log(`w: ${(event.target as Window).innerWidth.toFixed(0)}, h: ${(event.target as Window).innerHeight.toFixed(0)}`);
+        const w = (event.target as Window).innerWidth;
+        if((w < 1300) && (w <= 1998)){
+          this.diagram.scale = 0.9;
+          this.diagram.Rebuild();
+        }
+        if(w < 1198){
+          this.diagram.scale = 0.7;
+          this.diagram.Rebuild();
+        }        
+        else {
+          this.diagram.scale = 1;
+          this.diagram.Rebuild();
+        }
+    }
+
+    open_wing_editor(){
+      this.advanced_wing_editor.wing = this.customerHat!.wing;
+      this.advanced_wing_editor_dialog.open();
+    }
+
+    revert_advanced_edit(){
+      //alert("reverting")
+      //this.console.dir(this.advanced_wing_editor.unedited_wing);
+      if(this.advanced_wing_editor.unedited_wing) {
+        this.customerHat.wing = {...this.advanced_wing_editor.unedited_wing, babies: [...this.advanced_wing_editor.unedited_wing.babies ] };
+        this.aggregateHatBabiesAndMatchingAllocations();
+        this.update_table_instructions();
+        this.order_amount = this.total_num_of_possible_hats;
+        this.recalculate_hat_size();
+        this.calculateVisibleCrown();
+        this.calculate_wings_per_hat();       
+      }
+    }
+    advanced_edit_confirmed() {
+      if(this.advanced_wing_editor.wing) {
+        this.customerHat.wing = {...this.advanced_wing_editor.wing, babies: [...this.advanced_wing_editor.wing.babies ] };
+        this.aggregateHatBabiesAndMatchingAllocations();
+        this.update_table_instructions();
+        this.order_amount = this.total_num_of_possible_hats;
+        this.recalculate_hat_size();
+        this.calculateVisibleCrown();
+        this.calculate_wings_per_hat();     
+      }
+    }
 }

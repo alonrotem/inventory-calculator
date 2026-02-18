@@ -270,3 +270,10 @@ datalist {
 ::ng-deep .ng-select .ng-value .option-table {
   margin: 0; /* remove extra spacing */
 }
+
+.advanced-edit-wing {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+}

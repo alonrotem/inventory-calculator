@@ -1,7 +1,7 @@
 <app-confirmation-dialog 
     #delete_confirmation 
     modalTitle="Delete confirmation"
-    modalText="Are you sure you want to delete this wing, {{ wing.name }}?"
+    modalText="Are you sure you want to delete this wing, {{ wing!.name }}?"
     [btnYesIcon]=faTrashAlt
     btnYesText="Delete"
     btnYesClass="btn-danger"
@@ -24,24 +24,23 @@
   [btnCancelClass]="'d-none'"
   [modalSize]="'l'">
     <app-crown-editor 
-        [crown_babies]="this.wing.babies | sortbabies | prefix: 'C'"
+        [crown_babies]="this.wing!.babies | sortbabies | prefix: 'C'"
         (crown_babiesChanged)="onCrownBabiesChanged($event)"
-        [wing_id]="this.wing.id"
-        [(crown_width)]="this.wing.crown_width"
+        [wing_id]="this.wing!.id"
+        [(crown_width)]="this.wing!.crown_width"
     />  
 </app-modal-dialog>
 
-
 <div class="row justify-content-center">
-<div class="col-lg-7 col-md-12">
+<div [ngClass]="{ 'col-12': stretch_width, 'col-lg-7 col-md-12': !stretch_width }">
 
-    <h3><span class="icon-feather-wing"></span> {{ this.title }} <span class="icon-feather-wing-r"></span></h3>
+    <h3 *ngIf="show_titles_buttons"><span class="icon-feather-wing"></span> {{ this.title }} <span class="icon-feather-wing-r"></span></h3>
     <form novalidate #wingForm="ngForm" [id]="'wingForm'">
         <div class="editorForm">
-        <div class="row">
+        <div class="row" *ngIf="show_titles_buttons">
             <div class="col-6">
                 <div class="form-floating">
-                    <input type="text" class="form-control" id="wingName" #wingName="ngModel" [(ngModel)]="wing.name" name="wingName" required (ngModelChange)="form_touched()">
+                    <input type="text" class="form-control" id="wingName" #wingName="ngModel" [(ngModel)]="wing!.name" name="wingName" required (ngModelChange)="form_touched()">
                     <label for="wingName">Wing name <span class="text-danger">*</span></label>
                 </div>
                 <div class="text-danger" *ngIf="wingName.invalid && (wingName.touched || wingName.dirty)" > 
@@ -75,7 +74,7 @@
                     #wing_width
                     [show_invalid_message]="false"
                     [title]="''"
-                    [(length)]="wing.knife"
+                    [(length)]="wing!.knife"
                     [min_length]=4
                     [max_length]=12.5
                     (lengthChange)="babies_length_clicked()"
@@ -89,7 +88,7 @@
     <div class="row">
         <div class="col col-12">
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" [(ngModel)]="wing.allow_shortening_babies_in_pairs" id="chkAllowShorteningInPairs" name="chkAllowShorteningInPairs" />
+                <input class="form-check-input" type="checkbox" [(ngModel)]="wing!.allow_shortening_babies_in_pairs" id="chkAllowShorteningInPairs" name="chkAllowShorteningInPairs" />
                 <label class="form-check-label" for="chkAllowShorteningInPairs">
                     Allow shortening babies of this wing in pairs (for selected materials)
                 </label>
@@ -101,12 +100,12 @@
             <div class="col" #diagram_container>
                 <app-wing-diagram
                     #diagram 
-                        [lefts]="this.wing.babies | sortbabies | prefix: 'L' : true"
-                        [rights]="this.wing.babies | sortbabies | prefix: 'R' : true"
-                        [top_length]="this.wing.babies | sortbabies | prefix: 'TOP' : true"
-                        [split_l1]="this.wing.split_l1"
-                        [crown]="this.wing.babies | sortbabies | prefix: 'C' : true"
-                        [knife]="wing.knife"
+                        [lefts]="this.wing!.babies | sortbabies | prefix: 'L' : true"
+                        [rights]="this.wing!.babies | sortbabies | prefix: 'R' : true"
+                        [top_length]="this.wing!.babies | sortbabies | prefix: 'TOP' : true"
+                        [split_l1]="this.wing!.split_l1"
+                        [crown]="this.wing!.babies | sortbabies | prefix: 'C' : true"
+                        [knife]="wing!.knife"
                         (babyClicked)="this.diagram_babyClicked($event)"
                         [scale]="1"
                  />
@@ -115,13 +114,13 @@
                     <div>
                         <app-wing-diagram
                             #diagram_preview
-                            [lefts]="this.wing.babies | sortbabies | prefix: 'L' : true"
-                            [rights]="this.wing.babies | sortbabies | prefix: 'R' : true"
-                            [top_length]="this.wing.babies | sortbabies | prefix: 'TOP' : true"
-                            [crown]="this.wing.babies | sortbabies | prefix: 'C' : true"
-                            [split_l1]="this.wing.split_l1"
-                            [knife]="wing.knife"
-                            [scale]=".3"
+                            [lefts]="this.wing!.babies | sortbabies | prefix: 'L' : true"
+                            [rights]="this.wing!.babies | sortbabies | prefix: 'R' : true"
+                            [top_length]="this.wing!.babies | sortbabies | prefix: 'TOP' : true"
+                            [crown]="this.wing!.babies | sortbabies | prefix: 'C' : true"
+                            [split_l1]="this.wing!.split_l1"
+                            [knife]="wing!.knife"
+                            [max_width]="100"
                             [show_tooltips]="false"
                             [highlight_mouseover_baby]="false"
                             [show_texts]="false"
@@ -137,12 +136,13 @@
                 <h4><span class="icon-feather-wing"></span> Left Babies</h4>
                 <div class="d-flex flex-row flex-nowrap align-items-center justify-content-start">
                     <div>Split L1 baby into</div>
-                    <select class="form-select narrow-select" [(ngModel)]="wing.split_l1" name="wing_split_l1">
+                    <select *ngIf="wing" class="form-select narrow-select" [(ngModel)]="wing.split_l1" name="wing_split_l1">
                         <option *ngFor="let l1_part of SplitL1_options" value="{{ l1_part }}">{{ l1_part }}</option>
                     </select>
                     <div>parts</div>
                 </div>
                 <app-wings-babies-table 
+                    *ngIf="wing"
                     [(wingsbabies)]="this.wing.babies" 
                     [wingPrefix]="'L'"
                     [split_l1]="wing.split_l1"
@@ -156,7 +156,7 @@
             <div class="col">
                 <h4><span class="icon-feather-wing-r"></span> Right Babies</h4>
                 <app-wings-babies-table 
-                    [(wingsbabies)]="this.wing.babies" 
+                    [(wingsbabies)]="this.wing!.babies" 
                     [wingPrefix]="'R'"
                     (OnBabyClick)="this.openLengthModal($event)"
                     (wingsbabiesChange)="babies_length_clicked()"
@@ -181,6 +181,7 @@
                 <h4><span class="icon-crown"></span> Crown</h4>
 
                 <app-crown-editor 
+                    *ngIf="wing"
                     [crown_babies]="this.wing.babies | sortbabies | prefix: 'C'"
                     (crown_babiesChanged)="onCrownBabiesChanged($event)"
                     [wing_id]="this.wing.id"
@@ -210,7 +211,7 @@
         </div>
     -->
 
-        <div class="row buttons-area">
+        <div class="row buttons-area"  *ngIf="show_titles_buttons">
             <div class="col-12 d-flex justify-content-center {{ this.is_new_wing? 'col-md-4':'col-md-3' }}">
                 <button class="btn btn-warning" (click)="gotoWingsList()">
                     <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>

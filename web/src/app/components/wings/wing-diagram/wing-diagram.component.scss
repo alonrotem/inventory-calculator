@@ -12,12 +12,13 @@
   display:none;
 }
 
-.diagram_canvas {
-  /*border: 1px solid blue; */
-}
-
 .diagram_container {
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100%;  // ← add this
+}
+
+.diagram_canvas {
+  max-width: 100%;  // ← add this (prevents overflow)
 }

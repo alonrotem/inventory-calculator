@@ -147,6 +147,25 @@
   </div>
 </app-modal-dialog>
 
+<app-modal-dialog
+    #advanced_wing_editor_dialog
+    [modalTitle]="'<span class=\'icon-feather-wing\'></span> Advanced wing editor'"
+    [modalSize]="'xl'"
+    [btnCancelText]="'Cancel'"
+    [btnSaveClass]="'btn-success'"
+    [btnSaveText]="'Save changes'"
+    [btnSaveIcon]="faSave"
+    (confirm)="advanced_edit_confirmed()"
+    (cancel)="revert_advanced_edit()"
+    >
+    <app-wings-editor
+      #advanced_wing_editor
+        *ngIf="this.customerHat.wing"
+        [wing]="this.customerHat.wing"
+        [stretch_width]="true"
+        [show_titles_buttons]="false"
+    />
+</app-modal-dialog>
 
   <!-- Entire page layout -->
 <div class="row justify-content-center">
@@ -398,10 +417,13 @@
 
    <!-- Diagram area -->
   <div class="col-12 col-md-8">
-    <div>
+    <div class="diagram-container">
+      <div class="advanced-edit-wing">
+        <button class="btn btn-primary" (click)="open_wing_editor()"><span class="icon-feather-wing"></span> Advanced edit</button>
+      </div>
       <app-wing-diagram
           #diagram 
-          [scale]="0.7"
+          [scale]="1"
           [lefts]="(this.customerHat.wing)? (this.customerHat.wing.babies | sortbabies | prefix: 'L' : true) : []"
           [rights]="(this.customerHat.wing)? (this.customerHat.wing.babies | sortbabies | prefix: 'R' : true) : []"
           [top_length]="(this.customerHat.wing)? (this.customerHat.wing.babies | sortbabies | prefix: 'TOP' : true) : []"

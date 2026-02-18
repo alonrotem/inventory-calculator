@@ -9,6 +9,9 @@ export class SortBabiesPipe implements PipeTransform {
     constructor(private wingsService: WingsService){}
 
   transform(items: WingBaby[], reversed: boolean = false): WingBaby[] {
+    if(!items){
+      return items;
+    }
     return this.wingsService.sort_babies(items, reversed);
   }
 }
