@@ -28,20 +28,7 @@ const authenticateRequest = (requiredPermissions) => {
             const auth_token = await jwt.verify(token, process.env.AUTH_TOKEN_SECRET);
             req["auth_token"] = auth_token;
 
-            //TODO performance improvement: cache this
-            const user_permissions = await users.getUserPermissions(auth_token.id);
-            
-            let allowed = true;
-            if(requiredPermissions){
-                allowed = false;
-                requiredPermissions.forEach(required_permission => {
-                    const areaPermission = user_permissions.find(u_p => u_p["area"] == required_permission.requiredArea);
-                    if(!areaPermission || areaPermission["permissions"].indexOf(required_permission.requiredPermission) >= 0) {
-                        allowed = true;
-                    }                     
-                });
-            }
-            if (!allowed) {
+            if (!await users.doesUserHavePermissions(auth_token.id, requiredPermissions)) {
                 return res.status(403).json({ error: 'Forbidden: No permissions to access this url!' });
             }
             next();

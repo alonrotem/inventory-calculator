@@ -11,11 +11,12 @@ import { ToastService } from '../../../services/toast.service';
 import { StateService } from '../../../services/state.service';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { SettingsService } from '../../../services/settings.service';
+import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
 
 @Component({
   selector: 'app-wings-table',
   standalone: true,
-  imports: [ DateStrPipe, RouterModule, NgFor, DecimalPipe, FaIconComponent, FontAwesomeModule, PaginatorComponent, PaginatorComponent ],
+  imports: [DateStrPipe, RouterModule, NgFor, DecimalPipe, FaIconComponent, FontAwesomeModule, PaginatorComponent, PaginatorComponent, PageLoadingComponent],
   templateUrl: './wings-table.component.html',
   styleUrl: './wings-table.component.scss'
 })

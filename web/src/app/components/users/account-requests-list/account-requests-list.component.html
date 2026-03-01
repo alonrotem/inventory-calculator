@@ -1,8 +1,14 @@
 <div class="row justify-content-center" style="flex-grow: 1; ">
-  <div class="col-12 col-md-9 d-flex flex-column">
+  <div class="col-12 col-md-8 d-flex flex-column">
+        <app-user-tabs 
+            [ActiveTab]="ActivePage.AccountRequests"
+        />    
 <h1><fa-icon [icon]="faUserPlus"></fa-icon> User account requests</h1>
 
-<app-page-loading [loading_message]="'Loading requests...'" [icon_size]="'3x'" [hidden]="!loading" />
+<app-page-loading 
+  [loading_message]="'Loading requests...'" 
+  [icon_size]="'3x'" 
+  [hidden]="!loading" />
 
 <div [hidden]="loading" style="flex-grow:1">
 

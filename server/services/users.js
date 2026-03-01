@@ -8,6 +8,7 @@ const customers = require("./customers");
 const email_tempates = require('./email-templates');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { ref } = require('process');
 
 // does what it says
 function getAuthTokenFromHeader(req){
@@ -608,15 +609,16 @@ async function resendChangedEmailConfirmationCode(email_address){
   const user_rec = await db.query(`select * from users where pending_new_email=(?)`, [ email_address ]);
   const existing_user = helper.emptyOrSingle(user_rec);
 
-    if(user_rec["is_disabled"] != 0){
+  if(!helper.isEmptyObj(existing_user)){
+
+    if(existing_user["is_disabled"] != 0){
       throw new Error("This account is disabled");
     }
 
-    if(user_rec['is_verified'] != 1){
+    if(existing_user['is_verified'] != 1){
       throw new Error(`User account has not been verified`);
     }  
 
-  if(!helper.isEmptyObj(existing_user)){
     const firstname = existing_user["firstname"];
     const old_email_address = existing_user["email"];
     const verification_code = existing_user["pending_new_email_code"];
@@ -1024,7 +1026,7 @@ async function signin(
     const userInfo = await getBaseUserInfo(user.id);
     const access_token = generateAuthToken(
       userInfo, 
-      5 * helper.secondsFrom.minutes
+      1 * helper.secondsFrom.minutes
     );
 
     //generate a refresh token -> set as cookie (expiration 1 day / 30 days)
@@ -1430,7 +1432,7 @@ async function deleteccountRequest(id, active_connection=null){
   }
 }
 
-async function get_logins(users_refresh_token, active_connection=null){
+async function get_logins(users_refresh_token, user_ids, active_connection=null){
   //check if there is an active connection called from another function, or this call is a standalone
   let self_executing = false;
   if(!active_connection) {
@@ -1439,36 +1441,39 @@ async function get_logins(users_refresh_token, active_connection=null){
   }
   try {
 
-    if(!users_refresh_token){
-      throw new Error("No refresh token found");
+    if(!users_refresh_token && (!user_ids || user_ids.length <= 0 || user_ids.filter(id => id > 0).length == 0)){
+      throw new Error("No refresh token found and no user IDs provided");
     }
 
     await cleanup_expired_tokens(0, active_connection);
-    const curr_user = helper.emptyOrSingle(await db.query(
-      `select * from users where id=(
-        select user_id from logins  where refresh_token=(?) limit 1)`,
-      [ users_refresh_token ]));
+    if(users_refresh_token && (!user_ids || user_ids.length <= 0 || user_ids.filter(id => id > 0).length == 0)) {
+      const curr_user = helper.emptyOrSingle(await db.query(
+        `select * from users where id=(
+          select user_id from logins  where refresh_token=(?) limit 1)`,
+        [ users_refresh_token ]));
 
-    if(helper.isEmptyObj(curr_user)) {
-      throw new Error("User not found");
+      if(helper.isEmptyObj(curr_user)) {
+        throw new Error("User not found");
+      }          
+      user_ids = [curr_user["id"]];
+
+      if(curr_user["is_verified"] == 0){
+        throw new Error("Account not verified. Please check your email!");
+      }
+
+      //console.log("disabled " + user["is_disabled"]);
+      if(curr_user["is_disabled"] != 0){
+        throw new Error("This account is disabled");
+      }
     }
-
-    if(curr_user["is_verified"] == 0){
-      throw new Error("Account not verified. Please check your email!");
-    }
-
-    //console.log("disabled " + user["is_disabled"]);
-    if(curr_user["is_disabled"] != 0){
-      throw new Error("This account is disabled");
-    }    
 
     const logins = helper.emptyOrRows(await db.query(
-      `select * from logins where user_id=(?) order by logged_in_at desc;`,
-      [ curr_user["id"] ]));
+      `select * from logins where user_id in (${user_ids.map(id => "?").join(",")}) order by logged_in_at desc;`,
+      user_ids ));
     
-    if(helper.isEmptyObj(logins)){
-      throw new Error("Invalid refresh token. No logins found");
-    }
+    //if(helper.isEmptyObj(logins)){
+    //  throw new Error("Invalid refresh token or user ID. No logins found");
+    //}
 
     if(self_executing) {
       await db.transaction_commit(active_connection);
@@ -1484,7 +1489,7 @@ async function get_logins(users_refresh_token, active_connection=null){
         origin_os: login_info["origin_os"],
         origin_browser: login_info["origin_browser"],
         origin_ip_address: login_info["origin_ip_address"],
-        is_current_login: (login_info["refresh_token"]==users_refresh_token)
+        is_current_login: (login_info["refresh_token"] == users_refresh_token)
       };  
     });
   }
@@ -1502,7 +1507,9 @@ async function get_logins(users_refresh_token, active_connection=null){
 }
 
 
-async function clear_logins(ids, users_refresh_token, active_connection=null){
+async function clear_logins(login_ids, users_refresh_token, current_user_id, active_connection=null){
+
+
   //check if there is an active connection called from another function, or this call is a standalone
   let self_executing = false;
   if(!active_connection) {
@@ -1510,17 +1517,10 @@ async function clear_logins(ids, users_refresh_token, active_connection=null){
     self_executing = true;
   }
   try {
-
-    if(!users_refresh_token){
-      throw new Error("No refresh token found");
-    }
-
-    await cleanup_expired_tokens(0, active_connection);
-
+    //check current user is active
     const curr_user = helper.emptyOrSingle(await db.query(
-      `select * from users where id=(
-        select user_id from logins  where refresh_token=(?) limit 1)`,
-      [ users_refresh_token ]));
+      `select * from users where id=(?) limit 1`,
+      [ current_user_id ]));
 
     if(helper.isEmptyObj(curr_user)) {
       throw new Error("User not found");
@@ -1533,47 +1533,50 @@ async function clear_logins(ids, users_refresh_token, active_connection=null){
     if(curr_user["is_disabled"] != 0){
       throw new Error("This account is disabled");
     }
+    
+    //cleanup
+    await cleanup_expired_tokens(0, active_connection);
 
-    //cancel specific login ids
-    let ids_condition = "";
-    if(ids && ids.length > 0){
-      ids = ids.filter(id => id > 0);
-      if(ids.length > 0) {
-        ids_condition = "and id in (" + (ids.map(id => "(?)").join(",")) + ")";
-      }
+  //if login_ids are specified
+  //check the users of those logins
+  let login_users = [ current_user_id ];
+  if(login_ids && login_ids.length > 0){
+    const logins_user_ids_recs = helper.emptyOrRows(await db.query(
+      `select distinct user_id from logins l where l.id in (${login_ids.map(id => "?").join(",")})`,
+      login_ids));
+
+    //if all IDs are of the currrent user, no problem
+    login_users = logins_user_ids_recs.map(rec => rec["user_id"]);
+    const logins_of_other_users = (login_users.indexOf(user => user != current_user_id)) >= 0;
+    const user_can_logout_others = await doesUserHavePermissions(current_user_id, [{ requiredArea: 'user_management', requiredPermission: 'U' }]);
+    
+    if(!logins_of_other_users || user_can_logout_others){
+        let placeholder = login_ids.map(id => "?").join(",");
+        const params = login_ids.concat(users_refresh_token);
+        await db.transaction_query(`delete from logins where id in (${placeholder})  and refresh_token<>(?)`, params, active_connection);
     }
-    await db.transaction_query(`delete from logins where user_id=(?) and refresh_token<>(?) ${ids_condition}`,
-      [ curr_user["id"], users_refresh_token ].concat(ids),
-      active_connection
-    );
+    else {
+      throw new Error("User has no permissions to logout other users");
+    }
+   }
+   //No IDs specified
+   else {
+    //go by the refresh token to identify the current login
+    if(!users_refresh_token){
+      throw new Error("No refresh token found");
+    }
+
+    await db.transaction_query(
+      `delete from logins where user_id=(?) and refresh_token<>(?)`,
+      [ current_user_id, refresh_tokens ], 
+      active_connection);
+   }
 
     if(self_executing) {
       await db.transaction_commit(active_connection);
     }
 
-    return await get_logins(users_refresh_token);
-    /*
-    const logins = helper.emptyOrRows(await db.query(
-      `select * from logins where user_id=(?) order by logged_in_at desc;`,
-      [ curr_user["id"] ]));
-    
-    if(helper.isEmptyObj(logins)){
-      throw new Error("Invalid refresh token. No logins found");
-    }
-
-    return logins.map(login_info => {
-      return {
-        id: login_info["id"],
-        logged_in_at: login_info["logged_in_at"],
-        origin_geolocation: login_info["origin_geolocation"],
-        origin_city: login_info["origin_city"],
-        origin_country: login_info["origin_country"],
-        origin_os: login_info["origin_os"],
-        origin_browser: login_info["origin_browser"],
-        is_current_login: (login_info["refresh_token"]==users_refresh_token)
-      };  
-    });
-    */
+    return await get_logins(users_refresh_token, login_users);
   }
   catch(error){
     if(self_executing) {
@@ -1729,6 +1732,317 @@ async function getRoles(){
   return helper.emptyOrRows(db.query(`select id, name from roles`, []));
 }
 
+async function getMultiple(page = 1, perPage) {
+  let subset =  '';
+  //console.log("page -> " + page);
+  //console.log("perPage -> " + perPage);
+  //console.log("(page && perPage) -> " + (page && perPage));  
+  if(page && perPage && page > 0 && perPage > 0)
+  {
+    const offset = helper.getOffset(page, perPage);
+    subset = `LIMIT ${offset},${perPage}`
+  }
+  const rows = await db.query(
+    `select u.id, u.firstname, u.lastname, u.username, u.email, u.photo_url, r.name role, u.created_at registered_at,
+      case
+        when u.is_disabled then "disabled"
+        when u.is_verified then "verified"
+        else "pending"
+      end status
+      from users u left join user_roles ur on ur.user_id=u.id left join roles r on r.id=ur.role_id ${subset}`
+  );
+  const total = await db.query(
+    `SELECT count(*) as count FROM users`
+  );
+  const total_records = total[0].count;
+  /*
+  const babies_quantity = await db.query(
+    `select sum(quantity) as quantity from babies;`
+  );
+  const total_babies = babies_quantity[0]['quantity'];
+  */
+  const total_pages = Math.ceil(total_records / perPage);
+  const data = helper.emptyOrRows(rows);
+  const meta = {page, total_records, total_pages};
+
+  return {
+    data,
+    meta
+  }
+}
+
+async function getSingle(user_id){
+  let user = helper.emptyOrSingle(await db.query(
+    `select 
+      u.id, u.firstname , u.lastname, u.password, u.email, u.photo_url, u.username,
+      u.pending_new_email, u.phone, u.created_at registered_on, u.is_verified, u.is_disabled  
+    from users u 
+    where u.id=(?)`, [user_id]));
+  
+  const roles = helper.emptyOrRows(await db.query(
+    `select 
+      r.name, r.id 
+    from roles r 
+      inner join user_roles ur on r.id=ur.role_id 
+    where ur.user_id=(?)`, [user_id]));
+
+  const customers = helper.emptyOrRows(await db.query(
+    `select 
+      c.id, c.name
+    from customers c 
+      inner join user_customers uc on c.id=uc.customer_id 
+    where uc.user_id=(?)`, [user_id]));
+  
+  if(helper.isEmptyObj(user)){
+    throw new Error(`User with ID ${user_id} not found`);
+  }
+
+  user["roles"] = roles;
+  user["customers"] = customers;
+  user["area_permissions"] = [];
+
+  return user;
+}
+
+async function updateUser(userDetails, photo_url, active_connection){
+
+  //check if there is an active connection called from another function, or this call is a standalone
+  let self_executing = false;
+  if(!active_connection) {
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
+  }
+  try {
+    if(userDetails["roles"] && typeof userDetails["roles"]=='string'){
+      userDetails["roles"] = JSON.parse(userDetails["roles"]);
+    }
+
+    if(userDetails["customers"] && typeof userDetails["customers"]=='string'){
+      userDetails["customers"] = JSON.parse(userDetails["customers"]);
+    }
+
+    let update_fields = ['firstname=(?)', 'lastname=(?)', 'phone=(?)', 'is_disabled=(?)'];
+    let update_values = [userDetails['firstname'], userDetails['lastname'], userDetails['phone']??'', helper.var_to_bool(userDetails['is_disabled'])];
+
+    const existing_user = helper.emptyOrSingle(await db.query(
+      `select * from users where id=(?)`,
+      [userDetails["id"]]
+    ));
+    
+    let updated_mail = false;
+    let new_email_code = '';
+    
+    if(!helper.isEmptyObj(existing_user)) {
+
+      const is_user_admin = helper.emptyOrSingle(await db.query(
+        `select u.username, r.name, r.id
+          from users u 
+          inner join user_roles ur on u.id = ur.user_id 
+          inner join roles r on r.id=ur.role_id
+        where r.name='administrator' and u.id=(?) limit 1`, [userDetails["id"]]));
+      const existing_user_is_admin = (!helper.isEmptyObj(is_user_admin));
+      const updated_user_is_not_admin = (userDetails["roles"].find(r => r["id"] == is_user_admin["id"]) == undefined);
+      const user_is_being_disabled = (helper.var_to_bool(userDetails["is_disabled"])  && !helper.var_to_bool(existing_user["is_disabled"]));
+      const user_was_disabled_until_now = helper.var_to_bool(existing_user["is_disabled"]);
+      
+      const num_of_admins = await admins_count();
+    
+      if(
+        /*
+        If the existing user is an administrator <- which is not disabled, and was not disabled until now,
+        And there is only one administrator in the system (i.e. this is the one!),
+        And we are trying to disable it, or change their role, -> throw an error
+        */
+        existing_user_is_admin &&
+        num_of_admins < 2 &&
+        !user_was_disabled_until_now &&
+        (user_is_being_disabled || updated_user_is_not_admin)
+        ) {
+          throw new Error("Cannot remove the last admin in the system");
+        }
+
+
+      if(
+        //if a new user email was sent, which is not yet the pending email, set it as the pending email
+        userDetails["email"] && 
+        existing_user["email"] != userDetails["email"] &&
+        existing_user["pending_new_email"] != userDetails["email"]) {
+          //check that no other user alreadh has this email
+          const existing_other_user_with_the_new_email = await findUser(null, userDetails["email"]);
+          if(!helper.isEmptyObj(existing_other_user_with_the_new_email) && existing_other_user_with_the_new_email["id"] != userDetails["id"]) {
+            throw new Error(`A user with email ${userDetails["email"]} already exists`);
+          }
+          new_email_code = helper.getRandomString(10);
+          update_fields.push('pending_new_email=(?)', 'pending_new_email_code=(?)');
+          update_values.push(userDetails["email"], new_email_code);
+          updated_mail = true;
+      }
+      else {
+        //otherwise, if the new user mail is already equal to the saved user mail, clear the pending
+        if(existing_user["email"] == userDetails["email"]){
+          update_fields.push('pending_new_email=(?)', 'pending_new_email_code=(?)');
+          update_values.push(null, null);
+          updated_mail = false;
+        }
+      }
+      
+      //if(photo_url){
+      //remove the old photo
+      if(photo_url){
+        let current_photo_url = existing_user["photo_url"];
+        if(current_photo_url){
+          fs.rmSync(path.join(config.server_root, current_photo_url), {
+              force: true,
+          });
+        }
+      }
+      else {
+        photo_url = userDetails["photo_url"];
+      }
+      update_fields.push('photo_url=(?)');
+      update_values.push(photo_url);
+      //}
+
+      await db.transaction_query(
+        `update users 
+          set ${update_fields.join(',')}
+        where id=(?)`,
+        [...update_values, userDetails["id"]], 
+        active_connection);
+      
+      //link to customers
+      await db.transaction_query(`delete from user_customers where user_id=(?)`, [userDetails["id"]], active_connection);
+      const userRolesFilterByCustomers = await doUserRolesHavePermissions(userDetails["roles"], [{ requiredArea: 'customer_resources_by_customer_id', requiredPermission: 'R' }]);
+      if(userRolesFilterByCustomers && userDetails["customers"] && userDetails["customers"].length > 0){
+        let customer_ids = (userDetails["customers"])? userDetails["customers"].map(c => c.id) : [];
+        const customers_placeholders = customer_ids.map(i => "((?),(?))").join(",");
+        await db.transaction_query(
+          `insert into user_customers (user_id, customer_id) values ${customers_placeholders}`,
+          customer_ids.map(i => [userDetails["id"] , i]).flat(),
+          active_connection
+        );
+      }
+
+      //link to roles
+      await db.transaction_query(`delete from user_roles where user_id=(?)`, [userDetails["id"]], active_connection);
+      let role_ids = (userDetails["roles"])? userDetails["roles"].map(r => r.id) : [];
+      const roles_placeholders = role_ids.map(i => "((?),(?))").join(",");
+      await db.transaction_query(
+        `insert into user_roles (user_id, role_id) values ${roles_placeholders}`,
+        role_ids.map(i => [userDetails["id"] , i]).flat(),
+        active_connection
+      );
+
+      if(updated_mail){
+        //send email update verification
+        await send_new_email_verification(userDetails['firstname'], userDetails["email"], existing_user["email"], new_email_code);
+      }
+    }
+    else {
+      throw new Error("User not found");
+    }
+
+    if(self_executing) {
+      await db.transaction_commit(active_connection);
+    }
+    return await getSingle(userDetails["id"]);
+  }
+  catch(error){
+    if(self_executing) {
+      await db.transaction_rollback(active_connection);
+    }
+    throw(error);
+  }
+  finally {
+    if(self_executing) {
+      await db.transaction_release(active_connection);
+    }
+  }
+}
+
+async function remove(user_id, active_connection){ 
+
+  const num_of_admins = await admins_count();
+  const trying_to_delete_admin = ((helper.emptyOrRows(await db.query(
+    `select u.username, r.name 
+      from users u 
+      inner join user_roles ur on u.id = ur.user_id 
+      inner join roles r on r.id=ur.role_id
+    where r.name='administrator' and u.id=(?) limit 1`, [user_id]))).length > 0);
+
+  if(trying_to_delete_admin && num_of_admins < 2) {
+    throw new Error("Cannot the delete the last admin in the system");
+  }
+
+  let self_executing = false;
+  if(!active_connection) {
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
+  }
+  try {
+    await db.transaction_query(
+      `delete from users where id=(?)`, 
+      [ user_id ], 
+      active_connection);
+
+    if(self_executing) {
+      await db.transaction_commit(active_connection);
+    }
+    return "Deleted successfully";
+  }
+  catch(error){
+    if(self_executing) {
+      await db.transaction_rollback(active_connection);
+    }
+    throw(error);
+  }
+  finally {
+    if(self_executing) {
+      await db.transaction_release(active_connection);
+    }
+  }
+}
+
+//requiredPermissions:
+//[{ requiredArea: 'user_management', requiredPermission: 'R' }, {...}]
+async function doesUserHavePermissions(user_id, requiredPermissions) {
+  let allowed = true;
+  //TODO performance improvement: cache this
+  const user_permissions = await getUserPermissions(user_id);
+  if(requiredPermissions){
+    allowed = false;
+    requiredPermissions.forEach(required_permission => {
+        const areaPermission = user_permissions.find(u_p => u_p["area"] == required_permission.requiredArea);
+        if(!areaPermission || areaPermission["permissions"].indexOf(required_permission.requiredPermission) >= 0) {
+            allowed = true;
+        }                     
+    });
+  }
+  return allowed;
+}
+
+async function doUserRolesHavePermissions(roles, requiredPermissions) {
+  if (!roles || roles.length === 0) return false;
+
+  for (const required_permission of requiredPermissions) {
+    for (const r of roles) {
+      const role_permissions = helper.emptyOrSingle(await db.query(
+        `select rp.permissions 
+          from role_permissions rp 
+          inner join roles r on r.id = rp.role_id 
+          where r.id=(?) and rp.area=(?)`,
+        [r["id"], required_permission["requiredArea"]]
+      ));
+
+      if (!helper.isEmptyObj(role_permissions) && 
+          role_permissions["permissions"].indexOf(required_permission["requiredPermission"]) >= 0) {
+        return true; // can early-exit as soon as we find a match
+      }
+    }
+  }
+  return false;
+}
+
 
 module.exports = {
   //securing
@@ -1737,6 +2051,8 @@ module.exports = {
   refresh_tokens,
   admins_count,
   getUserPermissions,
+  doesUserHavePermissions,
+  doUserRolesHavePermissions,
 
   //signing up
   signup,
@@ -1770,5 +2086,11 @@ module.exports = {
   getBaseUserInfo,
   getUserProfile,
   saveUserProfile,
-  getUserProfile_by_code //for completeing an account request
+  getUserProfile_by_code, //for completeing an account request
+
+  //user management
+  getMultiple,
+  getSingle,
+  remove,
+  updateUser
 }

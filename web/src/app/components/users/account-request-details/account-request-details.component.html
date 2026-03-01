@@ -25,6 +25,17 @@ User requesting account
     (confirm)="delete_request_confirmed()"
     />
 
+<app-confirmation-dialog
+    #error_dialog
+    [modalTitle]="'Error'" 
+    [dialogIcon]="faTriangleExclamation"
+    [btnYesText]="'Back to the list'"
+    [btnYesClass]="'btn-warning'"
+    [btnYesIcon]="faArrowLeft"
+    [btnNoClass]="'d-none'"
+    (confirm)="go_to_account_requests()"
+    />
+
 <div class="row justify-content-center">
 <div class="col-12 col-md-8">
 

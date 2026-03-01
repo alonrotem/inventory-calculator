@@ -1,12 +1,12 @@
 meta {
-  name: logout
+  name: logins
   type: http
-  seq: 13
+  seq: 9
 }
 
 get {
-  url: {{romtech_server}}/users/logout
-  body: json
+  url: {{romtech_server}}/users/get_logins/0
+  body: none
   auth: inherit
 }
 

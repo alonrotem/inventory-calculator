@@ -11,11 +11,12 @@ import { NgFor, NgIf } from '@angular/common';
 import { SortBabiesPipe } from "../../../utils/pipes/sort-babies-pipe";
 import { PrefixPipe } from "../../../utils/pipes/prefix-pipe";
 import html2pdf from 'html2pdf.js';
+import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
 
 @Component({
   selector: 'app-order-editor',
   standalone: true,
-  imports: [FaIconComponent, DateStrPipe, NgFor, SortBabiesPipe, PrefixPipe, NgIf],
+  imports: [FaIconComponent, DateStrPipe, NgFor, SortBabiesPipe, PrefixPipe, NgIf, PageLoadingComponent],
   templateUrl: './order-editor.component.html',
   styleUrl: './order-editor.component.scss'
 })

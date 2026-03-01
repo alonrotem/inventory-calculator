@@ -603,6 +603,27 @@ export interface SignInResponse {
     userInfo: BasicUserInfoStatus
 }
 
+export interface UserListItem {
+  id: number;
+  firstname: string;
+  lastname: string;
+  username: string;
+  email: string;
+  photo_url: string;
+  role: string;
+  status: string;
+  registered_at: Date;
+}
+
+export interface UsersList {
+    data: UserListItem[];
+    meta: { 
+        page: number;
+        total_records: number;
+        total_pages: number;
+    };
+}
+
 export interface BasicUserInfoStatus {
   id: number;
   firstname: string;
@@ -625,6 +646,11 @@ export interface UserProfile extends BasicUserInfoStatus {
     pending_new_email: string;
     phone: string;
     registered_on: Date;
+}
+
+export interface UserDetails extends UserProfile {
+    is_verified: boolean;
+    is_disabled: boolean;
 }
 
 export interface UpdateProfile {

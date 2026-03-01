@@ -540,8 +540,8 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
     let crown_height = this.crown_bottom.y - this.rights_bottom.y;
     let crown_segment_height = crown_height / this.crown.length;
     let crown_part = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
-    console.log("rebuilding crown");
-    console.dir(this.crown);
+    //console.log("rebuilding crown");
+    //console.dir(this.crown);
     for(let c=0; c < this.crown.length; c++) {
       let crown_path = new Path2D();
       crown_path.rect(this.rights_bottom.x, this.rights_bottom.y + ((this.crown.length - (c+1)) * crown_segment_height), this.crown[c] * this.cm_px,  crown_segment_height);

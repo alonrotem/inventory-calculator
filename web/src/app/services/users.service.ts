@@ -4,7 +4,7 @@ import { BehaviorSubject, catchError, firstValueFrom, from, InteropObservable, m
 import { environment } from '../../environments/environment';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { AccountRequestDetails, AccountRequestInfo, AccountRequestListItem, AccountsRequestList, BasicUserInfoStatus, GeoCoordinates, LoginInfo, nameIdPair, PaginationParams, RefreshResponse, SignInData, SignInResponse, UpdateProfile, UserProfile } from '../../types';
+import { AccountRequestDetails, AccountRequestInfo, AccountRequestListItem, AccountsRequestList, BasicUserInfoStatus, GeoCoordinates, LoginInfo, nameIdPair, PaginationParams, RefreshResponse, SignInData, SignInResponse, UpdateProfile, UserDetails, UserListItem, UserProfile, UsersList } from '../../types';
 import { RuntimeService } from './runtime.service';
 
 export interface AreaPermission {
@@ -25,7 +25,7 @@ export class UsersService {
 
   // 3. Convenience getter for the current value (synchronous)
   get currentUserValue(): BasicUserInfoStatus | null {
-    const userstr = sessionStorage.getItem("User");
+    const userstr = localStorage.getItem("User");
     if(userstr){
       const user: BasicUserInfoStatus = JSON.parse(userstr);
       return user;//this.userSubject.value;
@@ -34,28 +34,27 @@ export class UsersService {
   }
 
   setUser(user: BasicUserInfoStatus | null) {
-    sessionStorage.setItem("User", JSON.stringify(user));
+    localStorage.setItem("User", JSON.stringify(user));
     this.userSubject.next(user);
   }
 
   unsetUser(){
-    sessionStorage.removeItem("User");
+    localStorage.removeItem("User");
     this.userSubject.next(null);
   }
 
-  constructor(private apiService: ApiService, private runtimeService: RuntimeService, private router: Router) {
-    // 🎯 Load from storage immediately on construction
-    const savedUser = sessionStorage.getItem("User");
-    if (savedUser) {
-      try {
-        const parsed = JSON.parse(savedUser);
-        // If your storage structure is { info: { ... } }, use parsed.info
-        this.userSubject.next(parsed.info || parsed);
-      } catch (e) {
-        sessionStorage.removeItem("User");
-      }
+constructor(private apiService: ApiService, private runtimeService: RuntimeService, private router: Router) {
+  const savedUser = localStorage.getItem("User");
+  if (savedUser) {
+    try {
+      const parsed: BasicUserInfoStatus = JSON.parse(savedUser);
+      // setUser() stores flat — no .info wrapper, just use parsed directly
+      this.userSubject.next(parsed); 
+    } catch (e) {
+      localStorage.removeItem("User");
     }
   }
+}
   
   setAccessToken(token: string): void {
     localStorage.setItem("access_token", token.toString());
@@ -64,6 +63,36 @@ export class UsersService {
   getAccessToken(): string | null {
     return localStorage.getItem("access_token");
   }
+
+  getUsers = (params: PaginationParams): Observable<UsersList> => {
+    return this.apiService.get(`${environment.serverUrl}/users/`, {
+      params,
+      responseType: 'json',
+      withCredentials: true
+    });
+  };
+
+  getUser = (id: number): Observable<UserDetails> => {
+    return this.apiService.get(`${environment.serverUrl}/users/details/${id}`, {       
+      responseType: 'json',
+      withCredentials: true
+    });
+  };
+
+  save = (user: UserDetails, profilePicture: Blob | null): Observable<any> => {
+    const formData = this.collect_form_data(user, profilePicture);
+    return this.apiService.post(`${environment.serverUrl}/users/`, formData, { 
+      responseType: 'json',
+      withCredentials: true
+    });
+  };
+
+  delete = (user_id: number): Observable<any> => {
+    return this.apiService.delete(`${environment.serverUrl}/users/${user_id}`, { 
+      responseType: 'json',
+      withCredentials: true
+    });
+  };
 
   signupNewUser (signupData: { firstname: string, lastname: string, username: string, password: string, email: string , role: string}): Observable<any> {
     return this.apiService.post(`${environment.serverUrl}/users/signup`, signupData, { });
@@ -218,11 +247,12 @@ export class UsersService {
       // 1. Use tap for side effects (updating state)
       tap({
         next: (info) => {
-          console.dir(info);
-          console.log('Session active:', info.username);
-          this.setUser(info);
+          //console.dir(info);
+          //console.log('Session active:', info.username);
+          //this.setUser(info);
           //this.userSubject.next(info); // Update your BehaviorSubject
           //sessionStorage.setItem("User", JSON.stringify({ info }));
+          this.setUser(info);
         },
         error: (error: HttpErrorResponse) => {
           console.log("SESSION ERROR ");
@@ -250,8 +280,8 @@ export class UsersService {
     return this.apiService.get<RefreshResponse>(`${environment.serverUrl}/users/refresh`, { withCredentials: true }).pipe(
       tap({
         next: (res: RefreshResponse) => {
-          console.log("refresh token response");
-          console.dir(res);
+          //console.log("refresh token response");
+          //console.dir(res);
 
           this.setAccessToken(res.access_token);
         }
@@ -299,8 +329,8 @@ export class UsersService {
     );
   }
 
-  get_logins(): Observable<LoginInfo[]>{
-    return this.apiService.get(`${environment.serverUrl}/users/get_logins`, {
+  get_logins(user_id:number = 0): Observable<LoginInfo[]>{
+    return this.apiService.get(`${environment.serverUrl}/users/get_logins/${user_id}`, {
       responseType: 'json',
       withCredentials: true
     });
@@ -345,7 +375,7 @@ export class UsersService {
     return this.apiService.post(`${environment.serverUrl}/users/profile`, formData, { withCredentials: true });
   }
   
-  collect_form_data(profileUpdateInfo: UpdateProfile, profilePicture: Blob | null): FormData {
+  collect_form_data(profileUpdateInfo: any, profilePicture: Blob | null): FormData {
     const formData = new FormData();
     
     // Automatically append all properties from data object

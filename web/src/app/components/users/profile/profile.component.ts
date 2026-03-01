@@ -95,6 +95,7 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit(): void {
     this.isCustomer = false;
+    this.loading = true;
     this.usersService.getProfile().subscribe({
       next: (profile: UserProfile) => {
         this.user = profile;
@@ -107,6 +108,7 @@ export class ProfileComponent implements OnInit {
       error: (err) => {
         this.toastService.showError("Error loading profile data");
         console.log(err);
+        this.loading = false;
       }
     });
   }
@@ -160,6 +162,12 @@ export class ProfileComponent implements OnInit {
       this.pending_email = '';
     }
   }
+
+  revert_email(){
+    this.current_email = this.original_email;
+    this.pending_email = "";
+    this.mail_verification_notice.onCancel();
+  }  
 
   open_mail_verification_dialog(){
     this.mail_verification_notice.open();

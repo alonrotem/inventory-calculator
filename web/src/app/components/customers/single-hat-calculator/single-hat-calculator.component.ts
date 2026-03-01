@@ -886,7 +886,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   */
 
   knife_changed(){
-    console.dir();
+    //console.dir();
     if(this.customerHat.wing && this.knife_selector.selectedValues.length > 0){
      this.customerHat.wing.knife = this.knife_selector.selectedValues[0].cm;
      this.recalculate_hat_size();
@@ -905,8 +905,8 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         this.min_height_for_wing = (this.min_knife + L1_len + C1_len);
         this.max_height_for_wing = (this.max_knife + L1_len + C1_len);
 
-        this.console.log("min: " + this.min_height_for_wing + "cm");
-        this.console.log("max: " + this.max_height_for_wing + "cm");
+        //this.console.log("min: " + this.min_height_for_wing + "cm");
+        //this.console.log("max: " + this.max_height_for_wing + "cm");
         this.arr_wing_total_height.forEach(h => {
           h.disabled = (h.cm < this.min_height_for_wing || h.cm > this.max_height_for_wing);
         });
@@ -1239,7 +1239,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
   @HostListener('window:resize', ['$event'])
     onResize(event: Event) {
-        this.console.log(`w: ${(event.target as Window).innerWidth.toFixed(0)}, h: ${(event.target as Window).innerHeight.toFixed(0)}`);
+        //this.console.log(`w: ${(event.target as Window).innerWidth.toFixed(0)}, h: ${(event.target as Window).innerHeight.toFixed(0)}`);
         const w = (event.target as Window).innerWidth;
         if((w < 1300) && (w <= 1998)){
           this.diagram.scale = 0.9;

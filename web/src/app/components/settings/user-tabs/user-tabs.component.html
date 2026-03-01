@@ -1,0 +1,11 @@
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <a [ngClass]="{'nav-link': true, 'active': ActiveTab == ActivePage.Users }" [attr.href]="ActiveTab == ActivePage.Users ? null : 'settings/users'">Users</a>
+    </li>
+    <li class="nav-item">
+      <a  [ngClass]="{'nav-link': true, 'active': ActiveTab == ActivePage.AccountRequests }" [attr.href]="ActiveTab == ActivePage.AccountRequests  ? null : 'users/account_requests'">Account Requests</a>
+    </li>
+    <li class="nav-item">
+      <a  [ngClass]="{'nav-link': true, 'active': ActiveTab == ActivePage.AccountInvites }" [attr.href]="ActiveTab == ActivePage.AccountInvites  ? null : 'settings/user_invites'">User Invites</a>
+    </li>
+  </ul>

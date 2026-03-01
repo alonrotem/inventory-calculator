@@ -12,6 +12,79 @@ const config = require('../config');
 const memoryStorage = multer.memoryStorage();
 const upload = multer({ storage: memoryStorage });
 
+// Get all users (paged)
+router.get('/', auth_request([{ requiredArea: 'user_management', requiredPermission: 'R' }]), async function(req, res, next) {
+  logger.info(`get /users/ page=${req.query.page}, perPage=${req.query.perPage}`);
+  try {
+    const response = await users.getMultiple(req.query.page, req.query.perPage);
+    logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+    res.json(response);
+  } 
+  catch (err) {
+    logger.error(`Error getting users ${err.message}`);
+    next(err);
+  }
+});
+
+// Delete a user by ID
+router.delete('/:id', auth_request([{ requiredArea: 'user_management', requiredPermission: 'D' }]), async function(req, res, next) {
+  logger.info(`delete /users/${req.params.id}`);
+  try {
+    const response = await users.remove(req.params.id);
+    logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+    res.json(response);
+  } 
+  catch (err) {
+    logger.error(`Error deleting user: ${err.message}`);
+    next(err);
+  }
+});
+
+// Get a user by ID
+router.get('/details/:id', auth_request([{ requiredArea: 'user_management', requiredPermission: 'R' }]),  async function(req, res, next) {
+  logger.info(`get /users/details/${req.params.id}`);
+  try {
+    const response = await users.getSingle(req.params.id);
+    logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+    res.json(response);
+  } 
+  catch (err) {
+    logger.error(`Error getting user with Id ${req.params.id}: ${err.message}`);
+    next(err);
+  }
+});
+
+router.post('/', auth_request([{ requiredArea: 'user_management', requiredPermission: 'U' }]), upload.single('photo'), async function(req, res, next) {
+  let profile_photo_path = "";
+  try {
+    if(req.file && req.file.buffer){
+      const buffer = req.file.buffer;
+
+      // Now you can process and save manually
+      const filename = `${Date.now()}-${req.file.originalname}`;
+      const filepath = path.join(config.userUploadDir, filename);
+      profile_photo_path = path.posix.join(config.user_pictures_path, filename);
+      
+      fs.writeFileSync(filepath, buffer);
+      //file is available at <server>/uploads/images/users/1767022665227-photo.png
+  }
+
+  const updatedUser = await users.updateUser(req.body, profile_photo_path);
+  res.status(200).send(updatedUser);
+ } 
+  catch (err) {
+    logger.error(`Error saving user: ${err.message}`);
+    if(profile_photo_path) {
+      fs.rmSync(path.join(config.server_root, profile_photo_path), {
+          force: true,
+      });
+    }    
+    next(err);
+  }    
+});
+
+
+
 // sign up a new user
 router.post('/signup', async function(req, res, next) {
   logger.info(`post /users/signup`);
@@ -66,6 +139,7 @@ router.post('/reset-password', async function(req, res, next) {
     
     if(req.body.sign_out_from_all){
       let refresh_token = req.cookies.refresh_token;
+      await users.clear_logins([], refresh_token);
       await users.logout(refresh_token);
       res.clearCookie('refresh_token');
     }
@@ -292,7 +366,7 @@ router.post('/profile', auth_request(), upload.single('photo'), async function(r
   res.status(200).send(updatedProfile);
  } 
   catch (err) {
-    logger.error(`Logout error: ${err.message}`);
+    logger.error(`Error saving profile: ${err.message}`);
     if(profile_photo_path) {
       fs.rmSync(path.join(config.server_root, profile_photo_path), {
           force: true,
@@ -335,16 +409,17 @@ router.post('/profile_by_code', upload.single('photo'), async function(req, res,
 //----------------------
 
 // Get the current user's logins
-router.get('/get_logins', auth_request(), async function(req, res, next) {
+router.get('/get_logins/:id', auth_request(), async function(req, res, next) {
   logger.info(`get /users/get_logins`);
   logger.debug(`Body: ${ JSON.stringify(req.body) }`);
   try {
-    if(!req.cookies || !req.cookies.refresh_token){
-      return res.status(401).send({ message: 'No refresh token, authorization denied' });
-    }
-    //const decoded_refresh_token = jwt.verify(req.cookies.refresh_token, process.env.AUTH_TOKEN_SECRET);
+    //if(!req.cookies || !req.cookies.refresh_token){
+    //  return res.status(401).send({ message: 'No refresh token, authorization denied' });
+    //}
+    
+    const user_id = (req.params.id && req.params.id != 0)? req.params.id : 0;
 
-    const logins = await users.get_logins(req.cookies.refresh_token);
+    const logins = await users.get_logins(req.cookies.refresh_token, [user_id]);
 
     logger.debug(`RESPONSE: ${JSON.stringify(logins)}`);
     res.status(200).send( logins );      
@@ -363,8 +438,9 @@ router.post('/clear_logins', auth_request(), async function(req, res, next) {
     if(!req.cookies || !req.cookies.refresh_token){
       return res.status(401).send({ message: 'No refresh token, authorization denied' });
     }
+    const current_user_id = req["auth_token"].id;
 
-    const logins = await users.clear_logins(req.body.ids, req.cookies.refresh_token);
+    const logins = await users.clear_logins(req.body.ids, req.cookies.refresh_token, current_user_id);
     logger.debug(`RESPONSE: ${JSON.stringify(logins)}`);
     res.status(200).send( logins );      
 

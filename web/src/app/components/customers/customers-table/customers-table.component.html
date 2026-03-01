@@ -1,12 +1,11 @@
 <div class="row justify-content-center"><div [attr.class]="'col-12 ' + ((stretchWidth)?'':'col-md-9')">
 <h1 *ngIf="showTitle"><span class="icon-address-book"></span> Customers</h1>
 
-<div id="loading_icon" [hidden]="!loading">
-  <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-    <div><fa-icon [icon]="faArrowsRotate" [animation]="'spin'" size="3x"></fa-icon></div>
-    <div id="loading_message">Loading customers...</div>
-  </div>
-</div>
+<app-page-loading 
+  [loading_message]="'Loading customers...'" 
+  [icon_size]="'3x'" 
+  [hidden]="!loading" 
+  [stretch_height]="true" />
 
 <div [hidden]="loading">
   <a id="btnNewRaw" *ngIf="showTitle && ((user$ | async) | hasPermission: [{area: 'customers', permission: 'C'}])" class="btn btn-primary" routerLink="/inventory/customer/editor">+ New customer</a>
@@ -45,8 +44,7 @@
 </div>
 
   <div [hidden]="loading || this.customers.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
-    No customers added.<br/>
-    Please add some by clicking the + button above.
+    No customers availble.
   </div>
 </div>
 

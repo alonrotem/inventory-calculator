@@ -3,7 +3,6 @@ import { RawMaterialsService } from '../../../services/raw-materials.service';
 import { RawMaterial, RawMaterials } from '../../../../types';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { PaginatorComponent } from "../../common/paginator/paginator.component";
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { Router, RouterModule } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -18,24 +17,25 @@ import { StateService } from '../../../services/state.service';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { SettingsService } from '../../../services/settings.service';
 import { firstValueFrom } from 'rxjs';
+import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
 
 @Component({
     selector: 'app-raw-materials-table',
     standalone: true,
     templateUrl: './raw-materials-table.component.html',
     styleUrl: './raw-materials-table.component.scss',
-    imports: [ 
-      NgFor, PaginatorComponent, ModalDialogComponent, 
-      RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, 
-      FormsModule, DateStrPipe, ToastComponent, DecimalPipe 
-    ]
+    imports: [
+    NgFor, PaginatorComponent, ModalDialogComponent,
+    RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule,
+    FormsModule, DateStrPipe, ToastComponent, DecimalPipe,
+    PageLoadingComponent
+]
 })
 
 export class RawMaterialsTableComponent extends NavigatedMessageComponent implements OnInit {
   
   constructor(
     private rawMaterialsService: RawMaterialsService, 
-    private modalService: NgbModal,
     private settingsService: SettingsService, 
     router: Router, 
     stateService: StateService,

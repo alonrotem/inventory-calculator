@@ -11,7 +11,7 @@
     <li><a class="dropdown-item" (click)="logout()" style="cursor: pointer;"><fa-icon [icon]="faArrowRightFromBracket"></fa-icon> Log out</a></li>
   </ul>
 </div>
-<div class="nav-item" *ngIf="((!(user$ | async)) && (this.currentUrl != '/users/signin'))">
+<div class="nav-item" *ngIf="((!(user$ | async)) && (this.currentUrl.indexOf('/users/signin') < 0))">
   <a class="nav-link" routerLink="/users/signin"><fa-icon [icon]="faRightToBracket"></fa-icon> Sign in</a>
 </div>
 

@@ -18,11 +18,12 @@ import { NavigatedMessageComponent } from '../../common/navigated-message/naviga
 import { StateService } from '../../../services/state.service';
 import { SettingsService } from '../../../services/settings.service';
 import { WingsPerHatShorthandPipe } from "../../../utils/pipes/wings-per-hat-shorthand-pipe";
+import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
 
 @Component({
   selector: 'app-orders-table',
   standalone: true,
-  imports: [NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe, ToastComponent, DecimalPipe, SingleHatCalculatorComponent, WingsPerHatShorthandPipe],
+  imports: [NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe, ToastComponent, DecimalPipe, SingleHatCalculatorComponent, WingsPerHatShorthandPipe, PageLoadingComponent],
   templateUrl: './orders-table.component.html',
   styleUrl: './orders-table.component.scss'
 })

@@ -13,29 +13,27 @@ import { AutocompleteLibModule } from 'angular-ng-autocomplete';
 import { ToastService } from '../../../services/toast.service';
 import { CustomersService } from '../../../services/customers.service';
 import { HasUnsavedChanges } from '../../../guards/unsaved-changes-guard';
-import { first, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { CustomerBanksTableComponent } from '../customer-banks-table/customer-banks-table.component';
 import { HatsCalculatorDialogComponent } from '../hats-calculator-dialog/hats-calculator-dialog.component';
-import { AllocationPickerComponent } from '../allocation-picker/allocation-picker.component';
-import { FilterPipe } from '../../../utils/pipes/filter-pipe';
-import { WingsService } from '../../../services/wings.service';
 import { StateService } from '../../../services/state.service';
 import { UnsavedNavigationConfirmationService } from '../../../services/unsaved-navigation-confirmation.service';
 import { UnsavedChangesDialogComponent } from "../../common/unsaved-changes-dialog/unsaved-changes-dialog.component";
 import { UsersService } from '../../../services/users.service';
 import { HasPermissionPipe } from '../../../utils/pipes/has-permission.pipe';
+import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 
 @Component({
   selector: 'app-customer-editor',
   standalone: true,
   imports: [RouterModule, FormsModule, NgSelectModule, DateStrPipe,
     FaIconComponent, NgIf, NgFor, ConfirmationDialogComponent, AutocompleteLibModule,
-    CustomerBanksTableComponent, HatsCalculatorDialogComponent, AllocationPickerComponent, FilterPipe, 
+    CustomerBanksTableComponent, HatsCalculatorDialogComponent, 
     UnsavedChangesDialogComponent, HasPermissionPipe, AsyncPipe],
   templateUrl: './customer-editor.component.html',
   styleUrl: './customer-editor.component.scss'
 })
-export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsavedChanges {
+export class CustomerEditorComponent extends NavigatedMessageComponent implements OnInit, AfterViewInit, HasUnsavedChanges {
 
   public customerItem : Customer = {
     id: 0,
@@ -86,12 +84,13 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
   constructor(
     private customersService: CustomersService, 
     private activatedRoute: ActivatedRoute,
-    private router: Router, 
-    private toastService: ToastService,
-    private stateService: StateService,
     private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService,
-    private usersService: UsersService
+    private usersService: UsersService,
+    toastService: ToastService,
+    stateService: StateService,
+    router: Router
     ) { 
+      super(toastService, stateService, router);
   }
   
   hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
@@ -207,7 +206,9 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
         //console.log("SAVED CUSTOMER !!!"); console.dir(data["customer"]);
         this.customer_form.form.markAsPristine();
         this.customer_banks_tables.forEach(b => { b.unsaved_changes = false });
-        this.btn_save.nativeElement.classList.remove("disabled"); this.gotoCustomersList(data['message'], false); },//this.getRawMaterials(this.current_page); },
+        this.btn_save.nativeElement.classList.remove("disabled"); 
+        this.gotoCustomersList(data['message'], false); 
+      },//this.getRawMaterials(this.current_page); },
       error:(error) => { 
         //console.log("ERRRR:"); console.dir(error.error.message);
         this.btn_save.nativeElement.classList.remove("disabled"); 
@@ -218,15 +219,8 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
   }
 
 
-  gotoCustomersList(textInfo: string = '', isError: Boolean = false) {
-    this.router.navigate(['inventory/customers'], {
-      state: {
-        info: { 
-          textInfo: textInfo, 
-          isError: isError 
-        }
-      },
-    });
+  gotoCustomersList(textInfo: string = '', isError: boolean = false) {
+    this.navigateWithToastMessage("inventory/customers", textInfo, isError);
   }
 
   confirm_delete() {
@@ -270,7 +264,6 @@ export class CustomerEditorComponent implements OnInit, AfterViewInit, HasUnsave
 
   openHatsCalculator() {
     this. router.navigate(['/inventory/customer/hat-calculator'], {queryParamsHandling:'preserve'});
-    //this.router.navigate([, this.customerItem.id]);
     /*
     this.hats_calculator.customer = this.customerItem;
     this.hats_calculator.dialog.btnSaveClass="d-none" ;

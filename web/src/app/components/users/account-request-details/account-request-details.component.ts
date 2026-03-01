@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
 import { IconDefinition } from '@fortawesome/fontawesome-common-types';
-import { faBasketShopping, faCheck, faTrash, faTriangleExclamation, faUser, faUserPlus, faX } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faBasketShopping, faCheck, faTrash, faTriangleExclamation, faUser, faUserPlus, faX } from '@fortawesome/free-solid-svg-icons';
 import { UsersService } from '../../../services/users.service';
 import { ToastService } from '../../../services/toast.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -17,13 +17,16 @@ import { UserTagComponent } from "../user-tag/user-tag.component";
 import { Icon } from '@fortawesome/fontawesome-svg-core';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { StateService } from '../../../services/state.service';
+import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.component";
 
 @Component({
   selector: 'app-account-request-details',
   standalone: true,
   imports: [
-    FaIconComponent, DateStrPipe, NgIf, CustomerPickerComponent, FormsModule, NgSelectModule, ConfirmationDialogComponent, 
-    NgForOf, UserTagComponent, RouterLink ],
+    FaIconComponent, DateStrPipe, NgIf, CustomerPickerComponent, FormsModule, NgSelectModule, ConfirmationDialogComponent,
+    NgForOf, UserTagComponent, RouterLink,
+    ModalDialogComponent
+],
   templateUrl: './account-request-details.component.html',
   styleUrl: './account-request-details.component.scss'
 })
@@ -34,6 +37,7 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
   faTrash: IconDefinition = faTrash;
   faTriangleExclamation: IconDefinition = faTriangleExclamation;
   faUser: IconDefinition = faUser;
+  faArrowLeft: IconDefinition = faArrowLeft;
   faBasketShopping: IconDefinition = faBasketShopping;
   loading: boolean = false;
   approval_instructions: string = "";
@@ -42,6 +46,7 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
   @ViewChild("chkCreateNewCustoemr") chkCreateNewCustoemr!: ElementRef;
   @ViewChild("confirm_approval_dialog") confirm_approval_dialog! :ConfirmationDialogComponent;
   @ViewChild("confirm_deletion_dialog") confirm_deletion_dialog! :ConfirmationDialogComponent;
+  @ViewChild("error_dialog") error_dialog! :ConfirmationDialogComponent;
 
   //selectedCustomerIDs: number [] = [];
   request: AccountRequestDetails = {
@@ -112,6 +117,8 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
       },
       error: (error: any) => {
         this.toastService.showError(error.error.message);
+        this.error_dialog.modalText = `An error has occurred fetching this request:<br/>${error.error.message}`;
+        this.error_dialog.open();
         this.loading = false;
       }
     });
@@ -195,5 +202,9 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
         this.toastService.showError(err.error["message"]);
       }
     });
+  }
+
+  go_to_account_requests(){
+    this.router.navigate(['users/account_requests']);
   }
 }

@@ -1,0 +1,38 @@
+.header-container {
+    margin: 25px 0;
+    display: flex;
+    flex-direction: row;
+    flex-wrap:wrap;
+    align-items: center;
+}
+
+.profile-section {
+    border: 1px solid;
+    padding: 30px;
+    border-radius: var(--bs-border-radius);
+    margin-bottom: 30px;
+}
+
+.profile-section .section-row {
+    margin-top: 30px;
+}
+
+.save-button {
+    min-width: 150px;
+}
+
+.roles-select, .roles-select option {
+    text-transform: capitalize;
+}
+
+.upper-button {
+    max-width: 130px;
+    height: 40px;
+}
+
+.unsaved-changes-notice {
+    position: fixed;
+    z-index: 900000;
+    top: 83px;
+    right: 0;
+}

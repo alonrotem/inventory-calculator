@@ -13,16 +13,17 @@ import { UsersService } from '../../../services/users.service';
 import { ToastService } from '../../../services/toast.service';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { StateService } from '../../../services/state.service';
+import { ActivePage, UserTabsComponent } from "../../settings/user-tabs/user-tabs.component";
 
 @Component({
   selector: 'app-account-requests-list',
   standalone: true,
-  imports: [PageLoadingComponent, DecimalPipe, NgFor, RouterModule, DateStrPipe, PaginatorComponent, FaIconComponent],
+  imports: [PageLoadingComponent, DecimalPipe, NgFor, RouterModule, DateStrPipe, PaginatorComponent, FaIconComponent, UserTabsComponent],
   templateUrl: './account-requests-list.component.html',
   styleUrl: './account-requests-list.component.scss'
 })
 export class AccountRequestsListComponent extends NavigatedMessageComponent implements OnInit {
-
+  ActivePage = ActivePage;
   loading:boolean = false;
   account_requests : AccountRequestListItem[] = [];
   totalRecords: number = 0;

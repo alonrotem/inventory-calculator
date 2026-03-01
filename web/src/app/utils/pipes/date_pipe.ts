@@ -5,8 +5,11 @@ import { Pipe, PipeTransform } from '@angular/core';
   standalone: true
 })
 export class DateStrPipe implements PipeTransform {
-
   transform(value: any): string {
+    if(!value) {
+      return "";
+    }
+    
     let d: Date = new Date();
     if(typeof value == "string")
     {

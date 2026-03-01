@@ -43,12 +43,12 @@
       <h1><span class="icon-folder-open"></span> System log files </h1>
       <button class="btn btn-secondary" style="margin-left: 10px;" (click)="loadLogFilesList()"><fa-icon [icon]="faArrowsRotate"></fa-icon></button>
     </div>
-    <div id="loading_icon" [hidden]="!loading">
-      <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-        <div><fa-icon [icon]="faArrowsRotate" [animation]="'spin'" size="3x"></fa-icon></div>
-        <div id="loading_message">Loading log files...</div>
-      </div>
-    </div>
+
+    <app-page-loading 
+        [loading_message]="'Loading log files...'" 
+        [icon_size]="'3x'" 
+        [hidden]="!loading" 
+        [stretch_height]="true" />
     
     <div [hidden]="loading">
       

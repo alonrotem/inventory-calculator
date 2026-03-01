@@ -1,1 +1,63 @@
-<p>settings-users works!</p>
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8">
+        <app-user-tabs 
+            [ActiveTab]="ActivePage.Users"
+        />
+
+        <div class="settings-title">
+            <h3 class="mt-4 mb-4"><span class="icon-address-book"></span> Users</h3>
+        </div>
+        <app-page-loading 
+            [loading_message]="'Loading users...'" 
+            [icon_size]="'3x'" 
+            [hidden]="!loading" 
+            [stretch_height]="true" />
+
+<div [hidden]="loading">
+  <a id="btnNewRaw" class="btn btn-warning" routerLink="/inventory/raw/editor"><fa-icon [icon]="faEnvelope"></fa-icon> Invite a user</a>
+
+  <div class="infotitle mt-4" [hidden]="loading || this.users.length <= 0">Total: {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'user':'users' }}</div>
+
+  <div [hidden]="loading || this.users.length == 0">
+    <table class="table table-responsive table-striped table-hover">
+        <thead>
+        <tr>
+            <th scope="col"></th>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Role</th>
+            <th scope="col">Status</th>
+            <th scope="col">Registered at</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr 
+            *ngFor="let user of this.users" 
+                routerLink="/settings/user-details" 
+                [queryParams]="{ id: user.id }" role="button">
+
+            <td class="col-center">
+                <div class="user-initials">
+                    <span *ngIf="!user.photo_url">{{ getInitials(user) }}</span>
+                    <img *ngIf="user.photo_url" [src]="(user.photo_url)? (environment.serverUrl  + user.photo_url) : ''" />
+                </div>                
+            </td>
+            <td>{{ user.firstname }} {{ user.lastname }}</td>
+            <td>{{ user.email }}</td>
+            <td class="capitalize">{{ user.role }}</td>
+            <td [attr.class]="'capitalize status-' + user.status">{{ user.status }}</td>
+            <td>{{ user.registered_at | dateStr }}</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <app-paginator #paginator [pages]=4  (onPageChange)="pageChange($event)" />
+    </div>
+
+    <div [hidden]="loading || this.users.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
+        No users found.<br/>
+        Send an invite, or ask the user to send a request.
+    </div>
+    </div>
+    </div>
+</div>

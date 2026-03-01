@@ -28,6 +28,8 @@ import { AccountRequestsListComponent } from './components/users/account-request
 import { AccountRequestDetailsComponent } from './components/users/account-request-details/account-request-details.component';
 import { FinalizeAccountComponent } from './components/users/finalize-account/finalize-account.component';
 import { ForbiddenComponent } from './components/common/forbidden/forbidden.component';
+import { SettingsUserDetailsComponent } from './components/settings/settings-user-details/settings-user-details.component';
+import { SettingsUserInvitesComponent } from './components/settings/settings-user-invites/settings-user-invites.component';
 
 export const routes: Routes = [
     {
@@ -147,6 +149,13 @@ export const routes: Routes = [
         data: [{ area: 'user_management', permission: 'R' }]
     },
     {
+        path: 'settings/user-details',
+        component: SettingsUserDetailsComponent,
+        canActivate: [ authGuard ],
+        data: [{ area: 'user_management', permission: 'R' }, { area: 'user_management', permission: 'U' }],
+        canDeactivate: [UnsavedChangesGuard]
+    },    
+    {
         path: 'users/account_requests',
         component: AccountRequestsListComponent,
         canActivate: [ authGuard ],
@@ -162,6 +171,12 @@ export const routes: Routes = [
         path: 'users/finalize_account',
         component: FinalizeAccountComponent
     },
+    {
+        path: 'settings/user_invites',
+        component: SettingsUserInvitesComponent,
+        canActivate: [ authGuard ],
+        data: [{ area: 'user_management', permission: 'C' }]
+    },    
     {
         path: 'forbidden',
         component: ForbiddenComponent

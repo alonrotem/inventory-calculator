@@ -21,11 +21,12 @@ import { firstValueFrom, tap } from 'rxjs';
 import { SettingsService } from '../../../services/settings.service';
 import { HasPermissionPipe } from '../../../utils/pipes/has-permission.pipe';
 import { UsersService } from '../../../services/users.service';
+import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
 
 @Component({
   selector: 'app-customers-table',
   standalone: true,
-  imports: [ NgFor, PaginatorComponent, PaginatorComponent,  HasPermissionPipe, AsyncPipe, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe, ToastComponent, DecimalPipe, SingleHatCalculatorComponent ],
+  imports: [NgFor, PaginatorComponent, PaginatorComponent, HasPermissionPipe, AsyncPipe, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe, ToastComponent, DecimalPipe, SingleHatCalculatorComponent, PageLoadingComponent],
   templateUrl: './customers-table.component.html',
   styleUrl: './customers-table.component.scss'
 })
@@ -96,7 +97,7 @@ export class CustomersTableComponent extends NavigatedMessageComponent implement
 		this.toastService.showError (text);
 	}
 
-    go_to_orders(customer_id: number, customer_name: string){
+  go_to_orders(customer_id: number, customer_name: string){
     this.router.navigate(['/inventory/customer/orders'], {
       queryParams: {
         customer_id: customer_id

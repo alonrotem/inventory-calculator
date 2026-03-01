@@ -35,7 +35,7 @@ export class NavbarComponent implements AfterViewInit {
     router.events.subscribe(e => {
       if (e instanceof NavigationEnd) {
         this.currentUrl = e.url;
-      }});
+    }});
   }
   ngAfterViewInit(): void {
     // Find all links inside the navbar with routerLink

@@ -300,10 +300,10 @@ VALUES
 (50, 2, 6.5, 578, 422),
 (51, 2, 6, 5700, 422),
 (52, 2, 5.5, 1000, 299),
-(62, 11, 7, 912, 88),
-(63, 11, 6.5, 1612, 88),
-(64, 11, 6, 1380, 220),
-(65, 11, 5.5, 1456, 44),
+(62, 11, 7, 892, 108),
+(63, 11, 6.5, 1592, 108),
+(64, 11, 6, 1350, 250),
+(65, 11, 5.5, 1446, 54),
 (66, 13, 7, 410, 1534),
 (67, 13, 6.5, 339, 1181),
 (68, 13, 6, 910, 610),
@@ -342,7 +342,7 @@ VALUES
 (207, 13, 5, 384, 1258),
 (229, 13, 11.5, 500, 0),
 (230, 13, 10.5, 1200, 88),
-(243, 11, 9, 956, 44),
+(243, 11, 9, 980, 64),
 (260, 25, 10, 2112, 88),
 (261, 25, 9, 792, 88),
 (262, 25, 8, 1584, 176),
@@ -392,8 +392,8 @@ VALUES
 (373, 42, 6, 992, 308),
 (374, 42, 5.5, 1068, 132),
 (375, 42, 5, 1000, 0),
-(392, 11, 8, 500, 88),
-(393, 11, 7.5, 1000, 132),
+(392, 11, 8, 480, 108),
+(393, 11, 7.5, 980, 152),
 (394, 11, 5, 1500, 0),
 (395, 16, 11, 500, 0),
 (396, 16, 10.5, 700, 0),
@@ -485,7 +485,11 @@ VALUES
 (613, 12, 6.5, 40, 0),
 (614, 12, 6, 30, 0),
 (615, 12, 5.5, 20, 0),
-(616, 12, 5, 10, 0)
+(616, 12, 5, 10, 0),
+(617, 11, 10.5, 990, 10),
+(618, 11, 10, 980, 20),
+(619, 11, 9.5, 970, 30),
+(620, 11, 8.5, 990, 10)
 as new_allocation_babies
 ON DUPLICATE KEY UPDATE
 `allocation_id`=new_allocation_babies.`allocation_id`, `length`=new_allocation_babies.`length`, `quantity`=new_allocation_babies.`quantity`, `quantity_in_pending_orders`=new_allocation_babies.`quantity_in_pending_orders`;", 'SELECT \'Table allocation_babies does not exist\'');
@@ -807,7 +811,7 @@ VALUES
 (50, 15, 28, 2000, 1000, 'units', 0),
 (51, 15, 21, 11460, 1000, 'units', 0),
 (53, 10, 17, 750, 750, 'units', 7.5),
-(54, 10, 33, 230, 230, 'units', 1),
+(54, 10, 33, 230, 30, 'units', 1),
 (55, 12, 34, 4000, 0, 'units', 2000),
 (56, 10, 34, 1000, 1000, 'units', 0),
 (57, 16, 34, 8000, 1384, 'units', 5000),
@@ -864,7 +868,8 @@ VALUES
 (63, 55, 2000, 0, 'babies', 0, 0),
 (64, 57, 3000, 1606, 'babies', 0, 0),
 (65, 57, 3616, 0, 'babies', 0, 0),
-(66, 58, 6, 0, 'tails', 0, 0)
+(66, 58, 6, 0, 'tails', 0, 0),
+(67, 54, 200, 0, 'tails', 0, 0)
 as new_customer_banks_allocations
 ON DUPLICATE KEY UPDATE
 `customer_bank_id`=new_customer_banks_allocations.`customer_bank_id`, `quantity`=new_customer_banks_allocations.`quantity`, `remaining_quantity`=new_customer_banks_allocations.`remaining_quantity`, `allocation_type`=new_customer_banks_allocations.`allocation_type`, `tails_quantity`=new_customer_banks_allocations.`tails_quantity`, `tails_in_orders`=new_customer_banks_allocations.`tails_in_orders`;", 'SELECT \'Table customer_banks_allocations does not exist\'');
@@ -916,7 +921,8 @@ VALUES
 (41, 20, 20, 26, 87, 'C9', 10, 0, 0, 13, 13, 39, 0, 0.17, 0, 6.5, 10, null),
 (42, 16, 21, 24, 88, 'RT95', 10, 0, 0, 18, 28, 34, 90, 0.17, 0, 4.5, 8, '2025-11-25 00:00:00'),
 (43, 16, 21, 24, 89, 'RT95', 10, 0, 0, 18, 28, 35, 0, 0.17, 0, 4.5, 8, '2025-11-25 00:00:00'),
-(44, 16, 16, 35, 97, 'RT 115-155 (C7.5)', 10, 0, 1, 38, 38, 66, 13, 0.17, 0, 5.5, 9, null)
+(44, 16, 16, 35, 97, 'RT 115-155 (C7.5)', 10, 0, 1, 38, 38, 66, 13, 0.17, 0, 5.5, 9, null),
+(45, 13, 13, 33, 98, 'DM 159', 10, 0, 0, 11, 11, 67, 10, 0.17, 0, 7, 10.5, null)
 as new_customer_hats
 ON DUPLICATE KEY UPDATE
 `hat_material_id`=new_customer_hats.`hat_material_id`, `crown_material_id`=new_customer_hats.`crown_material_id`, `tails_material_id`=new_customer_hats.`tails_material_id`, `wing_id`=new_customer_hats.`wing_id`, `original_wing_name`=new_customer_hats.`original_wing_name`, `customer_id`=new_customer_hats.`customer_id`, `shorten_top_by`=new_customer_hats.`shorten_top_by`, `shorten_crown_by`=new_customer_hats.`shorten_crown_by`, `wall_allocation_id`=new_customer_hats.`wall_allocation_id`, `crown_allocation_id`=new_customer_hats.`crown_allocation_id`, `tails_allocation_id`=new_customer_hats.`tails_allocation_id`, `tails_overdraft`=new_customer_hats.`tails_overdraft`, `mayler_width`=new_customer_hats.`mayler_width`, `hr_hl_width`=new_customer_hats.`hr_hl_width`, `crown_visible`=new_customer_hats.`crown_visible`, `crown_length`=new_customer_hats.`crown_length`, `order_date`=new_customer_hats.`order_date`;", 'SELECT \'Table customer_hats does not exist\'');
@@ -934,7 +940,7 @@ ON DUPLICATE KEY UPDATE
         SET @sql = IF(@table_exists > 0, "INSERT INTO `customers` (`id`, `name`, `business_name`, `email`, `phone`, `tax_id`, `customer_code`, `notes`, `allow_calculation_advisor`, `created_at`, `updated_at`, `created_by`, `updated_by`, `order_seq_number`) 
 VALUES
 (9, 'Alon Rotem', 'Romtech', 'alon@mail.com', '+359 (88) 401-3532', 'Tax payer 1234', 'L', null, 0, '2025-01-06 20:05:29', '2026-02-16 14:41:21', 1, 1, 9),
-(10, 'Avi Bar', 'Romtech', 'avi_bar@mail.com', '+359 87 985 8868', 'Tax payer 5678', 'AB', null, 1, '2025-01-06 20:05:29', '2026-02-16 15:28:56', 1, 1, 34),
+(10, 'Avi Bar', 'Romtech', 'avi_bar@mail.com', '+359 87 985 8868', 'Tax payer 5678', 'AB', null, 1, '2025-01-06 20:05:29', '2026-02-21 12:41:26', 1, 1, 35),
 (11, 'Guy Tal', 'Guytech', 'guy@mail.com', '+359 87 123 4567', 'Tax payer 90123', null, null, 0, '2025-01-06 20:05:29', '2025-10-24 07:46:11', 1, 1, 3),
 (12, 'London', 'London Inc', '', '', '456456', 'L', null, 0, '2025-02-24 22:19:45', '2026-01-27 06:43:54', 0, 0, 28),
 (13, 'NY', 'NY', 'ny@gmail.con', '878782858', '234578', 'USA', null, 0, '2025-02-25 20:10:16', '2025-08-21 08:40:12', 0, 0, 20),
@@ -958,9 +964,9 @@ ON DUPLICATE KEY UPDATE
         SET @sql = IF(@table_exists > 0, "INSERT INTO `logins` (`id`, `user_id`, `origin_ip_address`, `logged_in_at`, `last_refresh_token_time`, `refresh_token_expiration`, `refresh_token`, `origin_geolocation`, `origin_city`, `origin_country`, `origin_os`, `origin_browser`) 
 VALUES
 (3, 2, '88.203.194.4', '2026-02-16 12:54:40', '2026-02-16 12:54:40', '2026-03-18 12:54:40', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NzEyNDY0ODAsImV4cCI6MTc3MzgzODQ4MH0.MTO2usudELMc2QmxvMka5zK8I6liSoIItaDZ2_U7aXI', null, null, null, null, null),
-(4, 1, '88.203.194.4', '2026-02-16 13:06:13', '2026-02-16 13:06:13', '2026-02-17 13:06:13', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NzEyNDcxNzMsImV4cCI6MTc3MTMzMzU3M30.G1AXAxmC5EJUCkd2WHVd76zcZMmoin4OLpMa1ZVDd1c', '', '', '', 'Windows', 'Chrome'),
-(5, 1, '90.154.140.233', '2026-02-16 13:08:09', '2026-02-17 06:49:44', '2026-02-17 13:08:06', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NzEzMTA5ODQsImV4cCI6MTc3MTMzMzY4NX0.qYNoptRumfLrG_7rgYClDNAPRcXxtwN-OJU1JPKgkBI', '', '', '', 'Windows', 'Edge'),
-(6, 2, '95.42.140.220', '2026-02-16 14:39:13', '2026-02-16 15:01:52', '2026-03-18 14:39:10', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NzEyNTQxMTIsImV4cCI6MTc3Mzg0NDc0OX0.vKV-wrGxg-nNApgfa6SVg2vjvfP8sjV53D2DOgoOyM8', '', '', '', 'Windows', 'Edge')
+(6, 2, '95.42.140.220', '2026-02-16 14:39:13', '2026-02-16 15:01:52', '2026-03-18 14:39:10', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NzEyNTQxMTIsImV4cCI6MTc3Mzg0NDc0OX0.vKV-wrGxg-nNApgfa6SVg2vjvfP8sjV53D2DOgoOyM8', '', '', '', 'Windows', 'Edge'),
+(15, 1, '90.154.140.233', '2026-02-22 20:58:32', '2026-02-22 21:06:58', '2026-03-24 20:58:32', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NzE3OTQ0MTgsImV4cCI6MTc3NDM4NTkxMX0.KzPYu-whGPYsWL4oKfg3qRiepxJuUUiBCh0r-uj9lOg', '', '', '', 'Windows', 'Edge'),
+(17, 1, '88.203.194.4', '2026-03-01 18:17:42', '2026-03-01 18:17:42', '2026-03-02 18:17:42', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NzIzODkwNjIsImV4cCI6MTc3MjQ3NTQ2Mn0.dn_IVY1xBdHWLWw3OHVnk1YuhLIS-woEQ41r4Iw-gj0', '', '', '', 'Windows', 'Edge')
 as new_logins
 ON DUPLICATE KEY UPDATE
 `user_id`=new_logins.`user_id`, `origin_ip_address`=new_logins.`origin_ip_address`, `logged_in_at`=new_logins.`logged_in_at`, `last_refresh_token_time`=new_logins.`last_refresh_token_time`, `refresh_token_expiration`=new_logins.`refresh_token_expiration`, `refresh_token`=new_logins.`refresh_token`, `origin_geolocation`=new_logins.`origin_geolocation`, `origin_city`=new_logins.`origin_city`, `origin_country`=new_logins.`origin_country`, `origin_os`=new_logins.`origin_os`, `origin_browser`=new_logins.`origin_browser`;", 'SELECT \'Table logins does not exist\'');
@@ -1068,7 +1074,8 @@ VALUES
 (89, 42, 30, 45, 1, 55.5, 14.25, 'AS', 45, 1, 1, 'spread', ''),
 (90, 42, 31, 45, 1, 56, 14.25, 'SA', 45, 1, 1, 'spread', ''),
 (91, 43, 32, 49, 1, 56, 14.25, 'uv', 0, 1, 1, 'spread', ''),
-(92, 44, 33, 13, 1, 51, 11.5, '', 13, 0, 0, '', '')
+(92, 44, 33, 13, 1, 51, 11.5, '', 13, 0, 0, '', ''),
+(93, 45, 34, 10, 1, 56, 11.5, '', 10, 0, 0, '', '')
 as new_orders
 ON DUPLICATE KEY UPDATE
 `customer_hat_id`=new_orders.`customer_hat_id`, `customer_order_seq_number`=new_orders.`customer_order_seq_number`, `wing_quantity`=new_orders.`wing_quantity`, `num_of_hats`=new_orders.`num_of_hats`, `kippa_size`=new_orders.`kippa_size`, `diameter_inches`=new_orders.`diameter_inches`, `ordering_customer_name`=new_orders.`ordering_customer_name`, `tails_overdraft`=new_orders.`tails_overdraft`, `isurgent`=new_orders.`isurgent`, `white_hair`=new_orders.`white_hair`, `white_hair_notes`=new_orders.`white_hair_notes`, `order_notes`=new_orders.`order_notes`;", 'SELECT \'Table orders does not exist\'');
@@ -1154,7 +1161,8 @@ VALUES
 (89, 89, '2025-11-18 10:21:51', 'new'),
 (90, 90, '2025-11-18 10:21:51', 'new'),
 (91, 91, '2025-11-18 10:28:34', 'new'),
-(92, 92, '2026-02-16 14:55:46', 'new')
+(92, 92, '2026-02-16 14:55:46', 'new'),
+(93, 93, '2026-02-21 12:41:27', 'new')
 as new_orders_status
 ON DUPLICATE KEY UPDATE
 `order_id`=new_orders_status.`order_id`, `date`=new_orders_status.`date`, `order_status`=new_orders_status.`order_status`;", 'SELECT \'Table orders_status does not exist\'');
@@ -1465,7 +1473,8 @@ VALUES
 (165, '2026-01-27 06:58:44', 1, 5000, 'to_customer_bank', 34, 16, 57, 0, 2000, 5000, -1),
 (166, '2026-01-27 07:01:08', 1, 3616, 'customer_bank_allocate_to_Work', 34, 16, 57, 65, -1, 1384, 0),
 (167, '2026-02-16 14:45:44', 1, 100, 'raw_material_purchase', 35, 0, 0, 0, 100, -1, -1),
-(168, '2026-02-16 14:47:27', 1, 6, 'customer_bank_allocate_to_Work', 35, 10, 58, 66, -1, 4, 0)
+(168, '2026-02-16 14:47:27', 1, 6, 'customer_bank_allocate_to_Work', 35, 10, 58, 66, -1, 4, 0),
+(169, '2026-02-21 12:40:18', 1, 200, 'customer_bank_allocate_to_Work', 33, 10, 54, 67, -1, 30, 0)
 as new_transaction_history
 ON DUPLICATE KEY UPDATE
 `date`=new_transaction_history.`date`, `added_by`=new_transaction_history.`added_by`, `transaction_quantity`=new_transaction_history.`transaction_quantity`, `transaction_type`=new_transaction_history.`transaction_type`, `raw_material_id`=new_transaction_history.`raw_material_id`, `customer_id`=new_transaction_history.`customer_id`, `customer_bank_id`=new_transaction_history.`customer_bank_id`, `allocation_id`=new_transaction_history.`allocation_id`, `cur_raw_material_quantity`=new_transaction_history.`cur_raw_material_quantity`, `cur_customer_bank_quantity`=new_transaction_history.`cur_customer_bank_quantity`, `cur_banks_babies_allocation_quantity`=new_transaction_history.`cur_banks_babies_allocation_quantity`;", 'SELECT \'Table transaction_history does not exist\'');
@@ -1476,6 +1485,22 @@ ON DUPLICATE KEY UPDATE
 
 # USER_CUSTOMERS
 # ----------------
+
+        -- Check if the table exists
+        SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'user_customers');
+        -- Prepare the INSERT statement only if the table exists
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `user_customers` (`user_id`, `customer_id`) 
+VALUES
+(3, 9),
+(3, 10)
+as new_user_customers
+ON DUPLICATE KEY UPDATE
+`user_id`=new_user_customers.`user_id`, `customer_id`=new_user_customers.`customer_id`;", 'SELECT \'Table user_customers does not exist\'');
+        -- Execute the prepared statement
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt; #USING @value1, @value2;
+        DEALLOCATE PREPARE stmt;
+
 # USER_ROLES
 # ------------
 
@@ -1485,7 +1510,8 @@ ON DUPLICATE KEY UPDATE
         SET @sql = IF(@table_exists > 0, "INSERT INTO `user_roles` (`user_id`, `role_id`) 
 VALUES
 (1, 1),
-(2, 1)
+(2, 1),
+(3, 2)
 as new_user_roles
 ON DUPLICATE KEY UPDATE
 `user_id`=new_user_roles.`user_id`, `role_id`=new_user_roles.`role_id`;", 'SELECT \'Table user_roles does not exist\'');
@@ -1502,8 +1528,9 @@ ON DUPLICATE KEY UPDATE
         -- Prepare the INSERT statement only if the table exists
         SET @sql = IF(@table_exists > 0, "INSERT INTO `users` (`id`, `firstname`, `lastname`, `username`, `email`, `password`, `is_verified`, `is_disabled`, `pending_verfication_code`, `verification_code_expiration`, `pending_new_email`, `pending_new_email_code`, `photo_url`, `phone`, `created_at`) 
 VALUES
-(1, 'Alon', 'Rotem', 'alrotem', 'alrotem@gmail.com', '$2b$10$VZrjHgOhn3JEWO/DQTv.n.9jnZGVnQKPXWskKpmMHRWBJ3bGyRAmq', 1, 0, null, null, null, null, '/uploads/images/users/1771246565523-profile.png', '', '2026-02-16 12:48:15'),
-(2, 'Avi', 'Bar', 'avibar', 'aviouslybar@gmail.com', '$2b$10$biw0c4d384VDXHnMl7cIFu.aLiLm.89ZMcvs7yCbiNJq6j.yrHAMW', 1, 0, '', null, null, null, null, null, '2026-02-16 12:51:11')
+(1, 'Alon', 'Rotem', 'alrotem', 'alrotem@gmail.com', '$2b$10$VZrjHgOhn3JEWO/DQTv.n.9jnZGVnQKPXWskKpmMHRWBJ3bGyRAmq', 1, 0, '8DKLMLL9JY', null, null, null, '/uploads/images/users/1771246565523-profile.png', '', '2026-02-16 12:48:15'),
+(2, 'Avi', 'Bar', 'avibar', 'aviouslybar@gmail.com', '$2b$10$biw0c4d384VDXHnMl7cIFu.aLiLm.89ZMcvs7yCbiNJq6j.yrHAMW', 1, 0, '', null, null, null, null, null, '2026-02-16 12:51:11'),
+(3, 'Alon', 'Rotem', 'alrotem2', 'alrotem@walla.co.il', '$2b$10$hBmbDuLRlXCAVTgRXgQRCOtQpPqp3F9j1sos3SXK8.V.77CwS4yXu', 1, 0, '', null, null, null, null, null, '2026-02-18 22:10:45')
 as new_users
 ON DUPLICATE KEY UPDATE
 `firstname`=new_users.`firstname`, `lastname`=new_users.`lastname`, `username`=new_users.`username`, `email`=new_users.`email`, `password`=new_users.`password`, `is_verified`=new_users.`is_verified`, `is_disabled`=new_users.`is_disabled`, `pending_verfication_code`=new_users.`pending_verfication_code`, `verification_code_expiration`=new_users.`verification_code_expiration`, `pending_new_email`=new_users.`pending_new_email`, `pending_new_email_code`=new_users.`pending_new_email_code`, `photo_url`=new_users.`photo_url`, `phone`=new_users.`phone`, `created_at`=new_users.`created_at`;", 'SELECT \'Table users does not exist\'');
@@ -1556,14 +1583,15 @@ VALUES
 (87, 'C920251015160109', 10, 2, 1, 0),
 (88, 'RT9520251018121217', 12.5, 2.5, 1, 0),
 (89, 'RT952025101812121720251018122153', 12.5, 2.3, 1, 0),
-(90, 'RT159', 0, 2, 1, 0),
+(90, 'RT159', 9, 2, 1, 0),
 (91, 'RT 115-155 (C7.5)', 11.5, 2.5, 2, 0),
 (92, 'RT 7130 C9', 7, 2, 2, 0),
 (93, 'RT 8130', 0, 2, 1, 0),
 (94, 'O-10135', 0, 2, 1, 0),
 (95, 'RT 115-155 (C10)', 11.5, 2.5, 1, 0),
 (96, 'RT 115-155 (C9)', 11.5, 2.5, 1, 0),
-(97, 'RT 115-155 (C7.5)20260116165354', 11.5, 2.5, 2, 0)
+(97, 'RT 115-155 (C7.5)20260116165354', 11.5, 2.5, 2, 0),
+(98, 'DM 15920260121140651', 9, 2, 1, 0)
 as new_wings
 ON DUPLICATE KEY UPDATE
 `name`=new_wings.`name`, `knife`=new_wings.`knife`, `crown_width`=new_wings.`crown_width`, `split_l1`=new_wings.`split_l1`, `allow_shortening_babies_in_pairs`=new_wings.`allow_shortening_babies_in_pairs`;", 'SELECT \'Table wings does not exist\'');
@@ -2343,7 +2371,47 @@ VALUES
 (1924, 97, 'R4', 6.5),
 (1925, 97, 'R5', 7),
 (1926, 97, 'R6', 7),
-(1927, 97, 'TOP', 7.5)
+(1927, 97, 'TOP', 7.5),
+(1928, 98, 'C1', 10.5),
+(1929, 98, 'C2', 9.5),
+(1930, 98, 'C3', 10),
+(1931, 98, 'C4', 9.5),
+(1932, 98, 'L1', 6),
+(1933, 98, 'L2', 6),
+(1934, 98, 'L3', 6.5),
+(1935, 98, 'L4', 7),
+(1936, 98, 'L5', 7.5),
+(1937, 98, 'L6', 8),
+(1938, 98, 'L7', 8.5),
+(1939, 98, 'L8', 9),
+(1940, 98, 'L9', 9.5),
+(1941, 98, 'R1', 5.5),
+(1942, 98, 'R2', 6),
+(1943, 98, 'R3', 6.5),
+(1944, 98, 'R4', 7),
+(1945, 98, 'R5', 7.5),
+(1946, 98, 'R6', 8),
+(1947, 98, 'R7', 9),
+(1948, 98, 'TOP', 10),
+(1949, 90, 'L1', 6),
+(1950, 90, 'L2', 6.5),
+(1951, 90, 'L3', 7),
+(1952, 90, 'L4', 7.5),
+(1953, 90, 'L5', 8),
+(1954, 90, 'L6', 8.5),
+(1955, 90, 'L7', 9),
+(1956, 90, 'L8', 9.5),
+(1957, 90, 'R1', 5.5),
+(1958, 90, 'R2', 6),
+(1959, 90, 'R3', 6.5),
+(1960, 90, 'R4', 7),
+(1961, 90, 'R5', 7.5),
+(1962, 90, 'R6', 8),
+(1963, 90, 'R7', 8.5),
+(1964, 90, 'TOP', 10),
+(1965, 90, 'C1', 11),
+(1966, 90, 'C2', 11),
+(1967, 90, 'C3', 11)
 as new_wings_babies
 ON DUPLICATE KEY UPDATE
 `parent_wing_id`=new_wings_babies.`parent_wing_id`, `position`=new_wings_babies.`position`, `length`=new_wings_babies.`length`;", 'SELECT \'Table wings_babies does not exist\'');

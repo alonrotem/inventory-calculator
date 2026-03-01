@@ -10,11 +10,12 @@ import { BackupService } from '../../../services/backup.service';
 import { ConfirmationDialogComponent } from "../../common/confirmation-dialog/confirmation-dialog.component";
 import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.component";
 import { FileSizePipe } from '../../../utils/pipes/file-size-pipe';
+import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
 
 @Component({
   selector: 'app-system-logs',
   standalone: true,
-  imports: [FaIconComponent, NgFor, NgIf, DateStrPipe, ConfirmationDialogComponent, ModalDialogComponent, FileSizePipe],
+  imports: [FaIconComponent, NgFor, NgIf, DateStrPipe, ConfirmationDialogComponent, ModalDialogComponent, FileSizePipe, PageLoadingComponent],
   templateUrl: './system-logs.component.html',
   styleUrl: './system-logs.component.scss'
 })
