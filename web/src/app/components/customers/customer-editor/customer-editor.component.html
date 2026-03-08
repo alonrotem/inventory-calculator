@@ -83,11 +83,14 @@
 
         <div class="row">
             <div class="col d-flex align-items-center">
-                <div>
+                <div *ngIf="(user$ | async) | hasPermission: [{area: 'customers_advanced_features', permission: 'R'}]">
                     <div class="form-floating">
                         <input type="text" #customer_code="ngModel" class="form-control" placeholder="" [(ngModel)]="customerItem.customer_code" name="customer_code">
                     <label for="customer_code">Customer code</label>
                 </div>  
+                </div>
+                <div *ngIf="(user$ | async) | hasPermission: [{area: 'customers_advanced_features', permission: 'R'}] : true">
+                    {{ customerItem.customer_code? ('Customer code: ' + customerItem.customer_code): 'No customer code' }}
                 </div>
                 <div style="margin-left: 30px;">
                     Last updated at: {{ (newCustomerMode)? "Not yet!" : customerItem.updated_at | dateStr }}

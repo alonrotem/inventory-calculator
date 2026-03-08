@@ -11,8 +11,9 @@ import { AreaPermission, UsersService } from '../../services/users.service';
 export class HasPermissionPipe implements PipeTransform {
   constructor(private usersService: UsersService){}
 
-  transform(user: BasicUserInfoStatus | null, required_permissions: AreaPermission[]): boolean {
-    return this.usersService.does_user_have_access_to_area(user, required_permissions);
+  transform(user: BasicUserInfoStatus | null, required_permissions: AreaPermission[], negate: boolean=false): boolean {
+    const user_has_permissions = this.usersService.does_user_have_access_to_area(user, required_permissions);
+    return (negate)? !user_has_permissions : user_has_permissions;
     /*
     if (!user?.area_permissions) return false;
     

@@ -1,3 +1,9 @@
+<app-modal-dialog 
+    #invite_user_form
+    [modalSize]="'xl'">
+    <app-settings-user-invite-form />
+</app-modal-dialog>
+
 <div class="row justify-content-center">
     <div class="col-12 col-md-8">
         <app-user-tabs 
@@ -14,7 +20,7 @@
             [stretch_height]="true" />
 
 <div [hidden]="loading">
-  <a id="btnNewRaw" class="btn btn-warning" routerLink="/inventory/raw/editor"><fa-icon [icon]="faEnvelope"></fa-icon> Invite a user</a>
+  <a id="btnNewRaw" class="btn btn-warning" (click)="open_invite_form()"><fa-icon [icon]="faEnvelope"></fa-icon> Invite a user</a>
 
   <div class="infotitle mt-4" [hidden]="loading || this.users.length <= 0">Total: {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'user':'users' }}</div>
 

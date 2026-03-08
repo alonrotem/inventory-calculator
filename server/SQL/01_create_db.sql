@@ -701,13 +701,33 @@ CREATE TABLE IF NOT EXISTS `account_requests` (
 	# `account_creation_code`		VARCHAR(255) null,
 	`account_role_id`	int default 0,
 	`request_status`	ENUM(
-			'pending',
-            'approved',
-            'declined'
+			'pending',	# user sent a request
+            'approved',	# administrator approved the request
+            'declined'	# administrator denied the request
 		) NOT NULL,
 	PRIMARY KEY (`id`),
 	CONSTRAINT fk_account_request_user_account
 	  FOREIGN KEY (`approved_account_user_id`) REFERENCES users(`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS `account_invites` (
+	`id`			INT NOT NULL auto_increment,
+	`firstname`		VARCHAR(255) NOT null,
+	`lastname`		VARCHAR(255) NOT null,
+	`email`			VARCHAR(255) NOT null,
+	`inviter_user_id`	int default 0,
+	`created_account_user_id` int null,
+	`account_creation_code`		VARCHAR(255) null,
+	`account_role_id`	int default 0,
+	`invite_status`	ENUM(
+			'sent',		# request sent to the user
+            'verified'	# user accepted and verified themselved
+		) NOT NULL,
+	PRIMARY KEY (`id`),
+	`sent_date` 	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`last_update`	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,	
+	CONSTRAINT fk_account_invite_user_account
+	  FOREIGN KEY (`created_account_user_id`) REFERENCES users(`id`) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `logins` (

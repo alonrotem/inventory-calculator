@@ -730,12 +730,12 @@ async function remove(id, currentUserId, active_connection=null){
 
     const customer_hat_id_selector = `from customer_hats where customer_id=${id}`;
     const customer_hat_ids_select = `select id ${customer_hat_id_selector}`;
-    const order_id_select = `select id from orders where where customer_hat_id in (${customer_hat_ids_select})`;
-    const del_order_statuses = await db.transaction_query(`delete from orders_status where order_id in (${order_id_select})`);
-    const del_orders  = await db.transaction_query(`delete from orders where customer_hat_id in (${customer_hat_ids_select})`);
-    const del_customer_hats  = await db.transaction_query(`delete ${customer_hat_id_selector}`);
+    const order_id_select = `select id from orders where customer_hat_id in (${customer_hat_ids_select})`;
+    const del_order_statuses = await db.transaction_query(`delete from orders_status where order_id in (${order_id_select})`, [], active_connection);
+    const del_orders  = await db.transaction_query(`delete from orders where customer_hat_id in (${customer_hat_ids_select})`, [], active_connection);
+    const del_customer_hats  = await db.transaction_query(`delete ${customer_hat_id_selector}`,  [], active_connection);
 
-    const del_customer_transactions = await db.transaction_query(`DELETE * from transaction_history where customer_id=${id}`);
+    const del_customer_transactions = await db.transaction_query(`DELETE from transaction_history where customer_id=${id}`,  [], active_connection);
     const del_babies_result = await db.transaction_query(`DELETE ${babies_select}`, [], active_connection);
     const del_banks_allocations_result = await db.transaction_query(`DELETE ${customer_banks_allocation_select}`, [], active_connection);
     const del_banksresult = await db.transaction_query(`DELETE ${customer_banks_select}`, [], active_connection);

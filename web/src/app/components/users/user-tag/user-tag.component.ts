@@ -27,7 +27,7 @@ export class UserTagComponent {
     if(this.lastname) {
       initials += this.lastname[0];
     }
-    else if (this.firstname.length > 1) {
+    else if (this.firstname && this.firstname.length > 1) {
       initials += this.firstname[1];
     }
     return initials;

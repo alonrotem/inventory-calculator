@@ -14,11 +14,13 @@ import { environment } from '../../../../environments/environment';
 import { DateStrPipe } from "../../../utils/pipes/date_pipe";
 import { FaIconComponent, IconDefinition } from '@fortawesome/angular-fontawesome';
 import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
+import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.component";
+import { SettingsUserInviteFormComponent } from "../settings-user-invite-form/settings-user-invite-form.component";
 
 @Component({
   selector: 'app-settings-users',
   standalone: true,
-  imports: [UserTabsComponent, PageLoadingComponent, DecimalPipe, NgFor, NgIf, RouterLink, PaginatorComponent, DateStrPipe, FaIconComponent],
+  imports: [UserTabsComponent, PageLoadingComponent, DecimalPipe, NgFor, NgIf, RouterLink, PaginatorComponent, DateStrPipe, FaIconComponent, ModalDialogComponent, SettingsUserInviteFormComponent],
   templateUrl: './settings-users.component.html',
   styleUrl: './settings-users.component.scss'
 })
@@ -33,6 +35,7 @@ export class SettingsUsersComponent extends NavigatedMessageComponent implements
   users: UserListItem[] = [];
   faEnvelope: IconDefinition = faEnvelope;
   @ViewChild("paginator") paginator!: PaginatorComponent;
+  @ViewChild("invite_user_form") invite_user_form!: ModalDialogComponent;
 
   constructor(
     private usersService: UsersService, 
@@ -87,5 +90,9 @@ export class SettingsUsersComponent extends NavigatedMessageComponent implements
       initials += user.firstname[1];
     }
     return initials;
-  }  
+  }
+
+  open_invite_form(){
+    this.invite_user_form.open();
+  }
 }

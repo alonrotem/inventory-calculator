@@ -135,7 +135,7 @@ router.delete('/:id',
   auth_request([{requiredArea:'customers', requiredPermission:'D'}, {requiredArea:'customer_resources_by_customer_id', requiredPermission:'D'}]), 
   async function(req, res, next) {
     try {
-      logger.info(`delete /customers/${id}`);
+      logger.info(`delete /customers/${req.params.id}`);
       let response = await customers.remove(req.params.id);
       logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
       res.json(response);

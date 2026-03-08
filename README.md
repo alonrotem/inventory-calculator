@@ -8,6 +8,12 @@ npm install --save bootstrap
 ng generate component home
 
 
+## OPEN TODOs
+ * User invites section
+ * Idenfity "customer" roles by the role permissions for customer_resources_by_customer_id
+ * Improve the navigation module to support more fluent features
+ * "last update by" on materials, banks etc
+
 ## User flows
 
 ### First admin creation

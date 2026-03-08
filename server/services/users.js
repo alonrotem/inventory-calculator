@@ -1250,21 +1250,23 @@ async function getAccountRequestDetails(id){
     where ar.id=(?);`, [ id ]));
 
   if(!helper.isEmptyObj(request)){
-    const role = helper.emptyOrSingle(await db.query(
-      `select ur.role_id id, r.name name 
-      from user_roles ur inner join roles r on ur.role_id=r.id 
-      where ur.user_id=(?);`,
-      request["approved_account_user_id"]));
-    request["role"] = role;
+    if(request["approved_account_user_id"]) {
+      const role = helper.emptyOrSingle(await db.query(
+        `select ur.role_id id, r.name name 
+        from user_roles ur inner join roles r on ur.role_id=r.id 
+        where ur.user_id=(?);`,
+        [request["approved_account_user_id"]]));
+      request["role"] = role;
 
-    if(!helper.isEmptyObj(role) && role["name"] && role["name"].toUpperCase() == "CUSTOMER"){
-      const customers = helper.emptyOrRows(await db.query(
-        `select uc.customer_id id, c.name name 
-        from user_customers uc inner join customers c on c.id=uc.customer_id 
-        where uc.user_id=(?);`,
-        request["approved_account_user_id"]
-      ));
-      request["customers"] = customers;
+      if(!helper.isEmptyObj(role) && role["name"] && role["name"].toUpperCase() == "CUSTOMER"){
+        const customers = helper.emptyOrRows(await db.query(
+          `select uc.customer_id id, c.name name 
+          from user_customers uc inner join customers c on c.id=uc.customer_id 
+          where uc.user_id=(?);`,
+          [request["approved_account_user_id"]]
+        ));
+        request["customers"] = customers;
+      }
     }
     return request;
   }
@@ -1340,7 +1342,9 @@ async function approve_account_request(request, auth_token, active_connection=nu
           banks: [],
           banks_baby_allocations: [],
           babies: []
-        }, active_connection);
+        }, 
+        auth_token["id"],
+        active_connection);
         const new_customer_id = new_customer.customer.id;
         customer_ids.push(new_customer_id);
       }

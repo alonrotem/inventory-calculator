@@ -1,4 +1,4 @@
-<a [attr.href]="(user_id > 0)? 'users/'+ user_id : null">
+<a [attr.href]="(user_id > 0)? '/settings/user-details?id='+ user_id : null">
     <div class="tag horizontal">
         <div class="user-initials">
             <span *ngIf="!photo_url">{{ getInitials() }}</span>
