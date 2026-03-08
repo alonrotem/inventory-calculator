@@ -17,17 +17,23 @@
             <a class="nav-link" aria-current="page" routerLink="inventory/customers"  [ngClass]="(currentUrl.indexOf('/inventory/customers') >= 0) ? 'active': ''"><span class="icon-home"></span> Customers</a>
           </li>
           -->
-          
+          <!--
           <li class="nav-item dropdown" *ngIf="(user$ | async) | hasPermission: [{area: 'customers', permission: 'R'}, {area: 'customer_resources_by_customer_id', permission: 'R'}]">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" [ngClass]="(currentUrl.indexOf('/inventory/') >= 0) ? 'active': ''">
               Sales
             </a>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" routerLink="inventory/customers" [ngClass]="(currentUrl.indexOf('/inventory/customers') >= 0) ? 'active': ''"><span class="icon-address-book"></span> Customers</a></li>
-              <!--<li><hr class="dropdown-divider"></li>-->
               <li><a class="dropdown-item" [routerLink]="'inventory/customer/orders'" [ngClass]="(currentUrl.indexOf('/inventory/customer/orders') >= 0) ? 'active': ''"><fa-icon [icon]="faBasketShopping"></fa-icon> Orders</a></li>
             </ul>
           </li>
+          -->
+          <li class="nav-item" *ngIf="(user$ | async) | hasPermission: [{area: 'customers', permission: 'R'}, {area: 'customer_resources_by_customer_id', permission: 'R'}]">
+            <a class="nav-link" aria-current="page" routerLink="inventory/customers"  [ngClass]="(currentUrl.indexOf('/inventory/customers') >= 0) ? 'active': ''">Customers</a>
+          </li>
+          <li class="nav-item" *ngIf="(user$ | async) | hasPermission: [{area: 'customers', permission: 'R'}, {area: 'customer_resources_by_customer_id', permission: 'R'}]">
+            <a class="nav-link" aria-current="page" routerLink="/inventory/customer/orders"  [ngClass]="(currentUrl.indexOf('/inventory/customer/orders') >= 0) ? 'active': ''">Orders</a>
+          </li>                    
 
           <li class="nav-item" *ngIf="(user$ | async) | hasPermission: [{area: 'wings', permission: 'R'}]">
             <a class="nav-link" aria-current="page" routerLink="templates/wings"  [ngClass]="(currentUrl.indexOf('/templates/wings') >= 0) ? 'active': ''"><span class="icon-home"></span> Wings</a>
