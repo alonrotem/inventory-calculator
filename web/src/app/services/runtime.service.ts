@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { GeoCoordinates } from '../../types';
 import { ApiService } from './api.service';
 import { firstValueFrom } from 'rxjs';
@@ -8,31 +8,38 @@ import { firstValueFrom } from 'rxjs';
 })
 export class RuntimeService {
 
-  constructor(private apiService: ApiService) { }
+  constructor(private apiService: ApiService, private ngZone: NgZone) { }
 
   // Gets the user's geolocation data (if available)
   async getCurrentPosition(options?: PositionOptions): Promise<GeoCoordinates | null> {
     if (!navigator.geolocation) {
-      console.warn('Geolocation is not supported by this browser');
       return null;
     }
+    
+    console.log('getCurrentPosition START', Date.now());
+    
     return new Promise<GeoCoordinates | null>((resolve) => {
-      navigator.geolocation.getCurrentPosition(
-        (position: GeolocationPosition) => resolve({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-          altitude: position.coords.altitude,
-          altitudeAccuracy: position.coords.altitudeAccuracy,
-          heading: position.coords.heading,
-          speed: position.coords.speed
-        }),
-        (error: GeolocationPositionError) => {
-          console.warn('Geolocation error:', error.message);
-          resolve(null);
-        },
-        options
-      );
+      this.ngZone.runOutsideAngular(() => {
+        navigator.geolocation.getCurrentPosition(
+          (position: GeolocationPosition) => this.ngZone.run(() => {
+            console.log('getCurrentPosition SUCCESS', Date.now());
+            resolve({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              accuracy: position.coords.accuracy,
+              altitude: position.coords.altitude,
+              altitudeAccuracy: position.coords.altitudeAccuracy,
+              heading: position.coords.heading,
+              speed: position.coords.speed
+            })
+          }),
+          (error: GeolocationPositionError) => this.ngZone.run(() => {
+            console.log('getCurrentPosition ERROR', Date.now(), error.code, error.message);
+            resolve(null);
+          }),
+          options
+        );
+      });
     });
   }
 
