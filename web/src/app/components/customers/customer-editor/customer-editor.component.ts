@@ -162,9 +162,9 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
       this.getCustomer(id);
     }
     else {
-      this.title = "Demo customer playground";
       this.usersService.user$.subscribe({ next: (loggedInUser)=> { 
         if(loggedInUser && loggedInUser.is_demo_customer){
+          this.title = "Demo customer playground";
           this.getDemoCustomerByUserId(loggedInUser.id);
         }
       }
@@ -206,6 +206,9 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     this.customersService.getCustomer(id).subscribe(
     {
       next: (customer: Customer) => {
+        if(customer.is_demo_customer){
+          this.title = "Demo customer playground";
+        }
         //failed to fetch material with ID, returned an empty object
         if(Object.keys(customer).length == 0) {
           this.gotoCustomersList("Could not find customer with ID " + id, true);
