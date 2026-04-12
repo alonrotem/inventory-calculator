@@ -26,6 +26,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() crown_bank: Customer_Bank | null = null;
   @Input() tails_bank: Customer_Bank | null = null;
   @Input() wing_id: number = 0;
+  @Input() wing: Wing | null = null;
   @Input() wall_allocation: Customer_Bank_Baby_Allocation | null = null;
   @Input() crown_allocation: Customer_Bank_Baby_Allocation | null = null;
   @Input() tails_allocation: Customer_Bank_Baby_Allocation | null = null;
@@ -35,6 +36,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() try_to_exceed: number = -1;
   @Input() numOfWingsPerHat: number = 44;
   @Input() show_help_me_adjust_button: boolean = true;
+  @Input() is_demo_customer: boolean = false;
 
   @Input() wait_for_saved_changes: boolean = false;
   @Input() pending_saved_changes: boolean = true;
@@ -83,6 +85,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   assistant_aggregated_crown_babies: aggregated_babies[] = []; //crown_babies are used only if the allocations are split between hat and crown  
   @Output() assistantAutoAddBabies = new EventEmitter<any>();
   customer_banks_babies_reduce_from_allocation: boolean = false;
+  wing_has_no_babies: boolean = false;
 
   constructor(
     private wingsSerice: WingsService, 
@@ -107,11 +110,12 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    //console.log("ngOnChanges:");
-    //console.dir(changes);
+    console.log("ngOnChanges:");
+    console.dir(changes);
     this.allocation_wall_babies = this.customer_wall_babies.filter(b => b.allocation_id == ((this.wall_allocation) ? this.wall_allocation.id : 0));
     this.allocation_crown_babies = this.customer_crown_babies.filter(b => b.allocation_id == ((this.crown_allocation) ? this.crown_allocation.id : 0));
 
+    this.wing_has_no_babies = (this.wing_id > 0 && this.wing != null && this.wing.babies.length == 0);
     this.runCalculations();
   }
 
@@ -152,11 +156,13 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
           length: b.l,
           position: b.p
         }});
+        console.log("Wing babies !!! " + babies.length);
         this.systemWings.push({
           id: w_id,
           name: wing.w_n,
           split_l1: wing.splt_l1,
           crown_width: wing.cr_wdt,
+          angled_crown: wing.a_c,
           knife: 0,
           babies: babies,
           allow_shortening_babies_in_pairs: false
@@ -370,6 +376,11 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
       crownAllocationBabies: Allocation_Baby[],
       wingsPerHat: number
     ){
+      if(wing.babies.length == 0){
+        this.exceed_number_of_hats_message = "This wing has no babies, so it cannot be used to make hats";
+        return;
+      }
+
       let adjustedWing: Wing | null = wing;
       if(reduceTop > 0 || reduceCrown > 0){
         const allow_shortening_babies_in_pairs = (wing.allow_shortening_babies_in_pairs && this.wall_bank != null && this.wall_bank.allow_shortening_babies_in_pairs);

@@ -1,10 +1,10 @@
 import { AfterViewInit, Component, ElementRef, OnInit,QueryList,ViewChild, ViewChildren } from '@angular/core';
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
-import { Customer, Allocation_Baby, TransactionType } from '../../../../types';
+import { Customer, Allocation_Baby, TransactionType, nameIdPair, RawMaterialNameColor } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
-import { NgSelectModule } from '@ng-select/ng-select';
+import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faSave, faTrashAlt, faTimesCircle, IconDefinition, faArrowLeft, faMoneyCheckDollar, faTriangleExclamation, faCalculator } from '@fortawesome/free-solid-svg-icons';
@@ -22,6 +22,7 @@ import { UnsavedChangesDialogComponent } from "../../common/unsaved-changes-dial
 import { UsersService } from '../../../services/users.service';
 import { HasPermissionPipe } from '../../../utils/pipes/has-permission.pipe';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
+import { RawMaterialsService } from '../../../services/raw-materials.service';
 
 @Component({
   selector: 'app-customer-editor',
@@ -51,7 +52,8 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     babies: [],
     customer_code: '',
     order_seq_number: 0,
-    allow_calculation_advisor: undefined
+    allow_calculation_advisor: undefined,
+    is_demo_customer: false
   }
 
   title: string = "Create Customer";
@@ -65,6 +67,9 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
   faCalculator: IconDefinition = faCalculator;
   is_new_customer: Boolean = true;
   banks_loaded_quantities: any[] = [];
+  raw_materials_list: RawMaterialNameColor[] = [];
+  raw_materials_info: RawMaterialNameColor[] = [];
+  selected_raw_material_id: number | null = null;
 
   // for opening the unsave changes dialog
   private confirmResult: boolean | null = null;
@@ -79,10 +84,12 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
   @ViewChild('unsaved_changes_dialog') unsaved_changes_dialog!: UnsavedChangesDialogComponent;
   @ViewChild('hats_calculator') hats_calculator!: HatsCalculatorDialogComponent;
   @ViewChild("btn_save", { read: ElementRef }) btn_save!: ElementRef;
+  @ViewChild("raw_material_select") raw_material_select!: NgSelectComponent;
   @ViewChildren('customer_banks_tables') customer_banks_tables!: QueryList<CustomerBanksTableComponent>;
  
   constructor(
     private customersService: CustomersService, 
+    private rawMaterialsService: RawMaterialsService,
     private activatedRoute: ActivatedRoute,
     private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService,
     private usersService: UsersService,
@@ -91,6 +98,45 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     router: Router
     ) { 
       super(toastService, stateService, router);
+
+      this.rawMaterialsService.getRawMaterialNamesColors(0).subscribe({
+        next: (raw_materials: RawMaterialNameColor[]) => {
+          this.raw_materials_info = raw_materials;
+          raw_materials.forEach(m => this.insert_material_to_selector(m.id));
+        },
+        error: (error) => { console.log(error); }
+      });      
+  }
+
+  insert_material_to_selector(raw_material_id: number){
+    const raw_material = this.raw_materials_info.find(m => m.id == raw_material_id);
+    if(!raw_material || this.raw_materials_list.some(m => Number(m.id) === Number(raw_material_id))){
+      return;
+    }
+
+    this.raw_materials_list = [
+      ...this.raw_materials_list,
+      { 
+        id: raw_material.id, name: 
+        raw_material.name, 
+        color: raw_material.color, 
+        allow_shortening_babies_in_pairs: raw_material.allow_shortening_babies_in_pairs 
+      }
+    ].sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  bankOfRawMaterialAdded(raw_material_id: number){
+    this.raw_materials_list = this.raw_materials_list.filter(m => Number(m.id) !== Number(raw_material_id));
+  }
+
+  bankDeleted(bank_id: number){
+    this.insert_material_to_selector(bank_id);
+    this.recalculateBanks();
+  }
+
+  customer_updated(customer: Customer){
+    this.customerItem = {...customer};
+    this.recalculateBanks();
   }
   
   hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
@@ -105,6 +151,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
   }
 
   ngOnInit(): void {
+    //console.log("customer editor init with query params:"); console.dir(this.activatedRoute.snapshot.queryParamMap);
     this.is_new_customer = !this.activatedRoute.snapshot.queryParamMap.has('id');
     //console.dir(this.activatedRoute.snapshot.queryParamMap);
     if(!this.is_new_customer)
@@ -114,6 +161,45 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
       const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
       this.getCustomer(id);
     }
+    else {
+      this.title = "Demo customer playground";
+      this.usersService.user$.subscribe({ next: (loggedInUser)=> { 
+        if(loggedInUser && loggedInUser.is_demo_customer){
+          this.getDemoCustomerByUserId(loggedInUser.id);
+        }
+      }
+      });
+    }
+  }
+
+  materialPicked(raw_material: number | string | nameIdPair | null | undefined){
+    if(raw_material == null){
+      return;
+    }
+
+    const raw_material_id = typeof raw_material === 'object' ? Number(raw_material.id) : Number(raw_material);
+    if(Number.isNaN(raw_material_id)){
+      return;
+    }
+    const selected_raw_material = this.raw_materials_info.find(m => Number(m.id) === raw_material_id);
+
+    this.raw_materials_list = this.raw_materials_list.filter(m => Number(m.id) !== raw_material_id);
+    this.selected_raw_material_id = null;
+    this.raw_material_select.handleClearClick();
+
+    this.customerItem.banks.push({
+      raw_material_name: selected_raw_material!.name,
+      raw_material_color: selected_raw_material!.color,
+      raw_material_quantity_units: 'units',
+      allow_shortening_babies_in_pairs: selected_raw_material!.allow_shortening_babies_in_pairs,
+      pre_save_id: 0,
+      id: 0,
+      customer_id: this.customerItem.id,
+      raw_material_id: selected_raw_material!.id,
+      quantity: 1000000,
+      remaining_quantity: 1000000,
+      transaction_history: []
+    });
   }
 
   getCustomer(id: number){
@@ -135,6 +221,26 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
         console.log(error);
       }
     })
+  }
+
+  getDemoCustomerByUserId(user_id: number){
+    this.customersService.getDemoCustomerByUserId(user_id).subscribe(
+    {
+      next: (customer: Customer) => {
+        /*
+        if(Object.keys(customer).length == 0) {
+          // no demo customer for this user, stay in new customer mode
+          return;
+        }
+        */
+        this.customerItem = customer;
+        this.cacheCustomerBanksInitialData();
+        this.recalculateBanks();
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    });
   }
 
   cacheCustomerBanksInitialData() {
@@ -207,7 +313,14 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
         this.customer_form.form.markAsPristine();
         this.customer_banks_tables.forEach(b => { b.unsaved_changes = false });
         this.btn_save.nativeElement.classList.remove("disabled"); 
-        this.gotoCustomersList(data['message'], false); 
+        if(!this.customerItem.is_demo_customer){
+          this.gotoCustomersList(data['message'], false);
+        }
+        else {
+          console.log("Demo customer saved, showing toast message and staying on page...");
+          //this.router.navigate([this.router.url, 'open']);
+          this.navigateWithToastMessage(this.router.url, data["message"], false);
+        }
       },//this.getRawMaterials(this.current_page); },
       error:(error) => { 
         //console.log("ERRRR:"); console.dir(error.error.message);
@@ -220,7 +333,13 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
 
 
   gotoCustomersList(textInfo: string = '', isError: boolean = false) {
-    this.navigateWithToastMessage("inventory/customers", textInfo, isError);
+    console.dir(this.customerItem);
+    if(this.customerItem.is_demo_customer){
+      this.navigateWithToastMessage("", textInfo, isError);
+    }
+    else {
+      this.navigateWithToastMessage("inventory/customers", textInfo, isError);
+    }
   }
 
   confirm_delete() {
@@ -263,7 +382,16 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
   }
 
   openHatsCalculator() {
-    this. router.navigate(['/inventory/customer/hat-calculator'], {queryParamsHandling:'preserve'});
+    if(!this.activatedRoute.snapshot.queryParamMap.has('id') && this.customerItem && this.customerItem.id){
+      this.router.navigate(['/inventory/customer/hat-calculator'], {
+        queryParams: {
+          "id": this.customerItem.id
+      }
+    });
+    }
+    else {
+      this. router.navigate(['/inventory/customer/hat-calculator'], {queryParamsHandling:'preserve'});
+    }
     /*
     this.hats_calculator.customer = this.customerItem;
     this.hats_calculator.dialog.btnSaveClass="d-none" ;

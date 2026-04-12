@@ -47,4 +47,9 @@ call convert_column_type('customer_banks_allocations', 'quantity', 'DECIMAL(15,2
 call convert_column_type('customer_banks_allocations', 'remaining_quantity', 'DECIMAL(15,2) not null');
 call convert_column_type('currencies', 'symbol', 'VARCHAR(3) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NULL');
 
+CALL add_column_if_not_exists('wings', 'angled_crown', 'boolean default false');
+
+CALL add_column_if_not_exists('users', 'is_demo_customer', 'boolean not null default false');
+CALL add_column_if_not_exists('customers', 'is_demo_customer', 'boolean not null default false');
+
 select "Migrations done", CURRENT_TIMESTAMP;

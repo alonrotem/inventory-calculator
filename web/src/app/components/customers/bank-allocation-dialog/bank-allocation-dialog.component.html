@@ -2,7 +2,11 @@
     <div modalContent>
         <form novalidate #quantityForm="ngForm" [id]="'quantityForm'">
             <div class="row">
-                <div class="col-12">{{ (isNew)? "Create a work allocation" : "Edit work allocation" }} (Max: {{ MaxQuantity | number: ((QuantityUnits=='kg')? '1.2-2':'1.') }} {{ QuantityUnits }})</div>
+                <div class="col-12">
+                    {{ (isNew)? "Create a work allocation" : "Edit work allocation" }} 
+                    <span *ngIf="!is_demo_customer">(Max: {{ MaxQuantity | number: ((QuantityUnits=='kg')? '1.2-2':'1.') }} {{ QuantityUnits }})</span>
+                    <span *ngIf="is_demo_customer" class="text-success">Demo customer. No quota</span>
+                </div>
             </div>
             <div class="row">
                 <div class="col-12 d-flex flex-row align-items-center">
@@ -47,7 +51,7 @@
                             required="true" 
                             min="0" 
                             [attr.max]="MaxQuantity" 
-                            [ngClass]="{'form-control': true, 'invalid': (quantityForm.touched && (CurrentQuantity <=0 || CurrentQuantity > MaxQuantity))}"
+                            [ngClass]="{'form-control': true, 'invalid': (!is_demo_customer) && (quantityForm.touched && (CurrentQuantity <=0 || CurrentQuantity > MaxQuantity))}"
                             (input)="quantityChanged()">
                             <label for="allocationQuantity">Allocation quantity</label>
                         </div>
@@ -55,7 +59,7 @@
                     </span>
                     </div>
                 <div class="text-danger" *ngIf="attemptedClose && CurrentQuantity <= 0">Please enter a valid quantity for this bank</div>
-                <div class="text-danger" *ngIf="CurrentQuantity > MaxQuantity">Not enough material in the bank (max for this allocation: {{ MaxQuantity | number: '1.0-0' }})</div>
+                <div class="text-danger" *ngIf="!is_demo_customer && CurrentQuantity > MaxQuantity">Not enough material in the bank (max for this allocation: {{ MaxQuantity | number: '1.0-0' }})</div>
                 </div>
             </div>
             <div class="row">
@@ -64,6 +68,7 @@
                         #meter
                         (bankQuantityChanged)="capacityBarChanged($event)"
                         [show_in_use]="true"
+                        [no_limit]="is_demo_customer"
                          />
                 </div>
             </div>

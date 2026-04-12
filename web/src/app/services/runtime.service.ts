@@ -16,13 +16,13 @@ export class RuntimeService {
       return null;
     }
     
-    console.log('getCurrentPosition START', Date.now());
+    //console.log('getCurrentPosition START', Date.now());
     
     return new Promise<GeoCoordinates | null>((resolve) => {
       this.ngZone.runOutsideAngular(() => {
         navigator.geolocation.getCurrentPosition(
           (position: GeolocationPosition) => this.ngZone.run(() => {
-            console.log('getCurrentPosition SUCCESS', Date.now());
+            //console.log('getCurrentPosition SUCCESS', Date.now());
             resolve({
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
@@ -34,7 +34,7 @@ export class RuntimeService {
             })
           }),
           (error: GeolocationPositionError) => this.ngZone.run(() => {
-            console.log('getCurrentPosition ERROR', Date.now(), error.code, error.message);
+            //console.log('getCurrentPosition ERROR', Date.now(), error.code, error.message);
             resolve(null);
           }),
           options

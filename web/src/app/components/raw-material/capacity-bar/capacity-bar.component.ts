@@ -13,6 +13,7 @@ export class CapacityBarComponent {
   @Input() totalCapacity: number = 0;
   @Input() materialInUse: number = 0;
   @Input() bankQuantity: number = 0;
+  @Input() no_limit: boolean = false;
   @Input() show_in_use:boolean = true;
   notInUseCapacity: number = 0;
 
@@ -20,6 +21,7 @@ export class CapacityBarComponent {
 
   containerWidth: number = 0;
   isDragging: boolean = false;
+  Infinity = 1000000;
 
   constructor(private elRef: ElementRef, private decimalPipe: DecimalPipe) {
   }

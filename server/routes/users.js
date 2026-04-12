@@ -90,8 +90,8 @@ router.post('/signup', async function(req, res, next) {
   logger.info(`post /users/signup`);
   logger.debug(`Body: ${ JSON.stringify(req.body) }`)
   try {
-    const { firstname, lastname, email, username, password, role } = req.body;
-    const response  = await users.signup(firstname, lastname, email, username, password, role);
+    const { firstname, lastname, email, username, password, role, is_demo_customer } = req.body;
+    const response  = await users.signup(firstname, lastname, email, username, password, role, is_demo_customer);
     logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
     res.json(response);
   } 
@@ -286,7 +286,8 @@ router.get('/status', auth_request(), async function(req, res, next) {
       username: userInfo.username, 
       email: userInfo.email, 
       photo_url: userInfo.photo_url,
-      area_permissions: userInfo.area_permissions
+      area_permissions: userInfo.area_permissions,
+      is_demo_customer: userInfo.is_demo_customer
     };
     if(userInfo["roles"]){
       return_data["roles"] = userInfo["roles"];

@@ -44,7 +44,8 @@ export class FinalizeAccountComponent {
     photo_url: '',
     roles: [],
     customers: [],
-    area_permissions: []
+    area_permissions: [],
+    is_demo_customer: false
   };
 
   password_change = {

@@ -111,7 +111,7 @@ async function getAllNonCustomerWingsAndBabies(wing_id_filter) {
       left join wings_babies wb on wb.parent_wing_id=w.id
       where ch.customer_id is null ${wing_filter}
       order by w.id, wb.position`);*/
-      `select w.id w_id, w.name w_n, w.split_l1 splt_l1, w.crown_width cr_wdt, wb.id b_id, wb.position p, wb.length l  
+      `select w.id w_id, w.name w_n, w.split_l1 splt_l1, w.crown_width cr_wdt, wb.id b_id, wb.position p, wb.length l, w.angled_crown a_c
         from wings w 
         inner join wings_babies wb on wb.parent_wing_id=w.id
         where

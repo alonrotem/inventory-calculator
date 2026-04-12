@@ -78,7 +78,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     id: 0, name: '', business_name: '', email: '', phone: '', tax_id: '',
     created_at: new Date(), updated_at: new Date(), created_by: 0, updated_by: 0,
     banks: [], banks_baby_allocations: [], babies: [],
-    customer_code: '', order_seq_number: 0
+    customer_code: '', order_seq_number: 0, is_demo_customer: false
   };
 
   //wing representations:
@@ -384,6 +384,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   }
 
   getCustomer(id: number){
+    this.console.log("Getting customer with id " + id);
     if(id == 0)
       return;
     
@@ -636,6 +637,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.hat_babies = [];
     if(selectedWingId) {
       this.wingsService.getWing(selectedWingId).subscribe((w:Wing) => {
+        this.advisor.wing = w;
         //once the customer selects a wing, it gets copied into a new wing which can be customized
         //also given a new name, and will be saved under the hat of the customer.
         //the order won't be affected if the parent wing itself changes.

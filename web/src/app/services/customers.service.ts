@@ -17,6 +17,12 @@ export class CustomersService {
     });
   };
 
+  getDemoCustomerByUserId = (id: number): Observable<Customer> => {
+    return this.apiService.get(`${environment.serverUrl}/customers/demo/${id}`, {
+      responseType: 'json'
+    });
+  };
+
   getCustomers = (params: PaginationParams): Observable<Customers> => {
     return this.apiService.get(`${environment.serverUrl}/customers/`, {
       params,

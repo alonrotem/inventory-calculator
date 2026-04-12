@@ -7,6 +7,11 @@
     min-width: 50px;
 }
 
+.raw_material_select {
+    min-width: 250px;
+    max-width: 500px;
+}
+
 .editorForm div.col {
     /*height: calc(3.5rem + calc(var(--bs-border-width)* 2));*/
     margin: 8px 0px;

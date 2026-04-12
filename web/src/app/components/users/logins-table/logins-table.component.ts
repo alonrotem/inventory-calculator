@@ -38,7 +38,9 @@ export class LoginsTableComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   ngAfterViewInit(): void {
-    this.getUserLogins();
+    if(this.user_id > 0) {
+      this.getUserLogins();
+  }
   }
 
   ngOnChanges(changes: SimpleChanges): void {

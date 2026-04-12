@@ -43,7 +43,8 @@ export class SignupComponent {
         username: this.signupData.username,
         password: this.signupData.password,
         email: this.signupData.email,
-        role: "administrator"
+        role: "administrator",
+        is_demo_customer: false
       }).subscribe(
         {
           next:(data) => { 

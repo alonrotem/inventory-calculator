@@ -21,7 +21,7 @@ async function getSingle(id){
         cb.id, c.name, c.business_name, cb.raw_material_id, cb.customer_id, cb.quantity, cb.remaining_quantity, cb.quantity_units, cb.quantity_in_kg
         FROM customer_banks cb left join customers c on cb.customer_id = c.id 
         left join raw_materials rm on rm.id=cb.raw_material_id
-        WHERE cb.raw_material_id=${id} order by c.name;`);
+        WHERE cb.raw_material_id=${id} and c.is_demo_customer=0 order by c.name;`);
       const customer_banks = helper.emptyOrRows(customer_bank_rows);
       raw_material.customer_banks = customer_banks;
     }

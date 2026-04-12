@@ -18,7 +18,25 @@ export abstract class NavigatedMessageComponent {
   }
 
   navigateWithToastMessage(destination: string, message: string, isError: boolean = false){
-    this.router.navigate([destination], {
+    console.log(`navigateWithToastMessage called with destination: ${destination}, from ${this.router.url} message: ${message}, isError: ${isError}`);
+    if(destination !== this.router.url) {
+      this.performNavigation(destination, message, isError);
+    }
+    else {
+      //handle navigation to the same url, which doesn't trigger navigation events and thus won't show the toast message if we rely on those events to show it. To work around this, we navigate away and then back to the destination.
+      this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+        this.performNavigation(destination, message, isError);
+      });
+    }
+  }
+
+  performNavigation(destination: string, message: string, isError: boolean){
+    console.log(`performNavigation to ${destination} with message: ${message} and isError: ${isError}`);
+    // Parse the URL to extract path and query params
+    const urlTree = this.router.parseUrl(destination);
+    this.router.navigate([urlTree.root.children['primary']?.segments.map(s => s.path).join('/') || ''], {
+      queryParams: urlTree.queryParams,
+      queryParamsHandling: 'merge',
       state: {
         info: { 
           textInfo: message, 
@@ -29,6 +47,7 @@ export abstract class NavigatedMessageComponent {
   }
 
   showNavigationToastIfMessagePending(){
+    console.log("Checking for pending navigation message...");
     let nav = this.router.getCurrentNavigation();
     if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {
       let info = nav.extras.state['info']['textInfo'];

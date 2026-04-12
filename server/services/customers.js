@@ -1,6 +1,7 @@
 const db = require('./db');
 const helper = require('../helper');
 const transaction_history = require('./transaction_history');
+const users = require('./users');
 const { raw } = require('mysql2');
 const { logger } = require('../logger');
 
@@ -20,7 +21,7 @@ async function getSingle(id, currentUserId){
   const rows = await db.query(
     `select 
       c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.notes, c.customer_code, c.order_seq_number,
-        c.created_at, c.updated_at, c.created_by, c.updated_by ${advanced_fields}
+        c.created_at, c.updated_at, c.created_by, c.updated_by, c.is_demo_customer ${advanced_fields}
      from customers c where c.id=(?);`, [id]);
 
   const customer = helper.emptyOrSingle(rows);
@@ -56,7 +57,104 @@ async function getSingle(id, currentUserId){
   return customer;
 }
 
+//get the demo customer for the user (if the user is a demo customer). If there isn't one, it will be created and returned
+async function getDemoCustomerForUserId(user_id, active_connection=null){
+  //check if there is an active connection called from another function, or this call is a standalone
+  let self_executing = false;
+  if(!active_connection) {
+    // logger.info("transaction start 2");
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
+  }
+
+  try {
+    const user = await users.getSingle(user_id);
+    
+    if(!user || helper.isEmptyObj(user)){
+      throw new Error(`User with ID ${user_id} not found`);
+    }
+
+    if(!user.is_demo_customer){
+      throw new Error(`User with ID ${user_id} is not a demo customer`);
+    }
+
+    let demo_customer_rec = helper.emptyOrSingle(await db.query(
+      `select uc.customer_id 
+        from 
+          user_customers uc 
+          inner join customers c on uc.customer_id = c.id
+        where uc.user_id=(?) and c.is_demo_customer=1
+        limit 1`, 
+      [user_id]));
+    if(!demo_customer_rec || helper.isEmptyObj(demo_customer_rec)){
+      //create a new demo customer for this user
+      const new_customer = await save({
+          id: 0,  name: `${user.firstname} ${user.lastname}`,
+          business_name: 'Demo customer', email: user.email, phone: user.phone,  
+          tax_id: '', customer_code: 'DEMO', created_by: user_id, updated_by: user_id,
+          order_seq_number: 0, allow_calculation_advisor: true,
+          banks: [], banks_baby_allocations: [], babies: [], is_demo_customer: true
+      }, user_id, active_connection);
+
+      await db.transaction_query(
+        `insert into user_customers (user_id, customer_id) values (?, ?);`, 
+        [user_id, new_customer.customer.id], 
+        active_connection); 
+
+      if(self_executing)
+        db.transaction_commit(active_connection);
+
+      return new_customer["customer"];
+    }
+    else {
+      //return a customer by this id
+      return await getSingle(demo_customer_rec.customer_id);
+    }
+  }
+  catch(error){
+    db.transaction_rollback(active_connection);
+    throw(error);
+  }
+  finally {
+    if(self_executing){
+      db.transaction_release(active_connection);
+    }
+  }      
+}
+
 async function getMultiple(page = 1, perPage=0, currentUserId){
+  //if the user is a demo customer, return only the demo customer assigned to him (there should be only one)
+  const user = await users.getSingle(currentUserId);
+  if(user && !helper.isEmptyObj(user) && user.is_demo_customer){
+    const demo_customer = helper.emptyOrSingle(await db.query(
+      `SELECT DISTINCT c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.created_at, c.updated_at, c.created_by, c.updated_by,
+          COUNT(cb.customer_id) AS bank_count,
+                  COALESCE(SUM(work_allocations.allocation_count), 0) AS allocation_count
+          FROM customers c
+          LEFT JOIN user_customers uc ON uc.customer_id = c.id 
+          LEFT JOIN  customer_banks cb ON c.id = cb.customer_id
+              LEFT JOIN 
+                  (SELECT customer_bank_id,  COUNT(*) AS allocation_count FROM customer_banks_allocations
+                  GROUP BY customer_bank_id) work_allocations 
+              ON cb.id = work_allocations.customer_bank_id
+        where uc.user_id = (?) and c.is_demo_customer
+        group by c.id 
+        limit 1`, 
+      [currentUserId]));
+    if(helper.isEmptyObj(demo_customer)){
+      return {
+        data: [],
+        meta: {page: 1, total_records: 0, total_pages: 1}
+      }
+    }
+    else {
+      return {
+        data: [demo_customer],
+        meta: {page: 1, total_records: 1, total_pages: 1}
+      };
+    }
+  }
+  
   let subset =  '';
   if(page && perPage && page > 0 && perPage > 0)
   {
@@ -64,17 +162,6 @@ async function getMultiple(page = 1, perPage=0, currentUserId){
     subset = `LIMIT ${offset},${perPage}`
   }
   const rows = await db.query(
-  /*    
-    `SELECT c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.created_at, c.updated_at, c.created_by, c.updated_by,
-        COUNT(cb.customer_id) AS bank_count,
-        COALESCE(SUM(work_allocations.allocation_count), 0) AS allocation_count
-    FROM customers c
-    LEFT JOIN  customer_banks cb ON c.id = cb.customer_id
-    LEFT JOIN 
-        (SELECT customer_bank_id,  COUNT(*) AS allocation_count FROM customer_banks_allocations
-        GROUP BY customer_bank_id) work_allocations 
-    ON cb.id = work_allocations.customer_bank_id
-    GROUP BY  c.id  ${subset}`*/
 
   //New query: retrieve only the customers assigned to the current user, by their role(s)
   `WITH user_permissions AS (
@@ -191,6 +278,31 @@ async function canUserAccessThisCustomer(customerId, userId, required_permission
     return false;
   }
 
+  const user = helper.emptyOrSingle(await db.query(`select is_demo_customer from users where id=(?);`, [userId]));
+  if(!user || helper.isEmptyObj(user)){
+    return false;
+  }
+  else {
+    //demo customers can access only their own customer (which is created for them when they log in the first time)
+    if(user.is_demo_customer){
+      if(customerId > 0) {
+        const linked_customer_rec = helper.emptyOrSingle(await db.query(
+        `select c.is_demo_customer  from customers c inner join user_customers uc on c.id = uc.customer_id
+            where uc.user_id=(?) and uc.customer_id=(?);`, [userId, customerId]));
+        if(helper.isEmptyObj(linked_customer_rec) || !linked_customer_rec.is_demo_customer){
+          return false;
+        }
+        else {
+          return true;
+        }
+      }
+      //user is a demo customer, but there is no customer in the system yet. then it's ok
+      else {
+        return true;
+      }
+    }
+  }
+
   const user_customer_permissions = helper.emptyOrRows(await db.query(
     `select rp.area, rp.permissions
       from 
@@ -228,12 +340,17 @@ async function canUserAccessThisCustomer(customerId, userId, required_permission
 }
 
 async function canUserAccessAdvancedCustomerFeatures(currentUserId, required_permission_level){
-    const advanced_customer_permissions = helper.emptyOrSingle(await db.query(
-    `select rp.area, rp.permissions  
-        from users u inner join user_roles ur on u.id=ur.user_id
-        inner join roles r on r.id=ur.role_id
-        inner join role_permissions rp on rp.role_id=r.id
-      where u.id=(?) and rp.area='customers_advanced_features';`, [currentUserId]));
+  const user = helper.emptyOrSingle(await db.query(`select is_demo_customer from users where id=(?);`, [currentUserId]));
+  if(user && !helper.isEmptyObj(user) && user["is_demo_customer"]!=1){
+    return false;
+  }
+
+  const advanced_customer_permissions = helper.emptyOrSingle(await db.query(
+  `select rp.area, rp.permissions  
+      from users u inner join user_roles ur on u.id=ur.user_id
+      inner join roles r on r.id=ur.role_id
+      inner join role_permissions rp on rp.role_id=r.id
+    where u.id=(?) and rp.area='customers_advanced_features';`, [currentUserId]));
 
   if(
     (!helper.isEmptyObj(advanced_customer_permissions)) && 
@@ -265,12 +382,12 @@ async function save(customer, currentUserId, active_connection=null){
    
    let columns = [
     "id", "name", "business_name", "email", "phone", "tax_id", 
-    "customer_code", "created_at", "updated_at", "created_by", "updated_by"
+    "customer_code", "created_at", "updated_at", "created_by", "updated_by", "is_demo_customer"
   ];
   let values = [
     customer.id, customer.name, customer.business_name, customer.email, customer.phone,
     customer.tax_id, customer.customer_code, (isNew)? helper.nowDateStr(): helper.formatDate(customer.created_at),
-    helper.nowDateStr(), customer.created_by, customer.updated_by 
+    helper.nowDateStr(), customer.created_by, customer.updated_by, customer.is_demo_customer
   ];
   
   if(await canUserAccessAdvancedCustomerFeatures(currentUserId, 'U') && (customer.allow_calculation_advisor != null) && (customer.allow_calculation_advisor != undefined)){
@@ -320,13 +437,17 @@ async function save(customer, currentUserId, active_connection=null){
       saved_customer.banks.forEach(saved_bank => {
         let bank_id = bank_ids_info.bank_ids.find(bank_id_info => bank_id_info.post_save_id == saved_bank.id);
         //console.log("found saved bank info. before: " + bank_id.pre_save_id + " -after-> " + saved_bank.id);
-        saved_bank.pre_save_id = bank_id.pre_save_id;
+        if(bank_id){
+          saved_bank.pre_save_id = bank_id.pre_save_id;
+        }
       });
 
       saved_customer.banks_baby_allocations.forEach(saved_allocation => {
         let alloc_id = bank_ids_info.allocation_ids.find(allocation_id_info => allocation_id_info.post_save_id == saved_allocation.id);
         //console.log("found saved allocation info. before: " + alloc_id.pre_save_id + " -after-> " + saved_allocation.id);
-        saved_allocation.pre_save_id = alloc_id.pre_save_id;
+        if(alloc_id){
+          saved_allocation.pre_save_id = alloc_id.pre_save_id;
+        }
       });
     }
 
@@ -1112,6 +1233,7 @@ async function moveTailsToOrder(
 module.exports = {
     save,
     getSingle,
+    getDemoCustomerForUserId,
     getMultiple,
     remove,
     getNames,

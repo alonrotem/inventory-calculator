@@ -40,7 +40,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     id: 0, name: '', business_name: '', email: '', phone: '', tax_id: '',
     created_at: new Date(), updated_at: new Date(), created_by: 0, updated_by: 0,
     banks: [], banks_baby_allocations: [], babies: [],
-    customer_code: '', order_seq_number: 0
+    customer_code: '', order_seq_number: 0, is_demo_customer: false
   };    
   @Input() bank: Customer_Bank = {
     raw_material_name: '',
@@ -57,9 +57,11 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   };
   @Input() banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
   @Input() babies: Allocation_Baby[] = [];
-  tails_allocation_in_this_bank: Customer_Bank_Baby_Allocation | undefined = undefined;
   @Input() banks_baby_allocation_type_filter: Bank_Allocation_Type | null = null;
   @Input() num_wings_per_hat: number = 44;
+  @Output() bank_of_raw_material_added = new EventEmitter<number>();
+  @Output() bank_deleted = new EventEmitter<number>();
+  tails_allocation_in_this_bank: Customer_Bank_Baby_Allocation | undefined = undefined;
   Bank_Allocation_Type = Bank_Allocation_Type; //for the template
   
   userInfo: BasicUserInfoStatus | null = null;
@@ -128,6 +130,11 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    //console.dir("changes!!!");
+    //console.dir(changes);
+    if(changes['bank'] && changes['bank'].firstChange && !changes["bank"].previousValue){
+      this.bank_of_raw_material_added.emit(this.bank.raw_material_id);
+    }
   }
 
   undo_changes(){
@@ -365,13 +372,14 @@ recalculateBank(){
     quantity
   */
   open_allocation_dialog(allocation_id: number) {
+    this.allocation_dialog.is_demo_customer = this.customer.is_demo_customer;
     let allocation = this.banks_baby_allocations.find(a => a.id == allocation_id);
     if(allocation) {
       this.allocation_dialog.CurrentQuantity = allocation.quantity;
       this.allocation_dialog.MaxQuantity = allocation.quantity + this.bank.remaining_quantity;
     }
     else {
-      if(this.bank.remaining_quantity <= 0) {
+      if(this.bank.remaining_quantity <= 0 && !this.userInfo?.is_demo_customer) {
         this.not_enough_material.open();
         return;
       }
@@ -445,7 +453,7 @@ recalculateBank(){
         pre_save_id: 0,
         customer_bank_id: this.bank.id,
         quantity: currentQuantity,
-        remaining_quantity: 0,
+        remaining_quantity: currentQuantity,
         allocation_type: allocationType,
         tails_quantity: 0,
         tails_in_orders: 0
@@ -463,6 +471,14 @@ recalculateBank(){
     this.bank_changed.emit();
     this.recalculateBank();
     this.unsaved_changes = true;
+  }
+
+  delete_bank(bank_id: number){
+    const bankIndex = this.customer.banks.findIndex(b => b.id == bank_id);
+    if(bankIndex >= 0) {
+      this.bank_deleted.emit(this.customer.banks[bankIndex].raw_material_id);
+      this.customer.banks.splice(bankIndex, 1);
+    }
   }
 
   delete_baby(baby_id: number) {
@@ -493,7 +509,7 @@ recalculateBank(){
   }
 
   open_babies_dialog(bank_allocation_id: number, baby_length: number) {
-    if(!this.userInfo || (!this.userInfo.area_permissions.find(p => p.area=='bank_baby_management' && p.permissions.indexOf('C') >= 0))){
+    if ((!this.customer.is_demo_customer) &&(!this.userInfo || (!this.userInfo.area_permissions.find(p => p.area=='bank_baby_management' && p.permissions.indexOf('C') >= 0)))){
       return;
     }
     this.expand_allocation_table(bank_allocation_id);

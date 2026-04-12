@@ -412,6 +412,7 @@ CREATE TABLE  IF NOT EXISTS `customers` (
     `customer_code`		VARCHAR(127) NULL,
     `notes`				varchar(255) NULL,
     `allow_calculation_advisor` BOOL default false,
+    `is_demo_customer`			BOOL not null default false,
 	`created_at`    	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
 	`updated_at`    	DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`created_by`	 	int null,
@@ -527,6 +528,7 @@ CREATE TABLE  IF NOT EXISTS wings (
     `crown_width` float not null default 2, #(1-3, steps 0.5)
     `split_l1` int not null default 1,
     `allow_shortening_babies_in_pairs` boolean default false,
+    `angled_crown`	boolean default false,
     PRIMARY KEY (`id`)
 );
 
@@ -680,6 +682,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 	`pending_new_email_code`	VARCHAR(255) null,
 	`photo_url`					VARCHAR(255) null,
 	`phone`						VARCHAR(255) null,
+	`is_demo_customer`			BOOL not null default false,
 	#`customer_ids`			int null, #If set, this user can access only the specific customer ids. Otherwise, access according to the role
 	`created_at`			Datetime not null,
 	PRIMARY KEY (`id`),

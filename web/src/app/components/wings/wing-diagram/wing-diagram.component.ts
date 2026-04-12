@@ -540,14 +540,15 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
     let crown_height = this.crown_bottom.y - this.rights_bottom.y;
     let crown_segment_height = crown_height / this.crown.length;
     let crown_part = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+    let max_crown = Math.max(...this.crown);
     //console.log("rebuilding crown");
     //console.dir(this.crown);
     for(let c=0; c < this.crown.length; c++) {
       let crown_path = new Path2D();
       crown_path.rect(this.rights_bottom.x, this.rights_bottom.y + ((this.crown.length - (c+1)) * crown_segment_height), this.crown[c] * this.cm_px,  crown_segment_height);
       let info_point = (this.adjustBoundariesToSize(new Point(
-        this.rights_bottom.x + (this.crown[c] * this.cm_px) + this.text_margin + 5, 
-        this.rights_bottom.y + (crown_segment_height * this.crown.length)/2))
+        this.rights_bottom.x + (max_crown * this.cm_px) + this.text_margin + 5, 
+        this.rights_bottom.y + ((c+1) * crown_segment_height)  ))//this.rights_bottom.y + (crown_segment_height * this.crown.length)/2))
       );
 
       this.path_items.push({
@@ -555,7 +556,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
         path: crown_path,
         tooltip: "<strong><span class='icon-crown'></span> Crown " + "(" + crown_part[c] + ") </strong><br/>" + (c+1) + " x " + this.crown[c] + " cm",
         length: this.crown[c],
-        mid_point: 0,//this.top_center_point,
+        mid_point: new Point(this.rights_bottom.x, this.rights_bottom.y + ((this.crown.length - (c+1)) * crown_segment_height)),
         length_info_point: info_point,
         show_tooltip: true,
         show_length: true,
@@ -572,7 +573,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
       this.ctx.strokeStyle=this.color;
       this.ctx.lineWidth=this.thickness;
       this.ctx.stroke(this.path_items[baby_i].path);
-  
+
       if(this.show_texts) {
         this.ctx.beginPath();
         this.ctx.textAlign = "center";

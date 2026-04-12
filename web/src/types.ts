@@ -131,6 +131,7 @@ export interface Wing {
     allow_shortening_babies_in_pairs: boolean;
     crown_width: number;
     split_l1: number;
+    angled_crown: boolean;
     babies: WingBaby[];
 }
 
@@ -253,6 +254,7 @@ export class Point {
     updated_by: number;
     order_seq_number: number;
     allow_calculation_advisor?: boolean;
+    is_demo_customer: boolean;
 
     banks: Customer_Bank[];
     banks_baby_allocations: Customer_Bank_Baby_Allocation[];
@@ -541,6 +543,7 @@ export interface ShortWingsInfo {
     b_id: number;       //baby id
     p: string;          //baby position
     l: number;          //baby length
+    a_c: boolean;       //angled crown
     splt_l1: number;    //split L1 baby to 1-4 parts
     cr_wdt: number;     //crown width
 }
@@ -634,6 +637,7 @@ export interface BasicUserInfoStatus {
   roles: nameIdPair[];
   customers: nameIdPair[];
   area_permissions: UserAreaPermissions[];
+  is_demo_customer: boolean;
 }
 
 //those are enforced on the server too, but returned to the client for better UX

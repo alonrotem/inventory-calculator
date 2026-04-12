@@ -32,6 +32,7 @@ export class BankAllocationDialogComponent implements ModalContentDirective, Mod
   @Input() QuantityUnits: string = "";
   @Input() AllocationType: Bank_Allocation_Type = Bank_Allocation_Type.babies;
   @Input() LockAllocationType: boolean = false;
+  @Input() is_demo_customer: boolean = false;
   attemptedClose = false;
 
   allocation_type_cations: { [key: string]: string } = {
@@ -68,29 +69,7 @@ export class BankAllocationDialogComponent implements ModalContentDirective, Mod
   }
 
   onOpen(): void {
-    /*
-    console.log(
-      "  RemainingInBank: " + this.RemainingInBank +
-      ", QuantityInBank: " + this.QuantityInBank +
-      ", CurrentQuantity: " + this.CurrentQuantity +
-      ", MaxQuantity: " + this.MaxQuantity +
-      ", QuantityUnits: " + this.QuantityUnits
-    );
-    */
-    /*
-       RemainingInBank: 2, QuantityInBank: 10, CurrentQuantity: 5, MaxQuantity: 7, QuantityUnits: units
 
-
-     capacity bar for allocation
-     in use: all in use quantity in bank - quantity of this allocation
-        QuantityInBank - CurrentQuantity
-
-     allocation qiantity: in use for this allocation
-        CurrentQuantity
-
-     total: all the rest
-      QuantityInBank
-    */
     this.attemptedClose = false;
     this.meter.bankQuantity = this.CurrentQuantity + this.QuantityInBank - (this.CurrentQuantity + this.RemainingInBank);
     //console.log("this.meter.bankQuantity " + this.meter.bankQuantity);
@@ -108,7 +87,7 @@ export class BankAllocationDialogComponent implements ModalContentDirective, Mod
     //console.dir(this.editedObject);
     this.attemptedClose = true;
     this.quantityForm.form.markAllAsTouched();
-    let okToClose = (this.CurrentQuantity > 0) && (this.CurrentQuantity <= this.MaxQuantity);
+    let okToClose = (this.is_demo_customer) || ((this.CurrentQuantity > 0) && (this.CurrentQuantity <= this.MaxQuantity));
     if(this.quantityForm.valid && okToClose){
       return true;
     }

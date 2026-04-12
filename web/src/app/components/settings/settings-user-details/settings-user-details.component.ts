@@ -69,7 +69,7 @@ export class SettingsUserDetailsComponent extends NavigatedMessageComponent impl
     is_verified: false, is_disabled: false, pending_new_email: '',
     phone: '', registered_on: new Date(), id: 0, firstname: '', lastname: '',
     username: '', email: '', photo_url: '', roles: [], customers: [],
-    area_permissions: []
+    area_permissions: [], is_demo_customer: false
   };
 
   constructor(
@@ -105,6 +105,7 @@ export class SettingsUserDetailsComponent extends NavigatedMessageComponent impl
       next: (user: UserDetails) => {
         console.dir(user);
         this.user = user;
+        this.user.is_demo_customer = Boolean(user.is_demo_customer);
         this.original_email = user.email;
         this.pending_email = user.pending_new_email;
         this.current_email = (this.pending_email)? this.pending_email : this.original_email;

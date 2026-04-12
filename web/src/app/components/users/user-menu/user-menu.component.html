@@ -5,7 +5,7 @@
   </a>
   <ul class="dropdown-menu dropdown-menu-end">
     <li class="user-names">{{ user.firstname + " " + user.lastname }}</li>
-    <li class="user-role text-secondary">{{ user.roles[0] }}</li>
+    <li class="user-role text-secondary">{{ user.is_demo_customer? 'Demo customer': user.roles[0] }}</li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" routerLink="profile" [ngClass]="(currentUrl.indexOf('/profile') >= 0) ? 'active': ''"><fa-icon [icon]="faAddressCard"></fa-icon> My profile</a></li>
     <li><a class="dropdown-item" (click)="logout()" style="cursor: pointer;"><fa-icon [icon]="faArrowRightFromBracket"></fa-icon> Log out</a></li>

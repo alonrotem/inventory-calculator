@@ -1,15 +1,15 @@
-<nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
+<nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top" *ngIf="(user$ | async) as user">
     <div class="container-fluid">
       <a class="navbar-brand" routerLink=""><div class="navbar-logo"></div></a>
       
       <div class="ms-auto d-flex align-items-center order-lg-last">
       <app-user-menu />
-      <app-hamburger #hamburger *ngIf="(user$ | async) as user" />
+      <app-hamburger #hamburger />
       </div>
 
       <div class="collapse navbar-collapse" id="navbarSupportedContent" #navbarToggler>
-        <ul [ngClass]="'ms-auto navbar-nav mb-2 mb-lg-0' + ((user$ | async)?'' :' d-none')">
-          <li class="nav-item" *ngIf="(user$ | async) | hasPermission: [{area: 'raw_materials', permission: 'R'}]">
+        <ul [ngClass]="'ms-auto navbar-nav mb-2 mb-lg-0' + (user?'' :' d-none')">
+          <li class="nav-item" *ngIf="user | hasPermission: [{area: 'raw_materials', permission: 'R'}]">
             <a class="nav-link" aria-current="page" routerLink="inventory/raw"  [ngClass]="(currentUrl.indexOf('/inventory/raw') >= 0) ? 'active': ''"><span class="icon-home"></span> Raw materials</a>
           </li>
           <!--
@@ -28,20 +28,24 @@
             </ul>
           </li>
           -->
-          <li class="nav-item" *ngIf="(user$ | async) | hasPermission: [{area: 'customers', permission: 'R'}, {area: 'customer_resources_by_customer_id', permission: 'R'}]">
+          <li class="nav-item" *ngIf="user.is_demo_customer">
+            <a class="nav-link" aria-current="page" routerLink="inventory/customer/editor"  [ngClass]="(currentUrl.indexOf('/inventory/customer/editor') >= 0) ? 'active': ''">Demo customer</a>
+          </li>
+
+          <li class="nav-item" *ngIf="((!user.is_demo_customer) && (user | hasPermission: [{area: 'customers', permission: 'R'}, {area: 'customer_resources_by_customer_id', permission: 'R'}]))">
             <a class="nav-link" aria-current="page" routerLink="inventory/customers"  [ngClass]="(currentUrl.indexOf('/inventory/customers') >= 0) ? 'active': ''">Customers</a>
           </li>
-          <li class="nav-item" *ngIf="(user$ | async) | hasPermission: [{area: 'customers', permission: 'R'}, {area: 'customer_resources_by_customer_id', permission: 'R'}]">
+          <li class="nav-item" *ngIf="((!user.is_demo_customer) && (user | hasPermission: [{area: 'customers', permission: 'R'}, {area: 'customer_resources_by_customer_id', permission: 'R'}]))">
             <a class="nav-link" aria-current="page" routerLink="/inventory/customer/orders"  [ngClass]="(currentUrl.indexOf('/inventory/customer/orders') >= 0) ? 'active': ''">Orders</a>
           </li>                    
 
-          <li class="nav-item" *ngIf="(user$ | async) | hasPermission: [{area: 'wings', permission: 'R'}]">
+          <li class="nav-item" *ngIf="user | hasPermission: [{area: 'wings', permission: 'R'}]">
             <a class="nav-link" aria-current="page" routerLink="templates/wings"  [ngClass]="(currentUrl.indexOf('/templates/wings') >= 0) ? 'active': ''"><span class="icon-home"></span> Wings</a>
           </li>
 
 
 
-          <li class="nav-item dropdown" *ngIf="(user$ | async) | hasPermission: [{area: 'system_settings', permission: 'R'}]">
+          <li class="nav-item dropdown" *ngIf="user | hasPermission: [{area: 'system_settings', permission: 'R'}]">
             <a class="nav-link dropdown-toggle" hrkef="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" [ngClass]="(currentUrl.indexOf('/settings/') >= 0) ? 'active': ''">
               System
             </a>

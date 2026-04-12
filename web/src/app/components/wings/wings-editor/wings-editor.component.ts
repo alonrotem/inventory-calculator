@@ -121,6 +121,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
         knife: 0,
         babies: [],
         crown_width: 2,
+        angled_crown: false,
         split_l1: 1,
         allow_shortening_babies_in_pairs: false
       };

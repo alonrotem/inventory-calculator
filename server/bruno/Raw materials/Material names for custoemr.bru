@@ -1,0 +1,16 @@
+meta {
+  name: Material names for custoemr
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{romtech_server}}/raw_materials/names/0
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

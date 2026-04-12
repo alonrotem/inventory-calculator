@@ -88,7 +88,7 @@ async function findUser(username, email_address){
 }
 
 // sign up a new user
-async function signup(firstname, lastname, email_address, username, password, role, active_connection=null){
+async function signup(firstname, lastname, email_address, username, password, role, is_demo_customer, active_connection=null){
   let self_executing = false;
   if(!active_connection) {
     active_connection = await db.trasnaction_start();
@@ -115,21 +115,27 @@ async function signup(firstname, lastname, email_address, username, password, ro
     const code_expiration = new Date(new Date().getTime() + 60 * 60 * config.registration_code_expiration_horus * 1000);
     const result = await db.transaction_query(
       `INSERT INTO users 
-      (firstname, lastname, username, email, password, is_verified, pending_verfication_code, verification_code_expiration, created_at) 
+      (firstname, lastname, username, email, password, is_verified, is_demo_customer, pending_verfication_code, verification_code_expiration, created_at) 
       VALUES 
-      ((?), (?),(?), (?), (?), (?), (?), (?), (?))`,
+      ((?), (?),(?), (?), (?), (?), (?), (?), (?), (?))`,
       [
-        firstname, lastname, username, email_address, hashed_pass, false, verification_code, helper.dateStr(code_expiration), helper.dateStr(new Date())
+        firstname, lastname, username, email_address, hashed_pass, false, is_demo_customer, verification_code, helper.dateStr(code_expiration), helper.dateStr(new Date())
       ],
       active_connection
     );
 
-    await db.transaction_query(
-      `insert into user_roles (user_id, role_id) 
-        select (?), r.id from roles r where r.name=(?) limit 1;`,
-      [result.insertId, role],
-      active_connection
-    );
+    if(!is_demo_customer){
+      await db.transaction_query(
+        `insert into user_roles (user_id, role_id) 
+          select (?), r.id from roles r where r.name=(?) limit 1;`,
+        [result.insertId, role],
+        active_connection
+      );
+    }
+    //demo customer has no roles
+    else {
+      await db.transaction_query(`delete from user_roles where user_id=(?)`, [ result.insertId ], active_connection);
+    }
 
     await send_user_account_verification_mail(firstname, email_address, verification_code, code_expiration);
 
@@ -172,20 +178,22 @@ async function manual_add_user_temp(user_details, active_connection=null){
       throw new Error("role_name or role_id is required");
     }
     
-    if(user_details["role_id"]){
-      const id_num = parseInt(user_details["role_id"]);
-      if(isNaN(id_num)) {
-        throw new Error(`Role ID '${user_details["role_id"]}' is invalid`);
+    if(!user_details["is_demo_customer"]) {
+      if(user_details["role_id"]){
+        const id_num = parseInt(user_details["role_id"]);
+        if(isNaN(id_num)) {
+          throw new Error(`Role ID '${user_details["role_id"]}' is invalid`);
+        }
+        role_id = id_num;
       }
-      role_id = id_num;
-    }
-    else if(user_details["role_name"]){
-      const role_id_by_name = helper.emptyOrSingle(await db.query(`select id from roles where name=(?)`, [user_details["role_name"]]));
-      if(helper.isEmptyObj(role_id_by_name)) {
-        throw new Error(`Role with name '${user_details["role_name"]}' not found`);
-      }
-      else {
-        role_id = parseInt(role_id_by_name["id"]);
+      else if(user_details["role_name"]){
+        const role_id_by_name = helper.emptyOrSingle(await db.query(`select id from roles where name=(?)`, [user_details["role_name"]]));
+        if(helper.isEmptyObj(role_id_by_name)) {
+          throw new Error(`Role with name '${user_details["role_name"]}' not found`);
+        }
+        else {
+          role_id = parseInt(role_id_by_name["id"]);
+        }
       }
     }
 
@@ -204,7 +212,7 @@ async function manual_add_user_temp(user_details, active_connection=null){
     }
     const result = await db.transaction_query(
       `INSERT INTO users 
-      (firstname, lastname, username, email, password, is_verified, pending_verfication_code, verification_code_expiration, created_at) 
+      (firstname, lastname, username, email, password, is_verified, pending_verfication_code, verification_code_expiration, created_at, is_demo_customer) 
       VALUES 
       ((?), (?),(?), (?), (?), (?), (?), (?), (?))`,
       [
@@ -216,21 +224,27 @@ async function manual_add_user_temp(user_details, active_connection=null){
         true, 
         '', 
         null, 
-        helper.dateStr(new Date())
+        helper.dateStr(new Date()),
+        user_details["is_demo_customer"]
       ],
       active_connection
     );
     const new_user_id = result.insertId;
-    await db.transaction_query(
-      `insert into user_roles (user_id, role_id) values ((?),(?))`,
-      [new_user_id, role_id], 
-      active_connection);
-
-    if(user_details["customer_ids"] && user_details["customer_ids"].length > 0){
+    if(!user_details["is_demo_customer"]){
       await db.transaction_query(
-        `insert into user_customers (user_id, customer_id) values ${user_details["customer_ids"].map(id => "((?),(?))").join(",")}`,
-        user_details["customer_ids"].map(id => [new_user_id, id]).flat(), 
+        `insert into user_roles (user_id, role_id) values ((?),(?))`,
+        [new_user_id, role_id], 
         active_connection);
+
+      if(user_details["customer_ids"] && user_details["customer_ids"].length > 0){
+        await db.transaction_query(
+          `insert into user_customers (user_id, customer_id) values ${user_details["customer_ids"].map(id => "((?),(?))").join(",")}`,
+          user_details["customer_ids"].map(id => [new_user_id, id]).flat(), 
+          active_connection);
+      }
+    }
+    else {
+      await db.transaction_query(`delete from user_roles where user_id=(?)`, [ result.insertId ], active_connection);
     }
 
     if(self_executing) {
@@ -257,7 +271,7 @@ async function findUserByVerificationCode(verification_code){
   const existing_user = await db.query(
     `select 
       firstname, lastname, username, email, 
-      is_verified, is_disabled, pending_verfication_code, verification_code_expiration 
+      is_verified, is_disabled, pending_verfication_code, verification_code_expiration, is_demo_customer
     from users 
     where 
       pending_verfication_code=(?);`, 
@@ -634,7 +648,7 @@ async function resendChangedEmailConfirmationCode(email_address){
 // retrieve basic information on a user (for the currently logged in user)
 async function getBaseUserInfo(userId){
     const rows = await db.query(
-      `select id, firstname, lastname, username, email, is_verified, is_disabled, photo_url from users where id=(?);`,
+      `select id, firstname, lastname, username, email, is_verified, is_disabled, photo_url, is_demo_customer from users where id=(?);`,
       [userId]
     );
     //console.log("user id: " + userId);
@@ -1779,7 +1793,8 @@ async function getSingle(user_id){
   let user = helper.emptyOrSingle(await db.query(
     `select 
       u.id, u.firstname , u.lastname, u.password, u.email, u.photo_url, u.username,
-      u.pending_new_email, u.phone, u.created_at registered_on, u.is_verified, u.is_disabled  
+      u.pending_new_email, u.phone, u.created_at registered_on, u.is_verified, u.is_disabled,
+      u.is_demo_customer
     from users u 
     where u.id=(?)`, [user_id]));
   
@@ -1825,8 +1840,8 @@ async function updateUser(userDetails, photo_url, active_connection){
       userDetails["customers"] = JSON.parse(userDetails["customers"]);
     }
 
-    let update_fields = ['firstname=(?)', 'lastname=(?)', 'phone=(?)', 'is_disabled=(?)'];
-    let update_values = [userDetails['firstname'], userDetails['lastname'], userDetails['phone']??'', helper.var_to_bool(userDetails['is_disabled'])];
+    let update_fields = ['firstname=(?)', 'lastname=(?)', 'phone=(?)', 'is_disabled=(?)', 'is_demo_customer=(?)'];
+    let update_values = [userDetails['firstname'], userDetails['lastname'], userDetails['phone']??'', helper.var_to_bool(userDetails['is_disabled']), helper.var_to_bool(userDetails['is_demo_customer'])];
 
     const existing_user = helper.emptyOrSingle(await db.query(
       `select * from users where id=(?)`,
@@ -1916,15 +1931,18 @@ async function updateUser(userDetails, photo_url, active_connection){
       
       //link to customers
       await db.transaction_query(`delete from user_customers where user_id=(?)`, [userDetails["id"]], active_connection);
-      const userRolesFilterByCustomers = await doUserRolesHavePermissions(userDetails["roles"], [{ requiredArea: 'customer_resources_by_customer_id', requiredPermission: 'R' }]);
-      if(userRolesFilterByCustomers && userDetails["customers"] && userDetails["customers"].length > 0){
-        let customer_ids = (userDetails["customers"])? userDetails["customers"].map(c => c.id) : [];
-        const customers_placeholders = customer_ids.map(i => "((?),(?))").join(",");
-        await db.transaction_query(
-          `insert into user_customers (user_id, customer_id) values ${customers_placeholders}`,
-          customer_ids.map(i => [userDetails["id"] , i]).flat(),
-          active_connection
-        );
+      //do not link to real customers if the user 
+      if(userDetails["is_demo_customer"]){
+        const userRolesFilterByCustomers = await doUserRolesHavePermissions(userDetails["roles"], [{ requiredArea: 'customer_resources_by_customer_id', requiredPermission: 'R' }]);
+        if(userRolesFilterByCustomers && userDetails["customers"] && userDetails["customers"].length > 0){
+          let customer_ids = (userDetails["customers"])? userDetails["customers"].map(c => c.id) : [];
+          const customers_placeholders = customer_ids.map(i => "((?),(?))").join(",");
+          await db.transaction_query(
+            `insert into user_customers (user_id, customer_id) values ${customers_placeholders}`,
+            customer_ids.map(i => [userDetails["id"] , i]).flat(),
+            active_connection
+          );
+        }
       }
 
       //link to roles

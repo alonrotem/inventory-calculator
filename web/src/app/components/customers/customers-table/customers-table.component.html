@@ -20,7 +20,7 @@
         <th scope="col">Business name</th>
         <th scope="col" class="text-center">Raw material banks</th>
         <th scope="col" class="text-center">Work allocations</th>
-        <td scope="col" class="text-center">Orders</td>
+        <td scope="col" class="text-center" *ngIf="!(user$ | async)?.is_demo_customer">Orders</td>
       </tr>
     </thead>
     <tbody>
@@ -31,7 +31,7 @@
         <td routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }">{{ customer.business_name }}</td>
         <td routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }" class="text-center">{{ customer.bank_count }}</td>
         <td routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }" class="text-center">{{ customer.allocation_count }}</td>
-        <td style="width: 1px;">
+        <td style="width: 1px;" *ngIf="!(user$ | async)?.is_demo_customer">
           <button class="btn btn-outline-primary" style="text-wrap-mode: nowrap;" (click)="go_to_orders(customer.id, customer.name)"><!--(click)="go_to_orders()"-->
             <div><fa-icon [icon]="faBasketShopping"></fa-icon> Orders</div>
           </button>

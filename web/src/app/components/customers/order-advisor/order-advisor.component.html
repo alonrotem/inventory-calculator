@@ -42,8 +42,8 @@
 <app-modal-dialog 
     #hat_creation_assistant
     [btnSaveText]="'Add missing babies to my allocation'"
-    [btnSaveClass]="(((user$ | async) | hasPermission: ([{area: 'bank_baby_management', permission: 'C'}])) && sufficient_babies_in_allocations)? 'btn-success' : 'd-none'"
-    [btnCancelText]="(((user$ | async) | hasPermission: ([{area: 'bank_baby_management', permission: 'C'}])) && sufficient_babies_in_allocations)? 'Cancel' : 'Close'"
+    [btnSaveClass]="((is_demo_customer) || (((user$ | async) | hasPermission: ([{area: 'bank_baby_management', permission: 'C'}]))) && sufficient_babies_in_allocations)? 'btn-success' : 'd-none'"
+    [btnCancelText]="((is_demo_customer) || (((user$ | async) | hasPermission: ([{area: 'bank_baby_management', permission: 'C'}]))) && sufficient_babies_in_allocations)? 'Cancel' : 'Close'"
     [modalSize]="'xl'"
     [modalTitle]="'Auto-adjust allocation #' + wall_allocation?.id"
     (confirm)="assistant_add_babies()">
@@ -202,9 +202,15 @@
         </div>
     </div>
 
-    <div class="advisor-content" *ngIf="not_enough_data">
+    <div class="advisor-content" *ngIf="!wing_has_no_babies && not_enough_data">
         <div class="message">
             <div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon> Choose allocations to get calculation suggestions</div>
         </div>
     </div>
+
+    <div class="advisor-content" *ngIf="wing_has_no_babies">
+        <div class="message">
+            <div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon> This wing has no babies</div>
+        </div>
+    </div>    
 </div>

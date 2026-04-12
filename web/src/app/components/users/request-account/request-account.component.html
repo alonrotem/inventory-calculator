@@ -14,7 +14,7 @@ If you don't have an account (and you think you should have one), fill your deta
           #input_firstname="ngModel" 
           name="input_firstname" 
           [required]="true"
-          [pattern]="'^[a-zA-Z\\ \\-]*$'">
+          [pattern]="'^[a-zA-Z\\ \\-_]*$'">
         <label for="input_firstname">First name <span class="text-danger">*</span></label>
       </div> 
       <div class="text-danger" *ngIf="input_firstname.invalid && (input_firstname.touched || input_firstname.dirty)" > 

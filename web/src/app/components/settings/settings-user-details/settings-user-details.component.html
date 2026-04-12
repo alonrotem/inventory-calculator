@@ -79,7 +79,7 @@
                             <div class="input-group">
                                 <div class="form-floating">
                                     <input type="text" 
-                                        id="user_firstname" class="form-control" placeholder="0" [(ngModel)]="user.firstname" name="user_firstname" #user_firstname="ngModel" [required]="true" [pattern]="'^[a-zA-Z][a-zA-Z\\-_]*$'">
+                                        id="user_firstname" class="form-control" placeholder="0" [(ngModel)]="user.firstname" name="user_firstname" #user_firstname="ngModel" [required]="true" [pattern]="'^[a-zA-Z][a-zA-Z\\-_\\ ]*$'">
                                     <label for="user_firstname">First name<span class="text-danger">*</span></label>
                                 </div>
                             </div>
@@ -190,13 +190,32 @@
                         <strong><span class="text-warning">Careful!</span> An administrator has unlimited access!</strong>
                     </div>                    
                     <div class="col col-12" *ngIf="user.roles.length > 0 && user.roles[0].name == 'customer'">
-                        <div><strong>Link this user to cutsomers:</strong></div>
-                        <app-customer-picker
-                            #customer_picker 
-                            [(pickedCustomers)]="user.customers"
-                            (pickedCustomersChange)="changed_customers()"
-                            />
+
+
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="customer_options" id="customer_options_real" [(ngModel)]="user.is_demo_customer" [value]="false">
+                    <label class="form-check-label" for="customer_options_real">
+                        Connect this user to real customers {{ user.is_demo_customer?'No':'Yes' }}
+                    </label>                        
+                    <app-customer-picker
+                        #customer_picker 
+                        [(pickedCustomers)]="user.customers"
+                        (pickedCustomersChange)="changed_customers()"
+                        />
                     </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="customer_options" id="customer_options_demo" [(ngModel)]="user.is_demo_customer" [value]="true">
+                        <label class="form-check-label" for="customer_options_demo">
+                            This is a demo customer (not connected to real customers)
+                            <div *ngIf="user.is_demo_customer" class="text-warning">
+                                <fa-icon [icon]="faTriangleExclamation" class="text-warning me-2"></fa-icon>
+                                A demo customer can play with calculations but not affect the inventory, or send new orders.
+                            </div>
+                        </label>                        `
+                    </div>
+
+                </div>
                 </div>
             </div>
 

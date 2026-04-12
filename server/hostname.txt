@@ -1,1 +1,1 @@
-localhost
+romtech.duckdns.org

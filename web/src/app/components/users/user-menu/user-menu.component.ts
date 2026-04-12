@@ -27,7 +27,8 @@ export class UserMenuComponent implements OnInit {
     roles: [],
     photo_url: '',
     customers: [],
-    area_permissions: []
+    area_permissions: [],
+    is_demo_customer: false
   };
   initials = "";
   currentUrl: string = '';

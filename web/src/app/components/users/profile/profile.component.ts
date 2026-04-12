@@ -50,7 +50,8 @@ export class ProfileComponent implements OnInit {
     registered_on: new Date(),
     roles: [],
     customers: [],
-    area_permissions: []
+    area_permissions: [],
+    is_demo_customer: false
   }
   isCustomer: boolean = false;
   password_change = {

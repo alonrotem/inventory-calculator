@@ -57,6 +57,25 @@ router.get('/single/:id',
     }
   });
 
+  //get demo customer by user id
+  router.get('/demo/:user_id', auth_request(), async function(req, res, next) {
+    try {
+      logger.info(`get /customers/demo/${req.params.user_id}`);
+
+      let response = await customers.getDemoCustomerForUserId(req.params.user_id);
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);
+    } catch (err) {
+      logger.error(`Error getting demo customer for user with ID ${ req.params.user_id }`, err.message);
+      if(err.status){
+        res.status(err.status).json({message: err.message});
+      }
+      else {
+        next(err);
+      }
+    }
+  });
+
   router.get('/names',
     auth_request([{requiredArea:'customers', requiredPermission:'R'}, {requiredArea:'customer_resources_by_customer_id', requiredPermission:'R'}]), 
     async function(req, res, next) {

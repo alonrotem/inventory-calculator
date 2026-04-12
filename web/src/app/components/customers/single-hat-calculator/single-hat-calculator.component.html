@@ -177,7 +177,7 @@
         <button class="btn btn-warning" [routerLink]="'/inventory/customer/editor'" [queryParams]="{ id: this.customer.id }">
           <div><fa-icon [icon]="faArrowLeft"></fa-icon> Back to {{ customer.name }}'s page</div>
         </button>
-        <button class="btn btn-success" (click)="go_to_orders()">
+        <button *ngIf="!customer.is_demo_customer" class="btn btn-success" (click)="go_to_orders()">
           <div><fa-icon [icon]="faBasketShopping"></fa-icon> Your orders</div>
         </button>
       </div>
@@ -837,7 +837,7 @@
     /><!--[tails_allocation]="this.tails_allocation"-->
   </div> 
 
-  <div style="border: 1px solid; border-radius: 10px; margin: 20px 0px;padding: 20px;">
+  <div *ngIf="!customer.is_demo_customer" style="border: 1px solid; border-radius: 10px; margin: 20px 0px;padding: 20px;">
     <div><h3>Place an order</h3></div>
     <div *ngIf="total_num_of_possible_hats > 0 && customerHat.crown_allocation_id > 0 && customerHat.wall_allocation_id > 0">
 

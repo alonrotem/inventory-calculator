@@ -94,7 +94,7 @@ constructor(private apiService: ApiService, private runtimeService: RuntimeServi
     });
   };
 
-  signupNewUser (signupData: { firstname: string, lastname: string, username: string, password: string, email: string , role: string}): Observable<any> {
+  signupNewUser (signupData: { firstname: string, lastname: string, username: string, password: string, email: string , role: string, is_demo_customer: boolean }): Observable<any> {
     return this.apiService.post(`${environment.serverUrl}/users/signup`, signupData, { });
   }
 
@@ -242,7 +242,8 @@ constructor(private apiService: ApiService, private runtimeService: RuntimeServi
       roles: [],
       photo_url: '',
       customers: [],
-      area_permissions: []
+      area_permissions: [],
+      is_demo_customer: false
     };
     return this.apiService.get<BasicUserInfoStatus>(
       `${environment.serverUrl}/users/status`, 
