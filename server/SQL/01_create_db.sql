@@ -701,6 +701,7 @@ CREATE TABLE IF NOT EXISTS `account_requests` (
 	`last_update`	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`approver_user_id`	int default 0,
 	`approved_account_user_id` int null,
+	`is_demo_customer`			BOOL not null default false,
 	# `account_creation_code`		VARCHAR(255) null,
 	`account_role_id`	int default 0,
 	`request_status`	ENUM(

@@ -1,0 +1,32 @@
+meta {
+  name: request account
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{romtech_server}}/users/request_account
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "firstname": "John",
+    "lastname": "Smith",
+    "email": "benji@gmail.com",
+    "phone": "012345678",
+    "details": "Automated qaccount request post"
+  }
+}
+
+script:post-response {
+  if(res.body.access_token) {
+    bru.setVar("auth_token", res.body.access_token);
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

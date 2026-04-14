@@ -69,7 +69,7 @@ router.post('/', auth_request([{ requiredArea: 'user_management', requiredPermis
       //file is available at <server>/uploads/images/users/1767022665227-photo.png
   }
 
-  const updatedUser = await users.updateUser(req.body, profile_photo_path);
+  const updatedUser = await users.updateUser(req.body, profile_photo_path, req["auth_token"]);
   res.status(200).send(updatedUser);
  } 
   catch (err) {
@@ -321,7 +321,8 @@ router.get('/profile', auth_request(), async function(req, res, next) {
       pending_new_email: userInfo.pending_new_email,
       phone: userInfo.phone,
       registered_on: userInfo.created_at,
-      customers: userInfo.customers
+      customers: userInfo.customers,
+      is_demo_customer: userInfo.is_demo_customer
     };
     if(userInfo["roles"]){
       return_data["roles"] = userInfo["roles"];

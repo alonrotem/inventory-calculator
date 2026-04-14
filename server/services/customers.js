@@ -127,7 +127,7 @@ async function getMultiple(page = 1, perPage=0, currentUserId){
   const user = await users.getSingle(currentUserId);
   if(user && !helper.isEmptyObj(user) && user.is_demo_customer){
     const demo_customer = helper.emptyOrSingle(await db.query(
-      `SELECT DISTINCT c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.created_at, c.updated_at, c.created_by, c.updated_by,
+      `SELECT DISTINCT c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.created_at, c.updated_at, c.created_by, c.updated_by, c.is_demo_customer,
           COUNT(cb.customer_id) AS bank_count,
                   COALESCE(SUM(work_allocations.allocation_count), 0) AS allocation_count
           FROM customers c
@@ -174,7 +174,7 @@ async function getMultiple(page = 1, perPage=0, currentUserId){
     JOIN role_permissions rp ON rp.role_id = r.id
     WHERE u.id = (?)
   )
-  SELECT DISTINCT c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.created_at, c.updated_at, c.created_by, c.updated_by,
+  SELECT DISTINCT c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.created_at, c.updated_at, c.created_by, c.updated_by, c.is_demo_customer,
   COUNT(cb.customer_id) AS bank_count,
           COALESCE(SUM(work_allocations.allocation_count), 0) AS allocation_count
   FROM customers c

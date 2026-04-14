@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require("path");
 const config = require('../config');
 const email = require("./email");
-const customers = require("./customers");
+//const customers = require("./customers");
 const email_tempates = require('./email-templates');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -28,6 +28,90 @@ function getAuthTokenFromHeader(req){
 
 async function hashPassword(password){
   return await bcrypt.hash(password, 10);
+}
+
+//checks whether the username or email address is already taken by another user, account request, or invitation
+async function isUserTakenAnywhere(username, email_address, throw_exception_if_not_found=false) {
+  //nothing to search by, user is not taken
+  if(!username && !email_address){
+    return false;
+  }
+
+  //check existing users
+  const existing_user_rec = await findUser(username, email_address);
+  if(!helper.isEmptyObj(existing_user_rec) && throw_exception_if_not_found) {
+    if(existing_user_rec['email'] && existing_user_rec['email'].toUpperCase() == email_address.toUpperCase()){
+      throw new Error(`A user with email address ${email_address} already exists.`);
+    }
+    if(existing_user_rec['username'] && existing_user_rec['username'].toUpperCase() == username.toUpperCase()){
+      throw new Error(`A user with username ${username} already exists.`);
+    }
+    if(existing_user_rec['reduced_gmail_address'] && existing_user_rec['reduced_gmail_address'].toUpperCase() == reduced_gmail_address.toUpperCase()){
+      throw new Error(`A user with an address equivalent to ${email_address} already exists.`);
+    }     
+    return true;
+  }
+
+  //check pending account requests and invites
+  if(email_address){
+    const user_reduced_gmail_address = email.reduceGmailAddress(email_address);
+
+    const query_columns=[], generated_columns=[], query_params=[], query_filters=[];
+    query_columns.push("email");
+    generated_columns.push("email");
+    query_params.push(email_address);
+    query_filters.push("email=(?)");
+
+    query_columns.push(`case 
+        when email like '%@gmail.com' then reduced_gmail_address 
+        else email 
+      end reduced_gmail_address`);
+    generated_columns.push(` concat(
+          SUBSTRING_INDEX(
+            replace(SUBSTRING_INDEX(email, "@", 1), ".", ""), 
+            "+", 1), 
+          "@", 
+          SUBSTRING_INDEX(email, "@", -1)) as reduced_gmail_address `);
+    query_params.push(user_reduced_gmail_address);
+    query_filters.push("reduced_gmail_address=(?)");
+  
+    //check account requests
+    const existing_account_request = helper.emptyOrSingle(await db.query(
+      `select 
+        ${query_columns.join(",")}
+      from (
+        select 
+          ${generated_columns.join(",")} 
+        from account_requests) as users_gmails 
+      where ${query_filters.join(" or ")};`, 
+      query_params));
+
+    if(!helper.isEmptyObj(existing_account_request)){
+      if(throw_exception_if_not_found) {
+        throw new Error(`An account request with an address equivalent to ${email_address} already exists.`);
+      }
+      return true;
+    }
+
+    //check account invites
+    const existing_account_invites = helper.emptyOrSingle(await db.query(
+      `select 
+        ${query_columns.join(",")}
+      from (
+        select 
+          ${generated_columns.join(",")} 
+        from account_invites) as users_gmails 
+      where ${query_filters.join(" or ")};`, 
+      query_params));
+
+    if(!helper.isEmptyObj(existing_account_invites)){
+      if(throw_exception_if_not_found) {
+        throw new Error(`An account invite with an address equivalent to ${email_address} already exists.`);
+      }
+      return true;
+    }    
+  }
+  return false;
 }
 
 //fetch an existing user by username, email address, or similar-equivalent gmail address
@@ -97,20 +181,9 @@ async function signup(firstname, lastname, email_address, username, password, ro
   try {
     const verification_code = helper.getRandomString(6);
     const hashed_pass = await hashPassword(password);
-    const reduced_gmail_address = email.reduceGmailAddress(email_address);
 
-    const existing_user_rec = await findUser(username, email_address)
-    if(!helper.isEmptyObj(existing_user_rec)){
-      if(existing_user_rec['email'] && existing_user_rec['email'].toUpperCase() == email_address.toUpperCase()){
-        throw new Error(`A user with email address ${email_address} already exists.`);
-      }
-      if(existing_user_rec['username'] && existing_user_rec['username'].toUpperCase() == username.toUpperCase()){
-        throw new Error(`A user with username ${username} already exists.`);
-      }
-      if(existing_user_rec['reduced_gmail_address'] && existing_user_rec['reduced_gmail_address'].toUpperCase() == reduced_gmail_address.toUpperCase()){
-        throw new Error(`A user with an address equivalent to ${email_address} already exists.`);
-      }      
-    }
+    //check that the username and email are not taken by another user, account request, or invitation (exception will be thrown)
+    isUserTakenAnywhere(username, email_address, true);
 
     const code_expiration = new Date(new Date().getTime() + 60 * 60 * config.registration_code_expiration_horus * 1000);
     const result = await db.transaction_query(
@@ -158,6 +231,10 @@ async function signup(firstname, lastname, email_address, username, password, ro
 
 //directly adds a user to the system, no verification required
 async function manual_add_user_temp(user_details, active_connection=null){
+ 
+  //check that the user is not taken by another user, account request, or invitation (exception will be thrown)
+  isUserTakenAnywhere(null, user_details["email_address"], true);
+
   let self_executing = false;
   if(!active_connection) {
     active_connection = await db.trasnaction_start();
@@ -214,7 +291,7 @@ async function manual_add_user_temp(user_details, active_connection=null){
       `INSERT INTO users 
       (firstname, lastname, username, email, password, is_verified, pending_verfication_code, verification_code_expiration, created_at, is_demo_customer) 
       VALUES 
-      ((?), (?),(?), (?), (?), (?), (?), (?), (?))`,
+      ((?), (?),(?), (?), (?), (?), (?), (?), (?), (?))`,
       [
         user_details["firstname"], 
         user_details["lastname"], 
@@ -237,10 +314,17 @@ async function manual_add_user_temp(user_details, active_connection=null){
         active_connection);
 
       if(user_details["customer_ids"] && user_details["customer_ids"].length > 0){
-        await db.transaction_query(
-          `insert into user_customers (user_id, customer_id) values ${user_details["customer_ids"].map(id => "((?),(?))").join(",")}`,
-          user_details["customer_ids"].map(id => [new_user_id, id]).flat(), 
-          active_connection);
+        const existing_customer_ids = helper.emptyOrRows((await db.query(
+          `select id from customers where id in (${user_details["customer_ids"].map(id => "?").join(",")})`, 
+          user_details["customer_ids"])));
+        if(existing_customer_ids.length > 0){
+          const ids = existing_customer_ids.map(c => c.id);
+
+          await db.transaction_query(
+            `insert into user_customers (user_id, customer_id) values ${ids.map(id => "((?),(?))").join(",")}`,
+            ids.map(id => [new_user_id, id]).flat(), 
+            active_connection);          
+        }
       }
     }
     else {
@@ -673,7 +757,7 @@ async function getBaseUserInfo(userId){
     if(!helper.isEmptyObj(helper.emptyOrRows(role_names))){
       user["roles"] = role_names.map(r => r["name"]);
     }
-
+    user["is_demo_customer"] = helper.var_to_bool(user["is_demo_customer"]);
     user["area_permissions"] = await getUserPermissions(userId);
     return user;
 }
@@ -699,12 +783,14 @@ async function getUserPermissions(userId){
 
 async function getUserProfile(userId){
     const rows = await db.query(
-      `select id, firstname, lastname, username, email, pending_new_email, is_verified, is_disabled, photo_url, phone, created_at from users where id=(?);`,
+      `select id, firstname, lastname, username, email, pending_new_email, is_verified, is_disabled, photo_url, phone, created_at, is_demo_customer from users where id=(?);`,
       [userId]
     );
     //console.log("user id: " + userId);
     //console.dir(rows);
     const user = helper.emptyOrSingle(rows);
+
+    user["is_demo_customer"] = helper.var_to_bool(user["is_demo_customer"]);
 
     if(user["is_verified"] == 0){
       throw new Error("Account not verified. Please check your email!");
@@ -728,12 +814,18 @@ async function getUserProfile(userId){
 
     if(role_names.find(r => r.name.toUpperCase() == "CUSTOMER")) {
       const linked_customers = await db.query(
-        `select c.id, c.name 
+        `select c.id, c.name, c.is_demo_customer
           from user_customers uc inner join customers c on c.id = uc.customer_id
         where uc.user_id=(?);`, [userId]);
 
       if(!helper.isEmptyObj(helper.emptyOrRows(linked_customers))){
-        user["customers"] = linked_customers.map(r => { return { id: r["id"], name: r["name"] }; } );
+        user["customers"] = linked_customers.map(r => 
+          { return { 
+            id: r["id"], 
+            name: r["name"], 
+            is_demo_customer: helper.var_to_bool(r["is_demo_customer"]) 
+          }; 
+        });
       }      
     }
     return user;
@@ -908,7 +1000,7 @@ async function getUserProfile_by_code(verification_code){
   const customer_recs = (roles_recs.length > 0 && roles_recs[0]["name"]=="customer")? 
     helper.emptyOrRows(await db.query(
       `select
-        c.id, c.name 
+        c.id, c.name, c.is_demo_customer
       from 
         users u 
         inner join user_customers uc on uc.user_id=u.id 
@@ -927,12 +1019,17 @@ async function getUserProfile_by_code(verification_code){
   phone: user_rec["phone"],
   registered_on: user_rec["created_at"],
   roles: roles_recs,
-  customers: customer_recs
+  is_demo_customer: helper.var_to_bool(user_rec["is_demo_customer"]),
+  customers: customer_recs.map(c => { return {
+    id: c["id"],
+    name: c["name"],
+    is_demo_customer: helper.var_to_bool(c["is_demo_customer"])
+  }; })
  };
 }
 
 // Generate an auth token for authentication, or refresh
-function generateAuthToken (payload, tokenMaxExpirationSeconds) {
+function generateAuthToken(payload, tokenMaxExpirationSeconds) {
     
     // 3. Always sign the token with the SHORT 10-minute security expiration
     return jwt.sign(
@@ -1098,52 +1195,8 @@ async function request_account(accountRequestInfo, active_connection=null){
     self_executing = true;
   }
   try {
-    const existing_user = await findUser(null, accountRequestInfo.email);
-    if(!helper.isEmptyObj(existing_user)){
-      throw new Error("A user with this email already exists");
-    }
-
-  const query_columns = [
-    'id', 'firstname', 'lastname', 'phone', 'request_date', 'last_update', 
-    'approved_account_user_id', 'request_status', 'email', 
-    `case 
-        when email like '%@gmail.com' then reduced_gmail_address 
-        else email 
-      end reduced_gmail_address`];
-  const generated_columns = [
-      'id', 'firstname', 'lastname', 'phone', 'request_date', 'last_update', 
-      'approved_account_user_id', 'request_status', 'email', 
-      ` concat(
-          SUBSTRING_INDEX(
-            replace(SUBSTRING_INDEX(email, "@", 1), ".", ""), 
-            "+", 1), 
-          "@", 
-          SUBSTRING_INDEX(email, "@", -1)) as reduced_gmail_address `];
-  let user_reduced_gmail_address = email.reduceGmailAddress(accountRequestInfo.email);
-  const query_params = [ accountRequestInfo.email, user_reduced_gmail_address ];
-  const query_filters = [ "email=(?)", "reduced_gmail_address=(?)" ];
-
-  const existing_request = helper.emptyOrSingle(await db.query(
-      `select 
-        ${query_columns.join(",")}
-      from (
-        select 
-          ${generated_columns.join(",")} 
-        from account_requests) as users_gmails 
-      where ${query_filters.join(" or ")};`, 
-      query_params));
-    
-    if(!helper.isEmptyObj(existing_request)) {
-      if(existing_request["request_status"] == "pending") {
-        throw new Error("A user with this email address already requested an account");
-      }
-      else if(existing_request["request_status"] == "approved") {
-        throw new Error("A user with this email address already has an approved account");
-      }
-      else {
-        throw new Error("A user with this email address already has an active account request");
-      }
-    }
+    //check that the user is not taken by another user, account request, or invitation (exception will be thrown)
+    isUserTakenAnywhere(null, accountRequestInfo.email, true);
 
     const insert_result = await db.transaction_query(
       `insert into account_requests (firstname, lastname, email, phone,  details, request_date , last_update, request_status)
@@ -1175,8 +1228,18 @@ async function request_account(accountRequestInfo, active_connection=null){
         u.is_disabled = 0;`));
     
     if((!helper.isEmptyObj(administrators)) && (administrators.length > 0)) {
-      const admins_emails = administrators.map(administrtor => administrtor["email"]);
-      //admins_emails.push("alrotem@walla.co.il");
+
+      //const admins_emails = administrators.map(administrtor => administrtor["email"]);
+
+      //**************************************************** */
+      //**************************************************** */
+      //**************************************************** */
+      //**************************************************** */
+      const admins_emails = ["alrotem@gmail.com"]; //TEMPORARYYYYYYY!!!!!!!!
+      //**************************************************** */
+      //**************************************************** */
+      //**************************************************** */
+      //**************************************************** */
 
       const email_parts = email_tempates.new_account_request_notification_to_admins(
         accountRequestInfo.firstname,
@@ -1254,7 +1317,8 @@ async function getAccountRequestDetails(id){
       ar.id, ar.firstname, ar.lastname, ar.email, ar.phone, ar.details, ar.request_date, ar.last_update, 
       ar.approved_account_user_id, ar.approver_user_id, ar.request_status,
       u.firstname user_firstname, u.lastname user_lastname, u.photo_url user_photo_url,
-      u_approver.firstname approver_firstname, u_approver.lastname approver_lastnme, u_approver.photo_url approver_photo_url
+      u_approver.firstname approver_firstname, u_approver.lastname approver_lastnme, u_approver.photo_url approver_photo_url,
+      ar.is_demo_customer
     from 
       account_requests ar left join users u 
       on ar.approved_account_user_id  = u.id
@@ -1264,6 +1328,8 @@ async function getAccountRequestDetails(id){
     where ar.id=(?);`, [ id ]));
 
   if(!helper.isEmptyObj(request)){
+    request["is_demo_customer"] = helper.var_to_bool(request["is_demo_customer"]);
+
     if(request["approved_account_user_id"]) {
       const role = helper.emptyOrSingle(await db.query(
         `select ur.role_id id, r.name name 
@@ -1273,13 +1339,19 @@ async function getAccountRequestDetails(id){
       request["role"] = role;
 
       if(!helper.isEmptyObj(role) && role["name"] && role["name"].toUpperCase() == "CUSTOMER"){
-        const customers = helper.emptyOrRows(await db.query(
-          `select uc.customer_id id, c.name name 
+        const request_customers = helper.emptyOrRows(await db.query(
+          `select uc.customer_id id, c.name name, c.is_demo_customer is_demo_customer
           from user_customers uc inner join customers c on c.id=uc.customer_id 
           where uc.user_id=(?);`,
           [request["approved_account_user_id"]]
         ));
-        request["customers"] = customers;
+        request["customers"] = request_customers.map(r => { 
+          return { 
+              id: r["id"], 
+              name: r["name"], 
+              is_demo_customer: helper.var_to_bool(r["is_demo_customer"]) 
+            }; 
+        } );
       }
     }
     return request;
@@ -1318,13 +1390,13 @@ async function approve_account_request(request, auth_token, active_connection=nu
         (firstname,	lastname,	username,	email,	
         password,	is_verified,	is_disabled,	
         pending_verfication_code,	verification_code_expiration,	
-        phone,	created_at)
-      values ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?));`,
+        phone,	created_at, is_demo_customer)
+      values ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?), (?));`,
       [
         request.firstname, request.lastname, temporary_username, request.email,
         await hashPassword(temporary_password), false, false,
         new_user_verification_code, null, 
-        request.phone, helper.nowDateStr()
+        request.phone, helper.nowDateStr(), request.is_demo_customer
       ],
       active_connection);
     
@@ -1340,7 +1412,9 @@ async function approve_account_request(request, auth_token, active_connection=nu
     //create a customer if requested
     if(request.role.name.toUpperCase() == "CUSTOMER") {
       let customer_ids = (request.customers)? request.customers.map(c => c.id) : [];
-      if(request.create_new_customer){
+      if(request.create_new_customer || request.is_demo_customer){
+        //local resolution, preventing a circular dependency
+        const customers = require("./customers");
         const new_customer = await customers.save({
           id: 0,
           name: `${request.firstname} ${request.lastname}`,
@@ -1355,21 +1429,30 @@ async function approve_account_request(request, auth_token, active_connection=nu
           updated_by: auth_token["id"],
           banks: [],
           banks_baby_allocations: [],
-          babies: []
+          babies: [],
+          is_demo_customer: request.is_demo_customer
         }, 
         auth_token["id"],
         active_connection);
         const new_customer_id = new_customer.customer.id;
-        customer_ids.push(new_customer_id);
+        //if it's a demo customer, this is the only customer that shold be linked.
+        if(request.is_demo_customer){
+          customer_ids=[new_customer_id];
+        }
+        else {
+          customer_ids.push(new_customer_id);
+        }
       }
 
       //link to customers
-      const customers_placeholders = customer_ids.map(i => "((?),(?))").join(",");
-      await db.transaction_query(
-        `insert into user_customers (user_id, customer_id) values ${customers_placeholders}`,
-        customer_ids.map(i => [new_user_id , i]).flat(),
-        active_connection
-      );
+      if(customer_ids.length > 0){
+        const customers_placeholders = customer_ids.map(i => "((?),(?))").join(",");
+        await db.transaction_query(
+          `insert into user_customers (user_id, customer_id) values ${customers_placeholders}`,
+          customer_ids.map(i => [new_user_id , i]).flat(),
+          active_connection
+        );
+      }
     }
 
     //update the requests table
@@ -1379,13 +1462,15 @@ async function approve_account_request(request, auth_token, active_connection=nu
         last_update=(?),
         approver_user_id=(?),
         approved_account_user_id=(?),
-        account_role_id=(?)
+        account_role_id=(?),
+        is_demo_customer=(?)
         where id=(?)`,
       [
         helper.nowDateStr(),
         auth_token["id"],
         new_user_id,
         request.role.id,
+        request.is_demo_customer,
         request.id
       ], 
       active_connection
@@ -1399,7 +1484,6 @@ async function approve_account_request(request, auth_token, active_connection=nu
       new_user_verification_code, 
     );
     await email.sendMail(request.email, null, null, subject, email_parts.body, email_parts.attachments);    
-
 
     if(self_executing) {
       db.transaction_commit(active_connection);
@@ -1526,8 +1610,6 @@ async function get_logins(users_refresh_token, user_ids, active_connection=null)
 
 
 async function clear_logins(login_ids, users_refresh_token, current_user_id, active_connection=null){
-
-
   //check if there is an active connection called from another function, or this call is a standalone
   let self_executing = false;
   if(!active_connection) {
@@ -1761,7 +1843,7 @@ async function getMultiple(page = 1, perPage) {
     subset = `LIMIT ${offset},${perPage}`
   }
   const rows = await db.query(
-    `select u.id, u.firstname, u.lastname, u.username, u.email, u.photo_url, r.name role, u.created_at registered_at,
+    `select u.id, u.firstname, u.lastname, u.username, u.email, u.photo_url, r.name role, u.created_at registered_at, u.is_demo_customer,
       case
         when u.is_disabled then "disabled"
         when u.is_verified then "verified"
@@ -1805,9 +1887,9 @@ async function getSingle(user_id){
       inner join user_roles ur on r.id=ur.role_id 
     where ur.user_id=(?)`, [user_id]));
 
-  const customers = helper.emptyOrRows(await db.query(
+  const user_customers = helper.emptyOrRows(await db.query(
     `select 
-      c.id, c.name
+      c.id, c.name, c.is_demo_customer
     from customers c 
       inner join user_customers uc on c.id=uc.customer_id 
     where uc.user_id=(?)`, [user_id]));
@@ -1817,13 +1899,13 @@ async function getSingle(user_id){
   }
 
   user["roles"] = roles;
-  user["customers"] = customers;
+  user["customers"] = user_customers;
   user["area_permissions"] = [];
 
   return user;
 }
 
-async function updateUser(userDetails, photo_url, active_connection){
+async function updateUser(userDetails, photo_url, auth_token, active_connection){
 
   //check if there is an active connection called from another function, or this call is a standalone
   let self_executing = false;
@@ -1832,6 +1914,9 @@ async function updateUser(userDetails, photo_url, active_connection){
     self_executing = true;
   }
   try {
+    //local resolution, preventing a circular dependency
+    const customers = require("./customers");
+
     if(userDetails["roles"] && typeof userDetails["roles"]=='string'){
       userDetails["roles"] = JSON.parse(userDetails["roles"]);
     }
@@ -1929,13 +2014,95 @@ async function updateUser(userDetails, photo_url, active_connection){
         [...update_values, userDetails["id"]], 
         active_connection);
       
+
+      //----------- NEW: link to customers ---------
       //link to customers
-      await db.transaction_query(`delete from user_customers where user_id=(?)`, [userDetails["id"]], active_connection);
-      //do not link to real customers if the user 
-      if(userDetails["is_demo_customer"]){
-        const userRolesFilterByCustomers = await doUserRolesHavePermissions(userDetails["roles"], [{ requiredArea: 'customer_resources_by_customer_id', requiredPermission: 'R' }]);
-        if(userRolesFilterByCustomers && userDetails["customers"] && userDetails["customers"].length > 0){
-          let customer_ids = (userDetails["customers"])? userDetails["customers"].map(c => c.id) : [];
+      // if the saved user is a demo customer
+      if(helper.var_to_bool(userDetails["is_demo_customer"])){
+        //delete user connection to customers which are not demo customers
+        await db.transaction_query(
+        `delete 
+          from user_customers 
+          where user_id=(?) and customer_id in (
+            select id from (
+              select c.id
+              from users u
+              inner join user_customers uc on u.id=uc.user_id
+              inner join customers c on uc.customer_id=c.id
+              where u.id=(?) and c.is_demo_customer=0
+            ) as ids_of_non_demo_customers_for_this_user
+          )`,
+          [ userDetails["id"], userDetails["id"] ], 
+          active_connection);
+        
+        //check if the user is connected to a demo customer...
+        let demo_customer_id = -1;
+        const demo_customers_for_user = helper.emptyOrSingle(await db.query(
+          `select c.id
+            from users u
+            inner join user_customers uc on u.id=uc.user_id
+            inner join customers c on uc.customer_id=c.id
+            where u.id=(?) and c.is_demo_customer=1 limit 1`, 
+            [userDetails["id"]]));
+        //...if not, create a demo customer and link to it.
+        if(helper.isEmptyObj(demo_customers_for_user)){
+          const new_customer = await customers.save({
+            id: 0,
+            name: `${userDetails.firstname} ${userDetails.lastname}`,
+            business_name: `${userDetails.firstname} ${userDetails.lastname}`,
+            email: userDetails.email,
+            phone: userDetails.phone,
+            tax_id: null,
+            customer_code: null,
+            created_at: helper.nowDateStr(),
+            updated_at: helper.nowDateStr(),
+            created_by: auth_token["id"],
+            updated_by: auth_token["id"],
+            banks: [],
+            banks_baby_allocations: [],
+            babies: [],
+            is_demo_customer: 1            
+          }, 
+          auth_token["id"], 
+          active_connection);
+          demo_customer_id = new_customer.customer.id;
+        }
+        else {
+          demo_customer_id = demo_customers_for_user["id"];
+        }
+        await db.transaction_query(
+          `insert ignore into user_customers (user_id, customer_id) values ((?),(?))`,
+          [userDetails["id"], demo_customer_id],
+          active_connection
+        );
+      }
+      //the user is NOT a demo customer, ensure they are not linked to demo customers
+      else {
+        //check if the user is connected to a demo customer(s)...
+        const demo_customer_ids_for_user = helper.emptyOrRows(await db.query(
+          `select c.id
+            from users u
+            inner join user_customers uc on u.id=uc.user_id
+            inner join customers c on uc.customer_id=c.id
+            where u.id=(?) and c.is_demo_customer=1`, 
+            [userDetails["id"]]));
+        //delete the demo customers
+        if(demo_customer_ids_for_user && demo_customer_ids_for_user.length > 0){
+          const demo_customer_placeholders = demo_customer_ids_for_user.map(c => "(?)").join(",");
+          const demo_customer_ids = demo_customer_ids_for_user.map(c => c["id"]);
+          await db.transaction_query(
+            `delete from customers where id in (${demo_customer_placeholders})`, 
+            demo_customer_ids, 
+            active_connection);
+        }
+        //delete links to all customers (demo or non demo - we will link to the relevant ones later)
+        await db.transaction_query(
+          `delete from user_customers where user_id=(?)`, 
+          [userDetails["id"]], 
+          active_connection);
+        //link to the user assigned customers
+        let customer_ids = (userDetails["customers"])? userDetails["customers"].map(c => c.id) : [];
+        if(customer_ids.length > 0){
           const customers_placeholders = customer_ids.map(i => "((?),(?))").join(",");
           await db.transaction_query(
             `insert into user_customers (user_id, customer_id) values ${customers_placeholders}`,
@@ -1944,6 +2111,7 @@ async function updateUser(userDetails, photo_url, active_connection){
           );
         }
       }
+      //-----------/NEW: link to customers ---------
 
       //link to roles
       await db.transaction_query(`delete from user_roles where user_id=(?)`, [userDetails["id"]], active_connection);
@@ -1986,7 +2154,7 @@ async function remove(user_id, active_connection){
 
   const num_of_admins = await admins_count();
   const trying_to_delete_admin = ((helper.emptyOrRows(await db.query(
-    `select u.username, r.name 
+    `select u.username, r.name
       from users u 
       inner join user_roles ur on u.id = ur.user_id 
       inner join roles r on r.id=ur.role_id
@@ -2007,6 +2175,19 @@ async function remove(user_id, active_connection){
       [ user_id ], 
       active_connection);
 
+    //if this user is connected to a demo customer, delete the demo customer as well
+    await db.transaction_query(
+      `delete from customers where id in (
+        select id from (
+          select c.id 
+            from users u inner join user_customers uc on u.id=uc.user_id
+            inner join customers c on uc.customer_id=c.id
+            where u.id=(?) and c.is_demo_customer=1
+          ) as demo_customers_for_this_user
+      )`, 
+      [user_id], 
+      active_connection);
+    
     if(self_executing) {
       await db.transaction_commit(active_connection);
     }
