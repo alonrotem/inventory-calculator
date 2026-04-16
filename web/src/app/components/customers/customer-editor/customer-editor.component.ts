@@ -13,7 +13,7 @@ import { AutocompleteLibModule } from 'angular-ng-autocomplete';
 import { ToastService } from '../../../services/toast.service';
 import { CustomersService } from '../../../services/customers.service';
 import { HasUnsavedChanges } from '../../../guards/unsaved-changes-guard';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { CustomerBanksTableComponent } from '../customer-banks-table/customer-banks-table.component';
 import { HatsCalculatorDialogComponent } from '../hats-calculator-dialog/hats-calculator-dialog.component';
 import { StateService } from '../../../services/state.service';
@@ -70,12 +70,19 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
   raw_materials_list: RawMaterialNameColor[] = [];
   raw_materials_info: RawMaterialNameColor[] = [];
   selected_raw_material_id: number | null = null;
+  is_current_user_demo_customer: boolean = false;
 
   // for opening the unsave changes dialog
   private confirmResult: boolean | null = null;
   private modalSubscription: any; // Track the subscription
 
-  user$ = this.usersService.user$;
+    user$ = this.usersService.user$.pipe(
+      tap(user => {
+        if (user) {
+          this.is_current_user_demo_customer = user.is_demo_customer;
+        }
+      })
+    );
 
   //@ViewChild("materialName", { read: ElementRef }) materialName!: ElementRef;
   @ViewChild("customerName", { read: ElementRef }) customerName! :ElementRef;
@@ -90,14 +97,14 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
   constructor(
     private customersService: CustomersService, 
     private rawMaterialsService: RawMaterialsService,
-    private activatedRoute: ActivatedRoute,
+    activatedRoute: ActivatedRoute,
     private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService,
     private usersService: UsersService,
     toastService: ToastService,
     stateService: StateService,
     router: Router
     ) { 
-      super(toastService, stateService, router);
+      super(toastService, stateService, router, activatedRoute);
 
       this.rawMaterialsService.getRawMaterialNamesColors(0).subscribe({
         next: (raw_materials: RawMaterialNameColor[]) => {
@@ -316,13 +323,13 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
         this.customer_form.form.markAsPristine();
         this.customer_banks_tables.forEach(b => { b.unsaved_changes = false });
         this.btn_save.nativeElement.classList.remove("disabled"); 
-        if(!this.customerItem.is_demo_customer){
+        if(!this.is_current_user_demo_customer){
           this.gotoCustomersList(data['message'], false);
         }
         else {
-          console.log("Demo customer saved, showing toast message and staying on page...");
+          //console.log("Demo customer saved, showing toast message and staying on page...");
           //this.router.navigate([this.router.url, 'open']);
-          this.navigateWithToastMessage(this.router.url, data["message"], false);
+          this.reloadTheSamePageWithToastMessage(data["message"], false);
         }
       },//this.getRawMaterials(this.current_page); },
       error:(error) => { 
@@ -337,7 +344,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
 
   gotoCustomersList(textInfo: string = '', isError: boolean = false) {
     console.dir(this.customerItem);
-    if(this.customerItem.is_demo_customer){
+    if(this.is_current_user_demo_customer){
       this.navigateWithToastMessage("", textInfo, isError);
     }
     else {

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ToastService } from '../../../services/toast.service';
 import { StateService } from '../../../services/state.service';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-navigated-message',
@@ -14,11 +14,17 @@ export abstract class NavigatedMessageComponent {
   constructor(
     protected toastService: ToastService,
     protected stateService: StateService,
-    protected router: Router) {
+    protected router: Router,
+    protected activatedRoute: ActivatedRoute
+  ) {
+    // Only show toast if this component matches the activated route
+    const routeComponent = this.activatedRoute.routeConfig?.component;
+    if (routeComponent && this.constructor === routeComponent) {
+      this.showNavigationToastIfMessagePending();
+    }
   }
 
   navigateWithToastMessage(destination: string, message: string, isError: boolean = false){
-    console.log(`navigateWithToastMessage called with destination: ${destination}, from ${this.router.url} message: ${message}, isError: ${isError}`);
     if(destination !== this.router.url) {
       this.performNavigation(destination, message, isError);
     }
@@ -28,6 +34,10 @@ export abstract class NavigatedMessageComponent {
         this.performNavigation(destination, message, isError);
       });
     }
+  }
+
+  reloadTheSamePageWithToastMessage(message: string, isError: boolean = false){
+    this.navigateWithToastMessage(this.router.url, message, isError);
   }
 
   performNavigation(destination: string, message: string, isError: boolean){
@@ -47,7 +57,7 @@ export abstract class NavigatedMessageComponent {
   }
 
   showNavigationToastIfMessagePending(){
-    console.log("Checking for pending navigation message...");
+    console.log(`Checking for pending navigation message (url ${this.router.url})...`);
     let nav = this.router.getCurrentNavigation();
     if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {
       let info = nav.extras.state['info']['textInfo'];

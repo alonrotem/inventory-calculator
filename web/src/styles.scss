@@ -1,3 +1,6 @@
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+
 /* You can add global styles to this file, and also import other style files */
 html, body {
     height: 100%;
@@ -26,6 +29,10 @@ a {
     text-decoration: none;
 }
 
+:root {
+  --form-check-label-disabled-opacity: #{$form-check-label-disabled-opacity};
+}
+
 [data-bs-theme=light] .navbar-logo {
     background-image: url("/assets/images/romtech-w-logo-light.png");
 }
@@ -45,6 +52,11 @@ a {
 }
 
 /* Global styling for ng-select https://github.com/ng-select/ng-select */
+.ng-select-container {
+    height: calc(3.5rem + calc(var(--bs-border-width)* 2)) !important;
+    border: var(--bs-border-width) solid var(--bs-border-color) !important;
+}
+
 .navbar-logo {
     width: 300px;
     height: 56px;

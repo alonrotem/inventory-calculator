@@ -4,7 +4,7 @@ import { BehaviorSubject, catchError, firstValueFrom, from, InteropObservable, m
 import { environment } from '../../environments/environment';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { AccountRequestDetails, AccountRequestInfo, AccountRequestListItem, AccountsRequestList, BasicUserInfoStatus, GeoCoordinates, LoginInfo, nameIdPair, PaginationParams, RefreshResponse, SignInData, SignInResponse, UpdateProfile, UserDetails, UserListItem, UserProfile, UsersList } from '../../types';
+import { AccountInviteDetails, AccountInviteList, AccountInviteListItem, AccountRequestDetails, AccountRequestInfo, AccountRequestListItem, AccountsRequestList, BasicUserInfoStatus, GeoCoordinates, LoginInfo, nameIdPair, PaginationParams, RefreshResponse, SignInData, SignInResponse, UpdateProfile, UserDetails, UserListItem, UserProfile, UsersList } from '../../types';
 import { RuntimeService } from './runtime.service';
 
 export interface AreaPermission {
@@ -199,8 +199,20 @@ constructor(private apiService: ApiService, private runtimeService: RuntimeServi
     })());
   }
 
+  sendInvitationForNewAccount(invitation: AccountInviteDetails): Observable<any>{
+    return this.apiService.post(`${environment.serverUrl}/users/invite_user`, invitation, { responseType: 'json' });
+  }
+
+  getInvitations(params: PaginationParams): Observable<AccountInviteList> {
+    return this.apiService.get(`${environment.serverUrl}/users/invitations`, { responseType: 'json', params, withCredentials: true });
+  }
+
+  getInvitationDetails(id: number): Observable<AccountInviteDetails> {
+    return this.apiService.get(`${environment.serverUrl}/users/invitation/${id}`, { responseType: 'json', withCredentials: true });
+  }
+
   sendRequestForNewAccount(account_request: AccountRequestInfo): Observable<any>{
-    return this.apiService.post(`${environment.serverUrl}/users/request_account`, account_request, { responseType: 'json' });
+    return this.apiService.post(`${environment.serverUrl}/users/request_account`, account_request, { responseType: 'json', withCredentials: true });
   }
 
   getAccountRequests(params: PaginationParams): Observable<AccountsRequestList>{

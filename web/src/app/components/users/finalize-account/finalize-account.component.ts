@@ -15,6 +15,8 @@ import { environment } from '../../../../environments/environment';
 import { UpdateProfile, UserProfile } from '../../../../types';
 import { MapPipe } from '../../../utils/pipes/map-pipe';
 import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.component";
+import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
+import { StateService } from '../../../services/state.service';
 
 @Component({
   selector: 'app-finalize-account',
@@ -23,7 +25,7 @@ import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.com
   templateUrl: './finalize-account.component.html',
   styleUrl: './finalize-account.component.scss'
 })
-export class FinalizeAccountComponent {
+export class FinalizeAccountComponent extends NavigatedMessageComponent {
 
   user_verification_code: string = "";
   loading: boolean = true;
@@ -62,8 +64,13 @@ export class FinalizeAccountComponent {
   @ViewChild('invalid_code_dialog') invalid_code_dialog!: ModalDialogComponent;
 
 
-  constructor(private route: ActivatedRoute, private router: Router, private usersService: UsersService, private toastService: ToastService) {
-    this.route.queryParams.subscribe(params => {
+  constructor(
+    route: ActivatedRoute, router: Router, private usersService: UsersService, 
+    toastService: ToastService, stateService: StateService) {
+
+    super(toastService, stateService, router, route);
+
+    route.queryParams.subscribe(params => {
         if(params["code"]) {
           this.user_verification_code = params['code'];
         }
@@ -103,9 +110,9 @@ export class FinalizeAccountComponent {
   save(){
     //this.error = "";
     this.profile_form.form.markAllAsTouched();
-    console.dir("Valid: " + this.profile_form.form.valid);
+    //console.dir("Valid: " + this.profile_form.form.valid);
     const password_valid = this.checkPasswords();
-    console.dir("password_valid: " + password_valid);
+    //console.dir("password_valid: " + password_valid);
     if(this.profile_form.form.valid && password_valid) {
       this.saving = true;
       let updatedInfo: UpdateProfile = {
@@ -121,7 +128,7 @@ export class FinalizeAccountComponent {
       };
       this.usersService.saveProfile_by_code(updatedInfo, this.profile_photo.croppedImageBlob, this.user_verification_code).subscribe({
         next: (profileInfo: UserProfile)=>{
-          this.toastService.showSuccess("Profile saved successfully!");
+          //this.toastService.showSuccess("Profile saved successfully!");
           this.saving = false;
 
           //update the user data across the app (user menu)
@@ -133,6 +140,11 @@ export class FinalizeAccountComponent {
             currentUserData.email = profileInfo.email;
           }
           this.usersService.setUser(currentUserData);
+
+          this.navigateWithToastMessage(
+            "users/signin", 
+            "Account finalized successfully! You can now log in with your new credentials.",
+            false);
         },
         error: (error)=>{
           this.toastService.showError(error.error.message);
@@ -140,9 +152,9 @@ export class FinalizeAccountComponent {
         }
       });
     }
-    else {
-      alert("invalid");
-    }
+    //else {
+    //  alert("invalid");
+    //}
   }
 
   gotoHome(){

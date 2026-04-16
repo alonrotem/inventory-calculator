@@ -32,3 +32,12 @@
 .customer:hover button{
     color: #530000;
 }
+
+div[disabled='true'] {
+    cursor: default;
+    opacity: var(--form-check-label-disabled-opacity);
+}
+
+div[disabled='true'] button {
+    border: 0;
+}

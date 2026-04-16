@@ -30,6 +30,7 @@ import { FinalizeAccountComponent } from './components/users/finalize-account/fi
 import { ForbiddenComponent } from './components/common/forbidden/forbidden.component';
 import { SettingsUserDetailsComponent } from './components/settings/settings-user-details/settings-user-details.component';
 import { SettingsUserInvitesComponent } from './components/settings/settings-user-invites/settings-user-invites.component';
+import { SettingsUserInviteDetailsComponent } from './components/settings/settings-user-invite-details/settings-user-invite-details.component';
 
 export const routes: Routes = [
     {
@@ -160,7 +161,7 @@ export const routes: Routes = [
         component: AccountRequestsListComponent,
         canActivate: [ authGuard ],
         data: { permissions: [{area: 'user_management', permission: 'R'}] }
-    },
+    },    
     {
         path: 'users/account_request_details',
         component: AccountRequestDetailsComponent,
@@ -176,7 +177,13 @@ export const routes: Routes = [
         component: SettingsUserInvitesComponent,
         canActivate: [ authGuard ],
         data: [{ area: 'user_management', permission: 'C' }]
-    },    
+    },
+    {
+        path: 'settings/user_invite',
+        component: SettingsUserInviteDetailsComponent,
+        canActivate: [ authGuard ],
+        data: [{ area: 'user_management', permission: 'R' }]
+    },        
     {
         path: 'forbidden',
         component: ForbiddenComponent

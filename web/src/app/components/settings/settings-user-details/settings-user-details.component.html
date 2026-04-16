@@ -193,27 +193,35 @@
 
 
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="customer_options" id="customer_options_real" [(ngModel)]="user.is_demo_customer" [value]="false">
-                    <label class="form-check-label" for="customer_options_real">
-                        Connect this user to real customers {{ user.is_demo_customer?'No':'Yes' }}
-                    </label>                        
-                    <app-customer-picker
-                        #customer_picker 
-                        [(pickedCustomers)]="user.customers"
-                        (pickedCustomersChange)="changed_customers()"
-                        />
+                    <div class="d-flex flex-nowrap align-items-start mt-5">
+                        <input class="form-check-input" type="radio" name="customer_options" id="customer_options_real" [(ngModel)]="user.is_demo_customer" [value]="false">
+                        <label class="form-check-label" for="customer_options_real">
+                            Connect this user to real customers
+                        </label>  
+                    </div>
+                    <div class="mt-2">                     
+                        <app-customer-picker
+                            #customer_picker 
+                            [(pickedCustomers)]="user.customers"
+                            (pickedCustomersChange)="changed_customers()"
+                            [disabled]="user.is_demo_customer"
+                            />
+                        </div>
                     </div>
 
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="customer_options" id="customer_options_demo" [(ngModel)]="user.is_demo_customer" [value]="true">
-                        <label class="form-check-label" for="customer_options_demo">
-                            This is a demo customer (not connected to real customers)
-                            <div *ngIf="user.is_demo_customer" class="text-warning">
-                                <fa-icon [icon]="faTriangleExclamation" class="text-warning me-2"></fa-icon>
-                                A demo customer can play with calculations but not affect the inventory, or send new orders.
-                            </div>
-                        </label>                        `
+                    <div class="d-flex flex-nowrap align-items-start mt-5">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="customer_options" id="customer_options_demo" [(ngModel)]="user.is_demo_customer" [value]="true">
+                            <label class="form-check-label" for="customer_options_demo">
+                                This is a demo customer (not connected to real customers)
+                            </label>
+                        </div>
                     </div>
+
+                    <div *ngIf="user.is_demo_customer" class="text-warning d-flex align-items-center flex-row" style="margin: 10px;">
+                        <fa-icon [icon]="faTriangleExclamation" class="text-warning me-2"></fa-icon>
+                        <span>A demo customer can play with calculations but not affect the inventory, or send new orders.</span>
+                    </div>                      
 
                 </div>
                 </div>

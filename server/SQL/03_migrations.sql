@@ -52,5 +52,7 @@ CALL add_column_if_not_exists('wings', 'angled_crown', 'boolean default false');
 CALL add_column_if_not_exists('users', 'is_demo_customer', 'boolean not null default false');
 CALL add_column_if_not_exists('customers', 'is_demo_customer', 'boolean not null default false');
 CALL add_column_if_not_exists('account_requests', 'is_demo_customer', 'boolean not null default false');
+CALL add_column_if_not_exists('account_invites', 'is_demo_customer', 'boolean not null default false');
+CALL add_column_if_not_exists('account_invites', 'create_new_customer', 'boolean not null default false');
 
 select "Migrations done", CURRENT_TIMESTAMP;

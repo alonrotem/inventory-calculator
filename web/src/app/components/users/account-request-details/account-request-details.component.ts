@@ -74,7 +74,8 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
     user_photo_url: '',
     role: { name: '', id: 0 },
     customers: [],
-    create_new_customer: false
+    create_new_customer: false,
+    is_demo_customer: false
   };
   environment = environment;
 
@@ -83,10 +84,11 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
   constructor(
     private usersService: UsersService, 
     toastService: ToastService, 
-    private activatedRoute: ActivatedRoute,
+    activatedRoute: ActivatedRoute,
     router: Router,
     stateService: StateService) {
-    super(toastService, stateService, router)
+    super(toastService, stateService, router, activatedRoute);
+
     this.usersService.getRoles().subscribe({
       next: (r: nameIdPair[]) => { 
         this.roles = r
@@ -168,8 +170,8 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
 
   confirm_approval_confirmed() {
     this.usersService.approveAccountRequest(this.request).subscribe({
-      next: (result: any) => { this.toastService.showSuccess(result); console.dir(result); },
-      error: (error: any) => { this.toastService.showError(error); console.dir(error); }
+      next: (result: any) => { this.navigateWithToastMessage("users/account_requests", "Request approved successfully", false); /*this.toastService.showSuccess(result); console.dir(result);*/ },
+      error: (error: any) => { this.toastService.showError(error.error.message); console.dir(error); }
     });
   }
 

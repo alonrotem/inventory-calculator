@@ -309,7 +309,7 @@ function password_change_notification(name, server_address, verification_code) {
                 <tbody>
                     <tr>
                     <td style="direction: ltr !important; font-family: sans-serif; font-size: 14px; vertical-align: top; border-radius: 5px; text-align: center; background-color: rgba(219, 23, 23, 1);" valign="top" align="center" bgcolor="#198754">
-                        <a href="${server_address}/users/reset_password?code=${ helper.encBase64(verification_code)}" target="_blank" style="direction: ltr !important; border: solid 1px #198754; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-decoration: none; background-color: #198754; border-color: #198754; color: #ffffff;">
+                        <a href="${server_address}/users/reset_password?code=${ /*helper.encBase64(*/verification_code/*)*/}" target="_blank" style="direction: ltr !important; border: solid 1px #198754; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-decoration: none; background-color: #198754; border-color: #198754; color: #ffffff;">
                             Reset my password!
                         </a> 
                     </td>
@@ -340,7 +340,7 @@ function password_forgotten_notification(name, server_address, verification_code
                 <tbody>
                     <tr>
                     <td style="direction: ltr !important; font-family: sans-serif; font-size: 14px; vertical-align: top; border-radius: 5px; text-align: center; background-color: rgba(219, 23, 23, 1);" valign="top" align="center" bgcolor="#198754">
-                        <a href="${server_address}/users/reset_password?code=${ helper.encBase64(verification_code)}" target="_blank" style="direction: ltr !important; border: solid 1px #198754; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-decoration: none; background-color: #198754; border-color: #198754; color: #ffffff;">
+                        <a href="${server_address}/users/reset_password?code=${ /*helper.encBase64(*/verification_code/*)*/}" target="_blank" style="direction: ltr !important; border: solid 1px #198754; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-decoration: none; background-color: #198754; border-color: #198754; color: #ffffff;">
                             Reset my password!
                         </a> 
                     </td>
@@ -397,6 +397,72 @@ function new_account_request_notification_to_admins(requester_firstname, request
     return email;
 }
 
+//------------------------
+function account_invitation_to_user(user_firstname, server_address, invitation_code) {
+    const email = template(`
+        <p style="direction: ltr !important; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
+            Dear ${user_firstname},
+        </p>
+        <p style="direction: ltr !important; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
+            Welcome to Romtech!<br>
+            You are invited to create a new user account.
+        </p>
+        <p style="direction: ltr !important; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
+            To review and accept this invitation, and fill in your login details
+        </p>
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="btn btn-primary" style="direction: ltr !important; border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; box-sizing: border-box; width: 100%; margin: 30px 0px;" width="100%">
+        <tbody>
+            <tr>
+            <td align="center" style="direction: ltr !important; font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;" valign="top">
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="direction: ltr !important; border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: auto; width: auto;" width="auto">
+                <tbody>
+                    <tr>
+                    <td style="direction: ltr !important; font-family: sans-serif; font-size: 14px; vertical-align: top; border-radius: 5px; text-align: center; background-color: #198754;" valign="top" align="center" bgcolor="#198754">
+                        <a href="${server_address}/users/finalize_account?code=${invitation_code}" target="_blank" style="direction: ltr !important; border: solid 1px #198754; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-decoration: none; background-color: #198754; border-color: #198754; color: #ffffff;">
+                            Create Account!
+                        </a> 
+                    </td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+            </tr>
+        </tbody>
+        </table>`,
+        /*
+        <p style="direction: ltr !important; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
+            <strong>OR</strong> navigate to
+            <a href="${server_address}/users/finalize_account" style="direction: ltr !important; color: #198754; text-decoration: underline;">${server_address}/users/finalize_account</a>
+            and enter the following code:
+        </p>
+        <p class="verification-code" style="direction: ltr !important; font-family: sans-serif; font-weight: normal; margin: 0; margin-bottom: 15px; text-align: center; letter-spacing: 10px; font-size: 30px;">
+            ${invitation_code}
+        </p>`,
+         */
+        server_address);
+    return email;
+}
+
+function invitation_accepted_admin_notification(admin_firstname,  requester_firstname, requester_lastname, requester_email, invitation_id, created_user_id, server_address) {
+    const email = template(`
+        <p style="direction: ltr !important; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
+            Dear ${admin_firstname},
+        </p>
+        <p></p>
+        <p style="direction: ltr !important; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
+            Account invitation to ${ requester_firstname } ${ requester_lastname } (${ requester_email }) was accepted, and a new account was created.<br/>
+            You can see the account invitation details in <a href='${server_address}/settings/user_invite/id=${invitation_id}'>this link</a>, and the created user profile in <a href='${server_address}/settings/user-details?id=${created_user_id}'>this link</a>.
+        </p>
+        <p></p>
+        <p style="direction: ltr !important; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
+            To see and manage all users' invitations, <a href='${server_address}/settings/user_invites'>click here</a>.<br/>
+            To see and manage all users in the system, <a href='${server_address}/settings/users'>click here</a>.
+        </p>`, 
+        server_address);
+    return email;
+}
+//------------------------
+
 function requested_user_account_approved(name, server_address, verification_code) {
     const email = template(`
         <p style="direction: ltr !important; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
@@ -413,7 +479,7 @@ function requested_user_account_approved(name, server_address, verification_code
                 <tbody>
                     <tr>
                     <td style="direction: ltr !important; font-family: sans-serif; font-size: 14px; vertical-align: top; border-radius: 5px; text-align: center; background-color: rgba(219, 23, 23, 1);" valign="top" align="center" bgcolor="#198754">
-                        <a href="${server_address}/users/finalize_account?code=${ helper.encBase64(verification_code)}" target="_blank" style="direction: ltr !important; border: solid 1px #198754; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-decoration: none; background-color: #198754; border-color: #198754; color: #ffffff;">
+                        <a href="${server_address}/users/finalize_account?code=${ /*helper.encBase64(*/verification_code/*)*/}" target="_blank" style="direction: ltr !important; border: solid 1px #198754; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-decoration: none; background-color: #198754; border-color: #198754; color: #ffffff;">
                             Finalize my account
                         </a> 
                     </td>
@@ -435,5 +501,7 @@ module.exports = {
     password_change_notification,
     password_forgotten_notification,
     new_account_request_notification_to_admins,
-    requested_user_account_approved
+    requested_user_account_approved,
+    account_invitation_to_user,
+    invitation_accepted_admin_notification
 }

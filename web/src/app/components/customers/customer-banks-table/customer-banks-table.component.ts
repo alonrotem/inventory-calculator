@@ -66,13 +66,13 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   
   userInfo: BasicUserInfoStatus | null = null;
   selectedCar: number=1;
-    user$ = this.usersService.user$.pipe(
-      tap(user => {
-        if (user) {
-          this.userInfo = user;
-        }
-      })
-    );
+  user$ = this.usersService.user$.pipe(
+    tap(user => {
+      if (user) {
+        this.userInfo = user;
+      }
+    })
+  );
 
   //Saving the original data in order to be able to reset changes
   unchanged_bank: Customer_Bank = {

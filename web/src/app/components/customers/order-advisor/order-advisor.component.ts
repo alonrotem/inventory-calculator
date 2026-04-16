@@ -110,8 +110,8 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log("ngOnChanges:");
-    console.dir(changes);
+    //console.log("ngOnChanges:");
+    //console.dir(changes);
     this.allocation_wall_babies = this.customer_wall_babies.filter(b => b.allocation_id == ((this.wall_allocation) ? this.wall_allocation.id : 0));
     this.allocation_crown_babies = this.customer_crown_babies.filter(b => b.allocation_id == ((this.crown_allocation) ? this.crown_allocation.id : 0));
 
@@ -156,7 +156,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
           length: b.l,
           position: b.p
         }});
-        console.log("Wing babies !!! " + babies.length);
+        //console.log("Wing babies !!! " + babies.length);
         this.systemWings.push({
           id: w_id,
           name: wing.w_n,

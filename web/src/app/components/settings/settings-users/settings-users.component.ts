@@ -3,7 +3,7 @@ import { ActivePage, UserTabsComponent } from "../user-tabs/user-tabs.component"
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { UsersService } from '../../../services/users.service';
 import { SettingsService } from '../../../services/settings.service';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { StateService } from '../../../services/state.service';
 import { ToastService } from '../../../services/toast.service';
 import { UserListItem, UsersList } from '../../../../types';
@@ -13,7 +13,7 @@ import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { environment } from '../../../../environments/environment';
 import { DateStrPipe } from "../../../utils/pipes/date_pipe";
 import { FaIconComponent, IconDefinition } from '@fortawesome/angular-fontawesome';
-import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faFlask } from '@fortawesome/free-solid-svg-icons';
 import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.component";
 import { SettingsUserInviteFormComponent } from "../settings-user-invite-form/settings-user-invite-form.component";
 
@@ -34,18 +34,19 @@ export class SettingsUsersComponent extends NavigatedMessageComponent implements
   loading: boolean = true;
   users: UserListItem[] = [];
   faEnvelope: IconDefinition = faEnvelope;
+  faFlask: IconDefinition = faFlask;
   @ViewChild("paginator") paginator!: PaginatorComponent;
-  @ViewChild("invite_user_form") invite_user_form!: ModalDialogComponent;
+  @ViewChild("invite_user_form_dialog") invite_user_form_dialog!: SettingsUserInviteFormComponent;
 
   constructor(
     private usersService: UsersService, 
     private settingsService: SettingsService, 
     router: Router, 
     stateService: StateService,
-    toastService: ToastService
+    toastService: ToastService,
+    activatedRoute: ActivatedRoute
     ) {
-      super(toastService, stateService, router);
-      this.showNavigationToastIfMessagePending();
+      super(toastService, stateService, router, activatedRoute);
   }
 
   async ngOnInit() {
@@ -93,6 +94,6 @@ export class SettingsUsersComponent extends NavigatedMessageComponent implements
   }
 
   open_invite_form(){
-    this.invite_user_form.open();
+    this.invite_user_form_dialog.open();
   }
 }

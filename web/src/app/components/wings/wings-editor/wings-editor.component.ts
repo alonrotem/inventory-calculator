@@ -78,15 +78,14 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
 
   constructor(
     private wingsService: WingsService, 
-    private activatedRoute: ActivatedRoute, 
+    activatedRoute: ActivatedRoute, 
     private _location: PlatformLocation,
     private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService,
     router: Router, 
     stateService: StateService,
-    toastService: ToastService    
+    toastService: ToastService,
   ){
-      super(toastService, stateService, router);
-      this.showNavigationToastIfMessagePending();
+      super(toastService, stateService, router, activatedRoute);
   }
 
   hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {

@@ -4,10 +4,10 @@ import { AsyncPipe, DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { PaginatorComponent } from "../../common/paginator/paginator.component";
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { IconDefinition, faArrowsRotate, faBasketShopping } from '@fortawesome/free-solid-svg-icons';
+import { IconDefinition, faArrowsRotate, faBasketShopping, faFlask } from '@fortawesome/free-solid-svg-icons';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { FormsModule } from '@angular/forms';
 import { DateStrPipe } from '../../../utils/pipes/date_pipe';
@@ -39,9 +39,9 @@ export class CustomersTableComponent extends NavigatedMessageComponent implement
     router: Router, 
     stateService: StateService,
     toastService: ToastService, 
-    private usersService: UsersService) {
-      super(toastService, stateService, router);
-      this.showNavigationToastIfMessagePending();
+    private usersService: UsersService,
+    activatedRoute: ActivatedRoute) {
+      super(toastService, stateService, router, activatedRoute);
   }
 
   current_page = 1;
@@ -50,6 +50,7 @@ export class CustomersTableComponent extends NavigatedMessageComponent implement
   @ViewChild("paginator") paginator!: PaginatorComponent;
   faArrowsRotate: IconDefinition = faArrowsRotate;
   faBasketShopping: IconDefinition = faBasketShopping;
+  faFlask: IconDefinition = faFlask;
   loading: boolean = true;
   totalRecords: number = 0;
   @Input() showTitle : boolean = true;

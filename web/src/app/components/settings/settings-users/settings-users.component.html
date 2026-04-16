@@ -1,8 +1,6 @@
-<app-modal-dialog 
-    #invite_user_form
-    [modalSize]="'xl'">
-    <app-settings-user-invite-form />
-</app-modal-dialog>
+<app-settings-user-invite-form 
+    #invite_user_form_dialog
+    />
 
 <div class="row justify-content-center">
     <div class="col-12 col-md-8">
@@ -50,7 +48,10 @@
             </td>
             <td>{{ user.firstname }} {{ user.lastname }}</td>
             <td>{{ user.email }}</td>
-            <td class="capitalize">{{ user.role }}</td>
+            <td class="capitalize">
+                <span *ngIf="user.is_demo_customer" class="text-warning"><fa-icon [icon]="faFlask"></fa-icon> Demo customer</span>
+                <span *ngIf="!user.is_demo_customer">{{ user.role }}</span>
+            </td>
             <td [attr.class]="'capitalize status-' + user.status">{{ user.status }}</td>
             <td>{{ user.registered_at | dateStr }}</td>
         </tr>

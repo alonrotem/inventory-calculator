@@ -4,7 +4,7 @@ import { PaginatorComponent } from '../../common/paginator/paginator.component';
 import { faArrowsRotate, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { WingsService } from '../../../services/wings.service';
 import { DateStrPipe } from "../../../utils/pipes/date_pipe";
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { DecimalPipe, NgFor } from '@angular/common';
 import { FaIconComponent, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ToastService } from '../../../services/toast.service';
@@ -37,10 +37,10 @@ export class WingsTableComponent extends NavigatedMessageComponent implements On
     private settingsService: SettingsService,
     router: Router, 
     stateService: StateService,
-    toastService: ToastService  
+    toastService: ToastService,
+    activatedRoute: ActivatedRoute  
   ) {
-      super(toastService, stateService, router);
-      this.showNavigationToastIfMessagePending();
+      super(toastService, stateService, router, activatedRoute);
   }
 
   getWings (page: number){

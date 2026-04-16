@@ -30,6 +30,7 @@ export class ModalDialogComponent implements ModalDialog {
   @Input() btnSaveText: string = "Save changes";
   @Input() btnCancelText: string = "Close";
   @Input() btnSaveIcon: IconDefinition = faBorderNone;
+  @Input() btnSaveSpin: boolean = false;
   @Input() btnSaveClass: string = "btn-primary";
   @Input() btnCancelClass: string = "btn-secondary";
   @Input() modalSize: string = "m";

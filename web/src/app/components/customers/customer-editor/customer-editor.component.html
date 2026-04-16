@@ -35,7 +35,7 @@
                 </button>
             </div>
             <div class="col-2" *ngIf="
-                    ((user$ | async)?.is_demo_customer) ||
+                    (customerItem.is_demo_customer) ||
                     ((is_new_customer && (user$ | async) | hasPermission: [{area: 'customers', permission: 'C'}]) || 
                     ((!is_new_customer) && ((user$ | async) | hasPermission: [{area: 'customers', permission: 'U'}, {area: 'customer_resources_by_customer_id', permission: 'U'}])))">
                 <button 
@@ -134,7 +134,7 @@
     <div class="col">
         <h4><fa-icon [icon]="faMoneyCheckDollar" style="margin-right: 10px;"></fa-icon>Material banks</h4>
 
-        <div *ngIf="(user$ | async)?.is_demo_customer" class="d-flex flex-row align-items-center">
+        <div *ngIf="customerItem.is_demo_customer" class="d-flex flex-row align-items-center">
             <span>Add demo raw material bank</span>
             <span class="ms-2">
                 <ng-select
@@ -186,15 +186,15 @@
                 <div><fa-icon [icon]="faTriangleExclamation" size="2x"></fa-icon></div>
                 <div>No material banks assigned to this customer.</div>
                 
-                <div *ngIf="!((user$ | async)?.is_demo_customer) &&((user$ | async) | hasPermission: [{area: 'raw_materials', permission: 'C'}])">
+                <div *ngIf="!(customerItem.is_demo_customer) &&((user$ | async) | hasPermission: [{area: 'raw_materials', permission: 'C'}])">
                     Add some from the <a routerLink="/inventory/raw"><span class="icon-leaf" style="margin-left: 10px;"></span> Raw materials</a>.
                 </div>
 
-                <div *ngIf="!((user$ | async)?.is_demo_customer) &&((user$ | async) | hasPermission: [{area: 'raw_materials', permission: 'C'}] : true)">
+                <div *ngIf="!(customerItem.is_demo_customer) &&((user$ | async) | hasPermission: [{area: 'raw_materials', permission: 'C'}] : true)">
                     They should be created by an admin through <span class="icon-leaf" style="margin-left: 10px;"></span> Raw materials.
                 </div>
                 
-                <div *ngIf="((user$ | async)?.is_demo_customer)" class="text-center">
+                <div *ngIf="(customerItem.is_demo_customer)" class="text-center">
                     Add some banks to calculate hats and quantities to see how the calculator works!<br/>
                     (This is a demo customer, so you can do whatever you want)
                 </div>
@@ -212,7 +212,7 @@
     </div>
 
         <div class="col-12 d-flex justify-content-center {{ this.is_new_customer? 'col-md-6':'col-md-4' }}" *ngIf="
-                ((user$ | async)?.is_demo_customer) ||
+                (customerItem.is_demo_customer) ||
                 ((is_new_customer && (user$ | async) | hasPermission: [{area: 'customers', permission: 'C'}]) || 
                 ((!is_new_customer) && ((user$ | async) | hasPermission: [{area: 'customers', permission: 'U'}, {area: 'customer_resources_by_customer_id', permission: 'U'}])))">
             <button #btn_save class="btn btn-success" type="submit" (click)="save()"><!--[disabled]="!raw_material_form.form.valid"-->

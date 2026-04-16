@@ -157,7 +157,8 @@
                     <div class="col col-12 col-md-6  mt-3 mt-md-0 mb-3 mb-md-0">
                         Current logins
                     </div>
-                    <app-logins-table />
+                    <app-logins-table
+                        [user_id]="user.id" />
                 </div>
             </div>
 
@@ -166,7 +167,10 @@
                 <div class="profile-section">
                     <div class="row">
                     <div class="col col-12 col-md-6  mt-3 mt-md-0 mb-3 mb-md-0" *ngIf="user.customers && user.customers.length > 0">
-                        Your profile is a customer profile, which is linked to the following customers:
+                        
+                        <span *ngIf="!user.is_demo_customer">Your profile is a customer profile, which is linked to the following customers:</span>
+                        <span *ngIf="user.is_demo_customer" class="text-warning">You are a demo customer, linked to the following</span>
+                    
                     <app-customers-table
                         [stretchWidth]="true"
                         [showTitle]="false"

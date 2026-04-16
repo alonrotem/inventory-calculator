@@ -13,7 +13,7 @@
     <div *ngIf="!hide_buttons" class="modal-footer" [ngClass]="{'reversed_buttons': !reverseButtons }">
         <button type="button" class="btn {{ btnCancelClass }}" data-bs-dismiss="modal" (click)="this.onCancel()">{{ btnCancelText }}</button>
         <button type="button" class="btn {{ btnSaveClass }}" (click)="this.onConfirm()">
-            <fa-icon [icon]="btnSaveIcon"></fa-icon>
+            <fa-icon [icon]="btnSaveIcon" [animation]="(btnSaveSpin)?'spin':undefined"></fa-icon>
             {{ btnSaveText }}
         </button>
       </div>

@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
 import { AccountRequestListItem, AccountsRequestList } from '../../../../types';
 import { DecimalPipe, NgFor } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { PaginatorComponent } from '../../common/paginator/paginator.component';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -37,9 +37,10 @@ export class AccountRequestsListComponent extends NavigatedMessageComponent impl
     private usersService: UsersService, 
     toastService: ToastService, 
     stateService: StateService, 
-    router: Router){
-    super(toastService, stateService, router);
-    this.showNavigationToastIfMessagePending();
+    router: Router,
+    activatedRoute: ActivatedRoute){
+
+    super(toastService, stateService, router, activatedRoute);
   }
 
   async ngOnInit() {

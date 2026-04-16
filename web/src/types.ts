@@ -274,6 +274,7 @@ export interface CustomerListItem {
     updated_by: number;
     bank_count: number;
     allocation_count: number;
+    is_demo_customer: boolean;
 }
 
 export interface Customer_Bank {
@@ -616,6 +617,7 @@ export interface UserListItem {
   role: string;
   status: string;
   registered_at: Date;
+  is_demo_customer: boolean;
 }
 
 export interface UsersList {
@@ -627,6 +629,12 @@ export interface UsersList {
     };
 }
 
+export interface BasicCustomerInfo {
+    name: string;
+    id: number;
+    is_demo_customer: boolean;
+}
+
 export interface BasicUserInfoStatus {
   id: number;
   firstname: string;
@@ -635,7 +643,7 @@ export interface BasicUserInfoStatus {
   email: string;
   photo_url: string;
   roles: nameIdPair[];
-  customers: nameIdPair[];
+  customers: BasicCustomerInfo[];
   area_permissions: UserAreaPermissions[];
   is_demo_customer: boolean;
 }
@@ -741,6 +749,58 @@ export interface AccountRequestDetails {
     approver_lastnme: string;
     approver_photo_url: string;
     role: nameIdPair;
-    customers: nameIdPair[];
+    customers: BasicCustomerInfo[];
     create_new_customer: boolean;
+    is_demo_customer: boolean;
+}
+
+export enum AccountInviteStatus {
+	sent = 'sent',
+    verified = 'verified',
+    cancelled = 'cancelled',
+}
+
+export interface AccountInviteDetails {
+    id: number;
+    firstname: string;
+    lastname: string;
+    email: string;
+    created_account_user_id: number;
+    role: nameIdPair | null;
+    invite_status: AccountInviteStatus;
+    is_demo_customer: boolean;
+    create_new_customer: boolean;
+    customers: BasicCustomerInfo[];
+    sent_date: Date;
+	last_update: Date;
+
+    approver_firstname: string;
+    approver_lastnme: string;
+    approver_user_id: number;
+    approver_photo_url: string;
+    user_firstname: string;
+    user_lastname: string;
+    approved_account_user_id: number;
+    user_photo_url: string;    
+}
+
+export interface AccountInviteListItem {
+    id: number;
+    firstname: string;
+    lastname: string;
+    email: string;
+    invite_status: AccountInviteStatus;
+    sent_date: Date;
+	last_update: Date;
+    role: string;
+    is_demo_customer: boolean;
+}
+
+export interface AccountInviteList {
+    data: AccountInviteListItem[];
+    meta: { 
+        page: number;
+        total_records: number;
+        total_pages: number;
+    };
 }

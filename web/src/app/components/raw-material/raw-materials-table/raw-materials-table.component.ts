@@ -4,7 +4,7 @@ import { RawMaterial, RawMaterials } from '../../../../types';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { PaginatorComponent } from "../../common/paginator/paginator.component";
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { IconDefinition, faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
@@ -39,10 +39,10 @@ export class RawMaterialsTableComponent extends NavigatedMessageComponent implem
     private settingsService: SettingsService, 
     router: Router, 
     stateService: StateService,
-    toastService: ToastService
+    toastService: ToastService,
+    activatedRoute: ActivatedRoute
     ) {
-      super(toastService, stateService, router);
-      this.showNavigationToastIfMessagePending();
+      super(toastService, stateService, router, activatedRoute);
   }
   current_page = 1;
   rowsPerPage:number = 5;

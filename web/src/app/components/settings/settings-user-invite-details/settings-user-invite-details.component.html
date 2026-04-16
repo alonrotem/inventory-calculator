@@ -1,68 +1,28 @@
-
-<!--
-User requesting account 
-    -> administrator approving account with role -> account creation code
-    -> user receices approval email + code 
-    ->  User is creating new account, assigned a role, deleting the code
--->
-<app-confirmation-dialog 
-    #confirm_approval_dialog
-    [modalTitle]="'Approve account?'"
-    [btnYesClass]="'btn-success'"
-    [btnYesIcon]="faCheck"
-    [btnYesText]="'Approve'"
-    [btnNoText]="'Cancel'"
-    (confirm)="confirm_approval_confirmed()"
-    />
-
-<app-confirmation-dialog 
-    #confirm_deletion_dialog
-    [modalTitle]="'Delete request?'"
-    [btnYesClass]="'btn-danger'"
-    [btnYesIcon]="faTrash"
-    [btnYesText]="'Delete'"
-    [btnNoText]="'Cancel'"
-    (confirm)="delete_request_confirmed()"
-    />
-
-<app-confirmation-dialog
-    #error_dialog
-    [modalTitle]="'Error'" 
-    [dialogIcon]="faTriangleExclamation"
-    [btnYesText]="'Back to the list'"
-    [btnYesClass]="'btn-warning'"
-    [btnYesIcon]="faArrowLeft"
-    [btnNoClass]="'d-none'"
-    (confirm)="go_to_account_requests()"
-    />
-
 <div class="row justify-content-center">
 <div class="col-12 col-md-8">
 
-<h3><fa-icon [icon]="faUserPlus"></fa-icon> Account request from {{ request.firstname }} {{ request.lastname }}</h3>
+<h3><fa-icon [icon]="faEnvelopeCircleCheck"></fa-icon> User Invitation To {{ invitation.firstname }} {{ invitation.lastname }}</h3>
 
 <!-- Autocomplete -->
 <div class="row">
     <div class="col">
         <h4>Request status:</h4>
-        <p><strong>Request status:</strong><span class="status-{{ request.request_status }}"> {{ request.request_status }}</span></p>
-        <p><strong>Requested at: {{ request.request_date | dateStr }}</strong></p>
-        <p *ngIf="request.last_update != request.request_date"><strong>Last updated at: {{ request.last_update| dateStr }}</strong></p>
+        <p><strong>Request status:</strong><span class="status-{{ invitation.invite_status }}"> {{ invitation.invite_status }}</span></p>
+        <p><strong>Requested at: {{ invitation.sent_date| dateStr }}</strong></p>
+        <p *ngIf="invitation.last_update != invitation.last_update"><strong>Last updated at: {{ invitation.last_update| dateStr }}</strong></p>
     </div>
 </div>
 <div class="row">
     <div class="col">
         <h4>Account details:</h4>
-        <p><strong>Name:</strong> {{ request.firstname }} {{ request.lastname }}</p>
-        <p><strong>Email:</strong> {{ request.email }}</p>
-        <p><strong>Phone:</strong> {{ request.phone }}</p>
-        <div><strong>Details:</strong><br/><div>{{ request.details }}</div></div>
+        <p><strong>Name:</strong> {{ invitation.firstname }} {{ invitation.lastname }}</p>
+        <p><strong>Email:</strong> {{ invitation.email }}</p>
     </div>
 </div>
 <div class="row">
     <div class="col approval-status">
         <h4>Approval status:</h4>
-        <div [hidden]="request.request_status!='pending'">
+        <div [hidden]="invitation.invite_status!='sent'">
             <div class="text-warning">This request is pending an administrator's approval.</div>
             <div>If you approve this request, a new user account will be created.</div>
             
@@ -86,42 +46,42 @@ User requesting account
                 
             </div>
             <div class="mt-4 mb-4">
-                <div class="text-danger" [hidden]="!request || !request.role || request.role.name.toLowerCase()!='administrator'">
+                <div class="text-danger" [hidden]="!invitation || !invitation.role || invitation.role.name.toLowerCase()!='administrator'">
                     <fa-icon [icon]="faTriangleExclamation" class="text-warning me-2"></fa-icon>
                     <strong><span class="text-warning">Careful!</span> An administrator has unlimited access!</strong>
                 </div>
                 <!--  customer section -->
-                <div [hidden]="!request || !request.role || request.role.name.toLowerCase()!='customer'">
+                <div [hidden]="!invitation || !invitation.role || invitation.role.name.toLowerCase()!='customer'">
                     <div class="d-flex flex-nowrap align-items-start">
-                        <input class="form-check-input" type="radio" name="customer_options" id="customer_options_not_demo" [(ngModel)]="request.is_demo_customer" [value]="false">
+                        <input class="form-check-input" type="radio" name="customer_options" id="customer_options_not_demo" [(ngModel)]="invitation.is_demo_customer" [value]="false">
                         <label class="form-check-label" for="customer_options_not_demo">
                             This user represents a real customer, connected as follows:
                         </label>  
                     </div>
-                    <div class="customer-selection-wrapper" [attr.disabled]="request.is_demo_customer">
+                    <div class="customer-selection-wrapper" [attr.disabled]="invitation.is_demo_customer">
                         <div class="mt-4 mb-4">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="" id="chkCreateNewCustoemr" #chkCreateNewCustoemr (change)="set_instructions_and_approval_btn_status()" [(ngModel)]="request.create_new_customer" [attr.disabled]="request.is_demo_customer">
-                                <label class="form-check-label" for="chkCreateNewCustoemr" [attr.disabled]="request.is_demo_customer">
+                                <input class="form-check-input" type="checkbox" value="" id="chkCreateNewCustoemr" #chkCreateNewCustoemr (change)="set_instructions_and_approval_btn_status()" [(ngModel)]="invitation.create_new_customer" [attr.disabled]="invitation.is_demo_customer">
+                                <label class="form-check-label" for="chkCreateNewCustoemr" [attr.disabled]="invitation.is_demo_customer">
                                     Create a new customer in the system for this user
                                 </label>
                             </div>                        
                         </div>
-                        <div class="mt-4 mb-4" [attr.disabled]="request.is_demo_customer"><strong>Connect this user to the following existing customers:</strong></div>
+                        <div class="mt-4 mb-4" [attr.disabled]="invitation.is_demo_customer"><strong>Connect this user to the following existing customers:</strong></div>
                         <app-customer-picker 
                             #customer_picker 
-                            [(pickedCustomers)]="request.customers"
-                            [disabled]="request.is_demo_customer" 
+                            [(pickedCustomers)]="invitation.customers"
+                            [disabled]="invitation.is_demo_customer" 
                             (Change)="set_instructions_and_approval_btn_status()"
                             />
                     </div>
                     <div class="d-flex flex-nowrap align-items-start">
-                        <input class="form-check-input" type="radio" name="customer_options" id="customer_options_demo" [(ngModel)]="request.is_demo_customer" [value]="true">
+                        <input class="form-check-input" type="radio" name="customer_options" id="customer_options_demo" [(ngModel)]="invitation.is_demo_customer" [value]="true">
                         <label class="form-check-label" for="customer_options_demo">
                             This is a demo customer (not connected to real customers)
                         </label>
                     </div>
-                    <div *ngIf="request.is_demo_customer" class="text-warning d-flex align-items-center flex-row" style="margin: 10px;">
+                    <div *ngIf="invitation.is_demo_customer" class="text-warning d-flex align-items-center flex-row" style="margin: 10px;">
                         <fa-icon [icon]="faTriangleExclamation" class="text-warning me-2"></fa-icon>
                         <span>A demo customer can play with calculations but not affect the inventory, or send new orders.</span>
                     </div>                     
@@ -129,49 +89,50 @@ User requesting account
 
                
                 <!-- / customer section -->
-                <div class="text-warning" [hidden]="!request || !request.role || request.role.name.toLowerCase()!='employee'">
+                <div class="text-warning" [hidden]="!invitation || !invitation.role || invitation.role.name.toLowerCase()!='employee'">
                     Employees have access to orders and speficically approved system areas.
                 </div>
-                <div class="text-warning" [hidden]="!request || !request.role || request.role.name.toLowerCase()!='guest'">
+                <div class="text-warning" [hidden]="!invitation || !invitation.role || invitation.role.name.toLowerCase()!='guest'">
                     Guests have specicially <em>READONLY</em> access to some areas.
                 </div>
             </div>
             <div class="mt-4 mb-4">
                 <div class="text-warning">{{ approval_instructions }}</div>
                 <div>
-                    <button class="btn btn-success" [disabled]="approve_btn_disabled" (click)="confirm_approval()"><fa-icon [icon]="faCheck"></fa-icon><br/>Approve this request</button>
+                    <!--(click)="confirm_approval()"-->
+                    <button class="btn btn-success" [disabled]="approve_btn_disabled" ><fa-icon [icon]="faCheck"></fa-icon><br/>Approve this request</button>
                     <button class="btn btn-warning"><fa-icon [icon]="faX"></fa-icon><br/>Decline</button>
                 </div>
             </div>
         </div>
 
-        <div [hidden]="request.request_status!='approved'">
+        <div [hidden]="invitation.invite_status!='verified'">
             <div class="horizontal">
                 <div>This request was approved by</div>
                 <app-user-tag 
-                    [firstname]="request.approver_firstname"
-                    [lastname]="request.approver_lastnme"
-                    [user_id]="request.approver_user_id"
-                    [photo_url]="request.approver_photo_url"
+                    [firstname]="invitation.approver_firstname"
+                    [lastname]="invitation.approver_lastnme"
+                    [user_id]="invitation.approver_user_id"
+                    [photo_url]="invitation.approver_photo_url"
                 />       
             </div>
-            <div>Last updated on {{ request.last_update | dateStr}}.</div>
+            <div>Last updated on {{ invitation.last_update | dateStr}}.</div>
             <hr>
 
             <h3>Associated user</h3>
             <div class="horizontal">
                 <div>The following user was created:</div>
                 <app-user-tag 
-                    [firstname]="request.user_firstname"
-                    [lastname]="request.user_lastname"
-                    [user_id]="request.approved_account_user_id"
-                    [photo_url]="request.user_photo_url"
+                    [firstname]="invitation.user_firstname"
+                    [lastname]="invitation.user_lastname"
+                    [user_id]="invitation.approved_account_user_id"
+                    [photo_url]="invitation.user_photo_url"
                     /> 
             </div>
             
-            <div class="mt-3"><strong class="text-success">User role:</strong> {{ (request && request.role && request.role.name)? request.role.name : '' }}</div>
+            <div class="mt-3"><strong class="text-success">User role:</strong> {{ (invitation && invitation.role && invitation.role.name)? invitation.role.name : '' }}</div>
 
-            <div class="mt-3" *ngIf="request.customers && request.customers.length > 0">
+            <div class="mt-3" *ngIf="invitation.customers && invitation.customers.length > 0">
                 <p>The user is linked to the following customers:</p>
 
                     <table class="table table-responsive table-striped table-hover">
@@ -183,11 +144,12 @@ User requesting account
                         </thead>
                         <tbody>
                         <tr 
-                            *ngFor="let customer of request.customers" 
+                            *ngFor="let customer of invitation.customers" 
                             role="button">
                             <td routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }">{{ customer.name }}</td>
                             <td style="width: 1px;">
-                            <button class="btn btn-outline-primary" style="text-wrap-mode: nowrap;" (click)="go_to_orders(customer.id, customer.name)">
+                                <!--(click)="go_to_orders(customer.id, customer.name)"-->
+                            <button class="btn btn-outline-primary" style="text-wrap-mode: nowrap;" >
                                 <div><fa-icon [icon]="faBasketShopping"></fa-icon> Orders</div>
                             </button>
                             </td>        
@@ -195,7 +157,7 @@ User requesting account
                         </tbody>
                     </table>
             </div>
-            <div class="mt-3" *ngIf="!request.customers || request.customers.length == 0">
+            <div class="mt-3" *ngIf="!invitation.customers || invitation.customers.length == 0">
                 <p>This user is not linked to any customers.</p>
             </div>
         </div>
@@ -204,6 +166,7 @@ User requesting account
 
 <div class="row">
     <div class="col">
-        <button class="btn btn-danger" (click)="deleteRequest()"><fa-icon [icon]="faTrash"></fa-icon><br/>Delete</button>
+        <!--(click)="deleteRequest()"-->
+        <button class="btn btn-danger" ><fa-icon [icon]="faTrash"></fa-icon><br/>Delete</button>
     </div>
 </div>

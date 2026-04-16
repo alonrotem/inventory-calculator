@@ -1,6 +1,6 @@
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { CustomersService } from '../../../services/customers.service';
-import { CustomerListItem, Customers, nameIdPair } from '../../../../types';
+import { BasicCustomerInfo, CustomerListItem, Customers, nameIdPair } from '../../../../types';
 import { NgFor, NgIf } from '@angular/common';
 import { FirstPipe } from "../../../utils/pipes/first-pipe";
 import { FilterPipe } from "../../../utils/pipes/filter-pipe";
@@ -17,9 +17,10 @@ import { faX } from '@fortawesome/free-solid-svg-icons';
   templateUrl: './customer-picker.component.html',
   styleUrl: './customer-picker.component.scss'
 })
-export class CustomerPickerComponent {
+export class CustomerPickerComponent implements OnChanges {
   customers: CustomerListItem[] = [];
   
+  @Input() disabled: boolean = true;
   @Input() multi: boolean = true;
   @Input() pickedCustomers: nameIdPair[] = [];
   @Output() pickedCustomersChange = new EventEmitter<nameIdPair[]>();
@@ -34,10 +35,18 @@ export class CustomerPickerComponent {
 
   constructor(private customersService: CustomersService) {
     this.customersService.getCustomers({ page: 0, perPage: 0 }).subscribe({
-      next: (cusomers: Customers) => { this.customers = cusomers.data;  },
+      next: (cusomers: Customers) => { console.dir(cusomers); this.customers = cusomers.data.filter(c => !c.is_demo_customer); },
       error: (error: any) => {}
     });
    }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    console.log("CustomerPickerComponent ngOnChanges called with changes:");
+    console.dir(changes);
+    if(changes['pickedCustomers']){
+      this.pickedCustomers = changes['pickedCustomers'].currentValue.filter((c: BasicCustomerInfo) => !c.is_demo_customer);
+    }
+  }
 
    pick(){
     this.user_message = "";

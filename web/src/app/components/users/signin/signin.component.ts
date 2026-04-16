@@ -12,6 +12,8 @@ import { ToastService } from '../../../services/toast.service';
 import { RequestAccountComponent } from "../request-account/request-account.component";
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { ModalContentDirective } from '../../common/directives/modal-content.directive';
+import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
+import { StateService } from '../../../services/state.service';
 
 @Component({
   selector: 'app-signin',
@@ -20,7 +22,7 @@ import { ModalContentDirective } from '../../common/directives/modal-content.dir
   templateUrl: './signin.component.html',
   styleUrl: './signin.component.scss'
 })
-export class SignInComponent implements OnInit {
+export class SignInComponent extends NavigatedMessageComponent implements OnInit {
 
   signInData: SignInData = {
     username_or_email: "",
@@ -45,7 +47,9 @@ export class SignInComponent implements OnInit {
   @ViewChild('request_sent') request_sent!: ModalDialogComponent;
   goto_url: string = "";
 
-  constructor(private usersService: UsersService, private router: Router, private route: ActivatedRoute, private toastService: ToastService) {
+  constructor(private usersService: UsersService, router: Router, route: ActivatedRoute, toastService: ToastService, stateService: StateService) {
+    super(toastService, stateService, router, route);
+
     let nav = router.getCurrentNavigation();
     if (nav && nav.extras.state && nav.extras.state['info']) {
       if(nav.extras.state['info']['going_to']){
@@ -53,7 +57,7 @@ export class SignInComponent implements OnInit {
       }
     }
     if(!this.goto_url) {
-      this.goto_url = this.route.snapshot.queryParams['returnUrl'] || '/';
+      this.goto_url = route.snapshot.queryParams['returnUrl'] || '/';
     }
     
     //alerady signed in -> no need to sign in

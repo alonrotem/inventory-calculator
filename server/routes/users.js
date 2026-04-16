@@ -26,6 +26,33 @@ router.get('/', auth_request([{ requiredArea: 'user_management', requiredPermiss
   }
 });
 
+//get user invitations (paged)
+router.get('/invitations', auth_request([{ requiredArea: 'user_management', requiredPermission: 'R' }]), async function(req, res, next) {
+  logger.info(`get /users/invitations page=${req.query.page}, perPage=${req.query.perPage}`);
+  try {
+    const response = await users.getInvitations(req.query.page, req.query.perPage);
+    logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+    res.json(response);
+  } 
+  catch (err) {
+    logger.error(`Error getting invitations ${err.message}`);
+    next(err);
+  }
+});
+
+router.get('/invitation/:id', auth_request([{ requiredArea: 'user_management', requiredPermission: 'R' }]), async function(req, res, next) {
+  logger.info(`get /users/invitation/${req.params.id}`);
+  try {
+    const response = await users.getInvitationDetails(req.params.id);
+    logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+    res.json(response);
+  } 
+  catch (err) {
+    logger.error(`Error getting invitation details: ${err.message}`);
+    next(err);
+  }
+});
+
 // Delete a user by ID
 router.delete('/:id', auth_request([{ requiredArea: 'user_management', requiredPermission: 'D' }]), async function(req, res, next) {
   logger.info(`delete /users/${req.params.id}`);
@@ -481,6 +508,25 @@ router.get('/account_requets', auth_request([{ requiredArea: 'user_management', 
     next(err);
   }
 });
+
+
+router.post('/invite_user', 
+  auth_request([{ requiredArea: 'user_management', requiredPermission: 'C' }]),
+  async function(req, res, next) {
+  logger.info(`post /users/invite_user`);
+  logger.debug(`Body: ${ JSON.stringify(req.body) }`)
+  try {
+    const invitation_response = await users.invite_user(req.body, req["auth_token"]);
+    logger.debug(`RESPONSE: ${JSON.stringify(invitation_response)}`);
+    res.status(200).send( invitation_response );      
+  } 
+  catch (err) {
+    logger.error(`Error inviting user: ${err.message}`);
+    next(err);
+  }
+});
+
+
 
 ///users/account_requet/${id}
 router.get('/account_requet/:id', auth_request([{ requiredArea: 'user_management', requiredPermission: 'R' }]), async function(req, res, next) {

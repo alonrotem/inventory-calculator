@@ -74,12 +74,12 @@ export class SettingsUserDetailsComponent extends NavigatedMessageComponent impl
 
   constructor(
     private usersService: UsersService,
-    private activatedRoute: ActivatedRoute,
+    activatedRoute: ActivatedRoute,
     toastService: ToastService,
     stateService: StateService,
     router: Router,
     private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService){
-    super(toastService, stateService, router);
+    super(toastService, stateService, router, activatedRoute);
   }
 
   async ngOnInit() {
@@ -133,15 +133,15 @@ export class SettingsUserDetailsComponent extends NavigatedMessageComponent impl
   }
   
   
-    role_selected(role: nameIdPair){
-      if(role) {
-        this.user.roles = [ role ];
-      }
-      else {
-        this.user.roles = [];
-      }
-      this.unsaved_changes = true;
+  role_selected(role: nameIdPair){
+    if(role) {
+      this.user.roles = [ role ];
     }
+    else {
+      this.user.roles = [];
+    }
+    this.unsaved_changes = true;
+  }
 
   email_changed(){
     if(this.current_email == this.original_email){
@@ -233,6 +233,8 @@ export class SettingsUserDetailsComponent extends NavigatedMessageComponent impl
   delete_user(){
     this.usersService.delete(this.user.id).subscribe({
       next: (value: any) => {
+        this.unsaved_changes = false;
+        this.profile_form.form.markAsPristine();
         this.navigateWithToastMessage("settings/users", "User deleted", false);
       },
       error: (error: any) => {

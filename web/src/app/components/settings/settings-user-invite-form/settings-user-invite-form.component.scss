@@ -1,0 +1,15 @@
+input[type='radio'] {
+    margin-right: 10px;
+}
+
+div[disabled='true'], .customer-selection-wrapper[disabled='true'] {
+    cursor: default;
+    opacity: var(--form-check-label-disabled-opacity);
+}
+
+.customer-selection-wrapper{
+    border: 1px solid; 
+    padding: 20px;
+    border-radius: var(--bs-border-radius);
+    margin: 10px;
+}   

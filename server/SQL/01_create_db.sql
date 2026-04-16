@@ -35,6 +35,8 @@ drop table if exists user_roles;
 drop table if exists user_customers;
 drop table if exists role_permissions;
 drop table if exists account_requests;
+drop table if exists account_invites;
+drop table if exists account_invites_customers;
 
 drop table if exists transaction_history;
 SET FOREIGN_KEY_CHECKS = 1;
@@ -725,13 +727,26 @@ CREATE TABLE IF NOT EXISTS `account_invites` (
 	`account_role_id`	int default 0,
 	`invite_status`	ENUM(
 			'sent',		# request sent to the user
-            'verified'	# user accepted and verified themselved
+            'verified',	# user accepted and verified themselved
+			'cancelled'
 		) NOT NULL,
+	`is_demo_customer`			BOOL not null default false,
+	`create_new_customer`		BOOL not null default false,
 	PRIMARY KEY (`id`),
 	`sent_date` 	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`last_update`	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,	
 	CONSTRAINT fk_account_invite_user_account
 	  FOREIGN KEY (`created_account_user_id`) REFERENCES users(`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS `account_invites_customers` (
+	`account_invite_id`				INT NOT NULL,
+	`customer_id`					INT NOT NULL,
+	CONSTRAINT fk_customer_account_invite
+	  FOREIGN KEY (`account_invite_id`) REFERENCES account_invites(`id`) ON DELETE cascade,
+	CONSTRAINT fk_account_invite_customer
+	  FOREIGN KEY (`customer_id`) REFERENCES customers(`id`) ON DELETE cascade,
+	CONSTRAINT uc_user_roles UNIQUE (`account_invite_id`, `customer_id`) 
 );
 
 CREATE TABLE IF NOT EXISTS `logins` (

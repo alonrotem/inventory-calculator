@@ -31,7 +31,7 @@ async function hashPassword(password){
 }
 
 //checks whether the username or email address is already taken by another user, account request, or invitation
-async function isUserTakenAnywhere(username, email_address, throw_exception_if_not_found=false) {
+async function isUserTakenAnywhere(username, email_address, throw_exception_if_duplicate=false) {
   //nothing to search by, user is not taken
   if(!username && !email_address){
     return false;
@@ -39,7 +39,7 @@ async function isUserTakenAnywhere(username, email_address, throw_exception_if_n
 
   //check existing users
   const existing_user_rec = await findUser(username, email_address);
-  if(!helper.isEmptyObj(existing_user_rec) && throw_exception_if_not_found) {
+  if(!helper.isEmptyObj(existing_user_rec) && throw_exception_if_duplicate) {
     if(existing_user_rec['email'] && existing_user_rec['email'].toUpperCase() == email_address.toUpperCase()){
       throw new Error(`A user with email address ${email_address} already exists.`);
     }
@@ -78,16 +78,16 @@ async function isUserTakenAnywhere(username, email_address, throw_exception_if_n
     //check account requests
     const existing_account_request = helper.emptyOrSingle(await db.query(
       `select 
-        ${query_columns.join(",")}
+        request_status, ${query_columns.join(",")}
       from (
         select 
-          ${generated_columns.join(",")} 
+          request_status, ${generated_columns.join(",")} 
         from account_requests) as users_gmails 
-      where ${query_filters.join(" or ")};`, 
+      where (${query_filters.join(" or ")}) and request_status<>'declined' ;`, 
       query_params));
 
     if(!helper.isEmptyObj(existing_account_request)){
-      if(throw_exception_if_not_found) {
+      if(throw_exception_if_duplicate) {
         throw new Error(`An account request with an address equivalent to ${email_address} already exists.`);
       }
       return true;
@@ -101,11 +101,11 @@ async function isUserTakenAnywhere(username, email_address, throw_exception_if_n
         select 
           ${generated_columns.join(",")} 
         from account_invites) as users_gmails 
-      where ${query_filters.join(" or ")};`, 
+      where ${query_filters.join(" or ")} and invite_status<>'cancelled';`, 
       query_params));
 
     if(!helper.isEmptyObj(existing_account_invites)){
-      if(throw_exception_if_not_found) {
+      if(throw_exception_if_duplicate) {
         throw new Error(`An account invite with an address equivalent to ${email_address} already exists.`);
       }
       return true;
@@ -183,7 +183,7 @@ async function signup(firstname, lastname, email_address, username, password, ro
     const hashed_pass = await hashPassword(password);
 
     //check that the username and email are not taken by another user, account request, or invitation (exception will be thrown)
-    isUserTakenAnywhere(username, email_address, true);
+    await isUserTakenAnywhere(username, email_address, true);
 
     const code_expiration = new Date(new Date().getTime() + 60 * 60 * config.registration_code_expiration_horus * 1000);
     const result = await db.transaction_query(
@@ -233,7 +233,7 @@ async function signup(firstname, lastname, email_address, username, password, ro
 async function manual_add_user_temp(user_details, active_connection=null){
  
   //check that the user is not taken by another user, account request, or invitation (exception will be thrown)
-  isUserTakenAnywhere(null, user_details["email_address"], true);
+  await isUserTakenAnywhere(null, user_details["email_address"], true);
 
   let self_executing = false;
   if(!active_connection) {
@@ -375,6 +375,19 @@ async function send_user_account_verification_mail(firstname, email_address, ver
       code_expiration
     );
     await email.sendMail(email_address, null, null, subject, email_parts.body, email_parts.attachments);
+}
+
+//function account_invitation_to_user(user_firstname, server_address, invitation_code) {
+async function send_new_account_invitation_to_user(user_firstname, email_address, invitation_code){
+    const subject = "Romtech account invitation";
+    const email_parts = email_tempates.account_invitation_to_user(user_firstname, process.env.EMAIL_LINKS_DOMAIN, invitation_code);
+    await email.sendMail(email_address, null, null, subject, email_parts.body, email_parts.attachments);
+}
+
+async function send_account_invitation_accepted_notification_to_admin(admin_email_address, admin_firstname, requester_firstname, requester_lastname, requester_email, invitation_id, created_user_id) {
+  const subject = "Account invitation accepted!";
+  const email_parts = email_tempates.invitation_accepted_admin_notification(admin_firstname, requester_firstname, requester_lastname, requester_email, invitation_id, created_user_id, process.env.EMAIL_LINKS_DOMAIN);
+  await email.sendMail(admin_email_address, null, null, subject, email_parts.body, email_parts.attachments);
 }
 
 async function send_new_email_verification(firstname, email_address, old_email_address, verification_code){
@@ -541,7 +554,7 @@ async function reset_password(code, password, sign_out_from_all, active_connecti
       throw new Error("A password and a valid security code are required!");
     }
 
-    const user_rec = helper.emptyOrSingle(await db.query(`select * from users where pending_verfication_code=(?)`, [ helper.decBase64(code) ]));
+    const user_rec = helper.emptyOrSingle(await db.query(`select * from users where pending_verfication_code=(?)`, [ /*helper.decBase64(*/code/*)*/ ]));
     if(helper.isEmptyObj(user_rec)){
       throw new Error("Invalid code");
     }
@@ -781,54 +794,181 @@ async function getUserPermissions(userId){
       [userId]));
 }
 
-async function getUserProfile(userId){
-    const rows = await db.query(
-      `select id, firstname, lastname, username, email, pending_new_email, is_verified, is_disabled, photo_url, phone, created_at, is_demo_customer from users where id=(?);`,
-      [userId]
+async function getUserProfile(userId, active_connection=null){
+  const user_query = `select id, firstname, lastname, username, email, pending_new_email, is_verified, is_disabled, photo_url, phone, created_at, is_demo_customer from users where id=(?);`;
+  const rows = (active_connection)? 
+    await db.transaction_query(user_query,[userId], active_connection):
+    await db.query(user_query,[userId]);
+  const user = helper.emptyOrSingle(rows);
+
+  user["is_demo_customer"] = helper.var_to_bool(user["is_demo_customer"]);
+
+  if(user["is_verified"] == 0){
+    throw new Error("Account not verified. Please check your email!");
+  }
+
+  //console.log("disabled " + user["is_disabled"]);
+  if(user["is_disabled"] != 0){
+    throw new Error("This account is disabled");
+  }
+
+  const roles_query = `select r.name, r.id
+        from users u 
+        inner join user_roles ur on u.id = ur.user_id
+        inner join roles r on r.id = ur.role_id 
+      where u.id=(?);`;
+  const role_names = (active_connection)?
+    await db.transaction_query(roles_query, [userId], active_connection):
+    await db.query(roles_query, [userId]);
+
+  if(!helper.isEmptyObj(helper.emptyOrRows(role_names))){
+    user["roles"] = role_names.map(r => { return { id: r["id"], name: r["name"] }; } );
+  }
+
+  if(role_names.find(r => r.name.toUpperCase() == "CUSTOMER")) {
+    const customer_query = `select c.id, c.name, c.is_demo_customer
+        from user_customers uc inner join customers c on c.id = uc.customer_id
+      where uc.user_id=(?);`;
+    const linked_customers = (active_connection)?
+      await db.transaction_query(customer_query, [userId], active_connection):
+      await db.query(customer_query, [userId]);
+
+    if(!helper.isEmptyObj(helper.emptyOrRows(linked_customers))){
+      user["customers"] = linked_customers.map(r => 
+        { return { 
+          id: r["id"], 
+          name: r["name"], 
+          is_demo_customer: helper.var_to_bool(r["is_demo_customer"]) 
+        }; 
+      });
+    }      
+  }
+  return user;
+}
+
+async function finalize_accepted_invitation(invitation_info, invitation_code, active_connection=null){
+  let self_executing = false;
+  if(!active_connection) {
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
+  }
+  try {  
+
+    //find the invitation
+    const invitation_rec = helper.emptyOrSingle(await db.query(
+      `
+      select ai.*, u.firstname inviter_firstname, u.email inviter_email from account_invites ai
+        inner join users u on ai.inviter_user_id = u.id
+      where ai.account_creation_code=(?) and ai.id=(?)`, [invitation_code, invitation_info["id"]]));
+    if(helper.isEmptyObj(invitation_rec)){
+      throw new Error("Invalid invitation code");
+    }
+
+    //create the user
+    const user_rec = await db.transaction_query(
+    `INSERT INTO users 
+     (
+      firstname, lastname, username, email, password, 
+        is_verified, is_disabled, pending_verfication_code, verification_code_expiration, created_at, is_demo_customer) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        invitation_info["firstname"], 
+        invitation_info["lastname"], 
+        invitation_info["username"], 
+        invitation_rec["email"], 
+        await hashPassword(invitation_info['new_password']),
+        true,
+        false,
+        null,
+        null,
+        helper.dateStr(new Date()),
+        invitation_rec["is_demo_customer"]
+      ],
+      active_connection
     );
-    //console.log("user id: " + userId);
-    //console.dir(rows);
-    const user = helper.emptyOrSingle(rows);
 
-    user["is_demo_customer"] = helper.var_to_bool(user["is_demo_customer"]);
-
-    if(user["is_verified"] == 0){
-      throw new Error("Account not verified. Please check your email!");
+    //apply role
+    if(invitation_rec["account_role_id"]){
+      await db.transaction_query(
+        `insert into user_roles (user_id, role_id) values ((?),(?))`,
+        [user_rec.insertId, invitation_rec["account_role_id"]], 
+        active_connection);
     }
 
-    //console.log("disabled " + user["is_disabled"]);
-    if(user["is_disabled"] != 0){
-      throw new Error("This account is disabled");
+    const customers = require("./customers");
+    let customer_id_to_link = [];
+    //connect to customer, create if needed if needed
+    // * if demo customer, create and connet to a new demo customer
+    // * if not demo customer, and requires personal customer, crate it and connect to it
+    if(invitation_rec["is_demo_customer"] || invitation_rec["create_new_customer"]){
+      const new_customer = await customers.save({
+          id: 0,
+          name: `${invitation_info.firstname} ${invitation_info.lastname}`,
+          business_name: `${invitation_info.firstname} ${invitation_info.lastname}`,
+          email: invitation_info["email"],
+          phone: invitation_info.phone,
+          tax_id: null,
+          customer_code: null,
+          created_at: helper.nowDateStr(),
+          updated_at: helper.nowDateStr(),
+          created_by: invitation_rec["inviter_user_id"],
+          updated_by: invitation_rec["inviter_user_id"],
+          banks: [],
+          banks_baby_allocations: [],
+          babies: [],
+          is_demo_customer: invitation_rec.is_demo_customer          
+        },
+        invitation_rec["inviter_user_id"],
+        active_connection
+      );
+      customer_id_to_link.push(new_customer.customer.id);
     }
 
-    const role_names = await db.query(
-      `select r.name, r.id
-          from users u 
-          inner join user_roles ur on u.id = ur.user_id
-          inner join roles r on r.id = ur.role_id 
-        where u.id=(?);`, [userId]);
-
-    if(!helper.isEmptyObj(helper.emptyOrRows(role_names))){
-      user["roles"] = role_names.map(r => { return { id: r["id"], name: r["name"] }; } );
+    //get only ids of really existing customers
+    const invitation_customers = helper.emptyOrRows(await db.query(
+      `select aic.customer_id  
+        from 
+      account_invites_customers aic inner join customers c on aic.customer_id = c.id
+      where aic.account_invite_id=(?)`, 
+    [invitation_rec["id"]]));
+    if(invitation_customers.length > 0){
+      customer_id_to_link = customer_id_to_link.concat(invitation_customers.map(c => c.customer_id));
     }
 
-    if(role_names.find(r => r.name.toUpperCase() == "CUSTOMER")) {
-      const linked_customers = await db.query(
-        `select c.id, c.name, c.is_demo_customer
-          from user_customers uc inner join customers c on c.id = uc.customer_id
-        where uc.user_id=(?);`, [userId]);
-
-      if(!helper.isEmptyObj(helper.emptyOrRows(linked_customers))){
-        user["customers"] = linked_customers.map(r => 
-          { return { 
-            id: r["id"], 
-            name: r["name"], 
-            is_demo_customer: helper.var_to_bool(r["is_demo_customer"]) 
-          }; 
-        });
-      }      
+    // * link to existing customers by id
+    if(customer_id_to_link.length > 0){
+      await db.transaction_query(
+        `insert into user_customers (user_id, customer_id) values ${customer_id_to_link.map(id => "((?),(?))").join(",")}`,
+        customer_id_to_link.map(id => [user_rec.insertId, id]).flat(), 
+        active_connection);
     }
-    return user;
+
+    //change the invitation status to accepted
+    await db.transaction_query(
+      `update account_invites set invite_status=(?), last_update=(?), created_account_user_id=(?), account_creation_code=(?) where id=(?)`,
+      ["verified", helper.nowDateStr(), user_rec.insertId, null, invitation_rec["id"]],
+      active_connection);
+
+    //send an email to the admin who invited the user
+    await send_account_invitation_accepted_notification_to_admin(
+      invitation_rec["inviter_email"], invitation_rec["inviter_firstname"], 
+      invitation_info["firstname"], invitation_info["lastname"], invitation_info["email"], 
+      invitation_rec["id"], user_rec.insertId);
+
+    //return the user record
+    return helper.emptyOrSingle(await db.transaction_query(`select * from users where id=(?)`, [user_rec.insertId], active_connection));
+  }
+  catch(error){
+    if(self_executing) {
+      await db.transaction_rollback(active_connection);
+    }
+    throw(error);
+  }
+  finally {
+    if(self_executing) {
+      await db.transaction_release(active_connection);
+    }
+  }    
 }
 
 // Save user profile info
@@ -842,10 +982,20 @@ async function saveUserProfile(updateProfileInfo, photo_url, active_connection=n
   try {
     let update_fields = ['firstname=(?)', 'lastname=(?)', 'phone=(?)'];
     let update_values = [updateProfileInfo['firstname'], updateProfileInfo['lastname'], updateProfileInfo['phone]']??''];
-    const existing_user = helper.emptyOrSingle(await db.query(`select * from users where id=(?) limit 1`, [updateProfileInfo["id"]]));
 
-    if(updateProfileInfo["profile_code"]) {
-      if(helper.decBase64(updateProfileInfo["profile_code"]) != existing_user["pending_verfication_code"]){
+    let existing_user = null;
+    let user_found_on_invite = false;
+    //first try to find the user by sent id. if no such user is found, it may be an id of an invitation.
+    //we'll have to first find the invitation, realize it (i.e. create the user), then update it accordingly
+    existing_user = helper.emptyOrSingle(await db.query(`select * from users where id=(?) limit 1`, [updateProfileInfo["id"]]));
+    
+    if(helper.isEmptyObj(existing_user)){
+      existing_user = await finalize_accepted_invitation(updateProfileInfo, updateProfileInfo["profile_code"], active_connection);
+      user_found_on_invite = true;
+    }
+
+    if(updateProfileInfo["profile_code"] && !user_found_on_invite) {
+      if(updateProfileInfo["profile_code"] != existing_user["pending_verfication_code"]){
         throw new Error("Invalid code");
       }
       if(!updateProfileInfo["username"]) {
@@ -935,7 +1085,7 @@ async function saveUserProfile(updateProfileInfo, photo_url, active_connection=n
         `update users 
           set ${update_fields.join(',')}
         where id=(?)`,
-        [...update_values, updateProfileInfo["id"]], 
+        [...update_values, existing_user["id"]], 
         active_connection);
       
       if(updated_mail){
@@ -956,7 +1106,7 @@ async function saveUserProfile(updateProfileInfo, photo_url, active_connection=n
     if(self_executing) {
       await db.transaction_commit(active_connection);
     }
-    return await getUserProfile(updateProfileInfo["id"]);
+    return await getUserProfile(existing_user["id"], active_connection);
   }
   catch(error){
     if(self_executing) {
@@ -971,14 +1121,7 @@ async function saveUserProfile(updateProfileInfo, photo_url, active_connection=n
   }
 }
 
-async function getUserProfile_by_code(verification_code){
-
-  const code = helper.decBase64(verification_code);
-
-  const user_rec = helper.emptyOrSingle(await db.query(
-    'select * from users where pending_verfication_code=(?)', 
-    [ code ]));
-  
+async function fetch_user_info_for_account(user_rec){
   if(helper.isEmptyObj(user_rec)) {
     throw new Error("Invalid user code");
   }
@@ -1026,6 +1169,71 @@ async function getUserProfile_by_code(verification_code){
     is_demo_customer: helper.var_to_bool(c["is_demo_customer"])
   }; })
  };
+}
+
+async function fetch_user_info_by_invitation_code(invitation_code){
+
+  const invite_rec = helper.emptyOrSingle(await db.query(
+    'select * from account_invites where account_creation_code=(?)', 
+    [ invitation_code ]));
+
+  if(helper.isEmptyObj(invite_rec)) {
+    throw new Error("Invalid code, or invitation already activated");
+  }
+  
+  const roles_recs = helper.emptyOrRows(await db.query(
+    `select 
+      r.id, r.name 
+    from 
+      account_invites ai 
+      inner join roles r on ai.account_role_id=r.id
+    where ai.account_creation_code=(?);`,
+  [ invitation_code ]));
+
+  const customer_recs = (roles_recs.length > 0 && roles_recs[0]["name"]=="customer")? 
+    helper.emptyOrRows(await db.query(
+      `select c.id, c.name, c.is_demo_customer 
+      from 
+        account_invites_customers aic 
+        inner join customers c on aic.customer_id=c.id
+        where aic.account_invite_id=(?);`,
+    [ invitation_code ])) : [];
+
+  return {
+    id: invite_rec["id"],
+    firstname: invite_rec["firstname"],
+    lastname: invite_rec["lastname"],
+    username: "",
+    email: invite_rec["email"],
+    pending_new_email: "",
+    photo_url: "",
+    phone: "",
+    registered_on: invite_rec["sent_date"],
+    roles: roles_recs,
+    is_demo_customer: helper.var_to_bool(invite_rec["is_demo_customer"]),
+    customers: customer_recs.map(c => { return {
+      id: c["id"],
+      name: c["name"],
+      is_demo_customer: helper.var_to_bool(c["is_demo_customer"])
+    }; })
+  };    
+}
+
+//will get the base user profile by pending verification code. Either in the users table, or a pending user invitation
+async function getUserProfile_by_code(verification_code){
+
+  const code = verification_code; //helper.decBase64(verification_code);
+
+  const user_rec = helper.emptyOrSingle(await db.query(
+    'select * from users where pending_verfication_code=(?)', 
+    [ code ]));
+  
+  if(!helper.isEmptyObj(user_rec)) {
+    return await fetch_user_info_for_account(user_rec);
+  }
+  else {
+    return await fetch_user_info_by_invitation_code(code);
+  }
 }
 
 // Generate an auth token for authentication, or refresh
@@ -1196,7 +1404,7 @@ async function request_account(accountRequestInfo, active_connection=null){
   }
   try {
     //check that the user is not taken by another user, account request, or invitation (exception will be thrown)
-    isUserTakenAnywhere(null, accountRequestInfo.email, true);
+    await isUserTakenAnywhere(null, accountRequestInfo.email, true);
 
     const insert_result = await db.transaction_query(
       `insert into account_requests (firstname, lastname, email, phone,  details, request_date , last_update, request_status)
@@ -1531,6 +1739,102 @@ async function deleteccountRequest(id, active_connection=null){
     if(self_executing) {
       await db.transaction_release(active_connection);
     }
+  }
+}
+
+async function invite_user(inviteDetails, auth_token, active_connection=null){
+  let self_executing = false;
+  if(!active_connection) {
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
+  }
+  try {
+    //check if the user is not taken by another user, account request, or invitation (exception will be thrown)
+    await isUserTakenAnywhere(null, inviteDetails.email, true);
+
+    const invite_code = helper.getRandomString(10);
+    const invite_rec = await db.transaction_query(
+      `insert into account_invites 
+        (
+          firstname, lastname, email, 
+          inviter_user_id, account_creation_code, 
+          account_role_id, is_demo_customer, create_new_customer, invite_status,
+          sent_date, last_update)
+          values((?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?));`, //sent
+        [
+          inviteDetails.firstname,
+          inviteDetails.lastname,
+          inviteDetails.email,
+          auth_token["id"],
+          invite_code,
+          inviteDetails.role.id,
+          inviteDetails.is_demo_customer,
+          inviteDetails.create_new_customer,
+          'sent',
+          helper.nowDateStr(),
+          helper.nowDateStr()
+        ],
+        active_connection);
+
+    //create links to customers
+    if(!inviteDetails.is_demo_customer && inviteDetails.customers && inviteDetails.customers.length > 0){
+      const customers_placeholders = inviteDetails.customers.map(i => "((?),(?))").join(",");
+      await db.transaction_query(
+        `insert into account_invites_customers (account_invite_id, customer_id) values ${customers_placeholders}`,
+        inviteDetails.customers.map(c => [invite_rec.insertId , c.id]).flat(),
+        active_connection
+      );
+    }
+
+    //send an email to the invited user with the code and link to registration page
+    await send_new_account_invitation_to_user(
+      inviteDetails.firstname,
+      inviteDetails.email,
+      invite_code
+    );
+
+    db.transaction_commit(active_connection);
+
+    return true;
+  }
+  catch(error){
+    if(self_executing) {
+      await db.transaction_rollback(active_connection);
+    }
+    throw(error);
+  }
+  finally {
+    if(self_executing) {
+      await db.transaction_release(active_connection);
+    }
+  } 
+}
+
+async function getInvitations(page, perPage){
+  let subset =  '';
+  if(page && perPage && page > 0 && perPage > 0)
+  {
+    const offset = helper.getOffset(page, perPage);
+    subset = `LIMIT ${offset},${perPage}`
+  }
+
+  const rows = await db.query(
+    `select ai.id, ai.firstname, ai.lastname, ai.email, ai.invite_status, ai.sent_date, ai.last_update, r.name as role, ai.is_demo_customer
+      from account_invites ai left join roles r on r.id=ai.account_role_id 
+    ${subset}`
+  );
+  const total = await db.query(
+    `SELECT count(*) as count FROM account_invites`
+  );
+  const total_records = total[0].count;
+
+  const total_pages = Math.ceil(total_records / perPage);
+  const data = helper.emptyOrRows(rows);
+  const meta = {page, total_records, total_pages};
+
+  return {
+    data,
+    meta
   }
 }
 
@@ -2100,6 +2404,12 @@ async function updateUser(userDetails, photo_url, auth_token, active_connection)
           `delete from user_customers where user_id=(?)`, 
           [userDetails["id"]], 
           active_connection);
+        
+        //unlink the user from deleted demo customer ids
+        demo_customer_ids_for_user.forEach(c => {
+          userDetails["customers"] = userDetails["customers"].filter(cust => cust.id != c["id"]);
+        });
+
         //link to the user assigned customers
         let customer_ids = (userDetails["customers"])? userDetails["customers"].map(c => c.id) : [];
         if(customer_ids.length > 0){
@@ -2284,6 +2594,10 @@ module.exports = {
   getAccountRequestDetails,
   approve_account_request,
   deleteccountRequest,
+
+  //inviting new users
+  invite_user,
+  getInvitations,
 
   //user profile
   getBaseUserInfo,

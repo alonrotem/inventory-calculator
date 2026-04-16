@@ -300,14 +300,13 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     private globalsService: GlobalsService,
     private rawMaterialsService: RawMaterialsService,
     private hatsCalculatorService: HatsCalculatorService,
-    private activatedRoute: ActivatedRoute,
+    activatedRoute: ActivatedRoute,
     private ordersService: OrdersService,
     router: Router, 
     stateService: StateService,
     toastService: ToastService     
   ) {
-    super(toastService, stateService, router);
-    this.showNavigationToastIfMessagePending();
+    super(toastService, stateService, router, activatedRoute);
 
     this.globalsService.themeChanged.subscribe((theme: string) => {
       this.no_hat_img = `/assets/images/no-hat-picture-${theme}.png`;

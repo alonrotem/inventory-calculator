@@ -57,10 +57,9 @@ export class OrdersTableComponent extends NavigatedMessageComponent implements O
     router: Router, 
     stateService: StateService,
     toastService: ToastService,
-    private activatedRoute: ActivatedRoute) {
+    activatedRoute: ActivatedRoute) {
       let nav = router.getCurrentNavigation();
-      super(toastService, stateService, router);
-      this.showNavigationToastIfMessagePending();
+      super(toastService, stateService, router, activatedRoute);
 
       if (nav && nav.extras.state && nav.extras.state['info']) {
         if(nav.extras.state['info']['customer_name']){
