@@ -987,7 +987,9 @@ async function saveUserProfile(updateProfileInfo, photo_url, active_connection=n
     let user_found_on_invite = false;
     //first try to find the user by sent id. if no such user is found, it may be an id of an invitation.
     //we'll have to first find the invitation, realize it (i.e. create the user), then update it accordingly
-    existing_user = helper.emptyOrSingle(await db.query(`select * from users where id=(?) limit 1`, [updateProfileInfo["id"]]));
+    existing_user = updateProfileInfo["profile_code"]?
+      helper.emptyOrSingle(await db.query(`select * from users where pending_verfication_code=(?) limit 1`, [updateProfileInfo["profile_code"]])) :
+      helper.emptyOrSingle(await db.query(`select * from users where id=(?) limit 1`, [updateProfileInfo["id"]]));
     
     if(helper.isEmptyObj(existing_user)){
       existing_user = await finalize_accepted_invitation(updateProfileInfo, updateProfileInfo["profile_code"], active_connection);
