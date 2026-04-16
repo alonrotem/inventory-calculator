@@ -1437,13 +1437,13 @@ async function request_account(accountRequestInfo, active_connection=null){
     
     if((!helper.isEmptyObj(administrators)) && (administrators.length > 0)) {
 
-      //const admins_emails = administrators.map(administrtor => administrtor["email"]);
+      const admins_emails = administrators.map(administrtor => administrtor["email"]);
 
       //**************************************************** */
       //**************************************************** */
       //**************************************************** */
       //**************************************************** */
-      const admins_emails = ["alrotem@gmail.com"]; //TEMPORARYYYYYYY!!!!!!!!
+      //const admins_emails = ["alrotem@gmail.com"]; //TEMPORARYYYYYYY!!!!!!!!
       //**************************************************** */
       //**************************************************** */
       //**************************************************** */
