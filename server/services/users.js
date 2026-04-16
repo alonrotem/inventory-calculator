@@ -1121,9 +1121,10 @@ async function saveUserProfile(updateProfileInfo, photo_url, active_connection=n
   }
 }
 
-async function fetch_user_info_for_account(user_rec){
+async function fetch_user_info_for_account(user_rec, code){
+  
   if(helper.isEmptyObj(user_rec)) {
-    throw new Error("Invalid user code");
+    throw new Error("User not found for the sent code");
   }
 
   if(user_rec["is_disabled"] != 0){
@@ -1229,7 +1230,7 @@ async function getUserProfile_by_code(verification_code){
     [ code ]));
   
   if(!helper.isEmptyObj(user_rec)) {
-    return await fetch_user_info_for_account(user_rec);
+    return await fetch_user_info_for_account(user_rec, code);
   }
   else {
     return await fetch_user_info_by_invitation_code(code);
