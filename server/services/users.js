@@ -99,7 +99,7 @@ async function isUserTakenAnywhere(username, email_address, throw_exception_if_d
         ${query_columns.join(",")}
       from (
         select 
-          ${generated_columns.join(",")} 
+          invite_status, ${generated_columns.join(",")} 
         from account_invites) as users_gmails 
       where ${query_filters.join(" or ")} and invite_status<>'cancelled';`, 
       query_params));
