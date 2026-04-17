@@ -745,7 +745,18 @@ async function resendChangedEmailConfirmationCode(email_address){
 // retrieve basic information on a user (for the currently logged in user)
 async function getBaseUserInfo(userId){
     const rows = await db.query(
-      `select id, firstname, lastname, username, email, is_verified, is_disabled, photo_url, is_demo_customer from users where id=(?);`,
+      `select 
+        u.id, u.firstname, u.lastname, u.username, u.email, 
+        u.is_verified, u.is_disabled, u.photo_url, u.is_demo_customer, 
+        case
+          when u.is_demo_customer then c.id
+        else 0
+        end demo_customer_id
+      from users u 
+      left join user_customers uc on u.id=uc.user_id
+      left join  (select id, is_demo_customer from customers where is_demo_customer=1) c on c.id=uc.customer_id
+      where u.id=(?) 
+      limit 1;`,
       [userId]
     );
     //console.log("user id: " + userId);

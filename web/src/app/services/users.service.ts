@@ -255,7 +255,8 @@ constructor(private apiService: ApiService, private runtimeService: RuntimeServi
       photo_url: '',
       customers: [],
       area_permissions: [],
-      is_demo_customer: false
+      is_demo_customer: false,
+      demo_customer_id: 0
     };
     return this.apiService.get<BasicUserInfoStatus>(
       `${environment.serverUrl}/users/status`, 

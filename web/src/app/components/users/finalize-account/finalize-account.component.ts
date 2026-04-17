@@ -47,7 +47,8 @@ export class FinalizeAccountComponent extends NavigatedMessageComponent {
     roles: [],
     customers: [],
     area_permissions: [],
-    is_demo_customer: false
+    is_demo_customer: false,
+    demo_customer_id: 0
   };
 
   password_change = {

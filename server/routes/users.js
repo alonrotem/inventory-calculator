@@ -314,7 +314,8 @@ router.get('/status', auth_request(), async function(req, res, next) {
       email: userInfo.email, 
       photo_url: userInfo.photo_url,
       area_permissions: userInfo.area_permissions,
-      is_demo_customer: userInfo.is_demo_customer
+      is_demo_customer: userInfo.is_demo_customer,
+      demo_customer_id: userInfo.demo_customer_id
     };
     if(userInfo["roles"]){
       return_data["roles"] = userInfo["roles"];

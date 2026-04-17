@@ -646,6 +646,7 @@ export interface BasicUserInfoStatus {
   customers: BasicCustomerInfo[];
   area_permissions: UserAreaPermissions[];
   is_demo_customer: boolean;
+  demo_customer_id: number;
 }
 
 //those are enforced on the server too, but returned to the client for better UX

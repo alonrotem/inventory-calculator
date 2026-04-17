@@ -69,7 +69,8 @@ export class SettingsUserDetailsComponent extends NavigatedMessageComponent impl
     is_verified: false, is_disabled: false, pending_new_email: '',
     phone: '', registered_on: new Date(), id: 0, firstname: '', lastname: '',
     username: '', email: '', photo_url: '', roles: [], customers: [],
-    area_permissions: [], is_demo_customer: false
+    area_permissions: [], is_demo_customer: false,
+    demo_customer_id: 0
   };
 
   constructor(

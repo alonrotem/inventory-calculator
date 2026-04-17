@@ -51,7 +51,8 @@ export class ProfileComponent implements OnInit {
     roles: [],
     customers: [],
     area_permissions: [],
-    is_demo_customer: false
+    is_demo_customer: false,
+    demo_customer_id: 0
   }
   isCustomer: boolean = false;
   password_change = {

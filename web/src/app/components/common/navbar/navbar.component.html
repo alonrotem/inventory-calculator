@@ -29,7 +29,7 @@
           </li>
           -->
           <li class="nav-item" *ngIf="user.is_demo_customer">
-            <a class="nav-link" aria-current="page" routerLink="inventory/customer/editor"  [ngClass]="(currentUrl.indexOf('/inventory/customer/editor') >= 0) ? 'active': ''">Demo customer</a>
+            <a class="nav-link" aria-current="page" [routerLink]="['inventory/customer/editor']" [queryParams]="{ id: user.demo_customer_id }" [queryParamsHandling]="'merge'"  [ngClass]="(currentUrl.indexOf('/inventory/customer/editor') >= 0) ? 'active': ''">Demo customer</a>
           </li>
 
           <li class="nav-item" *ngIf="((!user.is_demo_customer) && (user | hasPermission: [{area: 'customers', permission: 'R'}, {area: 'customer_resources_by_customer_id', permission: 'R'}]))">
