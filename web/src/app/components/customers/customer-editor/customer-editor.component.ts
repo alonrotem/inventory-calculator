@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, ElementRef, OnInit,QueryList,ViewChild, ViewChildren } from '@angular/core';
+import { Location } from '@angular/common';
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { Customer, Allocation_Baby, TransactionType, nameIdPair, RawMaterialNameColor } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
@@ -102,7 +103,8 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     private usersService: UsersService,
     toastService: ToastService,
     stateService: StateService,
-    router: Router
+    router: Router,
+    private location: Location
     ) { 
       super(toastService, stateService, router, activatedRoute);
 
@@ -237,15 +239,16 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     this.customersService.getDemoCustomerByUserId(user_id).subscribe(
     {
       next: (customer: Customer) => {
-        /*
-        if(Object.keys(customer).length == 0) {
-          // no demo customer for this user, stay in new customer mode
-          return;
-        }
-        */
         this.customerItem = customer;
         this.cacheCustomerBanksInitialData();
         this.recalculateBanks();
+        console.dir(customer)
+        // Update the URL with the customer id in query params, without navigation or reload
+        const url = this.router.url.split('?')[0];
+        const queryParams = new URLSearchParams(window.location.search);
+        queryParams.delete('id'); // Remove any existing id param
+        queryParams.set('id', String(customer.id));
+        this.location.replaceState(url + '?' + queryParams.toString());
       },
       error: (error) => {
         console.log(error);
