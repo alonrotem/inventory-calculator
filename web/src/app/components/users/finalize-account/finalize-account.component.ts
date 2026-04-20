@@ -99,9 +99,11 @@ export class FinalizeAccountComponent extends NavigatedMessageComponent {
         this.loading = false;
       },
       error: (error: any) => {
-        this.toastService.showError(error.error.message);
         if(error.error.message.toLowerCase().indexOf("invalid user code") >= 0){
           this.invalid_code_dialog.open();
+        }
+        else {
+          this.navigateWithToastMessage("users/signin", error.error.message, true);
         }
         this.loading = false;
       }

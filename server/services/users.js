@@ -1188,7 +1188,7 @@ async function fetch_user_info_for_account(user_rec, code){
 async function fetch_user_info_by_invitation_code(invitation_code){
 
   const invite_rec = helper.emptyOrSingle(await db.query(
-    'select * from account_invites where account_creation_code=(?)', 
+    "select * from account_invites where account_creation_code=(?) and invite_status='sent'", 
     [ invitation_code ]));
 
   if(helper.isEmptyObj(invite_rec)) {
