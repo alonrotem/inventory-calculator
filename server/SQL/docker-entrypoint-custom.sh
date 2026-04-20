@@ -2,7 +2,7 @@
 set -e
 
 # Start MySQL in the background (using the official entrypoint)
-/docker-entrypoint.sh mysqld &
+/usr/local/bin/docker-entrypoint.sh mysqld &
 
 # Wait for MySQL to be ready
 until mysqladmin ping -h "localhost" --silent; do

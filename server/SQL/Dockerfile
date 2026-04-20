@@ -24,7 +24,7 @@ RUN microdnf install -y nano
 COPY *.sql /docker-entrypoint-initdb.d/
 
 # Copy migration script and custom entrypoint
-COPY docker-entrypoint-custom.sh /usr/local/bin/
+COPY ./docker-entrypoint-custom.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint-custom.sh
 
 # Overriding unicode configuration for helping non-latin letters in the database
