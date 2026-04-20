@@ -17,7 +17,7 @@ export class BabiesLengthPickerComponent implements OnInit, AfterViewInit {
   }
   @Input() title: string ="Pick a baby length:"; 
   @Input() min_length: number = 5;
-  @Input() max_length: number = 13;
+  @Input() max_length: number = 16;
   @Input() length_step: number = 0.5;
   @Input() units: string = "cm";
   @Input() length: number = -999;

@@ -1,137 +1,263 @@
+<app-confirmation-dialog
+  #confirm_delete_dialog
+  [modalTitle]="'Delete invitation?'"
+  [modalText]="'Are you sure you want to delete this invitation?'"
+  [btnYesClass]="'btn-danger'"
+  [btnYesText]="'Delete!'"
+  [btnYesIcon]="faTrash"
+  [btnNoText]="'Cancel'"
+  (confirm)="delete_invitation_confirmed()" 
+  />
+
+<app-confirmation-dialog
+  #confirm_cancel_dialog
+  [modalTitle]="'Cancel invitation?'"
+  [modalText]="'Are you sure you want to cancel this invitation?'"
+  [btnYesClass]="'btn-warning'"
+  [btnYesText]="'Cancel Invitation!'"
+  [btnYesIcon]="faX"
+  [btnNoText]="'Keep Invitation'"
+  (confirm)="cancel_invitation_confirmed()" 
+  />
+
 <div class="row justify-content-center">
 <div class="col-12 col-md-8">
 
-<h3><fa-icon [icon]="faEnvelopeCircleCheck"></fa-icon> User Invitation To {{ invitation.firstname }} {{ invitation.lastname }}</h3>
+<h3><fa-icon [icon]="faEnvelopeCircleCheck"></fa-icon> User Invitation For {{ invitation.firstname }} {{ invitation.lastname }}</h3>
+
+<app-page-loading 
+    [loading_message]="'Loading invitation details...'" 
+    [hidden]="!loading"
+    [stretch_height]="true" />
 
 <!-- Autocomplete -->
 <div class="row">
     <div class="col">
-        <h4>Request status:</h4>
-        <p><strong>Request status:</strong><span class="status-{{ invitation.invite_status }}"> {{ invitation.invite_status }}</span></p>
-        <p><strong>Requested at: {{ invitation.sent_date| dateStr }}</strong></p>
+    
+        <div>
+            <span>
+                <button class="btn btn-warning upper-button back-button" (click)="navigateWithToastMessage('settings/user_invites', '', false)">
+                    <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon><span class="ms-2">To invitations list</span></div>
+                </button>
+            </span>
+        </div>
+
+        <div *ngIf="invitation.invite_status=='sent'" class="mt-2 mb-5">
+            <div class="text-warning mt-3 mb-3">This invitation has not been accepted by the user yet.</div>
+            <div>If the person has not received the invitation, you can resend it.</div>
+            <button class="btn btn-warning {{ sending? 'disabled': '' }}" (click)="resend_invite()" >
+                <fa-icon [icon]="sending? faArrowsRotate : faEnvelopeCircleCheck" class="me-2" [animation]="(sending)?'spin':undefined" />
+                {{ sending? 'Sending...' : 'Send the invite again!' }}
+            </button>         
+        </div>
+
+        <h4>Invitation status:</h4>
+        <p><strong>Invitation status:</strong><span class="capitalize status-{{ invitation.invite_status }}"> {{ invitation.invite_status }}</span></p>
+        <p>
+            <strong>Sent at:</strong> {{ invitation.sent_date | dateStr }}
+        </p>
+        <p>
+            <strong>Last updated at:</strong> {{ invitation.last_update | dateStr }}
+        </p>
         <p *ngIf="invitation.last_update != invitation.last_update"><strong>Last updated at: {{ invitation.last_update| dateStr }}</strong></p>
-    </div>
-</div>
-<div class="row">
-    <div class="col">
-        <h4>Account details:</h4>
-        <p><strong>Name:</strong> {{ invitation.firstname }} {{ invitation.lastname }}</p>
-        <p><strong>Email:</strong> {{ invitation.email }}</p>
+        <div class="horizontal">
+            <div><strong>Invitation sent by</strong></div>
+            <app-user-tag 
+                [firstname]="invitation.inviter_firstname"
+                [lastname]="invitation.inviter_lastnme"
+                [user_id]="invitation.inviter_user_id"
+                [photo_url]="invitation.inviter_photo_url"
+            /> 
+        </div>
     </div>
 </div>
 <div class="row">
     <div class="col approval-status">
-        <h4>Approval status:</h4>
+        <h4>Invitation Details:</h4>
         <div [hidden]="invitation.invite_status!='sent'">
-            <div class="text-warning">This request is pending an administrator's approval.</div>
-            <div>If you approve this request, a new user account will be created.</div>
-            
-            <div class="d-flex direction-row align-items-center justify-content-start mb-4 mt-4">
-                <div>
-                    Choose a role for this user
-                </div>
-                <div>
-                    <ng-select         
-                        #role_select 
-                        [items]="roles" 
-                        name="role_select" 
-                        [multiple]="false" 
-                        bindLabel="name" 
-                        bindValue="id" 
-                        [placeholder]="'Pick a role'"
-                        (change)="role_selected($event)"
-                        class="roles-select"
-                        />
-                </div>
-                
-            </div>
-            <div class="mt-4 mb-4">
-                <div class="text-danger" [hidden]="!invitation || !invitation.role || invitation.role.name.toLowerCase()!='administrator'">
-                    <fa-icon [icon]="faTriangleExclamation" class="text-warning me-2"></fa-icon>
-                    <strong><span class="text-warning">Careful!</span> An administrator has unlimited access!</strong>
-                </div>
-                <!--  customer section -->
-                <div [hidden]="!invitation || !invitation.role || invitation.role.name.toLowerCase()!='customer'">
-                    <div class="d-flex flex-nowrap align-items-start">
-                        <input class="form-check-input" type="radio" name="customer_options" id="customer_options_not_demo" [(ngModel)]="invitation.is_demo_customer" [value]="false">
-                        <label class="form-check-label" for="customer_options_not_demo">
-                            This user represents a real customer, connected as follows:
-                        </label>  
-                    </div>
-                    <div class="customer-selection-wrapper" [attr.disabled]="invitation.is_demo_customer">
-                        <div class="mt-4 mb-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="" id="chkCreateNewCustoemr" #chkCreateNewCustoemr (change)="set_instructions_and_approval_btn_status()" [(ngModel)]="invitation.create_new_customer" [attr.disabled]="invitation.is_demo_customer">
-                                <label class="form-check-label" for="chkCreateNewCustoemr" [attr.disabled]="invitation.is_demo_customer">
-                                    Create a new customer in the system for this user
-                                </label>
-                            </div>                        
-                        </div>
-                        <div class="mt-4 mb-4" [attr.disabled]="invitation.is_demo_customer"><strong>Connect this user to the following existing customers:</strong></div>
-                        <app-customer-picker 
-                            #customer_picker 
-                            [(pickedCustomers)]="invitation.customers"
-                            [disabled]="invitation.is_demo_customer" 
-                            (Change)="set_instructions_and_approval_btn_status()"
-                            />
-                    </div>
-                    <div class="d-flex flex-nowrap align-items-start">
-                        <input class="form-check-input" type="radio" name="customer_options" id="customer_options_demo" [(ngModel)]="invitation.is_demo_customer" [value]="true">
-                        <label class="form-check-label" for="customer_options_demo">
-                            This is a demo customer (not connected to real customers)
-                        </label>
-                    </div>
-                    <div *ngIf="invitation.is_demo_customer" class="text-warning d-flex align-items-center flex-row" style="margin: 10px;">
-                        <fa-icon [icon]="faTriangleExclamation" class="text-warning me-2"></fa-icon>
-                        <span>A demo customer can play with calculations but not affect the inventory, or send new orders.</span>
-                    </div>                     
-                </div>
 
-               
-                <!-- / customer section -->
-                <div class="text-warning" [hidden]="!invitation || !invitation.role || invitation.role.name.toLowerCase()!='employee'">
-                    Employees have access to orders and speficically approved system areas.
-                </div>
-                <div class="text-warning" [hidden]="!invitation || !invitation.role || invitation.role.name.toLowerCase()!='guest'">
-                    Guests have specicially <em>READONLY</em> access to some areas.
-                </div>
+            <div class="text-warning">This invitation has not been finalized by the user yet.</div>
+            <div>It's still possible to make changes.</div>
+
+            <div class="row">
+            <div class="col">
+                <div class="form-floating">
+                    <input 
+                    type="text" 
+                    class="form-control" 
+                    id="input_firstname" 
+                    placeholder="First name" 
+                    [(ngModel)]="invitation.firstname" 
+                    #input_firstname="ngModel" 
+                    name="input_firstname" 
+                    [required]="true"
+                    [pattern]="'^[a-zA-Z\\s\\-_]*$'">
+                    <label for="input_firstname">First name <span class="text-danger">*</span></label>
+                </div> 
+                <div class="text-danger" *ngIf="input_firstname.invalid && (input_firstname.touched || input_firstname.dirty)" > 
+                    <span *ngIf="input_firstname.errors?.['required']">First name is required</span>
+                    <span *ngIf="input_firstname.errors?.['pattern']">Use only letters, space or -</span>
+                </div>            
             </div>
-            <div class="mt-4 mb-4">
-                <div class="text-warning">{{ approval_instructions }}</div>
-                <div>
-                    <!--(click)="confirm_approval()"-->
-                    <button class="btn btn-success" [disabled]="approve_btn_disabled" ><fa-icon [icon]="faCheck"></fa-icon><br/>Approve this request</button>
-                    <button class="btn btn-warning"><fa-icon [icon]="faX"></fa-icon><br/>Decline</button>
+            <div class="col">
+            <div class="form-floating">
+                <input 
+                type="text" 
+                class="form-control" 
+                id="input_lastname" 
+                placeholder="Last name" 
+                [(ngModel)]="invitation.lastname" 
+                #input_lastname="ngModel" 
+                name="input_lastname" 
+                [required]="true"
+                [pattern]="'^[a-zA-Z\\s\\-]*$'">
+                <label for="input_lastname">Last name <span class="text-danger">*</span></label>
+            </div> 
+            <div class="text-danger" *ngIf="input_lastname.invalid && (input_lastname.touched || input_lastname.dirty)" > 
+                <span *ngIf="input_lastname.errors?.['required']">Last name is required</span>
+                <span *ngIf="input_lastname.errors?.['pattern']">Use only letters, space or -</span>
+            </div>                
+        </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <div class="form-floating">
+                    <input 
+                    type="email" 
+                    class="form-control" 
+                    id="input_email" 
+                    placeholder="name@example.com" 
+                    [(ngModel)]="invitation.email" 
+                    #input_email="ngModel" 
+                    name="input_email" 
+                    [required]="true"
+                    [email]="true">
+                    <label for="input_email">email <span class="text-danger">*</span></label>
                 </div>
+                <div class="text-danger" *ngIf="input_email.invalid && (input_email.touched || input_email.dirty)" > 
+                    <span *ngIf="input_email.errors?.['required']">Email is required</span>
+                </div>
+                <div class="text-danger" *ngIf="input_email.errors?.['email'] && (input_email.touched || input_email.dirty)" > 
+                    <span *ngIf="input_email.errors?.['email']">Please enter a valid email</span>
+                </div>            
+            </div>
+
+            <div class="col text-warning">
+                <div *ngIf="invitation.email != original_email">A new invite will be sent to this email when you save the changes.</div>
             </div>
         </div>
 
-        <div [hidden]="invitation.invite_status!='verified'">
-            <div class="horizontal">
-                <div>This request was approved by</div>
-                <app-user-tag 
-                    [firstname]="invitation.approver_firstname"
-                    [lastname]="invitation.approver_lastnme"
-                    [user_id]="invitation.approver_user_id"
-                    [photo_url]="invitation.approver_photo_url"
-                />       
+        <div class="d-flex direction-row align-items-center justify-content-start mb-4 mt-4">
+            <div>
+                Choose a role for this user
             </div>
-            <div>Last updated on {{ invitation.last_update | dateStr}}.</div>
-            <hr>
+            <div>
+                <ng-select         
+                    #role_select 
+                    [items]="roles" 
+                    name="role_select" 
+                    [multiple]="false" 
+                    bindLabel="name" 
+                    [placeholder]="'Pick a role'"
+                    (change)="role_selected($event)"
+                    class="roles-select"
+                    [(ngModel)]="invitation.role"
+                    required
+                    />
+            </div>
+                
+        </div>
+        <div class="mt-4 mb-4">
+            <div class="text-danger" [hidden]="!invitation || !invitation.role || invitation.role.name.toLowerCase()!='administrator'">
+                <fa-icon [icon]="faTriangleExclamation" class="text-warning me-2"></fa-icon>
+                <strong><span class="text-warning">Careful!</span> An administrator has unlimited access!</strong>
+            </div>
+            <!--  customer section -->
+            <div [hidden]="!invitation || !invitation.role || invitation.role.name.toLowerCase()!='customer'">
+                <div class="d-flex flex-nowrap align-items-start">
+                    <input class="form-check-input" type="radio" name="customer_options" id="customer_options_not_demo" [(ngModel)]="invitation.is_demo_customer" [value]="false">
+                    <label class="form-check-label" for="customer_options_not_demo">
+                        This user represents a real customer, connected as follows:
+                    </label>  
+                </div>
+                <div class="customer-selection-wrapper" [attr.disabled]="invitation.is_demo_customer">
+                    <div class="mt-4 mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="chkCreateNewCustoemr" #chkCreateNewCustoemr (change)="set_instructions_and_approval_btn_status()" [(ngModel)]="invitation.create_new_customer" [attr.disabled]="invitation.is_demo_customer">
+                            <label class="form-check-label" for="chkCreateNewCustoemr" [attr.disabled]="invitation.is_demo_customer">
+                                Create a new customer in the system for this user
+                            </label>
+                        </div>                        
+                    </div>
+                    <div class="mt-4 mb-4" [attr.disabled]="invitation.is_demo_customer"><strong>Connect this user to the following existing customers:</strong></div>
+                    <app-customer-picker 
+                        #customer_picker 
+                        [(pickedCustomers)]="invitation.customers"
+                        [disabled]="invitation.is_demo_customer" 
+                        (Change)="set_instructions_and_approval_btn_status()"
+                        />
+                </div>
+                <div class="d-flex flex-nowrap align-items-start">
+                    <input class="form-check-input" type="radio" name="customer_options" id="customer_options_demo" [(ngModel)]="invitation.is_demo_customer" [value]="true">
+                    <label class="form-check-label" for="customer_options_demo">
+                        This is a demo customer (not connected to real customers)
+                    </label>
+                </div>
+                <div *ngIf="invitation.is_demo_customer" class="text-warning d-flex align-items-center flex-row" style="margin: 10px;">
+                    <fa-icon [icon]="faTriangleExclamation" class="text-warning me-2"></fa-icon>
+                    <span>A demo customer can play with calculations but not affect the inventory, or send new orders.</span>
+                </div>                     
+            </div>
 
-            <h3>Associated user</h3>
-            <div class="horizontal">
-                <div>The following user was created:</div>
-                <app-user-tag 
-                    [firstname]="invitation.user_firstname"
-                    [lastname]="invitation.user_lastname"
-                    [user_id]="invitation.approved_account_user_id"
-                    [photo_url]="invitation.user_photo_url"
-                    /> 
-            </div>
             
-            <div class="mt-3"><strong class="text-success">User role:</strong> {{ (invitation && invitation.role && invitation.role.name)? invitation.role.name : '' }}</div>
+            <!-- / customer section -->
+            <div class="text-warning" [hidden]="!invitation || !invitation.role || invitation.role.name.toLowerCase()!='employee'">
+                Employees have access to orders and speficically approved system areas.
+            </div>
+            <div class="text-warning" [hidden]="!invitation || !invitation.role || invitation.role.name.toLowerCase()!='guest'">
+                Guests have specicially <em>READONLY</em> access to some areas.
+            </div>
+        </div>
+        <div class="mt-4 mb-4">
+            <div class="text-warning">{{ approval_instructions }}</div>
+            <div>
+                <!--(click)="confirm_approval()"-->
+                <button class="btn btn-success" [disabled]="saving" (click)="save_changes()"><fa-icon [icon]="faCheck"></fa-icon><br/>Save changes</button>
+                <button class="btn btn-warning" [disabled]="saving" (click)="cancel_invitation()"><fa-icon [icon]="faX"></fa-icon><br/>Cancel this invitation</button>
+            </div>
+        </div>
+    </div>
+    <div [hidden]="invitation.invite_status!='cancelled'">
+        <p><strong>Name: </strong>{{ invitation.firstname }} {{ invitation.lastname }}</p>
+        <p><strong>Email address: </strong>{{ invitation.email }}</p>
+        <hr>
+        <p><strong>User role:</strong> <span class="capitalize ms-2">{{ (invitation && invitation.role && invitation.role.name)? invitation.role.name : '' }}</span></p>
+        <div *ngIf="invitation.role?.name=='customer'">
+            <strong>Linked customers:</strong>
+            <div *ngIf="invitation.customers && invitation.customers.length > 0">{{ customerNames }}</div>
+            <div *ngIf="invitation.is_demo_customer" class="text-warning"><fa-icon [icon]="faFlask" class="text-warning me-2"></fa-icon> Demo customer</div>
+            <div *ngIf="invitation.create_new_customer" class="text-warning">A new customer would be created for this user.</div>
+        </div>
+    </div>
 
+    <div [hidden]="invitation.invite_status!='verified'">
+        <p><strong>Name: </strong>{{ invitation.firstname }} {{ invitation.lastname }}</p>
+        <p><strong>Email address: </strong>{{ invitation.email }}</p>
+        <hr>
+
+        <h3>Associated user</h3>
+        <div class="horizontal">
+            <div>The following user was created:</div>
+            <app-user-tag 
+                [firstname]="invitation.user_firstname"
+                [lastname]="invitation.user_lastname"
+                [user_id]="invitation.created_account_user_id"
+                [photo_url]="invitation.user_photo_url"
+                /> 
+        </div>
+            
+        <div class="mt-3"><strong class="text-success">User role:</strong> <span class="capitalize ms-2">{{ (invitation && invitation.role && invitation.role.name)? invitation.role.name : '' }}</span></div>
             <div class="mt-3" *ngIf="invitation.customers && invitation.customers.length > 0">
                 <p>The user is linked to the following customers:</p>
 
@@ -167,6 +293,6 @@
 <div class="row">
     <div class="col">
         <!--(click)="deleteRequest()"-->
-        <button class="btn btn-danger" ><fa-icon [icon]="faTrash"></fa-icon><br/>Delete</button>
+        <button class="btn btn-danger" (click)="delete_invitation()"><fa-icon [icon]="faTrash"></fa-icon><br/>Delete</button>
     </div>
 </div>

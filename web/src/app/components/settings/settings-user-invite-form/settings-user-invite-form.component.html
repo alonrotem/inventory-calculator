@@ -4,7 +4,7 @@
   [canClose]="canCloseAccountInvite"
   [modalTitle]="'Invite a new user'"
   [btnSaveClass]="'btn-warning' + (sending?' disabled':'')"
-  [btnSaveText]="(sending)? 'Sending...' : 'Send request'"
+  [btnSaveText]="(sending)? 'Sending...' : 'Send invite'"
   [btnSaveIcon]="(sending)? faArrowsRotate : faEnvelopeCircleCheck"
   [btnSaveSpin]="sending"
   [btnCancelText]="'Cancel'"
@@ -50,7 +50,7 @@
             #input_lastname="ngModel" 
             name="input_lastname" 
             [required]="true"
-            [pattern]="'^[a-zA-Z\\ \\-]*$'">
+            [pattern]="'^[a-zA-Z\\s\\-]*$'">
             <label for="input_lastname">Last name <span class="text-danger">*</span></label>
         </div> 
         <div class="text-danger" *ngIf="input_lastname.invalid && (input_lastname.touched || input_lastname.dirty)" > 

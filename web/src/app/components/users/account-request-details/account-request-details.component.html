@@ -36,14 +36,51 @@ User requesting account
     (confirm)="go_to_account_requests()"
     />
 
+<app-modal-dialog
+    #confirm_decline_dialog
+    [modalTitle]="'Decline account request?'"
+    (confirm)="confirm_decline_confirmed()"
+    [btnSaveText]="'Decline request'"
+    [btnSaveIcon]="faX"
+    [btnSaveClass]="'btn-warning'"
+    btnCancelText="'Cancel'">
+    <div>
+        Are you sure you want to decline this account request?
+        <br/><br/>
+        <input class="form-check-input me-2 mb-3" type="checkbox" value="" id="chkNotifyRequester" #chkNotifyRequester [(ngModel)]="notify_requester_on_decline">
+        <label class="form-check-label" for="chkNotifyRequester">
+            Sent the user an email about the decline
+        </label>
+        <br/>
+        <div class="form-floating">
+            <textarea class="form-control" rows="2" style="height: 100px" placeholder="Additional message to the user (optional)" id="message_to_the_user" [(ngModel)]="message_to_requester_on_decline" name="message_to_the_user" #message_to_the_user="ngModel" [disabled]="!notify_requester_on_decline"></textarea>
+            <label for="message_to_the_user">Additional message to the user (optional)</label>
+        </div>        
+    </div>
+</app-modal-dialog>
+
 <div class="row justify-content-center">
 <div class="col-12 col-md-8">
 
 <h3><fa-icon [icon]="faUserPlus"></fa-icon> Account request from {{ request.firstname }} {{ request.lastname }}</h3>
 
+<app-page-loading 
+    [loading_message]="'Loading account request details...'" 
+    [hidden]="!loading"
+    [stretch_height]="true" />
+
 <!-- Autocomplete -->
 <div class="row">
     <div class="col">
+
+        <div>
+            <span>
+                <button class="btn btn-warning upper-button back-button" (click)="navigateWithToastMessage('users/account_requests', '', false)">
+                    <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon><span class="ms-2">To requests list</span></div>
+                </button>
+            </span>
+        </div>        
+
         <h4>Request status:</h4>
         <p><strong>Request status:</strong><span class="status-{{ request.request_status }}"> {{ request.request_status }}</span></p>
         <p><strong>Requested at: {{ request.request_date | dateStr }}</strong></p>
@@ -56,10 +93,12 @@ User requesting account
         <p><strong>Name:</strong> {{ request.firstname }} {{ request.lastname }}</p>
         <p><strong>Email:</strong> {{ request.email }}</p>
         <p><strong>Phone:</strong> {{ request.phone }}</p>
+        <p><strong>Address:</strong> {{ request.address }}</p>
+        <p><strong>Business Name:</strong> {{ request.business_name }}</p>
         <div><strong>Details:</strong><br/><div>{{ request.details }}</div></div>
     </div>
 </div>
-<div class="row">
+<div class="row" *ngIf="request.request_status!='declined'">
     <div class="col approval-status">
         <h4>Approval status:</h4>
         <div [hidden]="request.request_status!='pending'">
@@ -140,7 +179,7 @@ User requesting account
                 <div class="text-warning">{{ approval_instructions }}</div>
                 <div>
                     <button class="btn btn-success" [disabled]="approve_btn_disabled" (click)="confirm_approval()"><fa-icon [icon]="faCheck"></fa-icon><br/>Approve this request</button>
-                    <button class="btn btn-warning"><fa-icon [icon]="faX"></fa-icon><br/>Decline</button>
+                    <button class="btn btn-warning" (click)="confirm_decline()"><fa-icon [icon]="faX"></fa-icon><br/>Decline</button>
                 </div>
             </div>
         </div>

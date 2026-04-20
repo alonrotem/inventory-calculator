@@ -415,6 +415,7 @@ CREATE TABLE  IF NOT EXISTS `customers` (
     `notes`				varchar(255) NULL,
     `allow_calculation_advisor` BOOL default false,
     `is_demo_customer`			BOOL not null default false,
+    `address`			varchar(255) NULL,
 	`created_at`    	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
 	`updated_at`    	DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`created_by`	 	int null,

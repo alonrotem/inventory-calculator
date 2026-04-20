@@ -26,6 +26,19 @@ router.get('/', auth_request([{ requiredArea: 'user_management', requiredPermiss
   }
 });
 
+router.delete('/:id', auth_request([{ requiredArea: 'user_management', requiredPermission: 'D' }]), async function(req, res, next) {
+  logger.info(`delete /users/${req.params.id}`);
+  try {
+    const response = await users.remove(req.params.id);
+    logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+    res.json(response);
+  }
+  catch (err) {
+    logger.error(`Error deleting user with ID ${req.params.id}: ${err.message}`);
+    next(err);
+  }
+});
+
 //get user invitations (paged)
 router.get('/invitations', auth_request([{ requiredArea: 'user_management', requiredPermission: 'R' }]), async function(req, res, next) {
   logger.info(`get /users/invitations page=${req.query.page}, perPage=${req.query.perPage}`);
@@ -53,16 +66,54 @@ router.get('/invitation/:id', auth_request([{ requiredArea: 'user_management', r
   }
 });
 
-// Delete a user by ID
-router.delete('/:id', auth_request([{ requiredArea: 'user_management', requiredPermission: 'D' }]), async function(req, res, next) {
-  logger.info(`delete /users/${req.params.id}`);
+router.post('/invitation/:id/resend', auth_request([{ requiredArea: 'user_management', requiredPermission: 'C' }]), async function(req, res, next) {
+  logger.info(`post /users/invitation/${req.params.id}/resend`);
   try {
-    const response = await users.remove(req.params.id);
+    const response = await users.resendInvitation(req.params.id);
     logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
     res.json(response);
   } 
   catch (err) {
-    logger.error(`Error deleting user: ${err.message}`);
+    logger.error(`Error resending invitation: ${err.message}`);
+    next(err);
+  }
+});
+
+router.post('/invitation/:id/cancel', auth_request([{ requiredArea: 'user_management', requiredPermission: 'U' }]), async function(req, res, next) {
+  logger.info(`post /users/invitation/${req.params.id}/cancel`);
+  try {
+    const response = await users.cancelInvitation(req.params.id);
+    logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+    res.json(response);
+  } 
+  catch (err) {
+    logger.error(`Error canceling invitation: ${err.message}`);
+    next(err);
+  }
+});
+
+router.post('/invitation/update', auth_request([{ requiredArea: 'user_management', requiredPermission: 'U' }]), async function(req, res, next) {
+  logger.info(`post /users/invitation/${req.params.id}/update`);
+  try {
+    const response = await users.updateInvitation(req.body);
+    logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+    res.json(response);
+  } 
+  catch (err) {
+    logger.error(`Error updating invitation: ${err.message}`);
+    next(err);
+  }
+});
+
+router.delete('/invitation/:id', auth_request([{ requiredArea: 'user_management', requiredPermission: 'D' }]), async function(req, res, next) {
+  logger.info(`delete /users/invitation/${req.params.id}`);
+  try {
+    const response = await users.deleteInvitation(req.params.id);
+    logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+    res.json(response);
+  }
+  catch (err) {
+    logger.error(`Error deleting invitation: ${err.message}`);
     next(err);
   }
 });
@@ -109,8 +160,6 @@ router.post('/', auth_request([{ requiredArea: 'user_management', requiredPermis
     next(err);
   }    
 });
-
-
 
 // sign up a new user
 router.post('/signup', async function(req, res, next) {
@@ -581,6 +630,20 @@ router.post('/account_requet/approve', auth_request([{ requiredArea: 'user_manag
   } 
   catch (err) {
     logger.error(`Error approving account request: ${err.message}`);
+    next(err);
+  }
+});
+
+router.post('/account_requet/decline', auth_request([{ requiredArea: 'user_management', requiredPermission: 'U' }]), async function(req, res, next) {
+  logger.info(`post /users/account_requet/decline`);
+  logger.debug(`Body: ${ JSON.stringify(req.body) }`)
+  try {
+    const decline_response = await users.decline_account_request(req.body);
+    logger.debug(`RESPONSE: ${JSON.stringify(decline_response)}`);
+    res.status(200).send( decline_response );      
+  } 
+  catch (err) {
+    logger.error(`Error declining account request: ${err.message}`);
     next(err);
   }
 });

@@ -211,6 +211,22 @@ constructor(private apiService: ApiService, private runtimeService: RuntimeServi
     return this.apiService.get(`${environment.serverUrl}/users/invitation/${id}`, { responseType: 'json', withCredentials: true });
   }
 
+  resendInvitation(id: number): Observable<any> {
+    return this.apiService.post(`${environment.serverUrl}/users/invitation/${id}/resend`, {}, { responseType: 'json', withCredentials: true });
+  }
+
+  deleteInvitation(id: number): Observable<any> {
+    return this.apiService.delete(`${environment.serverUrl}/users/invitation/${id}`, { responseType: 'json', withCredentials: true });
+  }
+
+  cancelInvitation(id: number): Observable<any> {
+    return this.apiService.post(`${environment.serverUrl}/users/invitation/${id}/cancel`, {}, { responseType: 'json', withCredentials: true });
+  }
+
+  updateInvitation(invitation: AccountInviteDetails): Observable<any> {
+    return this.apiService.post(`${environment.serverUrl}/users/invitation/update`, invitation, { responseType: 'json', withCredentials: true });
+  }
+
   sendRequestForNewAccount(account_request: AccountRequestInfo): Observable<any>{
     return this.apiService.post(`${environment.serverUrl}/users/request_account`, account_request, { responseType: 'json', withCredentials: true });
   }
@@ -238,6 +254,13 @@ constructor(private apiService: ApiService, private runtimeService: RuntimeServi
       responseType: 'json',
       withCredentials: true
     });
+  }
+
+  declineAccountRequest(request_id: number, notify_requester: boolean, message_to_requester: string): Observable<boolean>{
+    return this.apiService.post(`${environment.serverUrl}/users/account_requet/decline`, { request_id, notify_requester, message_to_requester }, {
+      responseType: 'json',
+      withCredentials: true
+     });
   }
 
   getRoles():Observable<nameIdPair[]> {

@@ -105,6 +105,7 @@ export class SignInComponent extends NavigatedMessageComponent implements OnInit
   }
 
   canCloseAccountRequest= (): boolean => {
+    console.log("canCloseAccountRequest called. Valid: " + this.request_account_form.isValid());
     return this.request_account_form.isValid();
   };
 

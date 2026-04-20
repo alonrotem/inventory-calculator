@@ -14,7 +14,7 @@ If you don't have an account (and you think you should have one), fill your deta
           #input_firstname="ngModel" 
           name="input_firstname" 
           [required]="true"
-          [pattern]="'^[a-zA-Z\\ \\-_]*$'">
+          [pattern]="'^[a-zA-Z\\s\\-_]*$'">
         <label for="input_firstname">First name <span class="text-danger">*</span></label>
       </div> 
       <div class="text-danger" *ngIf="input_firstname.invalid && (input_firstname.touched || input_firstname.dirty)" > 
@@ -34,7 +34,7 @@ If you don't have an account (and you think you should have one), fill your deta
           #input_lastname="ngModel" 
           name="input_lastname" 
           [required]="true"
-          [pattern]="'^[a-zA-Z\\ \\-]*$'">
+          [pattern]="'^[a-zA-Z\\s\\-]*$'">
         <label for="input_lastname">Last name <span class="text-danger">*</span></label>
       </div> 
       <div class="text-danger" *ngIf="input_lastname.invalid && (input_lastname.touched || input_lastname.dirty)" > 
@@ -79,6 +79,39 @@ If you don't have an account (and you think you should have one), fill your deta
     </div>
 
 </div>
+
+<div class="row mt-4">
+    <div class="col-12 col-sm-6">
+      <div class="form-floating">
+        <input 
+          type="text" 
+          class="form-control" 
+          id="input_address" 
+          placeholder="Address" 
+          [(ngModel)]="request.address" 
+          #input_address="ngModel" 
+          name="input_address" 
+          [required]="true">
+        <label for="input_address">Address <span class="text-danger">*</span></label>
+      </div>
+      <div class="text-danger" *ngIf="input_address.invalid && (input_address.touched || input_address.dirty)" > 
+          <span *ngIf="input_address.errors?.['required']">Address is required</span>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 mt-4 mt-sm-0">
+        <div class="form-floating">
+            <input type="text" 
+                id="business_name" class="form-control" placeholder="0" [(ngModel)]="request.business_name" name="business_name" #business_name="ngModel" [required]="true">
+            <label for="business_name">Business Name <span class="text-danger">*</span></label>
+        </div>
+        <div class="text-danger" *ngIf="business_name.invalid && (business_name.touched || business_name.dirty)" > 
+            <span *ngIf="business_name.errors?.['required']">Business Name is required</span>
+        </div>        
+    </div>
+
+</div>
+
 
 <div class="row mt-4">
     <div class="col-12">

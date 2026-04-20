@@ -101,7 +101,7 @@ async function isUserTakenAnywhere(username, email_address, throw_exception_if_d
         select 
           invite_status, ${generated_columns.join(",")} 
         from account_invites) as users_gmails 
-      where ${query_filters.join(" or ")} and invite_status<>'cancelled';`, 
+      where (${query_filters.join(" or ")}) and invite_status<>'cancelled';`, 
       query_params));
 
     if(!helper.isEmptyObj(existing_account_invites)){
@@ -1409,33 +1409,13 @@ async function signin(
   }
 }
 
-async function request_account(accountRequestInfo, active_connection=null){
-  //check if there is an active connection called from another function, or this call is a standalone
-  let self_executing = false;
-  if(!active_connection) {
-    active_connection = await db.trasnaction_start();
-    self_executing = true;
+async function get_admins_emails(){
+  let admins_emails = [];
+
+  if(process.env.EMAIL_TEST_ADMINS){
+    admins_emails = process.env.EMAIL_TEST_ADMINS.split(",");
   }
-  try {
-    //check that the user is not taken by another user, account request, or invitation (exception will be thrown)
-    await isUserTakenAnywhere(null, accountRequestInfo.email, true);
-
-    const insert_result = await db.transaction_query(
-      `insert into account_requests (firstname, lastname, email, phone,  details, request_date , last_update, request_status)
-      values ((?), (?), (?), (?), (?), (?), (?), (?));`, 
-      [ 
-        accountRequestInfo.firstname,
-        accountRequestInfo.lastname,
-        accountRequestInfo.email,
-        accountRequestInfo.phone,
-        accountRequestInfo.details,
-        helper.nowDateStr(),
-        helper.nowDateStr(),
-        "pending"
-       ],
-      active_connection);
-
-    //send an email to all admins
+    else {
     const administrators = helper.emptyOrRows(await db.query(
       `select u.username, u.firstname, u.lastname, u.email
         from users u inner join user_roles ur
@@ -1448,21 +1428,45 @@ async function request_account(accountRequestInfo, active_connection=null){
         u.is_verified = 1 
       and 
         u.is_disabled = 0;`));
-    
+      
     if((!helper.isEmptyObj(administrators)) && (administrators.length > 0)) {
+      admins_emails = administrators.map(administrtor => administrtor["email"]);
+    }
+  }
+  return admins_emails;
+}
 
-      const admins_emails = administrators.map(administrtor => administrtor["email"]);
+async function request_account(accountRequestInfo, active_connection=null){
+  //check if there is an active connection called from another function, or this call is a standalone
+  let self_executing = false;
+  if(!active_connection) {
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
+  }
+  try {
+    //check that the user is not taken by another user, account request, or invitation (exception will be thrown)
+    await isUserTakenAnywhere(null, accountRequestInfo.email, true);
 
-      //**************************************************** */
-      //**************************************************** */
-      //**************************************************** */
-      //**************************************************** */
-      //const admins_emails = ["alrotem@gmail.com"]; //TEMPORARYYYYYYY!!!!!!!!
-      //**************************************************** */
-      //**************************************************** */
-      //**************************************************** */
-      //**************************************************** */
+    const insert_result = await db.transaction_query(
+      `insert into account_requests (firstname, lastname, email, phone,  details, request_date , last_update, request_status, address, business_name)
+      values ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?));`, 
+      [ 
+        accountRequestInfo.firstname,
+        accountRequestInfo.lastname,
+        accountRequestInfo.email,
+        accountRequestInfo.phone,
+        accountRequestInfo.details,
+        helper.nowDateStr(),
+        helper.nowDateStr(),
+        "pending",
+        accountRequestInfo.address,
+        accountRequestInfo.business_name
+       ],
+      active_connection);
 
+    //send an email to all admins
+    const admins_emails = await get_admins_emails();
+    if(admins_emails.length > 0) {
       const email_parts = email_tempates.new_account_request_notification_to_admins(
         accountRequestInfo.firstname,
         accountRequestInfo.lastname,
@@ -1540,7 +1544,7 @@ async function getAccountRequestDetails(id){
       ar.approved_account_user_id, ar.approver_user_id, ar.request_status,
       u.firstname user_firstname, u.lastname user_lastname, u.photo_url user_photo_url,
       u_approver.firstname approver_firstname, u_approver.lastname approver_lastnme, u_approver.photo_url approver_photo_url,
-      ar.is_demo_customer
+      ar.is_demo_customer, ar.address, ar.business_name
     from 
       account_requests ar left join users u 
       on ar.approved_account_user_id  = u.id
@@ -1710,7 +1714,6 @@ async function approve_account_request(request, auth_token, active_connection=nu
     if(self_executing) {
       db.transaction_commit(active_connection);
     }
-
   }
   catch(error){
     if(self_executing) {
@@ -1723,6 +1726,69 @@ async function approve_account_request(request, auth_token, active_connection=nu
       await db.transaction_release(active_connection);
     }
   }
+}
+
+async function decline_account_request(request, active_connection=null){
+//{ request_id, notify_requester, message_to_requester }
+  //check if there is an active connection called from another function, or this call is a standalone
+  let self_executing = false;
+  if(!active_connection) {
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
+  }
+  try {
+    //check if the request is already approved or declined (approved_account_user_id exists or request_status is declined)
+    const existing_request = helper.emptyOrSingle(await db.query(`select * from account_requests where id=(?)`, [request.request_id]));
+    if(helper.isEmptyObj(existing_request)) {
+      throw new Error(`Request with id ${request.id} not found`);
+    }
+    if(existing_request.approved_account_user_id || existing_request.request_status === 'declined') {
+      throw new Error(`Request with id ${request.id} has already been processed`);
+    }
+
+    //update the request status to declined
+    await db.transaction_query(
+      `update account_requests set 
+        request_status='declined',
+        last_update=(?)
+        where id=(?)`,
+      [
+        helper.nowDateStr(),
+        request.request_id
+      ], 
+      active_connection
+    );
+
+    if(self_executing) {
+      db.transaction_commit(active_connection);
+    }
+    
+    if(request.notify_requester){
+      //send a notification to the user with the message from the admin
+      const subject = "Your Romtech user account request has been declined";
+      const email_parts = email_tempates.requested_user_account_declined(
+        existing_request.firstname, 
+        process.env.EMAIL_LINKS_DOMAIN,
+        process.env.EMAIL_USER,
+        request.message_to_requester
+      );
+      await email.sendMail(existing_request.email, null, null, subject, email_parts.body, email_parts.attachments);
+    }
+
+    return true;
+  }
+  catch(error){
+    if(self_executing) {
+      await db.transaction_rollback(active_connection);
+    }
+    throw(error);
+  }
+  finally {
+    if(self_executing) {
+      await db.transaction_release(active_connection);
+    }
+  }
+
 }
 
 async function deleteccountRequest(id, active_connection=null){
@@ -1824,6 +1890,150 @@ async function invite_user(inviteDetails, auth_token, active_connection=null){
   } 
 }
 
+async function deleteInvitation(id, active_connection=null){
+  //check if there is an active connection called from another function, or this call is a standalone
+  let self_executing = false;
+  if(!active_connection) {
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
+  }
+  try {
+    
+    await db.transaction_query(
+      `delete from account_invites where id=(?)`, 
+      [id], active_connection);
+
+    if(self_executing) {
+      db.transaction_commit(active_connection);
+    }
+    return true;
+  }
+  catch(error){
+    if(self_executing) {
+      await db.transaction_rollback(active_connection);
+    }
+    throw(error);
+  }
+  finally {
+    if(self_executing) {
+      await db.transaction_release(active_connection);
+    }
+  }
+}
+
+async function cancelInvitation(id, active_connection=null){
+  let self_executing = false;
+  if(!active_connection) {
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
+  }
+  try {
+    await db.transaction_query(
+      `update account_invites set invite_status='cancelled', last_update=(?) where id=(?)`, 
+      [helper.nowDateStr(), id], active_connection);
+
+    db.transaction_commit(active_connection);
+    return "User invitation cancelled successfully";
+  }
+  catch(error){
+    if(self_executing) {
+      await db.transaction_rollback(active_connection);
+    }
+    throw(error);
+  }
+  finally {
+    if(self_executing) {
+      await db.transaction_release(active_connection);
+    }
+  }    
+
+}
+
+async function updateInvitation(inviteDetails, active_connection=null){
+  let self_executing = false;
+  if(!active_connection) {
+    active_connection = await db.trasnaction_start();
+    self_executing = true;
+  }
+  try {
+    let email_updated = false;
+
+    // 1. find the invitation, if not found, throw an error
+    const original_invite = helper.emptyOrSingle(await db.query(
+      `select id, email, is_demo_customer, create_new_customer, account_creation_code 
+        from account_invites where id=(?)`, 
+        [inviteDetails.id]));
+    if(helper.isEmptyObj(original_invite)){
+      throw new Error(`Invitation with ID ${inviteDetails.id} not found`);
+    }
+
+    // 2. check if the email was updated, if yes, check that the new email is not taken by another user, account request, or invitation (exception will be thrown)
+    if(inviteDetails.email && inviteDetails.email != original_invite.email){
+      await isUserTakenAnywhere(null, inviteDetails.email, true);
+      email_updated = true;
+    }
+
+    // 3. update the invitation
+    await db.transaction_query(
+      `update account_invites set 
+        firstname=(?), lastname=(?), email=(?), account_role_id=(?), 
+        is_demo_customer=(?), create_new_customer=(?), last_update=(?)
+        where id=(?)`,
+      [
+        inviteDetails.firstname,
+        inviteDetails.lastname,
+        inviteDetails.email,
+        inviteDetails.role.id,
+        inviteDetails.is_demo_customer,
+        inviteDetails.create_new_customer,
+        helper.nowDateStr(),
+        inviteDetails.id
+      ],
+      active_connection
+    );
+
+    // 4. update the connection to customers
+    if(!inviteDetails.is_demo_customer){
+      await db.transaction_query(
+        `delete from account_invites_customers where account_invite_id=(?)`,
+        [inviteDetails.id],
+        active_connection
+      );
+
+      if(inviteDetails.customers && inviteDetails.customers.length > 0){
+        const customers_placeholders = inviteDetails.customers.map(i => "((?),(?))").join(",");
+        await db.transaction_query(
+          `insert into account_invites_customers (account_invite_id, customer_id) values ${customers_placeholders}`,
+          inviteDetails.customers.map(c => [inviteDetails.id , c.id]).flat(),
+          active_connection
+        );
+      }
+    }
+
+    // 5. if the email was updated, send an email to the new email with the code and link to registration page
+    if(email_updated){
+      await send_new_account_invitation_to_user(
+        inviteDetails.firstname,
+        inviteDetails.email,
+        original_invite.account_creation_code
+      );
+    }
+    db.transaction_commit(active_connection);
+    return "User invitation updated successfully";
+  }
+  catch(error){
+    if(self_executing) {
+      await db.transaction_rollback(active_connection);
+    }
+    throw(error);
+  }
+  finally {
+    if(self_executing) {
+      await db.transaction_release(active_connection);
+    }
+  }     
+}
+
 async function getInvitations(page, perPage){
   let subset =  '';
   if(page && perPage && page > 0 && perPage > 0)
@@ -1850,6 +2060,58 @@ async function getInvitations(page, perPage){
     data,
     meta
   }
+}
+
+async function getInvitationDetails(id){
+  const invite = helper.emptyOrSingle(
+    await db.query(
+      `select ai.id, ai.firstname, ai.lastname, ai.email, ai.invite_status, ai.sent_date, ai.last_update, ai.is_demo_customer,
+        ai.create_new_customer, ai.inviter_user_id, u1.firstname inviter_firstname, u1.lastname inviter_lastname, u1.photo_url inviter_photo_url,
+        ai.created_account_user_id, u2.firstname user_firstname, u2.lastname user_lastname, u2.photo_url user_photo_url
+        from 
+          account_invites ai 
+          left join users u1 on u1.id=ai.inviter_user_id
+          left join users u2 on u2.id=ai.created_account_user_id
+        where ai.id=(?);`, [ id ]));
+  invite.is_demo_customer = helper.var_to_bool(invite.is_demo_customer);
+
+  if(!helper.isEmptyObj(invite)){
+    const role = helper.emptyOrSingle(await db.query(
+      `select id, name from roles where id in 
+        (select account_role_id from account_invites ai where ai.id=(?)) 
+      limit 1;`, [id]
+    ));
+    invite["role"] = role;
+
+    const customers = helper.emptyOrRows(
+      await db.query(
+        `select id, name, is_demo_customer from customers where id in 
+          (select aic.customer_id from account_invites_customers aic where aic.account_invite_id=(?));`, 
+      [id]));
+    invite["customers"] = customers.map(c => ({ 
+      id: c.id, 
+      name: c.name, 
+      is_demo_customer: helper.var_to_bool(c["is_demo_customer"]) 
+    }));
+  }
+  return invite;
+}
+
+async function resendInvitation(id, auth_token, active_connection=null){
+  const inviteDetails = helper.emptyOrSingle(
+    await db.query(
+      `select ai.firstname, ai.email, ai.account_creation_code
+        from 
+          account_invites ai 
+        where ai.id=(?);`, [ id ]));
+    if(helper.isEmptyObj(inviteDetails)){
+      throw new Error(`Invitation with ID ${id} not found`);
+    }
+    await send_new_account_invitation_to_user(
+      inviteDetails.firstname,
+      inviteDetails.email,
+      inviteDetails.account_creation_code
+    );
 }
 
 async function get_logins(users_refresh_token, user_ids, active_connection=null){
@@ -2494,11 +2756,6 @@ async function remove(user_id, active_connection){
     self_executing = true;
   }
   try {
-    await db.transaction_query(
-      `delete from users where id=(?)`, 
-      [ user_id ], 
-      active_connection);
-
     //if this user is connected to a demo customer, delete the demo customer as well
     await db.transaction_query(
       `delete from customers where id in (
@@ -2511,6 +2768,12 @@ async function remove(user_id, active_connection){
       )`, 
       [user_id], 
       active_connection);
+
+    await db.transaction_query(
+      `delete from users where id=(?)`, 
+      [ user_id ], 
+      active_connection);
+
     
     if(self_executing) {
       await db.transaction_commit(active_connection);
@@ -2608,10 +2871,16 @@ module.exports = {
   getAccountRequestDetails,
   approve_account_request,
   deleteccountRequest,
+  decline_account_request,
 
   //inviting new users
   invite_user,
   getInvitations,
+  getInvitationDetails,
+  resendInvitation,
+  updateInvitation, 
+  deleteInvitation,
+  cancelInvitation,
 
   //user profile
   getBaseUserInfo,

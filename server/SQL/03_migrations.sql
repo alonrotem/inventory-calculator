@@ -55,4 +55,7 @@ CALL add_column_if_not_exists('account_requests', 'is_demo_customer', 'boolean n
 CALL add_column_if_not_exists('account_invites', 'is_demo_customer', 'boolean not null default false');
 CALL add_column_if_not_exists('account_invites', 'create_new_customer', 'boolean not null default false');
 
+CALL add_column_if_not_exists('account_requests', 'address', 'varchar(255) NULL');
+CALL add_column_if_not_exists('account_requests', 'business_name', 'varchar(255) NULL');
+
 select "Migrations done", CURRENT_TIMESTAMP;

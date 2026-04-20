@@ -19,7 +19,9 @@ export class RequestAccountComponent {
     lastname: '',
     email: '',
     phone: '',
-    details: ''
+    details: '',
+    address: '',
+    business_name: ''
   };
 
   reset(){
@@ -28,10 +30,12 @@ export class RequestAccountComponent {
       lastname: '',
       email: '',
       phone: '',
-      details: ''
-      };
-      this.account_request_form.form.markAsUntouched();
-      this.account_request_form.form.markAsPristine();
+      details: '',
+      address: '',
+      business_name: ''      
+    };
+    this.account_request_form.form.markAsUntouched();
+    this.account_request_form.form.markAsPristine();
   }
 
   isValid(){

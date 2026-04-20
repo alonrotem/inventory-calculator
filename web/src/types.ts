@@ -707,6 +707,8 @@ export interface AccountRequestInfo {
   email: string;
   phone: string;
   details: string;
+  address: string;
+  business_name: string;    
 }
 
 // to show in the list of account requests
@@ -731,13 +733,8 @@ export interface AccountsRequestList {
 }
 
 //get all the details of the request and created user
-export interface AccountRequestDetails {
+export interface AccountRequestDetails extends AccountRequestInfo {
     id: number;
-    firstname: string;
-    lastname: string;
-    email: string;
-    phone: string;
-    details: string;
     request_date: Date;
     last_update: Date;
     approved_account_user_id: number;
@@ -758,31 +755,7 @@ export interface AccountRequestDetails {
 export enum AccountInviteStatus {
 	sent = 'sent',
     verified = 'verified',
-    cancelled = 'cancelled',
-}
-
-export interface AccountInviteDetails {
-    id: number;
-    firstname: string;
-    lastname: string;
-    email: string;
-    created_account_user_id: number;
-    role: nameIdPair | null;
-    invite_status: AccountInviteStatus;
-    is_demo_customer: boolean;
-    create_new_customer: boolean;
-    customers: BasicCustomerInfo[];
-    sent_date: Date;
-	last_update: Date;
-
-    approver_firstname: string;
-    approver_lastnme: string;
-    approver_user_id: number;
-    approver_photo_url: string;
-    user_firstname: string;
-    user_lastname: string;
-    approved_account_user_id: number;
-    user_photo_url: string;    
+    cancelled = 'cancelled'
 }
 
 export interface AccountInviteListItem {
@@ -793,8 +766,21 @@ export interface AccountInviteListItem {
     invite_status: AccountInviteStatus;
     sent_date: Date;
 	last_update: Date;
-    role: string;
+    role: nameIdPair | null;
     is_demo_customer: boolean;
+}
+
+export interface AccountInviteDetails extends AccountInviteListItem {
+    create_new_customer: boolean;
+    customers: BasicCustomerInfo[];
+    inviter_firstname: string;
+    inviter_lastnme: string;
+    inviter_user_id: number;
+    inviter_photo_url: string;
+    user_firstname: string;
+    user_lastname: string;
+    user_photo_url: string;
+    created_account_user_id: number;
 }
 
 export interface AccountInviteList {

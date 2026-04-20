@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, viewChild, ViewChild } from '@angular/core';
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
 import { IconDefinition } from '@fortawesome/fontawesome-common-types';
 import { faArrowLeft, faBasketShopping, faCheck, faTrash, faTriangleExclamation, faUser, faUserPlus, faX } from '@fortawesome/free-solid-svg-icons';
@@ -18,6 +18,7 @@ import { Icon } from '@fortawesome/fontawesome-svg-core';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { StateService } from '../../../services/state.service';
 import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.component";
+import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
 
 @Component({
   selector: 'app-account-request-details',
@@ -25,7 +26,8 @@ import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.com
   imports: [
     FaIconComponent, DateStrPipe, NgIf, CustomerPickerComponent, FormsModule, NgSelectModule, ConfirmationDialogComponent,
     NgForOf, UserTagComponent, RouterLink,
-    ModalDialogComponent
+    ModalDialogComponent,
+    PageLoadingComponent
 ],
   templateUrl: './account-request-details.component.html',
   styleUrl: './account-request-details.component.scss'
@@ -42,11 +44,14 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
   loading: boolean = false;
   approval_instructions: string = "";
   approve_btn_disabled = true;
+  notify_requester_on_decline: boolean = true;
+  message_to_requester_on_decline: string = "";
   @ViewChild("customer_picker") customer_picker!: CustomerPickerComponent;
   @ViewChild("chkCreateNewCustoemr") chkCreateNewCustoemr!: ElementRef;
   @ViewChild("confirm_approval_dialog") confirm_approval_dialog! :ConfirmationDialogComponent;
   @ViewChild("confirm_deletion_dialog") confirm_deletion_dialog! :ConfirmationDialogComponent;
   @ViewChild("error_dialog") error_dialog! :ConfirmationDialogComponent;
+  @ViewChild("confirm_decline_dialog") confirm_decline_dialog! :ModalDialogComponent;
 
   //selectedCustomerIDs: number [] = [];
   request: AccountRequestDetails = {
@@ -75,7 +80,9 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
     role: { name: '', id: 0 },
     customers: [],
     create_new_customer: false,
-    is_demo_customer: false
+    is_demo_customer: false,
+    address: '',
+    business_name: ''
   };
   environment = environment;
 
@@ -199,6 +206,28 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
     this.usersService.deleteAccountRequest(this.request.id).subscribe({
       next: (response: boolean) => {
         this.navigateWithToastMessage('users/account_requests', 'Request deleted successfully', false);
+      },
+      error: (err: any) => {
+        this.toastService.showError(err.error["message"]);
+      }
+    });
+  }
+
+  reset_decline_dialog(){
+    this.notify_requester_on_decline = true;
+    this.message_to_requester_on_decline = "";
+  }
+
+  confirm_decline(){
+    this.reset_decline_dialog();
+    this.confirm_decline_dialog.open();
+  }
+
+  confirm_decline_confirmed() {
+    this.usersService.declineAccountRequest(this.request.id, this.notify_requester_on_decline, this.message_to_requester_on_decline).subscribe({
+      next: (response: boolean) => {
+        //this.navigateWithToastMessage('users/account_requests', 'Request declined successfully', false);
+        this.reloadTheSamePageWithToastMessage('Request declined successfully', false);
       },
       error: (err: any) => {
         this.toastService.showError(err.error["message"]);

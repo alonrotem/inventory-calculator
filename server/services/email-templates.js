@@ -494,6 +494,26 @@ function requested_user_account_approved(name, server_address, verification_code
     return email;
 }
 
+function requested_user_account_declined(name, server_address, service_email, additional_message) {
+    const email = template(`
+        <p style="direction: ltr !important; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
+            Dear ${name},
+        </p>
+        <p style="direction: ltr !important; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
+            Unfortunately, your user account request was declined. <br/>
+        </p>
+        ${!additional_message? '': 
+            `<p style="direction: ltr !important; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
+                ${additional_message}
+            </p>`}
+
+        <p style="direction: ltr !important; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
+            Please <a href="mailto:${service_email}">contact us</a> if you require further information or assistance.
+        </p>`, 
+        server_address);
+    return email;
+}
+
 module.exports = {
     template,
     sign_up_verification,
@@ -502,6 +522,7 @@ module.exports = {
     password_forgotten_notification,
     new_account_request_notification_to_admins,
     requested_user_account_approved,
+    requested_user_account_declined,
     account_invitation_to_user,
     invitation_accepted_admin_notification
 }

@@ -26,7 +26,7 @@
           #input_firstname="ngModel" 
           name="input_firstname" 
           [required]="true"
-          [pattern]="'^[a-zA-Z\\ \\-_]*$'">
+          [pattern]="'^[a-zA-Z\\s\\-_]*$'">
         <label for="input_firstname">First name <span class="text-danger">*</span></label>
       </div> 
       <div class="text-danger" *ngIf="input_firstname.invalid && (input_firstname.touched || input_firstname.dirty)" > 
@@ -46,7 +46,7 @@
           #input_lastname="ngModel" 
           name="input_lastname" 
           [required]="true"
-          [pattern]="'^[a-zA-Z\\ \\-]*$'">
+          [pattern]="'^[a-zA-Z\\s\\-]*$'">
         <label for="input_lastname">Last name <span class="text-danger">*</span></label>
       </div> 
       <div class="text-danger" *ngIf="input_lastname.invalid && (input_lastname.touched || input_lastname.dirty)" > 

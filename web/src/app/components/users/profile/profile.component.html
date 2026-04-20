@@ -49,7 +49,7 @@
                             <div class="input-group">
                                 <div class="form-floating">
                                     <input type="text" 
-                                        id="user_firstname" class="form-control" placeholder="0" [(ngModel)]="user.firstname" name="user_firstname" #user_firstname="ngModel" [required]="true" [pattern]="'^[a-zA-Z][a-zA-Z\\-_\\ ]*$'">
+                                        id="user_firstname" class="form-control" placeholder="0" [(ngModel)]="user.firstname" name="user_firstname" #user_firstname="ngModel" [required]="true" [pattern]="'^[a-zA-Z][a-zA-Z\\-_\\s]*$'">
                                     <label for="user_firstname">First name<span class="text-danger">*</span></label>
                                 </div>
                             </div>
@@ -166,7 +166,7 @@
             <!-- Customers -->
                 <div class="profile-section">
                     <div class="row">
-                    <div class="col col-12 col-md-6  mt-3 mt-md-0 mb-3 mb-md-0" *ngIf="user.customers && user.customers.length > 0">
+                    <div class="col col-12  mt-3 mt-md-0 mb-3 mb-md-0" *ngIf="user.customers && user.customers.length > 0">
                         
                         <span *ngIf="!user.is_demo_customer">Your profile is a customer profile, which is linked to the following customers:</span>
                         <span *ngIf="user.is_demo_customer" class="text-warning">You are a demo customer, linked to the following</span>

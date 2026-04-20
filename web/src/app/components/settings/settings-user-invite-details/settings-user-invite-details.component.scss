@@ -65,6 +65,27 @@ div[disabled='true'], .customer-selection-wrapper[disabled='true'] {
     padding: 20px;
     border-radius: var(--bs-border-radius);
     margin: 10px;
-}   
+}
 
-/**/
+.capitalize {
+    text-transform: capitalize;
+}
+
+.status-verified {
+    color: var(--bs-success);
+}
+
+.status-cancelled {
+    color: var(--bs-danger);
+}
+
+.status-sent {
+    color: var(--bs-warning);
+}
+
+.back-button {
+    max-width: 150px;
+    padding: 0px;
+    height: 40px;
+    margin: 20px 0px;
+}

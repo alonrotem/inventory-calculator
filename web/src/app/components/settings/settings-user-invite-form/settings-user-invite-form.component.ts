@@ -24,7 +24,6 @@ export class SettingsUserInviteFormComponent {
     firstname: '',
     lastname: '',
     email: '',
-    created_account_user_id: 0,
     role: null,
     invite_status: AccountInviteStatus.sent,
     is_demo_customer: false,
@@ -32,13 +31,13 @@ export class SettingsUserInviteFormComponent {
     create_new_customer: false,
     sent_date: new Date(),
     last_update: new Date(),
-    approver_firstname: '',
-    approver_lastnme: '',
-    approver_user_id: 0,
-    approver_photo_url: '',
+    inviter_firstname: '',
+    inviter_lastnme: '',
+    inviter_user_id: 0,
+    inviter_photo_url: '',
     user_firstname: '',
     user_lastname: '',
-    approved_account_user_id: 0,
+    created_account_user_id: 0,
     user_photo_url: ''
   };
   @ViewChild('invite_user_form_dialog') invite_user_form_dialog!: ModalDialogComponent;
@@ -101,7 +100,6 @@ export class SettingsUserInviteFormComponent {
       firstname: '',
       lastname: '',
       email: '',
-      created_account_user_id: 0,
       role: null,
       invite_status: AccountInviteStatus.sent,
       is_demo_customer: false,
@@ -109,13 +107,13 @@ export class SettingsUserInviteFormComponent {
       create_new_customer: false,
       sent_date: new Date(),
       last_update: new Date(),
-      approver_firstname: '',
-      approver_lastnme: '',
-      approver_user_id: 0,
-      approver_photo_url: '',
+      inviter_firstname: '',
+      inviter_lastnme: '',
+      inviter_user_id: 0,
+      inviter_photo_url: '',
       user_firstname: '',
       user_lastname: '',
-      approved_account_user_id: 0,
+      created_account_user_id: 0,
       user_photo_url: ''
     };
     this.account_invite_form.form.markAsUntouched();
