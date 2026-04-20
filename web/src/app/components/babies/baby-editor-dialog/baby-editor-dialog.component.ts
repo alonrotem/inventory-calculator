@@ -67,6 +67,7 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
   */
   isSubmitted : boolean = false;
   babyEditMode: boolean = false; // babyEditmode: editing an existing baby. Otherwise in add mode
+  @Input() is_demo_customer: boolean = false;
 
   constructor(private fb: FormBuilder, private toastService: ToastService, private settingsService: SettingsService) {
   }

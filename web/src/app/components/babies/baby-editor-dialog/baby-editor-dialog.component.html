@@ -2,7 +2,8 @@
 <app-modal-dialog #babyEditorDialog>
     <div modalContent>
 <!--<form novalidate #baby_editor_form="ngForm" [formGroup]="babyFormEditor">-->
-    <div class="text-warning">Available units: {{ units_available | number: '1.' }}</div>
+    <div *ngIf="!is_demo_customer" class="text-warning">Available units: {{ units_available | number: '1.' }}</div>
+    <div *ngIf="is_demo_customer" class="text-success">Demo customer, no quota.</div>
     <div class="form-floating">
         <!--
         <ng-select name="length" #length formControlName="length" [formGroup]="babyFormEditor" [clearable]="false" style="display:none">
@@ -61,7 +62,7 @@
     <div *ngIf="units_available > 0" class="text-success d-flex justify-content-center">
         (Hit Enter to send and move next)
     </div>
-    <div *ngIf="units_available <= 0" class="bg-danger" style="padding: 10px;">
+    <div *ngIf="!is_demo_customer &&units_available <= 0" class="bg-danger" style="padding: 10px;">
         No units available in this allocation to add more babies
     </div>
 <!--</form>-->
