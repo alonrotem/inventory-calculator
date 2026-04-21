@@ -7,7 +7,7 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faSave, faTrashAlt, faTimesCircle, IconDefinition, faArrowLeft, faMoneyCheckDollar, faTriangleExclamation, faCalculator } from '@fortawesome/free-solid-svg-icons';
+import { faSave, faTrashAlt, faTimesCircle, IconDefinition, faArrowLeft, faMoneyCheckDollar, faTriangleExclamation, faCalculator, faFlask } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmationDialogComponent } from "../../common/confirmation-dialog/confirmation-dialog.component";
 import { AutocompleteLibModule } from 'angular-ng-autocomplete';
 import { ToastService } from '../../../services/toast.service';
@@ -65,6 +65,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
   faMoneyCheckDollar: IconDefinition = faMoneyCheckDollar;
   faTriangleExclamation: IconDefinition = faTriangleExclamation;
   faCalculator: IconDefinition = faCalculator;
+  faFlask: IconDefinition = faFlask;
   is_new_customer: Boolean = true;
   banks_loaded_quantities: any[] = [];
   raw_materials_list: RawMaterialNameColor[] = [];

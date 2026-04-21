@@ -14,7 +14,11 @@
 <div class="row justify-content-center">
     <div class="col-12 col-md-9">
 
-    <h3><span class="icon-address-book"></span> {{ this.title }}</h3>
+    <h3 class="{{ customerItem.is_demo_customer ? 'text-warning':'' }}">
+        <fa-icon *ngIf="customerItem.is_demo_customer" [icon]="faFlask"></fa-icon>
+        <span *ngIf="!customerItem.is_demo_customer" class="icon-address-book"></span> 
+        {{ this.title }}
+    </h3>
 
     <form novalidate #customer_form="ngForm" [id]="'customer_form'">
         <div class="editorForm">
