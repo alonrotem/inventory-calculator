@@ -52,7 +52,7 @@ NEXT TODOS:
   ⏹️ Delete my account
 ❎ Add login geolocation and browser info, first signed in and last seen
 
-    https://medium.com/@sehban.alam/how-to-integrate-google-maps-in-angular-latest-2025-guide-88c1e665bdb0 -> AIzaSyAzw9gP8zrxK4eqE-Mkm77gXFBllL9K4D0
+    https://medium.com/@sehban.alam/how-to-integrate-google-maps-in-angular-latest-2025-guide-88c1e665bdb0
 
 ❎ Add option to cancel login, or all logins per user
 ❎ Add user is_disabled
