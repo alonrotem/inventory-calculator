@@ -30,7 +30,7 @@ export class CrownEditorComponent implements OnChanges {
   crown_width_options = this.crown_width_options1.concat(this.crown_width_options2);
   
   min_crown_length: number = 5;
-  max_crown_length: number = 13;
+  max_crown_length: number = 16;
   max_babies_in_crown = 5;
   num_crown_babies_options = Array(this.max_babies_in_crown).fill(0).map((_, i)=> i+1);
   crown_length_options = Array((this.max_crown_length - this.min_crown_length)*2 + 1).fill(0).map((_,i) => i/2 + this.min_crown_length);
@@ -136,8 +136,8 @@ export class CrownEditorComponent implements OnChanges {
   add_baby(){
     if(this.crown_babies.length < this.max_babies_in_crown){
       let length = (this.length_mode == length_options.common)?
-        this.common_length :
-        this.crown_babies[this.crown_babies.length-1].length;
+        (this.common_length) :
+        ((this.crown_babies.length > 0)? this.crown_babies[this.crown_babies.length-1].length : this.min_crown_length);
 
       this.crown_babies.push({
         id: 0,
