@@ -5,7 +5,7 @@ const { logger } =  require('../logger');
 const auth_request = require('../middleware/auth_request');
 
 router.get('/', 
-  auth_request([{requiredArea:'wings', requiredPermission:'R'}]),
+  auth_request([{requiredArea:'wings', requiredPermission:'R'}, {requiredArea:'wings_through_orders', requiredPermission:'R'}]),
   async function(req, res, next) {
   logger.info(`get /wings/ page=${req.query.page}, perPage=${req.query.perPage}`);
   try {
@@ -47,10 +47,26 @@ router.get('/',
       logger.error(`Error getting all wings & babies for wing_id ${req.params.wing_id}: ${err.message}`);
       next(err);
     }    
-  })
+  });
+
+  ///wings/customer/${customer_id}/wing_ids
+  router.get('/customer/:id/wing_ids', async function(req, res, next) {
+    auth_request([{requiredArea:'wings', requiredPermission:'R'}, {requiredArea: 'wings_through_orders', requiredPermission:'R'}]),
+    logger.info(`get /wings/customer/${req.params.id}/wing_ids`);
+    try {
+      const response = await wings.getWingIdsAssignedToCustomer(req.params.id);
+      logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
+      res.json(response);
+    } 
+    catch (err) {
+      logger.error(`Error getting wing ids for customer ${req.params.id}: ${err.message}`);
+      next(err);
+    }
+  });
+
 
   router.get('/customer/:id', async function(req, res, next) {
-    auth_request([{requiredArea:'wings', requiredPermission:'R'}]),
+    auth_request([{requiredArea:'wings', requiredPermission:'R'}, {requiredArea: 'wings_through_orders', requiredPermission:'R'}]),
     logger.info(`get /wings/customer/${req.params.id}`);
     try {
       const response = await wings.getWingsForCustomer(req.params.id);

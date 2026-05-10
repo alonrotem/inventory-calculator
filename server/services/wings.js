@@ -54,19 +54,25 @@ async function getSingleWingByName(name){
 
 async function getMultiple(page = 1, perPage, customer_id){
   let subset =  '';
-  let customer_filter = ''
+  let customer_field = 'null as customer_id,';
+  let customer_join = '';
+  let customer_filter = '';
   if(page && perPage && page > 0 && perPage > 0)
   {
     const offset = helper.getOffset(page, perPage);
     subset = `LIMIT ${offset},${perPage}`
   }
+
+
   if(customer_id && customer_id > 0) {
-    customer_filter = `or wc.customer_id=${customer_id}`;
+    customer_field = `wc.customer_id,`;
+    customer_join = `left join wings_customers wc on wc.wing_id=w.id`;
+    customer_filter = `and (wc.customer_id is null or wc.customer_id=${customer_id})`;
   }
   
   const rows = await db.query(
     `select 
-      w.id, w.name, w.knife, wc.customer_id, w.split_l1, crown_width,
+      w.id, w.name, w.knife, ${customer_field} w.split_l1, crown_width,
       (SELECT COUNT(wb.id) + w.split_l1 FROM wings_babies wb, wings w
               WHERE wb.parent_wing_id = 31 and w.id=31 and wb.position like'L%') as 'Left',
       (SELECT COUNT(*) FROM wings_babies wb
@@ -76,22 +82,20 @@ async function getMultiple(page = 1, perPage, customer_id){
       (SELECT COUNT(*) FROM wings_babies wb
               WHERE wb.parent_wing_id = w.id and wb.position like'C%') as 'Crown'
       from 
-        wings w left join wings_customers wc on wc.wing_id=w.id
+        wings w ${customer_join}
       where 
         w.id not in (select wing_id from customer_hats)
-        and 
-        (wc.customer_id is null ${customer_filter})
+        ${customer_filter}
       order by w.name ${subset};`
   );
   const total = await db.query(
     `select 
       count(w.id) as count
       from 
-        wings w left join wings_customers wc on wc.wing_id=w.id
+        wings w ${customer_join}
       where 
         w.id not in (select wing_id from customer_hats)
-        and 
-        (wc.customer_id is null ${customer_filter});`
+        ${customer_filter}`
   );
   const total_records = total[0].count;
   const total_pages = Math.ceil(total_records / perPage);
@@ -130,6 +134,12 @@ async function getAllNonCustomerWingsAndBabies(wing_id_filter) {
         ${wing_filter}
         order by w.id, wb.position;`);
   return helper.emptyOrRows(rows);
+}
+
+async function getWingIdsAssignedToCustomer(customer_id) {
+  return helper.emptyOrRows(await db.query(
+    `select wing_id from wings_customers where customer_id=(?);`, [customer_id]
+  )).map(rec => rec.wing_id);
 }
 
 async function save(wing, active_connection=null){
@@ -354,5 +364,6 @@ module.exports = {
   remove,
   getWingsForCustomer,
   getWingNames,
-  getAllNonCustomerWingsAndBabies
+  getAllNonCustomerWingsAndBabies,
+  getWingIdsAssignedToCustomer
 }
