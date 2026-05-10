@@ -2,53 +2,6 @@
 # & cmd.exe /c """C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"" -u root -p12345678 < .\SQL\create_db.sql"
 
 use inventory;
-/*================= CLEAN UP AND START FRESH =================*/
-SET FOREIGN_KEY_CHECKS = 0;
-drop table if exists users;
-
-drop table if exists raw_materials;
-drop table if exists material_colors;
-drop table if exists customers;
-drop table if exists customer_banks;
-drop table if exists customer_banks_babies; -- old
-drop table if exists customer_banks_allocations; -- new
-drop table if exists babies; -- old
-drop table if exists allocation_babies; -- new
-drop table if exists countries;
-drop table if exists currencies;
-drop table if exists users;
-
-# drop table if exists wing_positions;
-drop table if exists wings;
-drop table if exists wings_babies;
-
-drop table if exists customer_hats;
-drop table if exists hats_wings;
-drop table if exists orders;
-drop table if exists orders_status;
-drop table if exists settings;
-
-drop table if exists users;
-drop table if exists logins;
-drop table if exists roles;
-drop table if exists user_roles;
-drop table if exists user_customers;
-drop table if exists role_permissions;
-drop table if exists account_requests;
-drop table if exists account_invites;
-drop table if exists account_invites_customers;
-
-drop table if exists transaction_history;
-SET FOREIGN_KEY_CHECKS = 1;
-
-/*
-# Clean up all orders
-delete from wings where id in (select wing_id from customer_hats);
-delete from orders;
-delete from customer_hats;
-delete from orders_status;
-*/
-/*=================/CLEAN UP AND START FRESH =================*/
 
 # CREATE TABLES
 # ---------------
@@ -544,6 +497,16 @@ CREATE TABLE  IF NOT EXISTS wings_babies (
     CONSTRAINT fk_parent_wing_id
     FOREIGN KEY (`parent_wing_id`) REFERENCES wings(`id`) ON DELETE CASCADE
 );
+
+CREATE TABLE  IF NOT EXISTS wings_customers (
+	`wing_id`				INT NOT NULL,
+	`customer_id`			INT NOT NULL,
+	CONSTRAINT fk_wings_customers_wing
+	  FOREIGN KEY (`wing_id`) REFERENCES wings(`id`) ON DELETE cascade,
+	CONSTRAINT fk_wings_customers_customer
+	  FOREIGN KEY (`customer_id`) REFERENCES customers(`id`) ON DELETE cascade
+);
+
 /*
 CREATE TABLE  IF NOT EXISTS `hats`
 (

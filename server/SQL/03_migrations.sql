@@ -58,4 +58,13 @@ CALL add_column_if_not_exists('account_invites', 'create_new_customer', 'boolean
 CALL add_column_if_not_exists('account_requests', 'address', 'varchar(255) NULL');
 CALL add_column_if_not_exists('account_requests', 'business_name', 'varchar(255) NULL');
 
+CREATE TABLE  IF NOT EXISTS wings_customers (
+	`wing_id`				INT NOT NULL,
+	`customer_id`			INT NOT NULL,
+	CONSTRAINT fk_wings_customers_wing
+	  FOREIGN KEY (`wing_id`) REFERENCES wings(`id`) ON DELETE cascade,
+	CONSTRAINT fk_wings_customers_customer
+	  FOREIGN KEY (`customer_id`) REFERENCES customers(`id`) ON DELETE cascade
+);
+
 select "Migrations done", CURRENT_TIMESTAMP;

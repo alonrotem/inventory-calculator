@@ -16,6 +16,18 @@ SET @delete_records=TRUE;
         EXECUTE stmt; #USING @value1, @value2;
         DEALLOCATE PREPARE stmt;
 
+# ACCOUNT_INVITES_CUSTOMERS
+# ---------------------------
+
+        -- Check if the table exists
+        SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'account_invites_customers');
+        -- Prepare the INSERT statement only if the table exists
+        SET @sql = IF(@table_exists > 0, "DELETE FROM `account_invites_customers` where @delete_records=TRUE;", 'SELECT \'Table account_invites_customers does not exist\'');
+        -- Execute the prepared statement
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt; #USING @value1, @value2;
+        DEALLOCATE PREPARE stmt;
+
 # ACCOUNT_REQUESTS
 # ------------------
 
@@ -143,6 +155,18 @@ SET @delete_records=TRUE;
         SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'orders');
         -- Prepare the INSERT statement only if the table exists
         SET @sql = IF(@table_exists > 0, "DELETE FROM `orders` where @delete_records=TRUE;", 'SELECT \'Table orders does not exist\'');
+        -- Execute the prepared statement
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt; #USING @value1, @value2;
+        DEALLOCATE PREPARE stmt;
+
+# ORDERS_HATS
+# -------------
+
+        -- Check if the table exists
+        SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'orders_hats');
+        -- Prepare the INSERT statement only if the table exists
+        SET @sql = IF(@table_exists > 0, "DELETE FROM `orders_hats` where @delete_records=TRUE;", 'SELECT \'Table orders_hats does not exist\'');
         -- Execute the prepared statement
         PREPARE stmt FROM @sql;
         EXECUTE stmt; #USING @value1, @value2;
@@ -280,14 +304,66 @@ SET @delete_records=TRUE;
         EXECUTE stmt; #USING @value1, @value2;
         DEALLOCATE PREPARE stmt;
 
+# WINGS_CUSTOMERS
+# -----------------
+
+        -- Check if the table exists
+        SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'wings_customers');
+        -- Prepare the INSERT statement only if the table exists
+        SET @sql = IF(@table_exists > 0, "DELETE FROM `wings_customers` where @delete_records=TRUE;", 'SELECT \'Table wings_customers does not exist\'');
+        -- Execute the prepared statement
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt; #USING @value1, @value2;
+        DEALLOCATE PREPARE stmt;
+
 # ========== INSERTS ==========
 
 # ACCOUNT_INVITES
 # -----------------
+
+        -- Check if the table exists
+        SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'account_invites');
+        -- Prepare the INSERT statement only if the table exists
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `account_invites` (`id`, `firstname`, `lastname`, `email`, `inviter_user_id`, `created_account_user_id`, `account_creation_code`, `account_role_id`, `invite_status`, `is_demo_customer`, `create_new_customer`, `sent_date`, `last_update`) 
+VALUES
+(11, 'Alon', 'Rotem', 'alrotem@walla.co.il', 1, null, '1LB7G3C5LW', 2, 'cancelled', 1, 0, '2026-04-20 16:19:50', '2026-04-20 16:22:40')
+as new_account_invites
+ON DUPLICATE KEY UPDATE
+`firstname`=new_account_invites.`firstname`, `lastname`=new_account_invites.`lastname`, `email`=new_account_invites.`email`, `inviter_user_id`=new_account_invites.`inviter_user_id`, `created_account_user_id`=new_account_invites.`created_account_user_id`, `account_creation_code`=new_account_invites.`account_creation_code`, `account_role_id`=new_account_invites.`account_role_id`, `invite_status`=new_account_invites.`invite_status`, `is_demo_customer`=new_account_invites.`is_demo_customer`, `create_new_customer`=new_account_invites.`create_new_customer`, `sent_date`=new_account_invites.`sent_date`, `last_update`=new_account_invites.`last_update`;", 'SELECT \'Table account_invites does not exist\'');
+        -- Execute the prepared statement
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt; #USING @value1, @value2;
+        DEALLOCATE PREPARE stmt;
+
+# ACCOUNT_INVITES_CUSTOMERS
+# ---------------------------
 # ACCOUNT_REQUESTS
 # ------------------
 # ALLOCATION_BABIES
 # -------------------
+
+        -- Check if the table exists
+        SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'allocation_babies');
+        -- Prepare the INSERT statement only if the table exists
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `allocation_babies` (`id`, `allocation_id`, `length`, `quantity`, `quantity_in_pending_orders`) 
+VALUES
+(30, 2, 10, 24, 108),
+(31, 2, 9.5, 16, 72),
+(32, 2, 9, 16, 72),
+(33, 2, 8, 16, 72),
+(34, 2, 7.5, 8, 36),
+(35, 2, 7, 16, 72),
+(36, 2, 6.5, 16, 72),
+(37, 2, 6, 16, 72),
+(38, 2, 5.5, 16, 72)
+as new_allocation_babies
+ON DUPLICATE KEY UPDATE
+`allocation_id`=new_allocation_babies.`allocation_id`, `length`=new_allocation_babies.`length`, `quantity`=new_allocation_babies.`quantity`, `quantity_in_pending_orders`=new_allocation_babies.`quantity_in_pending_orders`;", 'SELECT \'Table allocation_babies does not exist\'');
+        -- Execute the prepared statement
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt; #USING @value1, @value2;
+        DEALLOCATE PREPARE stmt;
+
 # COUNTRIES
 # -----------
 
@@ -575,7 +651,7 @@ ON DUPLICATE KEY UPDATE
         -- Prepare the INSERT statement only if the table exists
         SET @sql = IF(@table_exists > 0, "INSERT INTO `customer_banks` (`id`, `customer_id`, `raw_material_id`, `quantity`, `remaining_quantity`, `quantity_units`, `quantity_in_kg`) 
 VALUES
-(1, 12, 1, 270, 70, 'units', 0),
+(1, 12, 1, 270, 0, 'units', 0),
 (2, 12, 2, 985, 495, 'units', 495)
 as new_customer_banks
 ON DUPLICATE KEY UPDATE
@@ -594,7 +670,8 @@ ON DUPLICATE KEY UPDATE
         SET @sql = IF(@table_exists > 0, "INSERT INTO `customer_banks_allocations` (`id`, `customer_bank_id`, `quantity`, `remaining_quantity`, `allocation_type`, `tails_quantity`, `tails_in_orders`) 
 VALUES
 (2, 1, 200, 0, 'babies', 0, 0),
-(3, 2, 490, 0, 'tails', 0, 0)
+(3, 2, 490, 0, 'tails', 0, 0),
+(6, 1, 70, 70, 'tails', 34, 36)
 as new_customer_banks_allocations
 ON DUPLICATE KEY UPDATE
 `customer_bank_id`=new_customer_banks_allocations.`customer_bank_id`, `quantity`=new_customer_banks_allocations.`quantity`, `remaining_quantity`=new_customer_banks_allocations.`remaining_quantity`, `allocation_type`=new_customer_banks_allocations.`allocation_type`, `tails_quantity`=new_customer_banks_allocations.`tails_quantity`, `tails_in_orders`=new_customer_banks_allocations.`tails_in_orders`;", 'SELECT \'Table customer_banks_allocations does not exist\'');
@@ -605,21 +682,37 @@ ON DUPLICATE KEY UPDATE
 
 # CUSTOMER_HATS
 # ---------------
+
+        -- Check if the table exists
+        SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'customer_hats');
+        -- Prepare the INSERT statement only if the table exists
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `customer_hats` (`id`, `hat_material_id`, `crown_material_id`, `tails_material_id`, `wing_id`, `original_wing_name`, `customer_id`, `shorten_top_by`, `shorten_crown_by`, `wall_allocation_id`, `crown_allocation_id`, `tails_allocation_id`, `tails_overdraft`, `mayler_width`, `hr_hl_width`, `crown_visible`, `crown_length`, `order_date`) 
+VALUES
+(1, 1, 1, 1, 96, 'RT11515', 12, 0, 0, 2, 2, 6, 0, 0.17, 0, 6, 9.5, null)
+as new_customer_hats
+ON DUPLICATE KEY UPDATE
+`hat_material_id`=new_customer_hats.`hat_material_id`, `crown_material_id`=new_customer_hats.`crown_material_id`, `tails_material_id`=new_customer_hats.`tails_material_id`, `wing_id`=new_customer_hats.`wing_id`, `original_wing_name`=new_customer_hats.`original_wing_name`, `customer_id`=new_customer_hats.`customer_id`, `shorten_top_by`=new_customer_hats.`shorten_top_by`, `shorten_crown_by`=new_customer_hats.`shorten_crown_by`, `wall_allocation_id`=new_customer_hats.`wall_allocation_id`, `crown_allocation_id`=new_customer_hats.`crown_allocation_id`, `tails_allocation_id`=new_customer_hats.`tails_allocation_id`, `tails_overdraft`=new_customer_hats.`tails_overdraft`, `mayler_width`=new_customer_hats.`mayler_width`, `hr_hl_width`=new_customer_hats.`hr_hl_width`, `crown_visible`=new_customer_hats.`crown_visible`, `crown_length`=new_customer_hats.`crown_length`, `order_date`=new_customer_hats.`order_date`;", 'SELECT \'Table customer_hats does not exist\'');
+        -- Execute the prepared statement
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt; #USING @value1, @value2;
+        DEALLOCATE PREPARE stmt;
+
 # CUSTOMERS
 # -----------
 
         -- Check if the table exists
         SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'customers');
         -- Prepare the INSERT statement only if the table exists
-        SET @sql = IF(@table_exists > 0, "INSERT INTO `customers` (`id`, `name`, `business_name`, `email`, `phone`, `tax_id`, `customer_code`, `notes`, `allow_calculation_advisor`, `created_at`, `updated_at`, `created_by`, `updated_by`, `order_seq_number`) 
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `customers` (`id`, `name`, `business_name`, `email`, `phone`, `tax_id`, `customer_code`, `notes`, `allow_calculation_advisor`, `is_demo_customer`, `created_at`, `updated_at`, `created_by`, `updated_by`, `order_seq_number`) 
 VALUES
-(10, 'Avi Bar', 'Rom Tech Ltd ', 'avi_bar@mail.com', '+359 87 985 8868', 'Tax payer 5678', 'AB', null, 1, '2025-01-06 20:05:29', '2026-03-11 15:57:56', 1, 1, 35),
-(12, 'London', 'Tiferes Inc', 'tiferes.adler@gmail.com', '1-845-558-0778', '456456', 'L', null, 1, '2025-02-24 22:19:45', '2026-03-27 10:16:39', 0, 0, 28),
-(17, 'H&M', 'Shaniners Sachar Ltd', 's0548523233@gmail.com', '+972 54-852-3233', '517087078', 'H&M', null, 0, '2026-03-11 15:55:25', '2026-03-26 08:24:57', 0, 0, 1),
-(18, 'MT', 'King', 'Meir2400@gmail.com', '+972 50-907-5900', '39425566', 'K', null, 0, '2026-03-11 16:06:02', '2026-03-11 16:06:02', 0, 0, 1)
+(10, 'Avi Bar', 'Rom Tech Ltd ', 'avi_bar@mail.com', '+359 87 985 8868', 'Tax payer 5678', 'AB', null, 1, 0, '2025-01-06 20:05:29', '2026-03-11 15:57:56', 1, 1, 35),
+(12, 'London', 'Tiferes Inc', 'tiferes.adler@gmail.com', '1-845-558-0778', '456456', 'L', null, 1, 0, '2025-02-24 22:19:45', '2026-05-10 10:52:04', 0, 0, 29),
+(17, 'H&M', 'Shaniners Sachar Ltd', 's0548523233@gmail.com', '+972 54-852-3233', '517087078', 'H&M', null, 0, 0, '2026-03-11 15:55:25', '2026-03-26 08:24:57', 0, 0, 1),
+(18, 'MT', 'King', 'Meir2400@gmail.com', '+972 50-907-5900', '39425566', 'K', null, 0, 0, '2026-03-11 16:06:02', '2026-03-11 16:06:02', 0, 0, 1),
+(24, 'Shkembe Chorba', 'Shkembe Chorba', 'avi@mail.com', null, null, null, null, 0, 1, '2026-04-21 09:59:44', '2026-04-21 09:59:44', 1, 1, 1)
 as new_customers
 ON DUPLICATE KEY UPDATE
-`name`=new_customers.`name`, `business_name`=new_customers.`business_name`, `email`=new_customers.`email`, `phone`=new_customers.`phone`, `tax_id`=new_customers.`tax_id`, `customer_code`=new_customers.`customer_code`, `notes`=new_customers.`notes`, `allow_calculation_advisor`=new_customers.`allow_calculation_advisor`, `created_at`=new_customers.`created_at`, `updated_at`=new_customers.`updated_at`, `created_by`=new_customers.`created_by`, `updated_by`=new_customers.`updated_by`, `order_seq_number`=new_customers.`order_seq_number`;", 'SELECT \'Table customers does not exist\'');
+`name`=new_customers.`name`, `business_name`=new_customers.`business_name`, `email`=new_customers.`email`, `phone`=new_customers.`phone`, `tax_id`=new_customers.`tax_id`, `customer_code`=new_customers.`customer_code`, `notes`=new_customers.`notes`, `allow_calculation_advisor`=new_customers.`allow_calculation_advisor`, `is_demo_customer`=new_customers.`is_demo_customer`, `created_at`=new_customers.`created_at`, `updated_at`=new_customers.`updated_at`, `created_by`=new_customers.`created_by`, `updated_by`=new_customers.`updated_by`, `order_seq_number`=new_customers.`order_seq_number`;", 'SELECT \'Table customers does not exist\'');
         -- Execute the prepared statement
         PREPARE stmt FROM @sql;
         EXECUTE stmt; #USING @value1, @value2;
@@ -633,7 +726,8 @@ ON DUPLICATE KEY UPDATE
         -- Prepare the INSERT statement only if the table exists
         SET @sql = IF(@table_exists > 0, "INSERT INTO `logins` (`id`, `user_id`, `origin_ip_address`, `logged_in_at`, `last_refresh_token_time`, `refresh_token_expiration`, `refresh_token`, `origin_geolocation`, `origin_city`, `origin_country`, `origin_os`, `origin_browser`) 
 VALUES
-(74, 1, '90.154.140.233', '2026-04-12 21:27:20', '2026-04-12 21:32:48', '2026-04-13 21:27:20', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NzYwMjk1NjgsImV4cCI6MTc3NjExNTYzOX0.a2CV_OWdgj1zerrOXX_Kly3D1rn6xU9oFebiK0h7YSA', '', '', '', 'Windows', 'Edge')
+(77, 1, '::1', '2026-04-16 23:59:06', '2026-04-21 09:59:30', '2026-05-16 23:59:05', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NzY3NTQ3NzAsImV4cCI6MTc3ODk2NTE0NH0.8S715KVxddg8yy8sw3xkKJld-SaMqtB0uj0DBW-yCPI', null, null, null, null, null),
+(85, 1, '::1', '2026-05-10 11:03:18', '2026-05-10 11:24:35', '2026-06-09 11:03:16', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3Nzg0MDE0NzUsImV4cCI6MTc4MDk5MjE5NX0.z48V4ik2Qtj_ye61pi32F5iNxvIrS3HdKpjWF4-dIgw', '', '', '', 'Windows', 'Edge')
 as new_logins
 ON DUPLICATE KEY UPDATE
 `user_id`=new_logins.`user_id`, `origin_ip_address`=new_logins.`origin_ip_address`, `logged_in_at`=new_logins.`logged_in_at`, `last_refresh_token_time`=new_logins.`last_refresh_token_time`, `refresh_token_expiration`=new_logins.`refresh_token_expiration`, `refresh_token`=new_logins.`refresh_token`, `origin_geolocation`=new_logins.`origin_geolocation`, `origin_city`=new_logins.`origin_city`, `origin_country`=new_logins.`origin_country`, `origin_os`=new_logins.`origin_os`, `origin_browser`=new_logins.`origin_browser`;", 'SELECT \'Table logins does not exist\'');
@@ -666,8 +760,40 @@ ON DUPLICATE KEY UPDATE
 
 # ORDERS
 # --------
+
+        -- Check if the table exists
+        SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'orders');
+        -- Prepare the INSERT statement only if the table exists
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `orders` (`id`, `customer_hat_id`, `customer_order_seq_number`, `wing_quantity`, `num_of_hats`, `kippa_size`, `diameter_inches`, `ordering_customer_name`, `tails_overdraft`, `isurgent`, `white_hair`, `white_hair_notes`, `order_notes`) 
+VALUES
+(1, 1, 28, 36, 1, 56, 11.5, '', 0, 0, 0, '', '')
+as new_orders
+ON DUPLICATE KEY UPDATE
+`customer_hat_id`=new_orders.`customer_hat_id`, `customer_order_seq_number`=new_orders.`customer_order_seq_number`, `wing_quantity`=new_orders.`wing_quantity`, `num_of_hats`=new_orders.`num_of_hats`, `kippa_size`=new_orders.`kippa_size`, `diameter_inches`=new_orders.`diameter_inches`, `ordering_customer_name`=new_orders.`ordering_customer_name`, `tails_overdraft`=new_orders.`tails_overdraft`, `isurgent`=new_orders.`isurgent`, `white_hair`=new_orders.`white_hair`, `white_hair_notes`=new_orders.`white_hair_notes`, `order_notes`=new_orders.`order_notes`;", 'SELECT \'Table orders does not exist\'');
+        -- Execute the prepared statement
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt; #USING @value1, @value2;
+        DEALLOCATE PREPARE stmt;
+
+# ORDERS_HATS
+# -------------
 # ORDERS_STATUS
 # ---------------
+
+        -- Check if the table exists
+        SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'orders_status');
+        -- Prepare the INSERT statement only if the table exists
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `orders_status` (`id`, `order_id`, `date`, `order_status`) 
+VALUES
+(1, 1, '2026-05-10 10:52:05', 'new')
+as new_orders_status
+ON DUPLICATE KEY UPDATE
+`order_id`=new_orders_status.`order_id`, `date`=new_orders_status.`date`, `order_status`=new_orders_status.`order_status`;", 'SELECT \'Table orders_status does not exist\'');
+        -- Execute the prepared statement
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt; #USING @value1, @value2;
+        DEALLOCATE PREPARE stmt;
+
 # RAW_MATERIALS
 # ---------------
 
@@ -836,7 +962,8 @@ VALUES
 (6, '2026-03-26 08:21:23', 1, 200, 'customer_bank_allocate_to_Work', 1, 12, 1, 2, -1, 70, 0),
 (7, '2026-03-27 10:15:14', 1, 490, 'to_customer_bank', 2, 12, 2, 0, 1190, 490, -1),
 (8, '2026-03-27 10:16:23', 1, 490, 'customer_bank_allocate_to_Work', 2, 12, 2, 3, -1, 0, 0),
-(9, '2026-03-27 10:18:21', 1, 495, 'to_customer_bank', 2, 12, 2, 0, 695, 495, -1)
+(9, '2026-03-27 10:18:21', 1, 495, 'to_customer_bank', 2, 12, 2, 0, 695, 495, -1),
+(12, '2026-05-10 10:51:47', 1, 70, 'customer_bank_allocate_to_Work', 1, 12, 1, 6, -1, 0, 0)
 as new_transaction_history
 ON DUPLICATE KEY UPDATE
 `date`=new_transaction_history.`date`, `added_by`=new_transaction_history.`added_by`, `transaction_quantity`=new_transaction_history.`transaction_quantity`, `transaction_type`=new_transaction_history.`transaction_type`, `raw_material_id`=new_transaction_history.`raw_material_id`, `customer_id`=new_transaction_history.`customer_id`, `customer_bank_id`=new_transaction_history.`customer_bank_id`, `allocation_id`=new_transaction_history.`allocation_id`, `cur_raw_material_quantity`=new_transaction_history.`cur_raw_material_quantity`, `cur_customer_bank_quantity`=new_transaction_history.`cur_customer_bank_quantity`, `cur_banks_babies_allocation_quantity`=new_transaction_history.`cur_banks_babies_allocation_quantity`;", 'SELECT \'Table transaction_history does not exist\'');
@@ -853,7 +980,7 @@ ON DUPLICATE KEY UPDATE
         -- Prepare the INSERT statement only if the table exists
         SET @sql = IF(@table_exists > 0, "INSERT INTO `user_customers` (`user_id`, `customer_id`) 
 VALUES
-(3, 10)
+(10, 24)
 as new_user_customers
 ON DUPLICATE KEY UPDATE
 `user_id`=new_user_customers.`user_id`, `customer_id`=new_user_customers.`customer_id`;", 'SELECT \'Table user_customers does not exist\'');
@@ -872,7 +999,7 @@ ON DUPLICATE KEY UPDATE
 VALUES
 (1, 1),
 (2, 1),
-(3, 2)
+(10, 2)
 as new_user_roles
 ON DUPLICATE KEY UPDATE
 `user_id`=new_user_roles.`user_id`, `role_id`=new_user_roles.`role_id`;", 'SELECT \'Table user_roles does not exist\'');
@@ -887,14 +1014,14 @@ ON DUPLICATE KEY UPDATE
         -- Check if the table exists
         SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'users');
         -- Prepare the INSERT statement only if the table exists
-        SET @sql = IF(@table_exists > 0, "INSERT INTO `users` (`id`, `firstname`, `lastname`, `username`, `email`, `password`, `is_verified`, `is_disabled`, `pending_verfication_code`, `verification_code_expiration`, `pending_new_email`, `pending_new_email_code`, `photo_url`, `phone`, `created_at`) 
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `users` (`id`, `firstname`, `lastname`, `username`, `email`, `password`, `is_verified`, `is_disabled`, `pending_verfication_code`, `verification_code_expiration`, `pending_new_email`, `pending_new_email_code`, `photo_url`, `phone`, `is_demo_customer`, `created_at`) 
 VALUES
-(1, 'Alon', 'Rotem', 'alrotem', 'alrotem@gmail.com', '$2b$10$VZrjHgOhn3JEWO/DQTv.n.9jnZGVnQKPXWskKpmMHRWBJ3bGyRAmq', 1, 0, '8DKLMLL9JY', null, null, null, '/uploads/images/users/1771246565523-profile.png', '', '2026-02-16 12:48:15'),
-(2, 'Avi', 'Bar', 'avibar', 'aviouslybar@gmail.com', '$2b$10$biw0c4d384VDXHnMl7cIFu.aLiLm.89ZMcvs7yCbiNJq6j.yrHAMW', 1, 0, '', null, null, null, '/uploads/images/users/1773931533050-profile.png', '', '2026-02-16 12:51:11'),
-(3, 'Alon', 'Rotem', 'alrotem2', 'alrotem@walla.co.il', '$2b$10$hBmbDuLRlXCAVTgRXgQRCOtQpPqp3F9j1sos3SXK8.V.77CwS4yXu', 1, 0, '', null, null, null, null, null, '2026-02-18 22:10:45')
+(1, 'Alon', 'Rotem', 'alrotem', 'alrotem@gmail.com', '$2b$10$VZrjHgOhn3JEWO/DQTv.n.9jnZGVnQKPXWskKpmMHRWBJ3bGyRAmq', 1, 0, '8DKLMLL9JY', null, null, null, '/uploads/images/users/1771246565523-profile.png', '', 0, '2026-02-16 12:48:15'),
+(2, 'Avi', 'Bar', 'avibar', 'aviouslybar@gmail.com', '$2b$10$biw0c4d384VDXHnMl7cIFu.aLiLm.89ZMcvs7yCbiNJq6j.yrHAMW', 1, 0, '', null, null, null, '/uploads/images/users/1773931533050-profile.png', '', 0, '2026-02-16 12:51:11'),
+(10, 'Shkembe', 'Chorba', 'avi', 'avi@mail.com', '$2b$10$ml8fxYUUxH/8vS46ZQXwrOo.cZxumhRt1RuvQna6UXBVgPixvFueC', 1, 0, '', null, null, null, null, '', 1, '2026-04-21 09:59:36')
 as new_users
 ON DUPLICATE KEY UPDATE
-`firstname`=new_users.`firstname`, `lastname`=new_users.`lastname`, `username`=new_users.`username`, `email`=new_users.`email`, `password`=new_users.`password`, `is_verified`=new_users.`is_verified`, `is_disabled`=new_users.`is_disabled`, `pending_verfication_code`=new_users.`pending_verfication_code`, `verification_code_expiration`=new_users.`verification_code_expiration`, `pending_new_email`=new_users.`pending_new_email`, `pending_new_email_code`=new_users.`pending_new_email_code`, `photo_url`=new_users.`photo_url`, `phone`=new_users.`phone`, `created_at`=new_users.`created_at`;", 'SELECT \'Table users does not exist\'');
+`firstname`=new_users.`firstname`, `lastname`=new_users.`lastname`, `username`=new_users.`username`, `email`=new_users.`email`, `password`=new_users.`password`, `is_verified`=new_users.`is_verified`, `is_disabled`=new_users.`is_disabled`, `pending_verfication_code`=new_users.`pending_verfication_code`, `verification_code_expiration`=new_users.`verification_code_expiration`, `pending_new_email`=new_users.`pending_new_email`, `pending_new_email_code`=new_users.`pending_new_email_code`, `photo_url`=new_users.`photo_url`, `phone`=new_users.`phone`, `is_demo_customer`=new_users.`is_demo_customer`, `created_at`=new_users.`created_at`;", 'SELECT \'Table users does not exist\'');
         -- Execute the prepared statement
         PREPARE stmt FROM @sql;
         EXECUTE stmt; #USING @value1, @value2;
@@ -906,18 +1033,19 @@ ON DUPLICATE KEY UPDATE
         -- Check if the table exists
         SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'wings');
         -- Prepare the INSERT statement only if the table exists
-        SET @sql = IF(@table_exists > 0, "INSERT INTO `wings` (`id`, `name`, `knife`, `crown_width`, `split_l1`, `allow_shortening_babies_in_pairs`) 
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `wings` (`id`, `name`, `knife`, `crown_width`, `split_l1`, `allow_shortening_babies_in_pairs`, `angled_crown`) 
 VALUES
-(39, 'DM 159', 9, 2, 1, 0),
-(83, 'RT11515', 11.5, 2.5, 1, 0),
-(91, 'RT 115-155 (C7.5)', 11.5, 2.5, 2, 0),
-(92, 'RT 7130 C9', 7, 2, 2, 0),
-(93, 'RT 8130', 0, 2, 1, 0),
-(94, 'O-10135', 0, 2, 1, 0),
-(95, 'RT 115-155 (C10)', 11.5, 2.5, 1, 0)
+(39, 'DM 159', 9, 2, 1, 0, 0),
+(83, 'RT11515', 11.5, 2.5, 1, 0, 0),
+(91, 'RT 115-155 (C7.5)', 11.5, 2.5, 2, 0, 0),
+(92, 'RT 7130 C9', 7, 2, 2, 0, 0),
+(93, 'RT 8130', 0, 2, 1, 0, 0),
+(94, 'O-10135', 0, 2, 1, 0, 0),
+(95, 'RT 115-155 (C10)', 11.5, 2.5, 1, 0, 0),
+(96, 'RT1151520260410105114', 11.5, 2.5, 1, 0, 0)
 as new_wings
 ON DUPLICATE KEY UPDATE
-`name`=new_wings.`name`, `knife`=new_wings.`knife`, `crown_width`=new_wings.`crown_width`, `split_l1`=new_wings.`split_l1`, `allow_shortening_babies_in_pairs`=new_wings.`allow_shortening_babies_in_pairs`;", 'SELECT \'Table wings does not exist\'');
+`name`=new_wings.`name`, `knife`=new_wings.`knife`, `crown_width`=new_wings.`crown_width`, `split_l1`=new_wings.`split_l1`, `allow_shortening_babies_in_pairs`=new_wings.`allow_shortening_babies_in_pairs`, `angled_crown`=new_wings.`angled_crown`;", 'SELECT \'Table wings does not exist\'');
         -- Execute the prepared statement
         PREPARE stmt FROM @sql;
         EXECUTE stmt; #USING @value1, @value2;
@@ -1039,10 +1167,46 @@ VALUES
 (1901, 95, 'C1', 10),
 (1902, 95, 'C2', 10),
 (1903, 95, 'C3', 10),
-(1904, 95, 'C4', 10)
+(1904, 95, 'C4', 10),
+(1905, 96, 'C1', 9.5),
+(1906, 96, 'C2', 10),
+(1907, 96, 'C3', 10),
+(1908, 96, 'C4', 9.5),
+(1909, 96, 'L1', 5.5),
+(1910, 96, 'L2', 6),
+(1911, 96, 'L3', 6.5),
+(1912, 96, 'L4', 7),
+(1913, 96, 'L5', 7.5),
+(1914, 96, 'L6', 8),
+(1915, 96, 'L7', 9),
+(1916, 96, 'R1', 5.5),
+(1917, 96, 'R2', 6),
+(1918, 96, 'R3', 6.5),
+(1919, 96, 'R4', 7),
+(1920, 96, 'R5', 8),
+(1921, 96, 'R6', 9),
+(1922, 96, 'TOP', 10)
 as new_wings_babies
 ON DUPLICATE KEY UPDATE
 `parent_wing_id`=new_wings_babies.`parent_wing_id`, `position`=new_wings_babies.`position`, `length`=new_wings_babies.`length`;", 'SELECT \'Table wings_babies does not exist\'');
+        -- Execute the prepared statement
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt; #USING @value1, @value2;
+        DEALLOCATE PREPARE stmt;
+
+# WINGS_CUSTOMERS
+# -----------------
+
+        -- Check if the table exists
+        SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'wings_customers');
+        -- Prepare the INSERT statement only if the table exists
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `wings_customers` (`wing_id`, `customer_id`) 
+VALUES
+(39, 12),
+(39, 18)
+as new_wings_customers
+ON DUPLICATE KEY UPDATE
+`wing_id`=new_wings_customers.`wing_id`, `customer_id`=new_wings_customers.`customer_id`;", 'SELECT \'Table wings_customers does not exist\'');
         -- Execute the prepared statement
         PREPARE stmt FROM @sql;
         EXECUTE stmt; #USING @value1, @value2;

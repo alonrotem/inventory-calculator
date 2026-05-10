@@ -8,8 +8,8 @@ async function getSingle(id){
     const rows = await db.query(
       `select id, name, knife, split_l1, crown_width, allow_shortening_babies_in_pairs from wings where id=${id}` //width 5 - 11
     );
-    const data = helper.emptyOrSingle(rows);
-    if(!helper.isEmptyObj(data)) {
+    const wing = helper.emptyOrSingle(rows);
+    if(!helper.isEmptyObj(wing)) {
         const wing_babies = await db.query(
           `
 select  wb.id, wb.parent_wing_id, wb.position, wb.length from (
@@ -25,9 +25,13 @@ from wings_babies
           */
           );
         const babies = helper.emptyOrRows(wing_babies);
-        data.babies = babies;
+        wing.babies = babies;
+
+        wing.customers = helper.emptyOrRows(await db.query(
+          `select c.id, c.name, c.is_demo_customer from customers c inner join wings_customers wc on c.id=wc.customer_id where wc.wing_id=(?)`, [id]
+        ));
     }
-    return data;
+    return wing;
 }
 
 async function getSingleWingByName(name){
@@ -57,15 +61,12 @@ async function getMultiple(page = 1, perPage, customer_id){
     subset = `LIMIT ${offset},${perPage}`
   }
   if(customer_id && customer_id > 0) {
-    customer_filter = `where ch.customer_id=${customer_id}`;
-  }
-  else {
-    customer_filter = `where ch.customer_id is null`;
+    customer_filter = `or wc.customer_id=${customer_id}`;
   }
   
   const rows = await db.query(
     `select 
-      w.id, w.name, w.knife, ch.customer_id, w.split_l1, crown_width,
+      w.id, w.name, w.knife, wc.customer_id, w.split_l1, crown_width,
       (SELECT COUNT(wb.id) + w.split_l1 FROM wings_babies wb, wings w
               WHERE wb.parent_wing_id = 31 and w.id=31 and wb.position like'L%') as 'Left',
       (SELECT COUNT(*) FROM wings_babies wb
@@ -75,12 +76,22 @@ async function getMultiple(page = 1, perPage, customer_id){
       (SELECT COUNT(*) FROM wings_babies wb
               WHERE wb.parent_wing_id = w.id and wb.position like'C%') as 'Crown'
       from 
-        wings w left join customer_hats ch on w.id=ch.wing_id 
-      ${customer_filter}
+        wings w left join wings_customers wc on wc.wing_id=w.id
+      where 
+        w.id not in (select wing_id from customer_hats)
+        and 
+        (wc.customer_id is null ${customer_filter})
       order by w.name ${subset};`
   );
   const total = await db.query(
-    `select count(w.id) as count from wings w left join customer_hats ch on w.id=ch.wing_id ${customer_filter}`
+    `select 
+      count(w.id) as count
+      from 
+        wings w left join wings_customers wc on wc.wing_id=w.id
+      where 
+        w.id not in (select wing_id from customer_hats)
+        and 
+        (wc.customer_id is null ${customer_filter});`
   );
   const total_records = total[0].count;
   const total_pages = Math.ceil(total_records / perPage);
@@ -162,6 +173,18 @@ async function save(wing, active_connection=null){
     {
       await sync_babies_for_wing(wing.babies, wing_id, active_connection);
     }
+
+    await db.transaction_query(`DELETE FROM wings_customers WHERE wing_id=${wing_id}`, [], active_connection );
+    if(wing.customers && wing.customers.length > 0) {
+      let customers_arr = wing.customers.map(c => [wing_id, c.id]).flat(1);
+      let placeholder = Array(wing.customers.length).fill("(" + Array(2).fill("?").join(",") + ")").join(",");
+      await db.transaction_query(
+        `INSERT INTO wings_customers (wing_id, customer_id) VALUES ${placeholder}`,
+        customers_arr,
+        active_connection
+      );
+    }
+
     //console.log({ message: message, wing_id: wing_id });
     if(self_executing) {
       await db.transaction_commit(active_connection);

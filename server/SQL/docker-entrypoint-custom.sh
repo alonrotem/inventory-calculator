@@ -10,6 +10,7 @@ until mysqladmin ping -h "localhost" --silent; do
 done
 
 # Run migrations every time container starts
+mysql -u root -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE < /db/01_create_db.sql
 mysql -u root -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE < /db/02_migration_functions.sql
 mysql -u root -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE < /db/03_migrations.sql
 
