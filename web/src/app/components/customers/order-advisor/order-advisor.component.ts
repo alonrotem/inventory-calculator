@@ -165,7 +165,8 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
           angled_crown: wing.a_c,
           knife: 0,
           babies: babies,
-          allow_shortening_babies_in_pairs: false
+          allow_shortening_babies_in_pairs: false,
+          customers: []
         });
         }
       });

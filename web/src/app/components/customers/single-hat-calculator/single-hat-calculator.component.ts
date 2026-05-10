@@ -320,8 +320,10 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   }
 
   ngAfterViewInit(): void {
+    const customer_id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
+
     this.length_editor.crown_babies_quantity_changed.subscribe((new_length: number) => this.crown_babies_quantity_changed(new_length));
-    this.wingsService.getWings_for_customer(this.customer.id).subscribe(wingsListInfo => {
+    this.wingsService.getWings_for_customer(customer_id).subscribe(wingsListInfo => {
       this.wings = wingsListInfo.data.sort((w1:WingsListItem, w2:WingsListItem) => {
         //this.console.log(w1.name);
         const w1_len = w1.name.match(/[^\d]*(\d*)[^\d]*/);
@@ -341,8 +343,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       else {
         this.selected_wing_id = null;
       }
-      const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
-      this.getCustomer(id);
+      this.getCustomer(customer_id);
     });
 
     this.no_hat_img = `/assets/images/no-hat-picture-${this.globalsService.currentTheme()}.png`;

@@ -7,6 +7,20 @@ npm install --save bootstrap
 
 ng generate component home
 
+## Wing functionality
+* Save wing -> "A wing by this name already exists, are you sure you want to save with the same name?"
+✅ Clear wing button
+✅ Copy wing from another
+✅ Assign wing to specific customers
+* Something with the knife
+    * Knives list
+    * Assign knives to customers
+    * Customer can change the wing's knife - only to assigned knives
+✅ Crown "Add baby" button not working
+
+## General functionality
+* Floating Save button
+* Use new confirmation await function
 
 ## OPEN TODOs
  ✅ User invites section

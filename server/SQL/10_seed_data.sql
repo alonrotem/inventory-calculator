@@ -124,18 +124,6 @@ SET @delete_records=TRUE;
         EXECUTE stmt; #USING @value1, @value2;
         DEALLOCATE PREPARE stmt;
 
-# LOGINS
-# --------
-
-        -- Check if the table exists
-        SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'logins');
-        -- Prepare the INSERT statement only if the table exists
-        SET @sql = IF(@table_exists > 0, "DELETE FROM `logins` where @delete_records=TRUE;", 'SELECT \'Table logins does not exist\'');
-        -- Execute the prepared statement
-        PREPARE stmt FROM @sql;
-        EXECUTE stmt; #USING @value1, @value2;
-        DEALLOCATE PREPARE stmt;
-
 # MATERIAL_COLORS
 # -----------------
 
@@ -155,18 +143,6 @@ SET @delete_records=TRUE;
         SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'orders');
         -- Prepare the INSERT statement only if the table exists
         SET @sql = IF(@table_exists > 0, "DELETE FROM `orders` where @delete_records=TRUE;", 'SELECT \'Table orders does not exist\'');
-        -- Execute the prepared statement
-        PREPARE stmt FROM @sql;
-        EXECUTE stmt; #USING @value1, @value2;
-        DEALLOCATE PREPARE stmt;
-
-# ORDERS_HATS
-# -------------
-
-        -- Check if the table exists
-        SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'orders_hats');
-        -- Prepare the INSERT statement only if the table exists
-        SET @sql = IF(@table_exists > 0, "DELETE FROM `orders_hats` where @delete_records=TRUE;", 'SELECT \'Table orders_hats does not exist\'');
         -- Execute the prepared statement
         PREPARE stmt FROM @sql;
         EXECUTE stmt; #USING @value1, @value2;
@@ -703,34 +679,16 @@ ON DUPLICATE KEY UPDATE
         -- Check if the table exists
         SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'customers');
         -- Prepare the INSERT statement only if the table exists
-        SET @sql = IF(@table_exists > 0, "INSERT INTO `customers` (`id`, `name`, `business_name`, `email`, `phone`, `tax_id`, `customer_code`, `notes`, `allow_calculation_advisor`, `is_demo_customer`, `created_at`, `updated_at`, `created_by`, `updated_by`, `order_seq_number`) 
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `customers` (`id`, `name`, `business_name`, `email`, `phone`, `tax_id`, `customer_code`, `notes`, `allow_calculation_advisor`, `is_demo_customer`, `address`, `created_at`, `updated_at`, `created_by`, `updated_by`, `order_seq_number`) 
 VALUES
-(10, 'Avi Bar', 'Rom Tech Ltd ', 'avi_bar@mail.com', '+359 87 985 8868', 'Tax payer 5678', 'AB', null, 1, 0, '2025-01-06 20:05:29', '2026-03-11 15:57:56', 1, 1, 35),
-(12, 'London', 'Tiferes Inc', 'tiferes.adler@gmail.com', '1-845-558-0778', '456456', 'L', null, 1, 0, '2025-02-24 22:19:45', '2026-05-10 10:52:04', 0, 0, 29),
-(17, 'H&M', 'Shaniners Sachar Ltd', 's0548523233@gmail.com', '+972 54-852-3233', '517087078', 'H&M', null, 0, 0, '2026-03-11 15:55:25', '2026-03-26 08:24:57', 0, 0, 1),
-(18, 'MT', 'King', 'Meir2400@gmail.com', '+972 50-907-5900', '39425566', 'K', null, 0, 0, '2026-03-11 16:06:02', '2026-03-11 16:06:02', 0, 0, 1),
-(24, 'Shkembe Chorba', 'Shkembe Chorba', 'avi@mail.com', null, null, null, null, 0, 1, '2026-04-21 09:59:44', '2026-04-21 09:59:44', 1, 1, 1)
+(10, 'Avi Bar', 'Rom Tech Ltd ', 'avi_bar@mail.com', '+359 87 985 8868', 'Tax payer 5678', 'AB', null, 1, 0, null, '2025-01-06 20:05:29', '2026-03-11 15:57:56', 1, 1, 35),
+(12, 'London', 'Tiferes Inc', 'tiferes.adler@gmail.com', '1-845-558-0778', '456456', 'L', null, 1, 0, null, '2025-02-24 22:19:45', '2026-05-10 10:52:04', 0, 0, 29),
+(17, 'H&M', 'Shaniners Sachar Ltd', 's0548523233@gmail.com', '+972 54-852-3233', '517087078', 'H&M', null, 0, 0, null, '2026-03-11 15:55:25', '2026-03-26 08:24:57', 0, 0, 1),
+(18, 'MT', 'King', 'Meir2400@gmail.com', '+972 50-907-5900', '39425566', 'K', null, 0, 0, null, '2026-03-11 16:06:02', '2026-03-11 16:06:02', 0, 0, 1),
+(24, 'Shkembe Chorba', 'Shkembe Chorba', 'avi@mail.com', null, null, null, null, 0, 1, null, '2026-04-21 09:59:44', '2026-04-21 09:59:44', 1, 1, 1)
 as new_customers
 ON DUPLICATE KEY UPDATE
-`name`=new_customers.`name`, `business_name`=new_customers.`business_name`, `email`=new_customers.`email`, `phone`=new_customers.`phone`, `tax_id`=new_customers.`tax_id`, `customer_code`=new_customers.`customer_code`, `notes`=new_customers.`notes`, `allow_calculation_advisor`=new_customers.`allow_calculation_advisor`, `is_demo_customer`=new_customers.`is_demo_customer`, `created_at`=new_customers.`created_at`, `updated_at`=new_customers.`updated_at`, `created_by`=new_customers.`created_by`, `updated_by`=new_customers.`updated_by`, `order_seq_number`=new_customers.`order_seq_number`;", 'SELECT \'Table customers does not exist\'');
-        -- Execute the prepared statement
-        PREPARE stmt FROM @sql;
-        EXECUTE stmt; #USING @value1, @value2;
-        DEALLOCATE PREPARE stmt;
-
-# LOGINS
-# --------
-
-        -- Check if the table exists
-        SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'logins');
-        -- Prepare the INSERT statement only if the table exists
-        SET @sql = IF(@table_exists > 0, "INSERT INTO `logins` (`id`, `user_id`, `origin_ip_address`, `logged_in_at`, `last_refresh_token_time`, `refresh_token_expiration`, `refresh_token`, `origin_geolocation`, `origin_city`, `origin_country`, `origin_os`, `origin_browser`) 
-VALUES
-(77, 1, '::1', '2026-04-16 23:59:06', '2026-04-21 09:59:30', '2026-05-16 23:59:05', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NzY3NTQ3NzAsImV4cCI6MTc3ODk2NTE0NH0.8S715KVxddg8yy8sw3xkKJld-SaMqtB0uj0DBW-yCPI', null, null, null, null, null),
-(85, 1, '::1', '2026-05-10 11:03:18', '2026-05-10 11:24:35', '2026-06-09 11:03:16', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3Nzg0MDE0NzUsImV4cCI6MTc4MDk5MjE5NX0.z48V4ik2Qtj_ye61pi32F5iNxvIrS3HdKpjWF4-dIgw', '', '', '', 'Windows', 'Edge')
-as new_logins
-ON DUPLICATE KEY UPDATE
-`user_id`=new_logins.`user_id`, `origin_ip_address`=new_logins.`origin_ip_address`, `logged_in_at`=new_logins.`logged_in_at`, `last_refresh_token_time`=new_logins.`last_refresh_token_time`, `refresh_token_expiration`=new_logins.`refresh_token_expiration`, `refresh_token`=new_logins.`refresh_token`, `origin_geolocation`=new_logins.`origin_geolocation`, `origin_city`=new_logins.`origin_city`, `origin_country`=new_logins.`origin_country`, `origin_os`=new_logins.`origin_os`, `origin_browser`=new_logins.`origin_browser`;", 'SELECT \'Table logins does not exist\'');
+`name`=new_customers.`name`, `business_name`=new_customers.`business_name`, `email`=new_customers.`email`, `phone`=new_customers.`phone`, `tax_id`=new_customers.`tax_id`, `customer_code`=new_customers.`customer_code`, `notes`=new_customers.`notes`, `allow_calculation_advisor`=new_customers.`allow_calculation_advisor`, `is_demo_customer`=new_customers.`is_demo_customer`, `address`=new_customers.`address`, `created_at`=new_customers.`created_at`, `updated_at`=new_customers.`updated_at`, `created_by`=new_customers.`created_by`, `updated_by`=new_customers.`updated_by`, `order_seq_number`=new_customers.`order_seq_number`;", 'SELECT \'Table customers does not exist\'');
         -- Execute the prepared statement
         PREPARE stmt FROM @sql;
         EXECUTE stmt; #USING @value1, @value2;
@@ -775,8 +733,6 @@ ON DUPLICATE KEY UPDATE
         EXECUTE stmt; #USING @value1, @value2;
         DEALLOCATE PREPARE stmt;
 
-# ORDERS_HATS
-# -------------
 # ORDERS_STATUS
 # ---------------
 

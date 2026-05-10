@@ -133,6 +133,7 @@ export interface Wing {
     split_l1: number;
     angled_crown: boolean;
     babies: WingBaby[];
+    customers: BasicCustomerInfo[];
 }
 
 export interface WingBaby{

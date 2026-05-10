@@ -202,9 +202,19 @@
             bindValue="id"
             [(ngModel)]="selected_wing_id"        
             >
-            @for (wing of wings; track wing) {
-              <ng-option [value]="wing.id"><span [className]="(wing.customer_id)? 'text-primary' : ''">{{ wing.name }} {{ (wing.customer_id)?' (private)':'' }}</span></ng-option>
-            }
+          <ng-template ng-label-tmp let-item="item">
+            <!-- Customize the selected label here -->
+            <span [className]="item.customer_id ? 'text-primary' : ''">
+              {{ item.name }} <span *ngIf="item.customer_id"> (private)</span>
+            </span>
+          </ng-template>
+
+        <ng-template ng-option-tmp let-item="item">
+          <!-- Customize the dropdown options here -->
+          <span [className]="item.customer_id ? 'text-primary' : ''">
+            {{ item.name }} <span *ngIf="item.customer_id"> (private)</span>
+          </span>
+        </ng-template>
           </ng-select>
         </div>
         <div *ngIf="is_wing_customized"style="margin-right: 10px;">

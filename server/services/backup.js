@@ -2,6 +2,8 @@ const db = require('./db');
 const mysql = require('mysql2');
 const helper = require('../helper');
 
+const skip_tables = ['logins'];
+
 function escapeForScript(value) {
   if (value === null || value === undefined) {
     return 'NULL';
@@ -158,7 +160,6 @@ async function create_table_backup_statement(table_name, keep_existing_records=f
     }
 }
 
-
 //https://stackoverflow.com/a/18471193
 async function get_backup(keep_existing_records) {
        
@@ -169,9 +170,11 @@ async function get_backup(keep_existing_records) {
 
     const tables = await get_all_table_names();
     for (const table of tables) {
-        let queries = await create_table_backup_statement(table, keep_existing_records);
-        deletes += queries.title + queries.deletes;
-        inserts += queries.title + queries.inserts;
+        if(skip_tables.indexOf(table) < 0){
+            let queries = await create_table_backup_statement(table, keep_existing_records);
+            deletes += queries.title + queries.deletes;
+            inserts += queries.title + queries.inserts;
+        }
     }   
 
     statements += deletes + inserts + "\nSET FOREIGN_KEY_CHECKS = 1;\n"

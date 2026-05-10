@@ -68,3 +68,10 @@ h3 {
     width: 70px;
     margin: 0px 10px;
 }
+
+.bordered-section {
+    border: 1px solid;
+    padding: 30px;
+    border-radius: var(--bs-border-radius);
+    margin-bottom: 30px;
+}

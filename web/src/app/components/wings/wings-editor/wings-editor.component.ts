@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, viewChild, ViewChild } from '@angular/core';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
-import { faArrowLeft, faArrowUp, faL, faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
-import { Wing, WingBaby } from '../../../../types';
+import { faArrowLeft, faArrowUp, faEraser, faL, faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { Wing, WingBaby, WingsListItem } from '../../../../types';
 import { FormsModule, NgForm } from '@angular/forms';
 import { WingsService } from '../../../services/wings.service';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -22,12 +22,13 @@ import { NavigatedMessageComponent } from '../../common/navigated-message/naviga
 import { StateService } from '../../../services/state.service';
 import { SortBabiesPipe } from '../../../utils/pipes/sort-babies-pipe';
 import { CrownEditorComponent } from "../crown-editor/crown-editor.component";
+import { CustomerPickerComponent } from '../../customers/customer-picker/customer-picker.component';
 
 @Component({
   selector: 'app-wings-editor',
   standalone: true,
   imports: [ConfirmationDialogComponent, FormsModule, NgIf, NgFor, FaIconComponent, WingsBabiesTableComponent,
-    WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent, BabyLengthModalComponent,
+    WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent, BabyLengthModalComponent, CustomerPickerComponent,
     UnsavedChangesDialogComponent, DecimalPipe, SortBabiesPipe, CrownEditorComponent, ModalDialogComponent, NgClass],
   templateUrl: './wings-editor.component.html',
   styleUrl: './wings-editor.component.scss',/*
@@ -41,6 +42,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   faArrowLeft:IconDefinition = faArrowLeft;
   faTimesCircle:IconDefinition = faTimesCircle;
   faArrowUp: IconDefinition = faArrowUp;
+  faEraser: IconDefinition = faEraser;
   title: string = "Create Wing";
   is_new_wing: Boolean = true;
 
@@ -52,6 +54,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   @ViewChild("wingName", { read: ElementRef }) wingName!: ElementRef;
   @ViewChild('wingForm') wingForm!: NgForm;
   @ViewChild('delete_confirmation') delete_confirmation!: ConfirmationDialogComponent;
+  @ViewChild('confirm_action') confirm_action!: ConfirmationDialogComponent;
   @ViewChild("btn_save", { read: ElementRef }) btn_save!: ElementRef;
   @ViewChild("top_picker") top_picker!: BabiesLengthPickerComponent;
   @ViewChild('unsaved_changes_dialog') unsaved_changes_dialog!: UnsavedChangesDialogComponent;
@@ -63,12 +66,14 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   @ViewChild("crown_picker") crown_picker!: BabiesLengthPickerComponent;
   @ViewChild("diagram_container", { read: ElementRef }) diagram_container!: ElementRef;
   @ViewChild("wing_preview", { read: ElementRef }) wing_preview!: ElementRef;
+  @ViewChild("chk_connect_wing_to_customers", { read: ElementRef }) chk_connect_wing_to_customers!: ElementRef;
 
   @Input() wing: Wing | null = null;
   unedited_wing: Wing | null = null;
   @Input() stretch_width: boolean = false;
   @Input() show_titles_buttons: boolean = true;
   wing_id: number = 0;
+  wings: WingsListItem[] = [];
 
   crown_babies_options = Array(5).fill(0).map((_, i)=> i+1);
   SplitL1_options = Array(4).fill(0).map((_, i)=> i+1);
@@ -100,6 +105,21 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   }
 
   ngOnInit(): void {
+
+    this.wingsService.getWings({ page: 0, perPage: 0 }).subscribe(wingsListInfo => {
+      this.wings = wingsListInfo.data.sort((w1:WingsListItem, w2:WingsListItem) => {
+        //this.console.log(w1.name);
+        const w1_len = w1.name.match(/[^\d]*(\d*)[^\d]*/);
+        const w2_len = w2.name.match(/[^\d]*(\d*)[^\d]*/);
+        if(w1_len && w2_len && w1_len.length > 1 && w2_len.length > 1){
+          return Number(w2_len[1]) - Number(w1_len[1]);
+        }
+        else {
+          return 0;
+        }
+      });
+    });    
+
     this.is_new_wing = (!this.activatedRoute.snapshot.queryParamMap.has('id') && (this.wing == null));
     if(!this.is_new_wing)
     {
@@ -122,16 +142,75 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
         crown_width: 2,
         angled_crown: false,
         split_l1: 1,
-        allow_shortening_babies_in_pairs: false
+        allow_shortening_babies_in_pairs: false,
+        customers: []
       };
     }
   }
 
-    ngOnChanges(changes: SimpleChanges): void {
-      if(changes["wing"] && changes["wing"]["currentValue"]) {
-        this.loadWing(changes["wing"] && changes["wing"]["currentValue"])
-      }
+  ngOnChanges(changes: SimpleChanges): void {
+    if(changes["wing"] && changes["wing"]["currentValue"]) {
+      this.loadWing(changes["wing"] && changes["wing"]["currentValue"])
     }
+  }
+
+  async copyFromWing(wing_id: number){
+    let override_wing = true;
+    const current_wing_name = this.wing?.name || "";
+
+    if(!this.wingForm.pristine){
+      const wing_name = this.wings.find(w => w.id == wing_id)?.name || wing_id;
+      override_wing = await this.confirm_action.open_with_message({
+        modalText: "Are you sure you want to copy the babies data from wing " + wing_name + "? This will override all the current wing data.",
+        modalTitle: "Override current wing data?",
+        btnYesClass: "btn-success",
+        btnYesText: "Override",
+        btnSaveIcoMoonIcon: "icon-feather-wing"
+      });
+    }
+
+    if(override_wing){
+      this.wingsService.getWing(wing_id).subscribe(
+        {
+          next: (wing: Wing) => {
+            wing.name = current_wing_name;
+            this.loadWing(wing);
+          },
+          error: (error) => {
+            console.log(error);
+          }
+        }
+      );
+    }
+  }
+
+  async reset_wing(){
+    const current_wing_name = this.wing?.name || "";
+    let override_wing = true;
+
+    if(this.wing && this.wing.babies.length > 0){
+      override_wing = await this.confirm_action.open_with_message({
+        modalText: "Are you sure you want to clear all your wing data?",
+        modalTitle: "Reset wing data?",
+        btnYesClass: "btn-danger",
+        btnYesText: "Reset",
+        btnYesIcon: faEraser
+      });
+    }
+    if(override_wing && this.wing){
+      this.wing = {
+        id: this.wing.id,
+        name: this.wing.name,
+        knife: 0,
+        babies: [],
+        crown_width: 2,
+        angled_crown: false,
+        split_l1: 1,
+        allow_shortening_babies_in_pairs: false,
+        customers: []
+      };
+    }
+  }
 
   getWing(id: number){
     this.wingsService.getWing(id).subscribe(
@@ -260,6 +339,9 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   saveWing(wing:Wing, goToHatEditor: boolean): Observable<any>
   {
     this.btn_save.nativeElement.classList.add("disabled");
+    if(!this.chk_connect_wing_to_customers.nativeElement.checked){
+      wing.customers = [];
+    }
     let save_result = this.wingsService.saveWing(wing);
     save_result.subscribe({
         next:(data) => { 

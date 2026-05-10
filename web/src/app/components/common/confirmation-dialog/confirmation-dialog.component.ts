@@ -54,14 +54,79 @@ export class ConfirmationDialogComponent implements OnInit, AfterViewInit {
     this.isOpen = true;
   }
 
-    @HostListener('document:keyup.escape', ['$event']) onEscdownHandler(evt: KeyboardEvent) {
-      if(this.isOpen) {
-        evt.preventDefault();
-        //console.log("ESC Caught");
-        this.cancel.emit();
+  /*
+  Usage from within a component:
+
+  // OPTION 1: Waiting for the promise to resulve with .then(...)
+  this.confirm_action.open_with_message({
+    modalText: "Are you sureyou want to perform this action?",
+    modalTitle: "Confirm please"
+    }).then((confirmed) => {
+      // user confirmed! Your code here
+  });
+  //(user cancelled is just ignored)
+
+  // OPTION 2: Using async/await
+  const confirmed = await this.confirm_action.open_with_message({
+    modalText: "Are you sureyou want to perform this action?",
+  });
+  if (confirmed) {
+    // user confirmed! Your code here
+  }
+  //(user cancelled is just ignored)
+  */
+  public open_with_message(options: {
+    modalText?: string;
+    modalTitle?: string;
+    btnYesText?: string;
+    btnNoText?: string;
+    btnYesIcon?: IconDefinition;
+    btnSaveIcoMoonIcon?: string;
+    btnYesClass?: string;
+    btnNoClass?: string;
+    dialogIcon?: IconDefinition | null;
+    dialogIconClass?: string;
+    reverseButtons?: boolean;
+  }): Promise<boolean> {
+    if (options.modalTitle !== undefined) this.confirmation_dialog.modalTitle = options.modalTitle;
+    if (options.modalText !== undefined) this.modalText = options.modalText;
+    if (options.btnYesText !== undefined) this.confirmation_dialog.btnSaveText = options.btnYesText;
+    if (options.btnNoText !== undefined) this.confirmation_dialog.btnCancelText = options.btnNoText;
+    if (options.btnYesIcon !== undefined) this.confirmation_dialog.btnSaveIcon = options.btnYesIcon;
+    if (options.btnSaveIcoMoonIcon !== undefined) this.confirmation_dialog.btnSaveIcoMoonIcon = options.btnSaveIcoMoonIcon;
+    if (options.btnYesClass !== undefined) this.confirmation_dialog.btnSaveClass = options.btnYesClass;
+    if (options.btnNoClass !== undefined) this.confirmation_dialog.btnCancelClass = options.btnNoClass;
+    if (options.dialogIcon !== undefined) this.dialogIcon = options.dialogIcon;
+    if (options.dialogIconClass !== undefined) this.dialogIconClass = options.dialogIconClass;
+    if (options.reverseButtons !== undefined) this.reverseButtons = options.reverseButtons;
+
+    this.confirmation_dialog.open();
+    this.isOpen = true;
+
+    return new Promise<boolean>((resolve) => {
+      const confirmSub = this.confirmation_dialog.confirm.subscribe((value: boolean) => {
+        resolve(!!value);
+        confirmSub.unsubscribe();
+        cancelSub.unsubscribe();
         this.isOpen = false;
-      }
+      });
+      const cancelSub = this.cancel.subscribe(() => {
+        resolve(false);
+        confirmSub.unsubscribe();
+        cancelSub.unsubscribe();
+        this.isOpen = false;
+      });
+    });
+  }
+
+  @HostListener('document:keyup.escape', ['$event']) onEscdownHandler(evt: KeyboardEvent) {
+    if(this.isOpen) {
+      evt.preventDefault();
+      //console.log("ESC Caught");
+      this.cancel.emit();
+      this.isOpen = false;
     }
+  }
   
     @HostListener('document:keyup.enter', ['$event']) onEnterdownHandler(evt: KeyboardEvent) {
       if(this.isOpen) {
