@@ -44,7 +44,7 @@
                 </div>            
             </div>
             <div class="col-2">
-                <button class="btn btn-warning upper-button" (click)="gotoWingsList()" title="Cancel and go back">
+                <button class="btn btn-warning upper-button" (click)="gotoPreviousPage()" title="Cancel and go back">
                     <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>
                 </button>
             </div>
@@ -248,7 +248,7 @@
 
         <div class="row buttons-area"  *ngIf="show_titles_buttons">
             <div class="col-12 d-flex justify-content-center {{ this.is_new_wing? 'col-md-4':'col-md-3' }}">
-                <button class="btn btn-warning" (click)="gotoWingsList()">
+                <button class="btn btn-warning" (click)="gotoPreviousPage()">
                     <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>
                     <div>Cancel Chages</div>
                 </button>

@@ -367,14 +367,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
           }
           else {
             if(goToWingsList){
-              //to avoid 403, if we have a customer ID, we must have come from the customers page
-              if(this.customer_id && this.customer_id > 0){
-                this.navigateWithToastMessage('inventory/customer/editor?id=' + this.customer_id, data['message'], false);
-              }
-              else {
-                this.gotoWingsList(data['message'], false);
-              }
-              
+              this.gotoPreviousPage(data['message'], false);
             }
             else {
               if (this.is_new_wing){
@@ -441,27 +434,28 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
         this.wingsService.deleteWing(this.wing.id).subscribe(
         {
           next:(data) => {
-            if(this.customer_id && this.customer_id > 0){
-              this.navigateWithToastMessage('inventory/customer/editor?id=' + this.customer_id, data['message'], false);
-            }
-            else {
-              this.gotoWingsList(data['message'], false);
-            }
+            this.gotoPreviousPage(data['message'], false);
           }
         });
       }
     }
   }
 
-  gotoWingsList(textInfo: string = '', isError: Boolean = false) {
-    this.router.navigate(['templates/wings'], {
-      state: {
-        info: { 
-          textInfo: textInfo, 
-          isError: isError 
-        }
-      },
-    });
+  gotoPreviousPage(textInfo: string = '', isError: boolean = false) {
+    //to avoid 403, if we have a customer ID, we must have come from the customers page
+    if(this.customer_id && this.customer_id > 0){
+      this.navigateWithToastMessage('inventory/customer/editor?id=' + this.customer_id, textInfo, isError);
+    }
+    else {
+      this.router.navigate(['templates/wings'], {
+        state: {
+          info: { 
+            textInfo: textInfo, 
+            isError: isError 
+          }
+        },
+      });
+    }
   }
 
   gotoHatEditor(textInfo: string = '', wingName: string="", isError: Boolean = false) {

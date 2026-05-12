@@ -9,9 +9,11 @@ ng generate component home
 
 ## BUGS
 * BUG: User can access any customer by ID
-* BUG: Making changes in allocation from the single hat calculator doesn't show all changes
+* BUG: Making changes in allocation from the single hat calculator automatically apply new numbers unless allocation is selected again
 * Needed: Show "adjust my allocation" even if the user has enough to create a hat. Make it append, not replace babies.
 * Needed: make sure the user has permissions to create/update the specific wing, if he is connected to the right customer
+* Restricted knives: on the hat calculator the selector is on 0, if the number is not existing. make sure it's overriding according to the wing, and not saved as zero
+✅ Customer -> Wing editor -> Back -> 403 (not going back to the cutsomer)
 
 ## Wing functionality
 * Save wing -> "A wing by this name already exists, are you sure you want to save with the same name?"
