@@ -24,12 +24,14 @@ export class LoginsTableComponent implements OnInit, AfterViewInit, OnChanges {
   clearning: boolean = false;
   faBan: IconDefinition = faBan;
   faArrowsRotate: IconDefinition = faArrowsRotate;
-  pending_clear_login_ids: number[] = [];
+  //pending_clear_login_ids: number[] = [];
   number_of_external_logins = 0;
   logged_into_this_device: boolean = false;
   @Input() user_id: number = 0; //OPTIONAL
-  @ViewChild("clear_logins_confirm") clear_logins_confirm!: ConfirmationDialogComponent;
-  @ViewChild("clear_single_login_confirm") clear_single_login_confirm!: ConfirmationDialogComponent;
+  
+  @ViewChild("confirm_action") confirm_action!: ConfirmationDialogComponent;
+  //@ViewChild("clear_logins_confirm") clear_logins_confirm!: ConfirmationDialogComponent;
+  //@ViewChild("clear_single_login_confirm") clear_single_login_confirm!: ConfirmationDialogComponent;
 
   constructor(private usersService: UsersService, private toastService: ToastService){
   }
@@ -57,7 +59,6 @@ export class LoginsTableComponent implements OnInit, AfterViewInit, OnChanges {
         this.user_logins = logins;
         this.number_of_external_logins = logins.filter(l => !(l.is_current_login)).length;
         this.logged_into_this_device = logins.findIndex(l => l.is_current_login) >= 0;
-        this.clear_logins_confirm.modalText = "<div class='text-warning'>This will log out from all devices" + (this.logged_into_this_device?", except this one":"") + ".</div>Are you sure?"
         this.fetching = false;
       },
       error: (error: any) => {
@@ -67,30 +68,42 @@ export class LoginsTableComponent implements OnInit, AfterViewInit, OnChanges {
     });
   }
 
-  clearAllLogins(){
-    this.pending_clear_login_ids = this.user_logins.map(login => login.id);
-    this.clear_logins_confirm.open();
+  async clearAllLogins(){
+    const confirmed = await this.confirm_action.open_with_message({
+      modalTitle: "Log everyone out?",
+      modalText: "<div class='text-warning'>This will log out from all devices" + (this.logged_into_this_device?", except this one":"") + ".</div>Are you sure?",
+      btnYesClass: "btn-danger",
+      btnYesIcon: this.faBan
+    });
+    if(confirmed){
+      this.clearLogins_confirmed(this.user_logins.map(login => login.id));
+    }
   }
 
-  clear_login(id:number) {
-    this.pending_clear_login_ids = [id];
-    this.clear_single_login_confirm.open();
+  async clear_login(id:number) {
+    const confirmed = await this.confirm_action.open_with_message({
+      modalTitle: "Log everyone out?",
+      modalText: "'<div class=\'text-warning\'>This will log out this device.</div>Are you sure?'",
+      btnYesClass: "btn-danger",
+      btnYesIcon: this.faBan
+    });  
+    if(confirmed){
+      this.clearLogins_confirmed([id]);
+    }  
   }
 
-  clearLogins_confirmed(){
+  clearLogins_confirmed(ids: number[]){
     this.clearning = true;
     this.user_logins = [];
-    this.usersService.clear_logins( this.pending_clear_login_ids ).subscribe({
+    this.usersService.clear_logins(ids).subscribe({
       next: (logins: LoginInfo[]) => {
         this.user_logins = logins;
         this.toastService.showSuccess("Logins cleared");
-        this.pending_clear_login_ids = [];
         this.number_of_external_logins = logins.filter(l => !(l.is_current_login)).length;
         this.clearning = false;
       },
       error: (error: any) => {
         this.toastService.showError(error.error.message);
-        this.pending_clear_login_ids = [];
         this.clearning = false;
       }
     });

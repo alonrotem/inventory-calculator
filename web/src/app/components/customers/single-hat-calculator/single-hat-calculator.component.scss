@@ -76,8 +76,12 @@
 }
 ::ng-deep .ng-select-container {
   height: auto !important;
-  min-width: 200px;
+  /*min-width: 200px;*/
   width: auto !important;
+}
+
+.wing-selector {
+    width: 300px;
 }
 
 /*

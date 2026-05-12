@@ -5,36 +5,7 @@ User requesting account
     -> user receices approval email + code 
     ->  User is creating new account, assigned a role, deleting the code
 -->
-<app-confirmation-dialog 
-    #confirm_approval_dialog
-    [modalTitle]="'Approve account?'"
-    [btnYesClass]="'btn-success'"
-    [btnYesIcon]="faCheck"
-    [btnYesText]="'Approve'"
-    [btnNoText]="'Cancel'"
-    (confirm)="confirm_approval_confirmed()"
-    />
-
-<app-confirmation-dialog 
-    #confirm_deletion_dialog
-    [modalTitle]="'Delete request?'"
-    [btnYesClass]="'btn-danger'"
-    [btnYesIcon]="faTrash"
-    [btnYesText]="'Delete'"
-    [btnNoText]="'Cancel'"
-    (confirm)="delete_request_confirmed()"
-    />
-
-<app-confirmation-dialog
-    #error_dialog
-    [modalTitle]="'Error'" 
-    [dialogIcon]="faTriangleExclamation"
-    [btnYesText]="'Back to the list'"
-    [btnYesClass]="'btn-warning'"
-    [btnYesIcon]="faArrowLeft"
-    [btnNoClass]="'d-none'"
-    (confirm)="go_to_account_requests()"
-    />
+<app-confirmation-dialog #confirm_action />
 
 <app-modal-dialog
     #confirm_decline_dialog

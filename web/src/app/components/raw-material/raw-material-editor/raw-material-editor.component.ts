@@ -24,6 +24,8 @@ import { UnsavedChangesDialogComponent } from "../../common/unsaved-changes-dial
 import { StateService } from '../../../services/state.service';
 import { UnsavedNavigationConfirmationService } from '../../../services/unsaved-navigation-confirmation.service';
 import { NumericInputDirective } from '../../../utils/directives/auto-numeric.directive';
+import { SaveChangesButtonComponent } from "../../common/save-changes-button/save-changes-button.component";
+import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 
 
 @Component({
@@ -35,12 +37,13 @@ import { NumericInputDirective } from '../../../utils/directives/auto-numeric.di
     FaIconComponent, NgIf, ConfirmationDialogComponent, AutocompleteLibModule,
     RawMaterialCustomerTableComponent, RawMaterialQuantityDialogComponent,
     RawMaterialHistoryDialogComponent, NgClass,
-    UnsavedChangesDialogComponent, NgFor, NumericInputDirective
+    UnsavedChangesDialogComponent, NgFor, NumericInputDirective,
+    SaveChangesButtonComponent
 ],
   templateUrl: './raw-material-editor.component.html',
   styleUrl: './raw-material-editor.component.scss'
 })
-export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUnsavedChanges {
+export class RawMaterialEditorComponent extends NavigatedMessageComponent implements OnInit, AfterViewInit, HasUnsavedChanges {
 
   public rawMaterialItem : RawMaterial = {
     id: 0,
@@ -106,26 +109,28 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
   @ViewChild('quantityDialog') quantityDialog!: RawMaterialQuantityDialogComponent
   @ViewChild('history_dialog') history_dialog!: RawMaterialHistoryDialogComponent;
   @ViewChild('customer_table') customer_table!: RawMaterialCustomerTableComponent;
+  @ViewChild('save_changes_button') save_changes_button!: SaveChangesButtonComponent;
   
   constructor(
     private rawMaterialsService: RawMaterialsService, 
     private infoService: InfoService, 
     private location: Location, 
-    private activatedRoute: ActivatedRoute, 
-    private router: Router,
-    private toastService: ToastService,
-    private stateService: StateService,
+    activatedRoute: ActivatedRoute, 
+    router: Router,
+    toastService: ToastService,
+    stateService: StateService,
     private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService) { 
-    this.rawMaterialsService.getRawMaterialNamesColors().subscribe({
-      next: (names)=> {
-        this.raw_material_names = names;
-      }
-    });
-    this.rawMaterialsService.getRawMaterialQuantityUnits().subscribe({
-      next: (quantity_units)=> {
-        this.quantity_units = quantity_units;
-      }
-    });
+      super(toastService, stateService, router, activatedRoute);
+      this.rawMaterialsService.getRawMaterialNamesColors().subscribe({
+        next: (names)=> {
+          this.raw_material_names = names;
+        }
+      });
+      this.rawMaterialsService.getRawMaterialQuantityUnits().subscribe({
+        next: (quantity_units)=> {
+          this.quantity_units = quantity_units;
+        }
+      });
   }
 
   @HostListener('document:mousemove', ['$event']) 
@@ -241,8 +246,7 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
     })
   }
 
-  save()
-  {
+  save(navigate_after_save: boolean = true){
     this.raw_material_form.form.markAllAsTouched();
     if((this.raw_material_form.form.valid) && (!this.insufficient_quantity_for_banks))
     {
@@ -358,8 +362,20 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
           next:(data) => { 
             this.raw_material_form.form.markAsPristine();
              this.customer_table.unsaved_changes = false;
-            this.btn_save.nativeElement.classList.remove("disabled"); 
-            this.gotoMaterialsList(data['message'], false); 
+            this.btn_save.nativeElement.classList.remove("disabled");
+            if(navigate_after_save){
+              this.gotoMaterialsList(data['message'], false); 
+            }
+            else {
+              if(Number(this.activatedRoute.snapshot.queryParamMap.get('id'))){
+                this.reloadTheSamePageWithToastMessage(data["message"], false);
+              }
+              else {
+                this.reloadTheSamePageWithToastMessage(data["message"], false, { id: data["material"].id });
+                this.toastService.showSuccess(data["message"]);
+              }
+              Object.assign(this.rawMaterialItem, data["material"]);
+            }
           },
           error:(error) => { 
             this.btn_save.nativeElement.classList.remove("disabled"); 
@@ -397,8 +413,24 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
     });
   }
 
-  confirm_delete() {
-    this.delete_confirmation.open();
+  async confirm_delete() {
+    const confirmed = await this.delete_confirmation.open_with_message({
+      modalText: `Are you sure you want to delete this raw material, ${this.rawMaterialItem.name}?`,
+      modalTitle: "Delete confirmation",
+      btnYesIcon: this.faTrashAlt,
+      btnYesText: "Delete",
+      btnYesClass: "btn-danger"
+    });
+    if(confirmed) {
+      this.raw_material_form.form.markAsPristine();
+      this.customer_table.unsaved_changes == false;
+      this.rawMaterialsService.deleteRawMaterial(this.rawMaterialItem.id).subscribe(
+        {
+          next:(data) => {
+            this.gotoMaterialsList(data['message'], false);
+          }
+        });
+    }
   }
 
   ngAfterViewInit() {
@@ -435,22 +467,13 @@ export class RawMaterialEditorComponent implements OnInit, AfterViewInit, HasUns
       this.currency.select(curr);
     }
 
-    this.delete_confirmation.confirm.subscribe((value: Boolean) => {
-      this.raw_material_form.form.markAsPristine();
-      this.customer_table.unsaved_changes == false;
-      this.rawMaterialsService.deleteRawMaterial(this.rawMaterialItem.id).subscribe(
-        {
-          next:(data) => {
-            this.gotoMaterialsList(data['message'], false);
-          }
-        });
-    });
     this.quantityDialog.dialogWrapper.confirm.subscribe(() => {
       let top_up = this.quantityDialog.editedObject.top_up_quantity;
       if(top_up > 0) {
         this.rawMaterialItem.purchase_quantity += top_up;
         this.recalculateRemaining();
       }
+      this.raw_material_form.form.markAsDirty();
     });
     this.raw_material_form.form.markAsPristine();
   }

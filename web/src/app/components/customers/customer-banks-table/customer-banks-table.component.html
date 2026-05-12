@@ -1,19 +1,5 @@
-<app-confirmation-dialog #delete_allocation_dialog
-  modalTitle="Delete confirmation"
-  modalText="Are you sure you wish to delete this allocation?<br/>All its babies will be removed too!"
-  [btnYesIcon]=faTrashCan
-  btnYesText="Delete"
-  btnYesClass="btn-danger"
-/>
 
-<app-confirmation-dialog #save_before_select
-  modalTitle="Save first!"
-  modalText="Save changes to the bank before selecting this allocation!"
-  [btnYesIcon]=faSave
-  btnYesText="Save"
-  btnYesClass="btn-success"
-  btnNoClass="d-none"
-/>
+<app-confirmation-dialog #confirm_action />
 
 <app-bank-allocation-dialog 
   #allocation_dialog
@@ -23,16 +9,6 @@
   #babies_picker
   [is_demo_customer]="customer.is_demo_customer"
 />
-
-<app-confirmation-dialog
-  #not_enough_material
-  modalTitle="Not enough material in the bank!"
-  modalText="Not enough remaining material to allocate for work.<br/>Please request more material!"
-  btnYesText="I see..."
-  btnYesClass="btn btn-warning m-auto"
-  btnNoClass="d-none"
-  [dialogIcon]="faTriangleExclamation"
-  />
 
 <app-bank-history-dialog 
   #history_dialog 
@@ -195,6 +171,7 @@
         <app-order-advisor 
           #order_advisor
           [show_options_button]="advisor_show_options_button"
+          [customer_id]="customer.id"
           [wing_id]="wing_id"
 
           [wall_bank]="this.bank"

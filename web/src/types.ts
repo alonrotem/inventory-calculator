@@ -113,6 +113,7 @@ export interface WingsListItem {
     Right: number;
     Crown: number;
     customer_id: number;
+    is_customer_wing: boolean;
 }
 
 export interface WingsList {
@@ -260,6 +261,7 @@ export class Point {
     banks: Customer_Bank[];
     banks_baby_allocations: Customer_Bank_Baby_Allocation[];
     babies: Allocation_Baby[];
+    knives: number[];
 }
 
 export interface CustomerListItem {
@@ -410,7 +412,7 @@ export interface CustomerHat {
     customer_id: number;
     shorten_top_by: number;
     shorten_crown_by: number;
-    wing: Wing | null;
+    wing: Wing;
     original_wing_name: string;
     wall_allocation_id: number;
     crown_allocation_id: number;
@@ -430,6 +432,9 @@ export interface CustomerHat {
     order_notes: string;
 
     single_hat_orders: Order[];
+
+    save_wing_for_customer: boolean;
+    save_wing_name_for_customer: string;
 }
 
 //this is a single hat in the CustomerHat specs

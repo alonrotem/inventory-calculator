@@ -40,7 +40,8 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     id: 0, name: '', business_name: '', email: '', phone: '', tax_id: '',
     created_at: new Date(), updated_at: new Date(), created_by: 0, updated_by: 0,
     banks: [], banks_baby_allocations: [], babies: [],
-    customer_code: '', order_seq_number: 0, is_demo_customer: false
+    customer_code: '', order_seq_number: 0, is_demo_customer: false,
+    knives: []
   };    
   @Input() bank: Customer_Bank = {
     raw_material_name: '',
@@ -97,9 +98,10 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   @Output() customer_updated = new EventEmitter<Customer>();
   @Input() show_hat_advisor: boolean = false;
   @Input() advisor_show_options_button: boolean = true;
-  @ViewChild('delete_allocation_dialog') delete_allocation_dialog!: ConfirmationDialogComponent;
-  @ViewChild('not_enough_material') not_enough_material!: ConfirmationDialogComponent;
-  @ViewChild('save_before_select') save_before_select!: ConfirmationDialogComponent;
+  @ViewChild('confirm_action') confirm_action!: ConfirmationDialogComponent;
+  //@ViewChild('delete_allocation_dialog') delete_allocation_dialog!: ConfirmationDialogComponent;
+  //@ViewChild('not_enough_material') not_enough_material!: ConfirmationDialogComponent;
+  //@ViewChild('save_before_select') save_before_select!: ConfirmationDialogComponent;
   @ViewChild('allocation_dialog') allocation_dialog!: BankAllocationDialogComponent;
   @ViewChild('babies_picker') babies_picker!: BabyEditorDialogComponent;
   @ViewChild('history_dialog') history_dialog! : BankHistoryDialogComponent;
@@ -163,12 +165,6 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     //if so, pass it to the order calculator (in the querystring), when opened
     this.tails_allocation_in_this_bank = this.banks_baby_allocations.find(alloc => alloc.allocation_type == Bank_Allocation_Type.tails && alloc.customer_bank_id == this.bank.id);
 
-    this.delete_allocation_dialog.confirm.subscribe((response:any) => {
-      if(this.pendingAllocationIdAction != -999) {
-        this.delete_allocation_confirmed(this.pendingAllocationIdAction);
-        this.pendingAllocationIdAction = -999;
-      }
-    });
     this.babies_picker.appendBaby.subscribe((baby_info: { length: number; quantity: number }) => { this.append_baby(baby_info) });
     this.babies_picker.dialogWrapper.close.subscribe(() => { this.babies_picker_closed.emit(); });
     this.babies_picker.dialogWrapper.cancel.subscribe(() => { this.babies_picker_closed.emit(); });
@@ -217,34 +213,6 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     });
     this.allocation_picker.dialogWrapper.cancel.subscribe(() => { this.pendingMergedSourceAllocationID = -999; });
 
-    this.save_before_select.confirm.subscribe(() => { 
-      this.customerService.saveCustomer(this.customer).subscribe(
-        {
-          next:(data) => { 
-            //console.log("SAVED CUSTOMER !!"); console.dir(data["customer"]);
-            //let alloc = this.banks_baby_allocations.find(alloc => alloc.id == this.pendingAllocationIdAction);
-            //let pre_selected_allocation_id = 
-            this.customer = { ...data["customer"] };
-            this.banks_baby_allocations = [...data["customer"]["banks_baby_allocations"]];
-            this.babies = [... data["customer"]["babies"]];
-            this.unsaved_changes = false;
-            this.customer_updated.emit(this.customer);
-            let alloc = this.banks_baby_allocations.find(saved_alloc => saved_alloc.pre_save_id == this.pendingAllocationIdAction);
-
-            this.pendingAllocationIdAction = -999;
-            if(alloc){
-              this.select_allocation_confirmed(alloc);
-            }
-            this.toastService.showSuccess("Allocation saved successfully");
-            this.allocation_picker.dialogWrapper.onCancel();
-          },
-          error:(error) => { 
-            this.pendingAllocationIdAction = -999; 
-            this.toastService.showError("Failed to save allocation");
-            console.dir(error);
-          }
-        });
-    });
     /*
     this.order_advisors.forEach(advisor => {
       advisor.triggerSaveChanges.subscribe(() => {
@@ -283,14 +251,26 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
 
   }
 
-  delete_allocation(allocationId:number){
+  async delete_allocation(allocationId:number){
     let babiesCount = this.babies.filter(b => b.allocation_id == allocationId).length;
     if(babiesCount == 0){
       this.delete_allocation_confirmed(allocationId);
     }
     else {
       this.pendingAllocationIdAction = allocationId;
-      this.delete_allocation_dialog.open();
+
+      const confirmation = await this.confirm_action.open_with_message({
+        modalTitle: "Delete confirmation",
+        modalText: "Are you sure you wish to delete this allocation?<br/>All its babies will be removed too!",
+        btnYesIcon: this.faTrashCan,
+        btnYesText: "Delete",
+        btnYesClass: "btn-danger"
+      });
+
+      if(confirmation && this.pendingAllocationIdAction != -999) {
+        this.delete_allocation_confirmed(this.pendingAllocationIdAction);
+        this.pendingAllocationIdAction = -999;
+      }
     }
   }
 
@@ -371,7 +351,7 @@ recalculateBank(){
   allocation
     quantity
   */
-  open_allocation_dialog(allocation_id: number) {
+  async open_allocation_dialog(allocation_id: number) {
     this.allocation_dialog.is_demo_customer = this.customer.is_demo_customer;
     let allocation = this.banks_baby_allocations.find(a => a.id == allocation_id);
     if(allocation) {
@@ -380,7 +360,15 @@ recalculateBank(){
     }
     else {
       if(this.bank.remaining_quantity <= 0 && !this.userInfo?.is_demo_customer) {
-        this.not_enough_material.open();
+
+     await this.confirm_action.open_with_message({
+          modalTitle: "Not enough material in the bank!",
+          modalText: "Not enough remaining material to allocate for work.<br/>Please request more material!",
+          btnYesText: "I see...",
+          btnYesClass: "btn btn-warning m-auto",
+          btnNoClass: "d-none",
+          dialogIcon: this.faTriangleExclamation
+        });
         return;
       }
       else {
@@ -444,6 +432,7 @@ recalculateBank(){
       transactionrec.transaction_quantity = (allocation.id < 0) ? allocation.quantity : (currentQuantity - allocation.quantity);
       transactionrec.allocation_id = allocation.id;
       allocation.quantity = currentQuantity;
+      allocation.remaining_quantity += transactionrec.transaction_quantity;
       allocation.allocation_type =  allocationType;
       allocation.allocation_type = allocationType;
     }
@@ -537,7 +526,7 @@ recalculateBank(){
     let num_of_babies_in_allocation = this.babies.filter(b => b.allocation_id == bank_allocation_id).reduce((n, {quantity}) => n + quantity, 0);
     let allocation_quantity = this.banks_baby_allocations.find(al => al.id == bank_allocation_id)?.quantity ?? 0;
     let units_available = allocation_quantity - num_of_babies_in_allocation;
-    this.babies_picker.units_available = units_available;
+    this.babies_picker.units_available = (this.customer_banks_babies_reduce_from_allocation) ? units_available : allocation_quantity;
 
     this.babies_picker.babies_to_edit = babiesToEdit;
     this.babies_picker.highlighted_baby_length = baby_length;
@@ -621,11 +610,56 @@ recalculateBank(){
     this.allocation_picker.open(sourceAllocationId);
   }
 
-  select_allocation(allocation: Customer_Bank_Baby_Allocation){
+  async select_allocation(allocation: Customer_Bank_Baby_Allocation){
     //console.dir(this.bank);
     if(this.unsaved_changes){
       this.pendingAllocationIdAction = allocation.id;
-      this.save_before_select.open();
+
+      /*
+<app-confirmation-dialog #save_before_select
+  modalTitle="Save first!"
+  modalText="Save changes to the bank before selecting this allocation!"
+  [btnYesIcon]=faSave
+  btnYesText="Save"
+  btnYesClass="btn-success"
+  btnNoClass="d-none"
+/>      
+      */
+      const confirmed = await this.confirm_action.open_with_message({
+        modalTitle: "Save first!",
+        modalText: "Save changes to the bank before selecting this allocation!",
+        btnYesIcon: this.faSave,
+        btnYesText: "Save",
+        btnYesClass: "btn-success",
+        btnNoClass: "d-none"
+      });
+      if(confirmed) { 
+        this.customerService.saveCustomer(this.customer).subscribe({
+          next:(data) => { 
+            //console.log("SAVED CUSTOMER !!"); console.dir(data["customer"]);
+            //let alloc = this.banks_baby_allocations.find(alloc => alloc.id == this.pendingAllocationIdAction);
+            //let pre_selected_allocation_id = 
+            this.customer = { ...data["customer"] };
+            this.banks_baby_allocations = [...data["customer"]["banks_baby_allocations"]];
+            this.babies = [... data["customer"]["babies"]];
+            this.unsaved_changes = false;
+            this.customer_updated.emit(this.customer);
+            let alloc = this.banks_baby_allocations.find(saved_alloc => saved_alloc.pre_save_id == this.pendingAllocationIdAction);
+
+            this.pendingAllocationIdAction = -999;
+            if(alloc){
+              this.select_allocation_confirmed(alloc);
+            }
+            this.toastService.showSuccess("Allocation saved successfully");
+            this.allocation_picker.dialogWrapper.onCancel();
+          },
+          error:(error) => { 
+            this.pendingAllocationIdAction = -999; 
+            this.toastService.showError("Failed to save allocation");
+            console.dir(error);
+          }
+        });
+      }
     }
     else {
       this.select_allocation_confirmed(allocation);
@@ -647,7 +681,8 @@ recalculateBank(){
   }
 
   assistant_auto_add_babies(aggregatedBabies: any){
-    //console.dir(aggregatedBabies);
+    console.log("assistant_auto_add_babies:");
+    console.dir(aggregatedBabies);
     let changes_made = false;
     let allocation = this.banks_baby_allocations.find(alloc => alloc.id == aggregatedBabies.hat_alloc_id);
     (aggregatedBabies.hat as aggregated_babies[]).forEach(baby_to_append => {

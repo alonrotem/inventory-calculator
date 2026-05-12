@@ -25,6 +25,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() wall_bank: Customer_Bank | null = null;
   @Input() crown_bank: Customer_Bank | null = null;
   @Input() tails_bank: Customer_Bank | null = null;
+  @Input() customer_id: number = 0;
   @Input() wing_id: number = 0;
   @Input() wing: Wing | null = null;
   @Input() wall_allocation: Customer_Bank_Baby_Allocation | null = null;
@@ -103,15 +104,15 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
       next: (setting:Record<string, any>) => { 
         this.customer_banks_babies_reduce_from_allocation = setting["customer_banks_babies_reduce_from_allocation"]; 
       },
-      error: (err: any) => { console.error(err) }
+      error: (err: any) => {  console.error(err) }
     });
-    console.dir();
+    //// console.dir();
     this.runCalculations();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    //console.log("ngOnChanges:");
-    //console.dir(changes);
+    //// console.log("ngOnChanges:");
+    //// console.dir(changes);
     this.allocation_wall_babies = this.customer_wall_babies.filter(b => b.allocation_id == ((this.wall_allocation) ? this.wall_allocation.id : 0));
     this.allocation_crown_babies = this.customer_crown_babies.filter(b => b.allocation_id == ((this.crown_allocation) ? this.crown_allocation.id : 0));
 
@@ -124,55 +125,77 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
     this.customer_crown_babies = new_crown_babies;
     this.allocation_wall_babies = this.customer_wall_babies.filter(b => b.allocation_id == ((this.wall_allocation) ? this.wall_allocation.id : 0));
     this.allocation_crown_babies = this.customer_crown_babies.filter(b => b.allocation_id == ((this.crown_allocation) ? this.crown_allocation.id : 0));
-    //console.log("advisor updated " + this.wall_allocation!.id);
-    //console.dir(this.allocation_wall_babies);
+    //// console.log("advisor updated " + this.wall_allocation!.id);
+    //// console.dir(this.allocation_wall_babies);
     this.runCalculations();
   }
 
   runCalculations() {
-    //console.log("runCalculations: ");
-    //console.dir(this.wall_allocation)
+    // console.log("runCalculations: ");
+    //// console.dir(this.wall_allocation)
     if(!this.wait_for_saved_changes || !this.pending_saved_changes) {
       this.calculating = true;
-      //console.log("recalculating with " + this.numOfWingsPerHat + " wings per hat");
+      //// console.log("recalculating with " + this.numOfWingsPerHat + " wings per hat");
       this.calculate(this.numOfWingsPerHat).then((data: OrderAdvisorWingOverall) => {
         this.calculating = false;
-        //console.dir(this.suggestions);
+        //// console.dir(this.suggestions);
       });
     }
   }
 
   //aggregate the wings with their babies
-  formatWingCalculationItemsAsWings(wingShortInfo: ShortWingsInfo[]){
+  async formatWingCalculationItemsAsWings(wingShortInfo: ShortWingsInfo[]): Promise<void> {
     this.systemWings = [];
 
-    let wing_ids = [...new Set( wingShortInfo.map(w => w.w_id))];
-    wing_ids.forEach((w_id) => {
-      let wing = wingShortInfo.find(w => w.w_id == w_id);
-      if(wing){
-        let babies = wingShortInfo.filter(b => b.w_id == w_id).map((b):WingBaby => { return {
-          id: b.b_id,
-          wing_id: w_id,
-          length: b.l,
-          position: b.p
-        }});
-        //console.log("Wing babies !!! " + babies.length);
-        this.systemWings.push({
-          id: w_id,
-          name: wing.w_n,
-          split_l1: wing.splt_l1,
-          crown_width: wing.cr_wdt,
-          angled_crown: wing.a_c,
-          knife: 0,
-          babies: babies,
-          allow_shortening_babies_in_pairs: false,
-          customers: []
-        });
-        }
+    let wing_ids = [...new Set(wingShortInfo.map(w => w.w_id))];
+    let wing_ids_assigned_to_customer: number[] = [];
+    // console.log(" ===== this.wingsSerice.get_wing_ids_assigned_to_customer");
+
+    // Wrap the observable in a Promise so we can await it
+    await new Promise<void>((resolve, reject) => {
+      this.wingsSerice.get_wing_ids_assigned_to_customer(this.customer_id).subscribe({
+        next: (ids: number[]) => {
+          // console.log("=== ids of wings assigned to customer: ", ids);
+          wing_ids_assigned_to_customer = ids;
+          this.systemWings = [];
+          // console.log("Wing short info: ", wing_ids);
+          wing_ids.forEach((w_id) => {
+            let wing = wingShortInfo.find(w => w.w_id == w_id);
+            // console.log("wing -> ", wing);
+            if (wing) {
+              let babies = wingShortInfo.filter(b => b.w_id == w_id).map((b): WingBaby => {
+                return {
+                  id: b.b_id,
+                  wing_id: w_id,
+                  length: b.l,
+                  position: b.p
+                }
+              });
+              // console.log("pushing wing " + wing.w_n + " with babies: " + babies.length);
+              this.systemWings.push({
+                id: w_id,
+                name: wing.w_n,
+                split_l1: wing.splt_l1,
+                crown_width: wing.cr_wdt,
+                angled_crown: wing.a_c,
+                knife: 0,
+                babies: babies,
+                allow_shortening_babies_in_pairs: false,
+                customers: [{ id: wing_ids_assigned_to_customer.includes(w_id) ? this.customer_id : 0, name: '', is_demo_customer: false }]
+              });
+            }
+          });
+          this.systemWings = [...this.systemWings];
+          // console.log("System wings after formatting: ", this.systemWings.length);
+          resolve();
+        },
+        error: (err: any) => {  console.error(err); reject(err); }
       });
+    });
   }
 
-  calculate(numOfWingsPerHat:number=44) : Promise<OrderAdvisorWingOverall> {
+  async calculate(numOfWingsPerHat:number=44) : Promise<OrderAdvisorWingOverall> {
+    // console.log("Calculating with numOfWingsPerHat: " + numOfWingsPerHat);
     if(!this.wall_allocation || !this.crown_allocation) {
       this.not_enough_data = true;
       return new Promise((resolve, reject ) => { resolve({
@@ -189,11 +212,8 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
     this.exceed_number_of_hats_message = "";
     this.already_at_max_num_of_hats = false;
     return new Promise((resolve, reject) => {
-      // Perform asynchronous operation
-      // If operation is successful, call resolve()
-      // If operation fails, call reject()
       this.wingsSerice.getAllNonCustomerWingsAndBabies(this.wing_id).subscribe({
-        next: (allNonCustomerWingsInfo: ShortWingsInfo[]) => {
+        next: async (allNonCustomerWingsInfo: ShortWingsInfo[]) => {
           this.suggestions = {
             wing_suggestions: [],
             max_num_of_hats: 0,
@@ -202,38 +222,13 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
             wall_allocation_id: 0,
             crown_allocation_id: 0
           };
-          this.formatWingCalculationItemsAsWings(allNonCustomerWingsInfo);
-          
-          // option 1: specific crown and wall allocation, one of each
-          //   save the wall allocation in an array of one
-          //   if they are the same, equalize them
-          //   send both to the calculator
-          //
-          //option 2: running through all allocations
-          //  the array is of all allocations
+          await this.formatWingCalculationItemsAsWings(allNonCustomerWingsInfo);
 
-          //Go over the customer's allocations and babies, and see which wings can be made from them
-          //this.wall_allocation.forEach((allocation: Customer_Bank_Baby_Allocation) => {
           this.suggestions.wall_allocation_id = (this.wall_allocation) ? this.wall_allocation.id : 0;
           this.suggestions.crown_allocation_id = (this.crown_allocation) ? this.crown_allocation.id : 0;
-            this.systemWings.forEach((systemWing:Wing) => {
-
-            /**
-             * loop over the banks
-             *  loop over the wings
-             *      check 9 wing options:
-             *        + regular
-             *        + regular & crown 0.5
-             *        + regular & crown 1
-             *        + reduced top 0.5
-             *        + reduced top 0.5 & crown 0.5
-             *        + reduced top 0.5 & crown 1
-             *        + reduced top 1
-             *        + reduced top 1 & crown 0.5
-             *        reduced top 1 & crown 1
-             */
-
-            //the wing as it is
+          // console.log("()()() systemWings: ", this.systemWings);
+          this.systemWings.forEach((systemWing: Wing) => {
+            // console.log("=== Calculating for wing " + systemWing.name);
             this.calculateHatInfoForWing(
               systemWing,
               0, //reduce top
@@ -244,8 +239,6 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               this.allocation_crown_babies, //crown
               numOfWingsPerHat
             );
-
-            //reduce crown by 0.5
             this.calculateHatInfoForWing(
               systemWing,
               0, //reduce top
@@ -256,8 +249,6 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               this.allocation_crown_babies, //crown
               numOfWingsPerHat
             );
-
-            //reduce crown by 1
             this.calculateHatInfoForWing(
               systemWing,
               0, //reduce top
@@ -268,8 +259,6 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               this.allocation_crown_babies, //crown
               numOfWingsPerHat
             );
-
-            //reduce top by 0.5
             this.calculateHatInfoForWing(
               systemWing,
               0.5, //reduce top
@@ -280,8 +269,6 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               this.allocation_crown_babies, //crown
               numOfWingsPerHat
             );
-
-            //reduce top by 0.5, crown by 0.5
             this.calculateHatInfoForWing(
               systemWing,
               0.5, //reduce top
@@ -292,8 +279,6 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               this.allocation_crown_babies, //crown
               numOfWingsPerHat
             );
-
-            //reduce top by 0.5, crown by 1
             this.calculateHatInfoForWing(
               systemWing,
               0.5, //reduce top
@@ -304,8 +289,6 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               this.allocation_crown_babies, //crown
               numOfWingsPerHat
             );
-
-            //reduce top by 1, crown by 0
             this.calculateHatInfoForWing(
               systemWing,
               1, //reduce top
@@ -316,8 +299,6 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               this.allocation_crown_babies, //crown
               numOfWingsPerHat
             );
-
-            //reduce top by 1, crown by 0.5
             this.calculateHatInfoForWing(
               systemWing,
               1, //reduce top
@@ -328,8 +309,6 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               this.allocation_crown_babies, //crown
               numOfWingsPerHat
             );
-
-            //reduce top by 1, crown by 1
             this.calculateHatInfoForWing(
               systemWing,
               1, //reduce top
@@ -340,24 +319,17 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
               this.allocation_crown_babies, //crown
               numOfWingsPerHat
             );
-
-            //console.log("calculating wing " + systemWing.name);
-            //console.log("Max hats: " + this.suggestions.max_num_of_hats);
           });
-          //});
-
-          //this.suggestions.wing_suggestions.sort((wing_a, wing_b) => wing_b.max_num_of_hats - wing_a.max_num_of_hats);
-          this.suggestions.wing_suggestions.sort((w1:OrderAdvisorHatsSuggestion, w2:OrderAdvisorHatsSuggestion) => {
+          this.suggestions.wing_suggestions.sort((w1: OrderAdvisorHatsSuggestion, w2: OrderAdvisorHatsSuggestion) => {
             const w1_len = w1.wing_name.match(/[^\d]*(\d*)[^\d]*/);
             const w2_len = w2.wing_name.match(/[^\d]*(\d*)[^\d]*/);
-            if(w1_len && w2_len && w1_len.length > 1 && w2_len.length > 1){
+            if (w1_len && w2_len && w1_len.length > 1 && w2_len.length > 1) {
               return Number(w2_len[1]) - Number(w1_len[1]);
             }
             else {
               return 0;
             }
           });
-
           this.suggestions.wing_suggestions.forEach(wing_suggestion => {
             wing_suggestion.alternatives.sort((alt_a, alt_b) => alt_b.max_num_of_hats - alt_a.max_num_of_hats);
           });
@@ -387,13 +359,14 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
         const allow_shortening_babies_in_pairs = (wing.allow_shortening_babies_in_pairs && this.wall_bank != null && this.wall_bank.allow_shortening_babies_in_pairs);
         adjustedWing = this.hatsCalculatorService.adjustWingToShortenedTCrownOrTop(wing, reduceTop, reduceCrown, allow_shortening_babies_in_pairs);
       }
+      // console.log("Calculating for wing " + wing.name + " with reduceTop " + reduceTop + " and reduceCrown " + reduceCrown);
       let hats_info = this.hatsCalculatorService.aggregateHatBabiesAndMatchingAllocations(
         adjustedWing,
         wallAllocation, crownAllocation,               //same allocation for crown and wall
         this.tails_allocation,                                          //not counting tails here
         wallAllocationBabies, crownAllocationBabies,  //same babies for crown and wall
         wingsPerHat, -1);
-
+      // console.log("Got " + hats_info.total_num_of_possible_hats + " hats");
       if(this.tails_allocation && hats_info.max_num_of_hats_with_tails <= 0 && this.suggestions.wing_suggestions.length == 0){
         this.try_to_exceed = -1;
         this.suggestions.max_num_of_hats = -1;
@@ -401,7 +374,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
       }
 
       if(hats_info.total_num_of_possible_hats > 0) {
-        //console.log("For wing " + wing.name + "(alloc(w) #" + wallAllocation.id + ", alloc(c) #" + crownAllocation.id + ", top: -"+ reduceTop + ", crown: -" + reduceCrown + "):" +  hats_info.total_num_of_possible_hats + " hats");
+        //// console.log("For wing " + wing.name + "(alloc(w) #" + wallAllocation.id + ", alloc(c) #" + crownAllocation.id + ", top: -"+ reduceTop + ", crown: -" + reduceCrown + "):" +  hats_info.total_num_of_possible_hats + " hats");
         
         //if there no is a suggestion for this wing, create one
         let wing_suggestion = this.suggestions.wing_suggestions.find(w => w.wing_id == wing.id);
@@ -474,7 +447,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     openAdviseTable() {
-      console.dir(this.wall_allocation);
+      // console.dir(this.wall_allocation);
       this.advisor_dialog.open();
     }
 
@@ -504,7 +477,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     helpCreateHat(){
-      console.dir(this.wall_allocation);
+      // console.dir(this.wall_allocation);
       if(this.systemWings.length == 1){
         this.assistant_selected_wing_id = this.systemWings[0].id;
       }
@@ -539,7 +512,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
             this.allocation_crown_babies, 
             this.numOfWingsPerHat, 
             this.assistant_num_of_hats);
-            //console.dir(aggregation);
+            //// console.dir(aggregation);
 
           this.assistant_aggregated_hat_babies = aggregation.hat_babies;
           this.assistant_aggregated_crown_babies = aggregation.crown_babies;
@@ -574,8 +547,8 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     assistant_add_babies() {
-      //console.log("emitting: ");
-      //console.dir(this.wall_allocation)
+      //// console.log("emitting: ");
+      //// console.dir(this.wall_allocation)
       this.assistantAutoAddBabies.emit({
         hat_alloc_id: ((this.wall_allocation) ? this.wall_allocation.id : 0),
         crown_alloc_id: ((this.crown_allocation) ? this.crown_allocation.id : 0),

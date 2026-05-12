@@ -6,6 +6,7 @@ import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptors, withInterceptor
 import { TokenInterceptor } from './interceptors/token.interceptor';
 import { RefreshInterceptor } from './interceptors/refresh.interceptor';
 import { UsersService } from './services/users.service';
+import { provideAnimations } from '@angular/platform-browser/animations';
 
 function initializeApp(userService: UsersService) {
   // Angular will wait for this Observable to complete before rendering
@@ -31,6 +32,7 @@ export const appConfig: ApplicationConfig = {
       useFactory: initializeApp,
       deps: [UsersService],
       multi: true
-    }
+    },
+    provideAnimations()
   ]
 };

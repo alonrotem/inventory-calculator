@@ -23,14 +23,18 @@ import { UsersService } from '../../../services/users.service';
 import { HasPermissionPipe } from '../../../utils/pipes/has-permission.pipe';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { RawMaterialsService } from '../../../services/raw-materials.service';
+import { BabiesLengthPickerComponent } from "../../babies/babies-length-picker/babies-length-picker.component";
+import { SaveChangesButtonComponent } from "../../common/save-changes-button/save-changes-button.component";
+import { NumericInputDirective } from "../../../utils/directives/auto-numeric.directive";
+import { WingsTableComponent } from "../../wings/wings-table/wings-table.component";
 
 @Component({
   selector: 'app-customer-editor',
   standalone: true,
   imports: [RouterModule, FormsModule, NgSelectModule, DateStrPipe,
     FaIconComponent, NgIf, NgFor, ConfirmationDialogComponent, AutocompleteLibModule,
-    CustomerBanksTableComponent, HatsCalculatorDialogComponent, 
-    UnsavedChangesDialogComponent, HasPermissionPipe, AsyncPipe],
+    CustomerBanksTableComponent, HatsCalculatorDialogComponent,
+    UnsavedChangesDialogComponent, HasPermissionPipe, AsyncPipe, BabiesLengthPickerComponent, SaveChangesButtonComponent, NumericInputDirective, WingsTableComponent],
   templateUrl: './customer-editor.component.html',
   styleUrl: './customer-editor.component.scss'
 })
@@ -53,7 +57,8 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     customer_code: '',
     order_seq_number: 0,
     allow_calculation_advisor: undefined,
-    is_demo_customer: false
+    is_demo_customer: false,
+    knives: []
   }
 
   title: string = "Create Customer";
@@ -93,6 +98,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
   @ViewChild('hats_calculator') hats_calculator!: HatsCalculatorDialogComponent;
   @ViewChild("btn_save", { read: ElementRef }) btn_save!: ElementRef;
   @ViewChild("raw_material_select") raw_material_select!: NgSelectComponent;
+  @ViewChild("knives_length_picker") knives_length_picker!: BabiesLengthPickerComponent;
   @ViewChildren('customer_banks_tables') customer_banks_tables!: QueryList<CustomerBanksTableComponent>;
  
   constructor(
@@ -150,12 +156,16 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
   hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
     return this.unsavedNavigationConfirmationService.handle({
       hasChanges: () =>
-        !this.customer_form.pristine || this.customer_banks_tables.some(t => t.unsaved_changes),
+        !this.customer_form.pristine || this.hasUnsavedBankChanges,
 
       saveFn: () => this.customersService.saveCustomer(this.customerItem),
 
       confirmationDialog: this.unsaved_changes_dialog
     });
+  }
+
+  get hasUnsavedBankChanges(): boolean {
+    return this.customer_banks_tables && this.customer_banks_tables.some(t => t.unsaved_changes);
   }
 
   ngOnInit(): void {
@@ -312,7 +322,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     bank_quantity:number) {
   }
 
-  saveCustomer()
+  saveCustomer(navigate_after_save: boolean = true)
   {
     this.btn_save.nativeElement.classList.add("disabled");
     //console.log("saving customer:");
@@ -320,17 +330,22 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     this.customersService.saveCustomer(this.customerItem).subscribe(
     {
       next:(data) => { 
-        //console.log("SAVED CUSTOMER !!!"); console.dir(data["customer"]);
+        console.log("SAVED CUSTOMER !!!"); console.dir(data["customer"]);
         this.customer_form.form.markAsPristine();
         this.customer_banks_tables.forEach(b => { b.unsaved_changes = false });
         this.btn_save.nativeElement.classList.remove("disabled"); 
-        if(!this.is_current_user_demo_customer){
+        if(!this.is_current_user_demo_customer && navigate_after_save){
           this.gotoCustomersList(data['message'], false);
         }
         else {
-          //console.log("Demo customer saved, showing toast message and staying on page...");
-          //this.router.navigate([this.router.url, 'open']);
-          this.reloadTheSamePageWithToastMessage(data["message"], false);
+          if(Number(this.activatedRoute.snapshot.queryParamMap.get('id'))){
+            this.reloadTheSamePageWithToastMessage(data["message"], false);
+          }
+          else {
+            this.reloadTheSamePageWithToastMessage(data["message"], false, { id: data["customer"].id });
+            this.toastService.showSuccess(data["message"]);
+          }
+          Object.assign(this.customerItem, data["customer"]);
         }
       },//this.getRawMaterials(this.current_page); },
       error:(error) => { 
@@ -340,6 +355,10 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
         //this.gotoCustomersList(error, true); 
       }
     });
+  }
+
+  selectUnselectAllKnives(){
+    this.knives_length_picker.toggleAll();
   }
 
 
@@ -353,19 +372,25 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     }
   }
 
-  confirm_delete() {
-    this.delete_confirmation.open();
-  }
-
-  ngAfterViewInit() {
-    this.delete_confirmation.confirm.subscribe((value: Boolean) => {
+  async confirm_delete() {
+    const confirmed = await this.delete_confirmation.open_with_message({
+      modalText: `Are you sure you want to delete this customer, ${this.customerItem.name}?`,
+      modalTitle: "Delete confirmation",
+      btnYesIcon: this.faTrashAlt,
+      btnYesText: "Delete",
+      btnYesClass: "btn-danger"
+    });
+    if(confirmed) {
       this.customersService.deleteCustomer(this.customerItem.id).subscribe(
         {
           next:(data) => {
             this.gotoCustomersList(data['message'], false);
           }
         });
-    });    
+    }
+  }
+
+  ngAfterViewInit() {
   }
 
   phoneChanged (event: Event) {

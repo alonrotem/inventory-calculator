@@ -81,8 +81,8 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
       },
       error: (err: any) => { console.error(err) }
     });    
-    this.length_picker.lengthChange.subscribe((value: number) => {
-      this.highlighted_baby_length = value;
+    this.length_picker.lengthChange.subscribe((value: number[]) => {
+      this.highlighted_baby_length = value.length > 0 ? value[0] : this.min_length;
       this.highlightNext();
     });    
   }
@@ -128,7 +128,7 @@ export class BabyEditorDialogComponent implements ModalContentDirective, ModalDi
     if(this.highlighted_baby_length < this.min_length || this.highlighted_baby_length > this.max_length){
       this.highlighted_baby_length = this.min_length;
     }
-    this.length_picker.length = this.highlighted_baby_length;
+    this.length_picker.selected_lengths = [this.highlighted_baby_length];
     const baby_info = this.babies_to_edit.find(b => b.length == this.highlighted_baby_length);
     //this.console.log("baby info:");
     

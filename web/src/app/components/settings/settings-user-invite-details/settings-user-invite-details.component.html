@@ -1,24 +1,6 @@
-<app-confirmation-dialog
-  #confirm_delete_dialog
-  [modalTitle]="'Delete invitation?'"
-  [modalText]="'Are you sure you want to delete this invitation?'"
-  [btnYesClass]="'btn-danger'"
-  [btnYesText]="'Delete!'"
-  [btnYesIcon]="faTrash"
-  [btnNoText]="'Cancel'"
-  (confirm)="delete_invitation_confirmed()" 
-  />
+<app-confirmation-dialog #confirm_action />
 
-<app-confirmation-dialog
-  #confirm_cancel_dialog
-  [modalTitle]="'Cancel invitation?'"
-  [modalText]="'Are you sure you want to cancel this invitation?'"
-  [btnYesClass]="'btn-warning'"
-  [btnYesText]="'Cancel Invitation!'"
-  [btnYesIcon]="faX"
-  [btnNoText]="'Keep Invitation'"
-  (confirm)="cancel_invitation_confirmed()" 
-  />
+<app-save-changes-button [show]="!profile_form.form.pristine || customers_changed" (save)="save_changes(false)" />
 
 <div class="row justify-content-center">
 <div class="col-12 col-md-8">
@@ -72,6 +54,8 @@
     </div>
 </div>
 <div class="row">
+    <!--========== EDITABLE SECTION ========== -->
+    <form novalidate #profile_form="ngForm" [id]="'profile_form'">
     <div class="col approval-status">
         <h4>Invitation Details:</h4>
         <div [hidden]="invitation.invite_status!='sent'">
@@ -80,46 +64,45 @@
             <div>It's still possible to make changes.</div>
 
             <div class="row">
+                <div class="col">
+                    <div class="form-floating">
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="input_firstname" 
+                            placeholder="First name" 
+                            [(ngModel)]="invitation.firstname" 
+                            #input_firstname="ngModel" 
+                            name="input_firstname" 
+                            [required]="true"
+                            [pattern]="'^[a-zA-Z\\s\\-_]*$'">
+                        <label for="input_firstname">First name <span class="text-danger">*</span></label>
+                    </div> 
+                    <div class="text-danger" *ngIf="input_firstname.invalid && (input_firstname.touched || input_firstname.dirty)" > 
+                        <span *ngIf="input_firstname.errors?.['required']">First name is required</span>
+                        <span *ngIf="input_firstname.errors?.['pattern']">Use only letters, space or -</span>
+                    </div>            
+                </div>
             <div class="col">
                 <div class="form-floating">
                     <input 
-                    type="text" 
-                    class="form-control" 
-                    id="input_firstname" 
-                    placeholder="First name" 
-                    [(ngModel)]="invitation.firstname" 
-                    #input_firstname="ngModel" 
-                    name="input_firstname" 
-                    [required]="true"
-                    [pattern]="'^[a-zA-Z\\s\\-_]*$'">
-                    <label for="input_firstname">First name <span class="text-danger">*</span></label>
+                        type="text" 
+                        class="form-control" 
+                        id="input_lastname" 
+                        placeholder="Last name" 
+                        [(ngModel)]="invitation.lastname" 
+                        #input_lastname="ngModel" 
+                        name="input_lastname" 
+                        [required]="true"
+                        [pattern]="'^[a-zA-Z\\s\\-]*$'" />
+                    <label for="input_lastname">Last name <span class="text-danger">*</span></label>
                 </div> 
-                <div class="text-danger" *ngIf="input_firstname.invalid && (input_firstname.touched || input_firstname.dirty)" > 
-                    <span *ngIf="input_firstname.errors?.['required']">First name is required</span>
-                    <span *ngIf="input_firstname.errors?.['pattern']">Use only letters, space or -</span>
-                </div>            
+                <div class="text-danger" *ngIf="input_lastname.invalid && (input_lastname.touched || input_lastname.dirty)" > 
+                    <span *ngIf="input_lastname.errors?.['required']">Last name is required</span>
+                    <span *ngIf="input_lastname.errors?.['pattern']">Use only letters, space or -</span>
+                </div>                
             </div>
-            <div class="col">
-            <div class="form-floating">
-                <input 
-                type="text" 
-                class="form-control" 
-                id="input_lastname" 
-                placeholder="Last name" 
-                [(ngModel)]="invitation.lastname" 
-                #input_lastname="ngModel" 
-                name="input_lastname" 
-                [required]="true"
-                [pattern]="'^[a-zA-Z\\s\\-]*$'">
-                <label for="input_lastname">Last name <span class="text-danger">*</span></label>
-            </div> 
-            <div class="text-danger" *ngIf="input_lastname.invalid && (input_lastname.touched || input_lastname.dirty)" > 
-                <span *ngIf="input_lastname.errors?.['required']">Last name is required</span>
-                <span *ngIf="input_lastname.errors?.['pattern']">Use only letters, space or -</span>
-            </div>                
         </div>
-        </div>
-
         <div class="row">
             <div class="col">
                 <div class="form-floating">
@@ -132,7 +115,7 @@
                     #input_email="ngModel" 
                     name="input_email" 
                     [required]="true"
-                    [email]="true">
+                    [email]="true" />
                     <label for="input_email">email <span class="text-danger">*</span></label>
                 </div>
                 <div class="text-danger" *ngIf="input_email.invalid && (input_email.touched || input_email.dirty)" > 
@@ -176,7 +159,7 @@
             <!--  customer section -->
             <div [hidden]="!invitation || !invitation.role || invitation.role.name.toLowerCase()!='customer'">
                 <div class="d-flex flex-nowrap align-items-start">
-                    <input class="form-check-input" type="radio" name="customer_options" id="customer_options_not_demo" [(ngModel)]="invitation.is_demo_customer" [value]="false">
+                    <input class="form-check-input" type="radio" name="customer_options" id="customer_options_not_demo" [(ngModel)]="invitation.is_demo_customer" (change)="customers_updated()" [value]="false" />
                     <label class="form-check-label" for="customer_options_not_demo">
                         This user represents a real customer, connected as follows:
                     </label>  
@@ -184,7 +167,7 @@
                 <div class="customer-selection-wrapper" [attr.disabled]="invitation.is_demo_customer">
                     <div class="mt-4 mb-4">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="chkCreateNewCustoemr" #chkCreateNewCustoemr (change)="set_instructions_and_approval_btn_status()" [(ngModel)]="invitation.create_new_customer" [attr.disabled]="invitation.is_demo_customer">
+                            <input class="form-check-input" type="checkbox" value="" name="chkCreateNewCustoemr" id="chkCreateNewCustoemr" #chkCreateNewCustoemr (change)="customers_updated()" [(ngModel)]="invitation.create_new_customer" [attr.disabled]="invitation.is_demo_customer" />
                             <label class="form-check-label" for="chkCreateNewCustoemr" [attr.disabled]="invitation.is_demo_customer">
                                 Create a new customer in the system for this user
                             </label>
@@ -195,11 +178,11 @@
                         #customer_picker 
                         [(pickedCustomers)]="invitation.customers"
                         [disabled]="invitation.is_demo_customer" 
-                        (Change)="set_instructions_and_approval_btn_status()"
+                        (change)="customers_updated()"
                         />
                 </div>
                 <div class="d-flex flex-nowrap align-items-start">
-                    <input class="form-check-input" type="radio" name="customer_options" id="customer_options_demo" [(ngModel)]="invitation.is_demo_customer" [value]="true">
+                    <input class="form-check-input" type="radio" name="customer_options" id="customer_options_demo" [(ngModel)]="invitation.is_demo_customer" [value]="true" />
                     <label class="form-check-label" for="customer_options_demo">
                         This is a demo customer (not connected to real customers)
                     </label>
@@ -228,6 +211,9 @@
             </div>
         </div>
     </div>
+    </div>
+    </form>
+    <!--==========/EDITABLE SECTION ========== -->
     <div [hidden]="invitation.invite_status!='cancelled'">
         <p><strong>Name: </strong>{{ invitation.firstname }} {{ invitation.lastname }}</p>
         <p><strong>Email address: </strong>{{ invitation.email }}</p>
@@ -288,11 +274,13 @@
             </div>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="col">
-        <!--(click)="deleteRequest()"-->
-        <button class="btn btn-danger" (click)="delete_invitation()"><fa-icon [icon]="faTrash"></fa-icon><br/>Delete</button>
+    <div class="row">
+        <div class="col">
+            <!--(click)="deleteRequest()"-->
+            <button class="btn btn-danger" (click)="delete_invitation()"><fa-icon [icon]="faTrash"></fa-icon><br/>Delete</button>
+        </div>
     </div>
 </div>
+
+

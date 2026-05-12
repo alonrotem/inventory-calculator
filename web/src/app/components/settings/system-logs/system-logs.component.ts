@@ -30,7 +30,7 @@ export class SystemLogsComponent implements OnInit, AfterViewInit {
   preview_loading: boolean = false;
   previewing: boolean = false;
   log_content: string[] = [];
-  pending_clear_file: string = "";
+  //pending_clear_file: string = "";
   @ViewChild("confirm_delete_logs") confirm_delete_logs!: ConfirmationDialogComponent;
   @ViewChild("log_preview") log_preview!: ModalDialogComponent;
   
@@ -41,14 +41,6 @@ export class SystemLogsComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.confirm_delete_logs.confirm.subscribe((conf:boolean) => {
-      if(this.pending_clear_file){
-        this.clearLogFile_confirmed();
-      }
-      else {
-        this.deleteAllLogs_confirm();
-      }
-    });
     this.log_preview.cancel.subscribe(() => {
       this.previewing = false;
     });
@@ -133,64 +125,60 @@ export class SystemLogsComponent implements OnInit, AfterViewInit {
   });
   }
 
-  clearLogFile(logfilename: string){
-    this.confirm_delete_logs.confirmation_dialog.modalTitle="Clear log file";
-    this.confirm_delete_logs.modalText=`Are you sure you want to clear this log file, '${logfilename}'?`;
-    this.confirm_delete_logs.btnYesIcon=this.faTrash;
-    this.confirm_delete_logs.confirmation_dialog.btnSaveText="Clear that MF!"
-    this.confirm_delete_logs.btnYesClass="btn-danger"
-    this.confirm_delete_logs.btnNoText="Cancel";
-    this.pending_clear_file = logfilename;
-    this.confirm_delete_logs.open();
+  async clearLogFile(logfilename: string){
+    const confirmed = await this.confirm_delete_logs.open_with_message({
+      modalTitle: "Clear log file",
+      modalText: `Are you sure you want to clear this log file, '${logfilename}'?`,
+      btnYesText: "Clear that MF!",
+      btnNoText: "Cancel",
+      btnYesIcon: this.faTrash,
+      btnYesClass: "btn-danger"
+    });
+    if(confirmed) {
+      this.loading = true;
+      if(logfilename) {
+        this.systemLogsService.deleteLogFile(logfilename).subscribe({
+          next:(logs: LogfileListItem[]) => {
+            this.logFiles = logs.sort((f1, f2) => { return new Date(f2.date).getTime() - new Date(f1.date).getTime() });
+            this.loading = false;
+            if(this.previewing) {
+              this.load_preview(logfilename, this.preview_filesize);
+            }
+          },
+          error: (err: any) => {
+            this.toastService.showError("Failed to load log files");
+            console.log(err);
+            this.logFiles = [];
+            this.loading = false;
+          }
+        });
+      }
+    }
   }
 
-  clearLogFile_confirmed(){
-    this.loading = true;
-    const logfilename = this.pending_clear_file;
-    if(logfilename) {
-      this.systemLogsService.deleteLogFile(logfilename).subscribe({
+  async deleteAllLogs(){  
+    const confirmed = await this.confirm_delete_logs.open_with_message({
+      modalTitle: "Clear system logs",
+      modalText: "Are you sure you want to delete all the system logs?",
+      btnYesIcon: this.faTrash,
+      btnYesText: "Clear 'em!",
+      btnYesClass: "btn-danger",
+      btnNoText: "Cancel"
+    });
+    if(confirmed) {
+      this.loading = true;
+      this.systemLogsService.deleteAllLogs().subscribe({
         next:(logs: LogfileListItem[]) => {
           this.logFiles = logs.sort((f1, f2) => { return new Date(f2.date).getTime() - new Date(f1.date).getTime() });
           this.loading = false;
-          this.pending_clear_file = "";
-          if(this.previewing) {
-            this.load_preview(logfilename, this.preview_filesize);
-          }
         },
         error: (err: any) => {
           this.toastService.showError("Failed to load log files");
           console.log(err);
           this.logFiles = [];
           this.loading = false;
-          this.pending_clear_file = "";
         }
       });
     }
-  }
-
-  deleteAllLogs(){  
-    this.confirm_delete_logs.modalTitle="Clear system logs";
-    this.confirm_delete_logs.modalText="Are you sure you want to delete all the system logs?";
-    this.confirm_delete_logs.btnYesIcon=this.faTrash;
-    this.confirm_delete_logs.confirmation_dialog.btnSaveText="Clear 'em!"
-    this.confirm_delete_logs.btnYesClass="btn-danger"
-    this.confirm_delete_logs.btnNoText="Cancel";
-    this.confirm_delete_logs.open();
-  }
-
-  deleteAllLogs_confirm(){
-    this.loading = true;
-    this.systemLogsService.deleteAllLogs().subscribe({
-      next:(logs: LogfileListItem[]) => {
-        this.logFiles = logs.sort((f1, f2) => { return new Date(f2.date).getTime() - new Date(f1.date).getTime() });
-        this.loading = false;
-      },
-      error: (err: any) => {
-        this.toastService.showError("Failed to load log files");
-        console.log(err);
-        this.logFiles = [];
-        this.loading = false;
-      }
-    });
   }
 }

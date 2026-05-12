@@ -16,17 +16,19 @@ import { FormsModule } from '@angular/forms';
 import { UserTagComponent } from "../../users/user-tag/user-tag.component";
 import { ConfirmationDialogComponent } from "../../common/confirmation-dialog/confirmation-dialog.component";
 import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
+import { SaveChangesButtonComponent } from "../../common/save-changes-button/save-changes-button.component";
 
 @Component({
   selector: 'app-settings-user-invite-details',
   standalone: true,
-  imports: [FaIconComponent, DateStrPipe, NgSelectModule, CustomerPickerComponent, NgIf, FormsModule, UserTagComponent, RouterModule, NgFor, ConfirmationDialogComponent, PageLoadingComponent],
+  imports: [FaIconComponent, DateStrPipe, NgSelectModule, CustomerPickerComponent, NgIf, FormsModule, UserTagComponent, RouterModule, NgFor, ConfirmationDialogComponent, PageLoadingComponent, SaveChangesButtonComponent],
   templateUrl: './settings-user-invite-details.component.html',
   styleUrl: './settings-user-invite-details.component.scss'
 })
 export class SettingsUserInviteDetailsComponent extends NavigatedMessageComponent implements OnInit {
-  @ViewChild('confirm_delete_dialog') confirm_delete_dialog!: ConfirmationDialogComponent;
-  @ViewChild('confirm_cancel_dialog') confirm_cancel_dialog!: ConfirmationDialogComponent;
+  @ViewChild('confirm_action') confirm_action_dialog!: ConfirmationDialogComponent;
+  //@ViewChild('confirm_delete_dialog') confirm_delete_dialog!: ConfirmationDialogComponent;
+  //@ViewChild('confirm_cancel_dialog') confirm_cancel_dialog!: ConfirmationDialogComponent;
   faUserPlus: IconDefinition = faUserPlus;
   faCheck: IconDefinition = faCheck;
   faX: IconDefinition = faX;
@@ -44,6 +46,7 @@ export class SettingsUserInviteDetailsComponent extends NavigatedMessageComponen
   sending: boolean = false;
   saving: boolean = false;
   original_email: string = "";
+  customers_changed: boolean = false;
   invitation: AccountInviteDetails = {
     id: 0,
     firstname: '',
@@ -100,7 +103,7 @@ export class SettingsUserInviteDetailsComponent extends NavigatedMessageComponen
         console.dir(details);
         this.invitation = details;
         this.original_email = details.email;
-        this.set_instructions_and_approval_btn_status();
+        //this.set_instructions_and_approval_btn_status();
         this.loading = false;
       },
       error: (error:any) => { 
@@ -117,10 +120,11 @@ export class SettingsUserInviteDetailsComponent extends NavigatedMessageComponen
     else {
       this.invitation.role = { id:0, name: '' };
     }
-    this.set_instructions_and_approval_btn_status();
+    this.customers_updated();
   }
 
-  set_instructions_and_approval_btn_status(){
+  customers_updated(){
+    this.customers_changed = true;
     /*
     console.log("selected role: "); console.dir(this.invitation.role);
     this.approval_instructions = "";
@@ -157,47 +161,76 @@ export class SettingsUserInviteDetailsComponent extends NavigatedMessageComponen
     });
   }
 
-  delete_invitation(){
-    this.confirm_delete_dialog.open();
-  }
-
-  delete_invitation_confirmed(){
-    this.usersService.deleteInvitation(this.invitation.id).subscribe({
-      next: (response: any) => {
-        this.navigateWithToastMessage('/settings/user_invites', "Invitation deleted successfully!");
-        //this.router.navigate(['/settings/user_invites']);
-      },
-      error: (error: any) => {
-        console.log("Error deleting invitation: " + error.error?.message);
-        this.toastService.showError("Failed to delete invitation. Please try again.");
-      }
+  async delete_invitation(){
+    const confirmed = await this.confirm_action_dialog.open_with_message({
+      modalTitle: 'Delete invitation?',
+      modalText: 'Are you sure you want to delete this invitation?',
+      btnYesClass: 'btn-danger',
+      btnYesText: 'Delete!',
+      btnYesIcon: this.faTrash,
+      btnNoText: 'Cancel'
     });
+    if(confirmed){
+      this.usersService.deleteInvitation(this.invitation.id).subscribe({
+        next: (response: any) => {
+          this.navigateWithToastMessage('/settings/user_invites', "Invitation deleted successfully!");
+          //this.router.navigate(['/settings/user_invites']);
+        },
+        error: (error: any) => {
+          console.log("Error deleting invitation: " + error.error?.message);
+          this.toastService.showError("Failed to delete invitation. Please try again.");
+        }
+      });
+    }
   }
 
-  cancel_invitation(){
-    this.confirm_cancel_dialog.open();
-  }
-
-  cancel_invitation_confirmed(){
-    this.usersService.cancelInvitation(this.invitation.id).subscribe({
-      next: (response: any) => {
-        //this.navigateWithToastMessage('/settings/user_invites', "Invitation cancelled successfully!");
-        this.reloadTheSamePageWithToastMessage("Invitation cancelled successfully!");
-        this.getInvitaionDetails(this.invitation.id);
-      },
-      error: (error: any) => {
-        console.log("Error cancelling invitation: " + error.error?.message);
-        this.toastService.showError("Failed to cancel invitation. Please try again.");
-      }
+  async cancel_invitation(){
+/*
+<app-confirmation-dialog
+  #confirm_cancel_dialog
+  [modalTitle]="'Cancel invitation?'"
+  [modalText]="'Are you sure you want to cancel this invitation?'"
+  [btnYesClass]="'btn-warning'"
+  [btnYesText]="'Cancel Invitation!'"
+  [btnYesIcon]="faX"
+  [btnNoText]="'Keep Invitation'"
+  (confirm)="cancel_invitation_confirmed()" 
+  />
+*/    
+    const confirmed = await this.confirm_action_dialog.open_with_message({
+      modalTitle: 'Cancel invitation?',
+      modalText: 'Are you sure you want to cancel this invitation?',
+      btnYesClass: 'btn-warning',
+      btnYesText: 'Cancel Invitation!',
+      btnYesIcon: this.faX,
+      btnNoText: 'Keep Invitation'
     });
+    if(confirmed){
+      this.usersService.cancelInvitation(this.invitation.id).subscribe({
+        next: (response: any) => {
+          //this.navigateWithToastMessage('/settings/user_invites', "Invitation cancelled successfully!");
+          this.reloadTheSamePageWithToastMessage("Invitation cancelled successfully!");
+          this.getInvitaionDetails(this.invitation.id);
+        },
+        error: (error: any) => {
+          console.log("Error cancelling invitation: " + error.error?.message);
+          this.toastService.showError("Failed to cancel invitation. Please try again.");
+        }
+      });
+    }
   }
 
-  save_changes(){
+  save_changes(navigate_after_save: boolean = true){
     this.saving = true;
     this.usersService.updateInvitation(this.invitation).subscribe({
       next: (response: any) => {
         //this.toastService.showSuccess("Invitation updated successfully!");
-        this.navigateWithToastMessage('/settings/user_invites', "Invitation updated successfully!");
+        if(navigate_after_save){
+          this.navigateWithToastMessage('/settings/user_invites', "Invitation updated successfully!");
+        }
+        else {
+          this.reloadTheSamePageWithToastMessage("Saved successfully", false);
+        }        
         this.saving = false;
       },
       error: (error: any) => {

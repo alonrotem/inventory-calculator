@@ -326,7 +326,8 @@ CREATE TABLE  IF NOT EXISTS `material_colors` (
 
 Insert into `material_colors` (`priority`, `color`)
 VALUES
-(10, 'Natural'), (20, 'Light brown'), (30, 'Brown'), (40, 'Dark brown'), (50, 'Black'), (60, 'Mixed color');
+(10, 'Natural'), (20, 'Light brown'), (30, 'Brown'), (40, 'Dark brown'), (50, 'Black'), (60, 'Mixed color') as colors
+on duplicate key update color=colors.color, priority=colors.priority;
 
 CREATE TABLE  IF NOT EXISTS `raw_materials`
 (
@@ -375,6 +376,13 @@ CREATE TABLE  IF NOT EXISTS `customers` (
 	`updated_by`	 	int null,
     `order_seq_number`	int not null default 1,
     PRIMARY KEY (`id`)
+);
+
+CREATE TABLE  IF NOT EXISTS `customer_knives` (
+	`customer_id`   INT NOT NULL,
+	`knife`			float,
+  CONSTRAINT fk_customer_knives_customer
+  FOREIGN KEY (`customer_id`) REFERENCES customers(`id`) ON DELETE cascade
 );
 
 CREATE TABLE  IF NOT EXISTS `customer_banks` (
@@ -789,65 +797,67 @@ CREATE TABLE IF NOT EXISTS `role_permissions` (
 
 Insert into `role_permissions` (`role_id`, `area`, `permissions`)
 values
-((select id from roles where name='administrator'), 'dashboard', 'CRUD'),
-((select id from roles where name='administrator'), 'raw_materials', 'CRUD'),
-((select id from roles where name='administrator'), 'bank_baby_management', 'CRUD'),
-((select id from roles where name='administrator'), 'customers', 'CRUD'),
-((select id from roles where name='administrator'), 'customers_advanced_features', 'RU'),
-((select id from roles where name='administrator'), 'orders', 'CRUD'),
-((select id from roles where name='administrator'), 'wings', 'CRUD'),
-((select id from roles where name='administrator'), 'wings_through_orders', ''),
-((select id from roles where name='administrator'), 'system_settings', 'CRUD'),
-((select id from roles where name='administrator'), 'backup', 'CRUD'),
-((select id from roles where name='administrator'), 'system_logs', 'CRUD'),
-((select id from roles where name='administrator'), 'user_management', 'CRUD'),
-((select id from roles where name='administrator'), 'customer_resources_by_customer_id', ''),
-((select id from roles where name='administrator'), 'orders_resources_by_customer_id', ''),
+((select id from roles where name='administrator' limit 1), 'dashboard', 'CRUD'),
+((select id from roles where name='administrator' limit 1), 'raw_materials', 'CRUD'),
+((select id from roles where name='administrator' limit 1), 'bank_baby_management', 'CRUD'),
+((select id from roles where name='administrator' limit 1), 'customers', 'CRUD'),
+((select id from roles where name='administrator' limit 1), 'customers_advanced_features', 'RU'),
+((select id from roles where name='administrator' limit 1), 'orders', 'CRUD'),
+((select id from roles where name='administrator' limit 1), 'wings', 'CRUD'),
+((select id from roles where name='administrator' limit 1), 'wings_through_orders', ''),
+((select id from roles where name='administrator' limit 1), 'system_settings', 'CRUD'),
+((select id from roles where name='administrator' limit 1), 'backup', 'CRUD'),
+((select id from roles where name='administrator' limit 1), 'system_logs', 'CRUD'),
+((select id from roles where name='administrator' limit 1), 'user_management', 'CRUD'),
+((select id from roles where name='administrator' limit 1), 'customer_resources_by_customer_id', ''),
+((select id from roles where name='administrator' limit 1), 'orders_resources_by_customer_id', ''),
 
-((select id from roles where name='customer'), 'dashboard', 'R'),		# Readonly
-((select id from roles where name='customer'), 'raw_materials', ''), 	# No access
-((select id from roles where name='customer'), 'bank_baby_management', ''),
-((select id from roles where name='customer'), 'customers', ''),	 	# Limited by customer id
-((select id from roles where name='customer'), 'customers_advanced_features', ''),
-((select id from roles where name='customer'), 'orders', ''),		 	# Limited by customer id
-((select id from roles where name='customer'), 'wings', ''),		 	# No access
-((select id from roles where name='customer'), 'wings_through_orders', 'CR'),
-((select id from roles where name='customer'), 'system_settings', ''),	# No access 
-((select id from roles where name='customer'), 'backup', ''),			# No access
-((select id from roles where name='customer'), 'system_logs', ''),		# No access
-((select id from roles where name='customer'), 'user_management', ''),
-((select id from roles where name='customer'), 'customer_resources_by_customer_id', 'RU'), # Limited by customer id
-((select id from roles where name='customer'), 'orders_resources_by_customer_id', 'CRUD'), # Limited by customer id
+((select id from roles where name='customer' limit 1), 'dashboard', 'R'),		# Readonly
+((select id from roles where name='customer' limit 1), 'raw_materials', ''), 	# No access
+((select id from roles where name='customer' limit 1), 'bank_baby_management', ''),
+((select id from roles where name='customer' limit 1), 'customers', ''),	 	# Limited by customer id
+((select id from roles where name='customer' limit 1), 'customers_advanced_features', ''),
+((select id from roles where name='customer' limit 1), 'orders', ''),		 	# Limited by customer id
+((select id from roles where name='customer' limit 1), 'wings', ''),		 	# No access
+((select id from roles where name='customer' limit 1), 'wings_through_orders', 'CRUD'),
+((select id from roles where name='customer' limit 1), 'system_settings', ''),	# No access 
+((select id from roles where name='customer' limit 1), 'backup', ''),			# No access
+((select id from roles where name='customer' limit 1), 'system_logs', ''),		# No access
+((select id from roles where name='customer' limit 1), 'user_management', ''),
+((select id from roles where name='customer' limit 1), 'customer_resources_by_customer_id', 'RU'), # Limited by customer id
+((select id from roles where name='customer' limit 1), 'orders_resources_by_customer_id', 'CRUD'), # Limited by customer id
 
-((select id from roles where name='employee'), 'dashboard', 'R'),		# Readonly
-((select id from roles where name='employee'), 'raw_materials', 'R'),	# Readonly
-((select id from roles where name='employee'), 'bank_baby_management', 'CRUD'),
-((select id from roles where name='employee'), 'customers', 'R'),		# Readonly
-((select id from roles where name='customer'), 'customers_advanced_features', ''),
-((select id from roles where name='employee'), 'orders', 'RUD'),		# Accessible
-((select id from roles where name='employee'), 'wings', 'R'),			# Readonly
-((select id from roles where name='employee'), 'wings_through_orders', ''),
-((select id from roles where name='employee'), 'system_settings', ''),	# No access
-((select id from roles where name='employee'), 'backup', ''),			# No access
-((select id from roles where name='employee'), 'user_management', ''),
-((select id from roles where name='employee'), 'system_logs', ''),		# No access
-((select id from roles where name='employee'), 'customer_resources_by_customer_id', ''), # No access
-((select id from roles where name='employee'), 'orders_resources_by_customer_id', ''), # Limited by customer id
+((select id from roles where name='employee' limit 1), 'dashboard', 'R'),		# Readonly
+((select id from roles where name='employee' limit 1), 'raw_materials', 'R'),	# Readonly
+((select id from roles where name='employee' limit 1), 'bank_baby_management', 'CRUD'),
+((select id from roles where name='employee' limit 1), 'customers', 'R'),		# Readonly
+((select id from roles where name='customer' limit 1), 'customers_advanced_features', ''),
+((select id from roles where name='employee' limit 1), 'orders', 'RUD'),		# Accessible
+((select id from roles where name='employee' limit 1), 'wings', 'R'),			# Readonly
+((select id from roles where name='employee' limit 1), 'wings_through_orders', ''),
+((select id from roles where name='employee' limit 1), 'system_settings', ''),	# No access
+((select id from roles where name='employee' limit 1), 'backup', ''),			# No access
+((select id from roles where name='employee' limit 1), 'user_management', ''),
+((select id from roles where name='employee' limit 1), 'system_logs', ''),		# No access
+((select id from roles where name='employee' limit 1), 'customer_resources_by_customer_id', ''), # No access
+((select id from roles where name='employee' limit 1), 'orders_resources_by_customer_id', ''), # Limited by customer id
 
-((select id from roles where name='guest'), 'dashboard', 'R'),			# Readonly
-((select id from roles where name='guest'), 'raw_materials', ''),		# No access
-((select id from roles where name='guest'), 'bank_baby_management', ''),
-((select id from roles where name='guest'), 'customers', ''),			# No access
-((select id from roles where name='guest'), 'customers_advanced_features', ''),
-((select id from roles where name='guest'), 'orders', ''),				# No access
-((select id from roles where name='guest'), 'wings', ''),				# No access
-((select id from roles where name='guest'), 'wings_through_orders', ''),
-((select id from roles where name='guest'), 'system_settings', ''),		# No access
-((select id from roles where name='guest'), 'user_management', ''),
-((select id from roles where name='guest'), 'backup', ''),				# No access
-((select id from roles where name='guest'), 'system_logs', ''),			# No access
-((select id from roles where name='guest'), 'customer_resources_by_customer_id', ''),
-((select id from roles where name='guest'), 'orders_resources_by_customer_id', ''); # No access
+((select id from roles where name='guest' limit 1), 'dashboard', 'R'),			# Readonly
+((select id from roles where name='guest' limit 1), 'raw_materials', ''),		# No access
+((select id from roles where name='guest' limit 1), 'bank_baby_management', ''),
+((select id from roles where name='guest' limit 1), 'customers', ''),			# No access
+((select id from roles where name='guest' limit 1), 'customers_advanced_features', ''),
+((select id from roles where name='guest' limit 1), 'orders', ''),				# No access
+((select id from roles where name='guest' limit 1), 'wings', ''),				# No access
+((select id from roles where name='guest' limit 1), 'wings_through_orders', ''),
+((select id from roles where name='guest' limit 1), 'system_settings', ''),		# No access
+((select id from roles where name='guest' limit 1), 'user_management', ''),
+((select id from roles where name='guest' limit 1), 'backup', ''),				# No access
+((select id from roles where name='guest' limit 1), 'system_logs', ''),			# No access
+((select id from roles where name='guest' limit 1), 'customer_resources_by_customer_id', ''),
+((select id from roles where name='guest' limit 1), 'orders_resources_by_customer_id', '') # No access
+as updated_permissions on duplicate key update
+`role_id`=updated_permissions.`role_id`, `area`=updated_permissions.`area`, `permissions`=updated_permissions.`permissions`;
 
 /* Raw material totals */
 -- Alert when raw material total kg quantity below ___ kg

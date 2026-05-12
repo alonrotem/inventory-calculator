@@ -26,11 +26,16 @@ import { PromptDialogComponent } from "../../common/prompt-dialog/prompt-dialog.
 import { ConfirmationDialogComponent } from "../../common/confirmation-dialog/confirmation-dialog.component";
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { StateService } from '../../../services/state.service';
+import { SaveChangesButtonComponent } from '../../common/save-changes-button/save-changes-button.component';
 
 @Component({
   selector: 'app-settings-user-details',
   standalone: true,
-  imports: [UnsavedChangesDialogComponent, FaIconComponent, PageLoadingComponent, DateStrPipe, TitleCasePipe, FormsModule, NgFor, NgIf, ImageCropComponent, LoginsTableComponent, CustomersTableComponent, UserTabsComponent, ModalDialogComponent, NgSelectModule, CustomerPickerComponent, PromptDialogComponent, ConfirmationDialogComponent],
+  imports: [
+      UnsavedChangesDialogComponent, FaIconComponent, PageLoadingComponent, DateStrPipe, 
+      TitleCasePipe, FormsModule, NgFor, NgIf, ImageCropComponent, LoginsTableComponent, 
+      CustomersTableComponent, UserTabsComponent, ModalDialogComponent, NgSelectModule, CustomerPickerComponent, 
+      PromptDialogComponent, ConfirmationDialogComponent, SaveChangesButtonComponent  ],
   templateUrl: './settings-user-details.component.html',
   styleUrl: './settings-user-details.component.scss'
 })
@@ -221,40 +226,48 @@ export class SettingsUserDetailsComponent extends NavigatedMessageComponent impl
     );
   }
 
-  confirm_deletion(){
-    this.confirm_delete_dialog.modalText = this.isThisYou? 
-      'Are you sure you want to delete <span class="text-danger"><strong>YOUR OWN ACCOUNT</strong></span>?' : 
-      'Are you sure you want to delete this user?';
-    this.confirm_delete_dialog.btnYesText = this.isThisYou? 
-      'Delete me!' : 
-      'Delete user';
-    this.confirm_delete_dialog.open();
-  }
-
-  delete_user(){
-    this.usersService.delete(this.user.id).subscribe({
-      next: (value: any) => {
-        this.unsaved_changes = false;
-        this.profile_form.form.markAsPristine();
-        this.navigateWithToastMessage("settings/users", "User deleted", false);
-      },
-      error: (error: any) => {
-        this.toastService.showError("Failed to delete: " + error.error.message);
-      }
+  async confirm_deletion(){
+    const confirmed = await this.confirm_delete_dialog.open_with_message({
+      modalText: this.isThisYou? 
+        'Are you sure you want to delete <span class="text-danger"><strong>YOUR OWN ACCOUNT</strong></span>?' :
+        'Are you sure you want to delete this user?',
+      btnYesText: this.isThisYou? 
+        'Delete me!' :
+        'Delete user',
+      btnYesClass: 'btn-danger',
+      btnYesIcon: this.faTrash,
+      btnNoText: 'Cancel'
     });
-    
+    if(confirmed) {
+      this.usersService.delete(this.user.id).subscribe({
+        next: (value: any) => {
+          this.unsaved_changes = false;
+          this.profile_form.form.markAsPristine();
+          this.navigateWithToastMessage("settings/users", "User deleted", false);
+        },
+        error: (error: any) => {
+          this.toastService.showError("Failed to delete: " + error.error.message);
+        }
+      });
+    }
   }
 
-  save() {
+  save(navigate_after_save: boolean = true){
     if(this.profile_form.form.valid) {
       this.profile_form.form.markAsPristine();
-      console.dir(this.user);
+      //console.dir(this.user);
       this.saving = true;
       this.user.email = this.current_email;
       this.usersService.save(this.user, this.profile_photo.croppedImageBlob).subscribe({
         next: (value: any) => {
           this.unsaved_changes = false;
-          this.navigateWithToastMessage("settings/users", "Saved successfully", false);
+          if(navigate_after_save){
+            this.navigateWithToastMessage("settings/users", "Saved successfully", false);
+          }
+          else {
+            this.reloadTheSamePageWithToastMessage("Saved successfully", false);
+          }
+          
           //this.toastService.showSuccess("succcc");
           this.saving = false;
         },

@@ -2,8 +2,8 @@
 
 <app-modal-dialog #dialogWrapper>
     <app-babies-length-picker modalContent
-        [length]="this.editedObject.length" 
-        (lengthChange)="lengthClicked($event)"
+        [selected_lengths]="[this.editedObject.length]" 
+        (lengthChange)="lengthClicked($event[0])"
         />
     <div class="crown-size-wrapper" [class.d-none]="!this.editedObject.position.toLocaleUpperCase().startsWith('C')">
         Select the number of crown babies

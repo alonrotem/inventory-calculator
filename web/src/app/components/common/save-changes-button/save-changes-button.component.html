@@ -1,0 +1,7 @@
+<div 
+  *ngIf="show"
+  @slideInOut
+  class="save-changes-fixed-bar d-flex flex-row align-items-center justify-content-center"
+  (click)="save.emit()">
+  <span class="save"><fa-icon class="me-2" [icon]="faSave"></fa-icon> {{ message }}</span>
+</div>

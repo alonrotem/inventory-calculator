@@ -1,22 +1,7 @@
 <!-- dialogs-->
-<app-confirmation-dialog 
-    #reset_confirmation 
-    modalTitle="Reset customizations"
-    modalText="Are you sure you want to reset the changes made to this wing?"
-    [btnYesIcon]=faArrowsRotate
-    btnYesText="Reset"
-    btnYesClass="btn-danger">
-</app-confirmation-dialog>
+<app-confirmation-dialog #confirm_action />
 
-<app-confirmation-dialog 
-    #order_confirmation 
-    modalTitle="Order confirmation"
-    modalText="This will issue an order of {{ order_amount }} {{ order_amount == 1 ? 'hat' : 'hats' }}.<br/>Quota will be reduced from your banks.<br/>Are you sure?"
-    [btnYesIcon]=faBasketShopping
-    btnYesText="Place order!"
-    btnYesClass="btn-success"
-    btnNoText="Cancel">
-</app-confirmation-dialog>
+<app-page-loading #page_loading [stretch_height]="true" *ngIf="loading" />
 
 <app-hat-allocation-editor-picker 
   #allocation_picker 
@@ -164,11 +149,13 @@
         [wing]="this.customerHat.wing"
         [stretch_width]="true"
         [show_titles_buttons]="false"
+        [show_only_custom_knives]="!customer.is_demo_customer"
+        [custom_knife_lengths]="customer.knives"
     />
 </app-modal-dialog>
 
   <!-- Entire page layout -->
-<div class="row justify-content-center">
+<div class="row justify-content-center" [hidden]="loading">
   <div class="col-xl-9 col-lg-11">
 
     <!-- Top buttons row -->
@@ -200,7 +187,8 @@
             [items]="wings"
             bindLabel="name"
             bindValue="id"
-            [(ngModel)]="selected_wing_id"        
+            [(ngModel)]="selected_wing_id"
+            class="wing-selector"
             >
           <ng-template ng-label-tmp let-item="item">
             <!-- Customize the selected label here -->
@@ -209,12 +197,12 @@
             </span>
           </ng-template>
 
-        <ng-template ng-option-tmp let-item="item">
-          <!-- Customize the dropdown options here -->
-          <span [className]="item.customer_id ? 'text-primary' : ''">
-            {{ item.name }} <span *ngIf="item.customer_id"> (private)</span>
-          </span>
-        </ng-template>
+          <ng-template ng-option-tmp let-item="item">
+            <!-- Customize the dropdown options here -->
+            <span [className]="item.customer_id ? 'text-primary' : ''">
+              {{ item.name }} <span *ngIf="item.customer_id"> (private)</span>
+            </span>
+          </ng-template>
           </ng-select>
         </div>
         <div *ngIf="is_wing_customized"style="margin-right: 10px;">
@@ -417,7 +405,7 @@
       
       </div>
       <div style="font-size: 12px;">
-        Based on diameter {{ this.diameter_inches }}" and crown width {{ this.customerHat.wing?.crown_width }} cm
+        Based on diameter {{ this.diameter_inches }}" and crown width {{ this.customerHat.wing.crown_width }} cm
       </div>
     </div>
     <!--/Wing number picker -->
@@ -516,7 +504,7 @@
 
       <div style="margin-bottom: 15px;"><strong>Measurements:</strong></div>
       
-      <div class="d-flex flex-row align-items-center measurement-row">
+      <div *ngIf="arr_knives.length > 0" class="d-flex flex-row align-items-center measurement-row">
         <div class="d-flex flex-row align-items-center" style="min-width: 150px;">
           <span class="icon-knife" style="font-size: 30px; margin-right: 10px;"></span>
           <label for="tempB">Knife:</label>
@@ -526,18 +514,25 @@
         <ng-select
           #knife_selector
           placeholder="Hat knife"
-          [ngModel]="customerHat.wing?.knife"
+          [ngModel]="customerHat.wing.knife"
           (ngModelChange)="knife_changed()"
           name="knife_selector"
           [clearable]="false"
           [disabled]="false"
           [searchable]="false">
+          <ng-template ng-label-tmp let-item="item" let-search="searchTerm">
+            <div class="option-table option-2-col">
+              <div class="cell">{{ item?.cm || customerHat.wing.knife | number:'1.2-2' }} cm</div>
+              <div class="cell">{{ ((item?.cm || customerHat.wing.knife) * cm_to_inch)  | number:'1.2-2' }}"</div>
+            </div>
+          </ng-template>
+
           <ng-option
             *ngFor="let item of arr_knives"
             [value]="item.cm">
             <div class="option-table option-2-col">
               <div class="cell">{{ item.cm | number:'1.2-2' }} cm</div>
-              <div class="cell">{{ item.inches | number:'1.2-2' }}"</div>
+              <div class="cell">{{ (item.cm * cm_to_inch) | number:'1.2-2' }}"</div>
             </div>
           </ng-option>
 
@@ -852,6 +847,17 @@
     <div *ngIf="total_num_of_possible_hats > 0 && customerHat.crown_allocation_id > 0 && customerHat.wall_allocation_id > 0">
 
       <div *ngIf="customerHat.tails_material_id != null && customerHat.tails_material_id > 0">
+
+        <div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" [(ngModel)]="customerHat.save_wing_for_customer"  id="chkSaveWing">
+          <label class="form-check-label" for="chkSaveWing">
+            Save this wing design for the customer {{ customer.name }}.
+            New wing name: <input type="text" [(ngModel)]="customerHat.save_wing_name_for_customer" [disabled]="!customerHat.save_wing_for_customer" placeholder="Enter wing name" />
+          </label>
+        </div>
+        </div>
+
       <div class="order-notes d-flex flex-row align-items-center flex-wrap">
         <span>Place the order for a specific date:</span>
         <input

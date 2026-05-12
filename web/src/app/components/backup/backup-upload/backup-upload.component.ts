@@ -29,41 +29,9 @@ export class BackupUploadComponent implements AfterViewInit {
   @ViewChild("backupFile") backupFile! :ElementRef;
   
   constructor(private backupService: BackupService, private toast: ToastService) {
-
-
   }  
+
   ngAfterViewInit(): void {
-    this.restore_confirm.confirm.subscribe(() => {
-      this.isProcessing = true;
-      const formData = new FormData();
-      if(this.file)
-        formData.append('file', this.file);
-
-      formData.append('data', JSON.stringify({ conf_del_all: this.overwriterestore }));
-
-      this.backupService.uploadBackup(formData).subscribe({
-        next: (response) => {
-          //this.message = response.message || 'File uploaded successfully!';
-          this.toast.showSuccess(response.message || 'File uploaded successfully!');
-          this.file = null;
-          this.filename = this.no_file_selected_message;
-          formData.delete("file");
-          formData.delete("data");
-          this.backupFile.nativeElement.value = "";
-          this.isProcessing = false;
-        },
-        error: (error) => {
-          this.toast.showError("Failed to process backup");
-          //console.dir(error);
-          this.file = null;
-          this.filename = this.no_file_selected_message;        
-          formData.delete("file");
-          formData.delete("data");
-          this.backupFile.nativeElement.value = "";
-          this.isProcessing = false;
-        },
-      });
-    });
   }
 
   // Handle drag over
@@ -116,11 +84,49 @@ export class BackupUploadComponent implements AfterViewInit {
       }
     }
 
-      // Upload the file to the server
-  onUpload(): void {
+  // Upload the file to the server
+  async onUpload() {
     if (!this.file) {
       return;
     }
-    this.restore_confirm.open();
+
+    const confirm_reply = await this.restore_confirm.open_with_message({
+      modalText: "Are you sure you want to upload and restore the system?<div class='text-danger'><strong>This will override your system!</strong></div>",
+      modalTitle: "Confirm restore",
+      btnYesIcon: faCloudUpload,
+      btnYesText: "Yes",
+      btnYesClass: "btn-danger"
+    });
+
+    if (confirm_reply) {
+      this.isProcessing = true;
+      const formData = new FormData();
+      if(this.file)
+        formData.append('file', this.file);
+
+      formData.append('data', JSON.stringify({ conf_del_all: this.overwriterestore }));
+      this.backupService.uploadBackup(formData).subscribe({
+        next: (response) => {
+          //this.message = response.message || 'File uploaded successfully!';
+          this.toast.showSuccess(response.message || 'File uploaded successfully!');
+          this.file = null;
+          this.filename = this.no_file_selected_message;
+          formData.delete("file");
+          formData.delete("data");
+          this.backupFile.nativeElement.value = "";
+          this.isProcessing = false;
+        },
+        error: (error) => {
+          this.toast.showError("Failed to process backup");
+          //console.dir(error);
+          this.file = null;
+          this.filename = this.no_file_selected_message;        
+          formData.delete("file");
+          formData.delete("data");
+          this.backupFile.nativeElement.value = "";
+          this.isProcessing = false;
+        },
+      });
+    } 
   }
 }

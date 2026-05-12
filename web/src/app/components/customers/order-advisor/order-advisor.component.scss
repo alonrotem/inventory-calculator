@@ -38,7 +38,7 @@ table tr td.spacer {
 }
 
 .assistant_table tr td:nth-child(2) input {
-    min-width: 200px;
+    min-width: 300px;
 }
 
 .assistant_info {
@@ -53,6 +53,10 @@ table tr td.spacer {
 
 ::ng-deep .ng-select-container {
     height: auto !important;
-    min-width: 200px;
+    /*min-width: 300px;*/
     width: auto !important;
+}
+
+.wing-selector {
+    width: 300px;
 }

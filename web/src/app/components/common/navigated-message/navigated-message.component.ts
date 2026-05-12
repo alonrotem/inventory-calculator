@@ -24,23 +24,35 @@ export abstract class NavigatedMessageComponent {
     }
   }
 
-  navigateWithToastMessage(destination: string, message: string, isError: boolean = false){
-    if(destination !== this.router.url) {
-      this.performNavigation(destination, message, isError);
+
+  navigateWithToastMessage(destination: string, message: string, isError: boolean = false, queryParams?: Record<string, any>) {
+    const currentUrlTree = this.router.parseUrl(this.router.url);
+    const destUrlTree = this.router.parseUrl(destination);
+    // Merge/override query params if provided
+    if (queryParams) {
+      destUrlTree.queryParams = { ...destUrlTree.queryParams, ...queryParams };
     }
-    else {
-      //handle navigation to the same url, which doesn't trigger navigation events and thus won't show the toast message if we rely on those events to show it. To work around this, we navigate away and then back to the destination.
+    const destUrlWithParams = this.router.serializeUrl(destUrlTree);
+
+    // Compare path and query params
+    const isSamePath = destUrlTree.root.toString() === currentUrlTree.root.toString();
+    const isSameQueryParams = JSON.stringify(destUrlTree.queryParams) === JSON.stringify(currentUrlTree.queryParams);
+
+    if (!isSamePath || !isSameQueryParams) {
+      this.performNavigation(destUrlWithParams, message, isError);
+    } else {
+      // If everything is the same, reload the same page with message
       this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-        this.performNavigation(destination, message, isError);
+        this.performNavigation(destUrlWithParams, message, isError);
       });
     }
   }
 
-  reloadTheSamePageWithToastMessage(message: string, isError: boolean = false){
-    this.navigateWithToastMessage(this.router.url, message, isError);
+  reloadTheSamePageWithToastMessage(message: string, isError: boolean = false, queryParams?: Record<string, any>) {
+    this.navigateWithToastMessage(this.router.url, message, isError, queryParams);
   }
 
-  performNavigation(destination: string, message: string, isError: boolean){
+  performNavigation(destination: string, message: string, isError: boolean) {
     console.log(`performNavigation to ${destination} with message: ${message} and isError: ${isError}`);
     // Parse the URL to extract path and query params
     const urlTree = this.router.parseUrl(destination);
@@ -48,9 +60,9 @@ export abstract class NavigatedMessageComponent {
       queryParams: urlTree.queryParams,
       queryParamsHandling: 'merge',
       state: {
-        info: { 
-          textInfo: message, 
-          isError: isError 
+        info: {
+          textInfo: message,
+          isError: isError
         }
       },
     });

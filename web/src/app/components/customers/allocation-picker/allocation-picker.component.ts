@@ -45,12 +45,6 @@ export class AllocationPickerComponent implements ModalContentDirective, ModalDi
   faTriangleExclamation: IconDefinition = faTriangleExclamation;
 
   ngAfterViewInit(): void {
-    this.pickConfirmation.confirm.subscribe((value: boolean) => {
-      this.dialogWrapper.onConfirm();
-    });
-    this.pickConfirmation.cancel.subscribe((value: boolean) => {
-      this.editedObject = -1;
-    });
   }
 
   open(bank_id: number) {
@@ -65,10 +59,22 @@ export class AllocationPickerComponent implements ModalContentDirective, ModalDi
     return true;
   }
 
-  allocation_clicked(allocation_id: number) {
+  async allocation_clicked(allocation_id: number) {
     this.editedObject = allocation_id;
     if(this.confirmAction){
-      this.pickConfirmation.open();
+      const result = await this.pickConfirmation.open_with_message({
+        modalText: "Are you sure you want to merge the baabies into this allocation?",
+        modalTitle: "Merge confirmation",
+        btnYesText: "Merge",
+        btnYesClass: "btn-warning"
+      });
+      
+      if(result){
+        this.dialogWrapper.onConfirm();
+      }
+      else {
+        this.editedObject = -1;
+      }     
     }
     else {
       this.dialogWrapper.onConfirm();

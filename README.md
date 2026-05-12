@@ -7,26 +7,41 @@ npm install --save bootstrap
 
 ng generate component home
 
+## BUGS
+* BUG: User can access any customer by ID
+* BUG: Making changes in allocation from the single hat calculator doesn't show all changes
+* Needed: Show "adjust my allocation" even if the user has enough to create a hat. Make it append, not replace babies.
+* Needed: make sure the user has permissions to create/update the specific wing, if he is connected to the right customer
+
 ## Wing functionality
 * Save wing -> "A wing by this name already exists, are you sure you want to save with the same name?"
+✅ Wing quick save - stay on page
+✅ Users quick save + invites + requests
+* Quick save: don't show if no permissions for changes
+✅ single hat calculator: save this wing for customer + name upon ordering!
+✅ Customer editor: show reduced wings list assigned to the customer
+✅ Wings list: mark customer-wings
 ✅ Clear wing button
 ✅ Copy wing from another
 ✅ Assign wing to specific customers
-* Something with the knife
-    * Knives list
-    * Assign knives to customers
-    * Customer can change the wing's knife - only to assigned knives
+✅ Something with the knife
+    ✅ Knives list
+    ✅ Assign knives to customers
+    ✅ Customer can change the wing's knife - only to assigned knives
 ✅ Crown "Add baby" button not working
 
-## General functionality
+## General functionality refactoring
 * Floating Save button
-* Use new confirmation await function
+✅ Use new confirmation await function
+* Make all dialogs async/await
+* Make all API calls async/await
+* "last update by" on materials, banks etc
 
 ## OPEN TODOs
  ✅ User invites section
  * Idenfity "customer" roles by the role permissions for customer_resources_by_customer_id
  ✅ Improve the navigation module to support more fluent features
- * "last update by" on materials, banks etc
+ 
 
 ## User flows
 

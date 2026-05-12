@@ -52,27 +52,35 @@ async function getSingleWingByName(name){
   return data;
 }
 
-async function getMultiple(page = 1, perPage, customer_id){
+async function getMultiple(page = 1, perPage, customer_id, customer_wings_only=false) {
   let subset =  '';
   let customer_field = 'null as customer_id,';
   let customer_join = '';
   let customer_filter = '';
+  let customers_only_filter = '';
+
+
   if(page && perPage && page > 0 && perPage > 0)
   {
     const offset = helper.getOffset(page, perPage);
     subset = `LIMIT ${offset},${perPage}`
   }
 
-
   if(customer_id && customer_id > 0) {
     customer_field = `wc.customer_id,`;
     customer_join = `left join wings_customers wc on wc.wing_id=w.id`;
     customer_filter = `and (wc.customer_id is null or wc.customer_id=${customer_id})`;
   }
+
+  if(customer_wings_only) {
+    customers_only_filter = `and EXISTS (SELECT 1 FROM wings_customers wc WHERE wc.wing_id = w.id)=1`;
+  }
   
   const rows = await db.query(
     `select 
-      w.id, w.name, w.knife, ${customer_field} w.split_l1, crown_width,
+      w.id, w.name, 
+      EXISTS (SELECT 1 FROM wings_customers wc WHERE wc.wing_id = w.id) AS is_customer_wing,
+      w.knife, ${customer_field} w.split_l1, crown_width,
       (SELECT COUNT(wb.id) + w.split_l1 FROM wings_babies wb, wings w
               WHERE wb.parent_wing_id = 31 and w.id=31 and wb.position like'L%') as 'Left',
       (SELECT COUNT(*) FROM wings_babies wb
@@ -86,6 +94,7 @@ async function getMultiple(page = 1, perPage, customer_id){
       where 
         w.id not in (select wing_id from customer_hats)
         ${customer_filter}
+        ${customers_only_filter}
       order by w.name ${subset};`
   );
   const total = await db.query(
@@ -95,7 +104,8 @@ async function getMultiple(page = 1, perPage, customer_id){
         wings w ${customer_join}
       where 
         w.id not in (select wing_id from customer_hats)
-        ${customer_filter}`
+        ${customer_filter}
+        ${customers_only_filter}`
   );
   const total_records = total[0].count;
   const total_pages = Math.ceil(total_records / perPage);
@@ -108,8 +118,8 @@ async function getMultiple(page = 1, perPage, customer_id){
   }
 }
 
-async function getWingsForCustomer(customerId) {
-  return await getMultiple(undefined, 0, customerId);
+async function getWingsForCustomer(customerId, customer_wings_only=false) {
+  return await getMultiple(undefined, 0, customerId, customer_wings_only);
 }
 
 //column names are shortened, to reduce traffic

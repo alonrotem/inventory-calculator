@@ -78,6 +78,19 @@ async function create(customerHat, currentUserId, active_connection=null){
 
     // save the wing specs & babies
     if(customerHat.wing) {
+
+        if(customerHat.save_wing_for_customer && customerHat.save_wing_name_for_customer){
+            //Save the wing as a regular wing, with the name in save_wing_name_for_customer
+            let wing_to_save = JSON.parse(JSON.stringify(customerHat.wing));
+            wing_to_save.name = customerHat.save_wing_name_for_customer;
+            wing_to_save.customers = [ { id: customerHat.customer_id } ];
+            let wing_info =  await wings.save(wing_to_save, active_connection);
+
+            //Assign the original wing to the order, but with the original name (not the one in save_wing_name_for_customer)
+            //customerHat.wing.id = wing_info.wing_id;
+            customerHat.original_wing_name = customerHat.save_wing_name_for_customer;
+        }
+
         let wing_info =  await wings.save(customerHat.wing, active_connection);
         wing_id = wing_info.wing_id;
 

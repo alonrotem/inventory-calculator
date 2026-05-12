@@ -21,7 +21,8 @@ export class HatsCalculatorDialogComponent {
     id: 0, name: '', business_name: '', email: '', phone: '', tax_id: '',
     created_at: new Date(), updated_at: new Date(), created_by: 0, updated_by: 0,
     banks: [], banks_baby_allocations: [], babies: [],
-    customer_code: '', order_seq_number: 0, is_demo_customer: false
+    customer_code: '', order_seq_number: 0, is_demo_customer: false,
+    knives: []
   };
   
   open() {

@@ -185,7 +185,7 @@ export class HatsCalculatorService {
         }
       }
     }
-
+    // console.log("Wing: ", wing?.name,  ", hats calculated:", hats.total_num_of_possible_hats);
     return hats;
   }
 

@@ -31,6 +31,7 @@ import { MiscUtils } from '../../../utils/misc-utils';
 import { SortBabiesPipe } from '../../../utils/pipes/sort-babies-pipe';
 import { CrownEditorComponent } from "../../wings/crown-editor/crown-editor.component";
 import { WingsEditorComponent } from "../../wings/wings-editor/wings-editor.component";
+import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
 
 /*
 sohortening top/crown with slider:
@@ -60,7 +61,8 @@ apply the sliders after the load
     FaIconComponent, ConfirmationDialogComponent, HatAllocationEditorPickerComponent, RouterLink,
     OrderAdvisorComponent, ModalDialogComponent, JsonPipe, SortBabiesPipe,
     CrownEditorComponent,
-    WingsEditorComponent
+    WingsEditorComponent,
+    PageLoadingComponent
 ],
   templateUrl: './single-hat-calculator.component.html',
   styleUrl: './single-hat-calculator.component.scss'
@@ -78,7 +80,8 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     id: 0, name: '', business_name: '', email: '', phone: '', tax_id: '',
     created_at: new Date(), updated_at: new Date(), created_by: 0, updated_by: 0,
     banks: [], banks_baby_allocations: [], babies: [],
-    customer_code: '', order_seq_number: 0, is_demo_customer: false
+    customer_code: '', order_seq_number: 0, is_demo_customer: false,
+    knives: []
   };
 
   //wing representations:
@@ -91,7 +94,10 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     customer_id: this.customer.id,
     shorten_top_by: 0,
     shorten_crown_by: 0,
-    wing: null,
+    wing: {
+      id: 0, name: '', knife: 0, allow_shortening_babies_in_pairs: false,
+      crown_width: 0, split_l1: 1, angled_crown: false, babies: [], customers: []
+    },
     wall_allocation_id: 0,
     crown_allocation_id: 0,
     tails_material_id: null,
@@ -107,18 +113,27 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     crown_visible: 0,
     crown_length: 0,
     tails_overdraft: 0,
-    single_hat_orders: []
+    single_hat_orders: [],
+    save_wing_for_customer: false,
+    save_wing_name_for_customer: ''
   };
   //the wing without customizations (shorten top or crown)
-  wing_unchanged: Wing | null = null;
+  wing_unchanged: Wing = {
+    id: 0, name: '', knife: 0, allow_shortening_babies_in_pairs: false,
+    crown_width: 0, split_l1: 1, angled_crown: false, babies: [], customers: []
+  };
   //the original wing loaded (uncustomized at all, in order to revert all changes)
-  wing_original: Wing | null = null; //to track changes in the wing
+  wing_original: Wing = {
+    id: 0, name: '', knife: 0, allow_shortening_babies_in_pairs: false,
+    crown_width: 0, split_l1: 1, angled_crown: false, babies: [], customers: []
+  }; //to track changes in the wing
   crown_width_original : number | null = null;
   
   @ViewChild("wing_selector") wing_selector!: NgSelectComponent;
   @ViewChild("length_editor") length_editor!: BabyLengthModalComponent;
-  @ViewChild("reset_confirmation") reset_confirmation!: ConfirmationDialogComponent;
-  @ViewChild("order_confirmation") order_confirmation!: ConfirmationDialogComponent;
+  @ViewChild("confirm_action") confirm_action!: ConfirmationDialogComponent;
+  //@ViewChild("reset_confirmation") reset_confirmation!: ConfirmationDialogComponent;
+  //@ViewChild("order_confirmation") order_confirmation!: ConfirmationDialogComponent;
   @ViewChild("allocation_picker") allocation_picker!: HatAllocationEditorPickerComponent;
   @ViewChild("order_wing_adjustment") order_wing_adjustment!: ModalDialogComponent;
   @ViewChild("advisor") advisor!: OrderAdvisorComponent;
@@ -154,20 +169,15 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   min_knife:number = 4;
   max_knife:number = 12.5;
   knife_steps: number = 0.5;
+
+  arr_knives: {cm: number, inches: number}[] = [];
   /*
   arr_knives: number[] = Array(
     (this.max_knife - this.min_knife)*2+1)
     .fill(this.min_knife)
     .map((_,i) => _ + i * this.knife_steps);
   */
-   arr_knives = Array((this.max_knife - this.min_knife) * ( 1/this.knife_steps) + 1)
-    .fill(this.min_knife).map((_,i) => { 
-      return { 
-        cm: ((_ + i * this.knife_steps) ),
-        inches: ((_ + i * this.knife_steps) * this.cm_to_inch), 
-      }
-    }
-  );
+
   wing_knife: number = 0;
   
   min_wing_total_height:number = 15;
@@ -293,6 +303,8 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   total_num_of_possible_hats: number = 0;
   highlight_lowest_number_in_table: boolean =  false;
 
+  loading: boolean = true;
+
   constructor(
     private customersService: CustomersService,
     private wingsService:WingsService, 
@@ -355,12 +367,6 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       }
     });
 
-    this.reset_confirmation.confirm.subscribe({
-      next: () => {
-        this.reset_wing_changes();
-      }
-    });
-
     this.order_wing_adjustment.confirm.subscribe({
       next: () => {
         /*
@@ -384,13 +390,31 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   }
 
   getCustomer(id: number){
-    this.console.log("Getting customer with id " + id);
+    //this.console.log("Getting customer with id " + id);
     if(id == 0)
       return;
     
     this.customersService.getCustomer(id).subscribe(
     {
       next: (customer: Customer) => {
+
+        this.arr_knives = (customer.is_demo_customer) ?
+          Array((this.max_knife - this.min_knife) * ( 1/this.knife_steps) + 1)
+            .fill(this.min_knife).map((_,i) => { 
+              return { 
+                cm: ((_ + i * this.knife_steps) ),
+                inches: ((_ + i * this.knife_steps) * this.cm_to_inch), 
+              }
+            }
+          ) : 
+        customer.knives.map(knife => { 
+            return { 
+              cm: knife,
+              inches: (knife * this.cm_to_inch), 
+            }
+          }
+        );
+
         //failed to fetch material with ID, returned an empty object
         if(Object.keys(customer).length == 0) {
           this.gotoCustomersList("Could not find customer with ID " + id, true);
@@ -492,9 +516,11 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
           }
           //this.recauculate_overdraft_tails();
           this.calculateVisibleCrown();
+          this.loading = false;
       }})},
       error: (error) => {
         console.log(error);
+        this.loading = false;
       }
     })
   }
@@ -637,7 +663,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.hat_babies = [];
     if(selectedWingId) {
       this.wingsService.getWing(selectedWingId).subscribe((w:Wing) => {
-        this.advisor.wing = w;
+        this.advisor!.wing = w;
         //once the customer selects a wing, it gets copied into a new wing which can be customized
         //also given a new name, and will be saved under the hat of the customer.
         //the order won't be affected if the parent wing itself changes.
@@ -682,7 +708,10 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   }
 
   wing_cleared(){
-    this.customerHat.wing = null;
+    this.customerHat.wing = {
+      id: 0, name: '', knife: 0, allow_shortening_babies_in_pairs: false,
+      crown_width: 0, split_l1: 1, angled_crown: false, babies: [], customers: []
+    };
   }
 
   wall_material_changed(material: RawMaterialNameColor){
@@ -890,7 +919,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   knife_changed(){
     //console.dir();
     if(this.customerHat.wing && this.knife_selector.selectedValues.length > 0){
-     this.customerHat.wing.knife = this.knife_selector.selectedValues[0].cm;
+     this.customerHat.wing.knife = this.knife_selector.selectedValues[0];
      this.recalculate_hat_size();
     }
   }
@@ -1007,21 +1036,26 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.calculateVisibleCrown();
   }
 
-  confirm_reset(){
-    this.reset_confirmation.open();
-  }
-
-  reset_wing_changes(){
-    this.customerHat.wing = (JSON.parse(JSON.stringify(this.wing_original)));
-    this.wing_unchanged = (JSON.parse(JSON.stringify(this.wing_original)));
-    this.customerHat.shorten_top_by = 0;
-    this.customerHat.shorten_crown_by = 0;
-    if(this.crown_width_original != null && this.customerHat.wing){
-      this.customerHat.wing.crown_width = this.crown_width_original;
+  async confirm_reset(){
+    const confirmed = await this.confirm_action.open_with_message({
+      modalTitle: "Reset customizations",
+      modalText: "Are you sure you want to reset the changes made to this wing?",
+      btnYesIcon: faArrowsRotate,
+      btnYesText: "Reset",
+      btnYesClass: "btn-danger"
+    });
+    if(confirmed){
+      this.customerHat.wing = (JSON.parse(JSON.stringify(this.wing_original)));
+      this.wing_unchanged = (JSON.parse(JSON.stringify(this.wing_original)));
+      this.customerHat.shorten_top_by = 0;
+      this.customerHat.shorten_crown_by = 0;
+      if(this.crown_width_original != null && this.customerHat.wing){
+        this.customerHat.wing.crown_width = this.crown_width_original;
+      }
+      this.margins_changed();
+      this.check_for_wing_changes();
+      this.calculateVisibleCrown();
     }
-    this.margins_changed();
-    this.check_for_wing_changes();
-    this.calculateVisibleCrown();
   }
 
   update_table_instructions(){
@@ -1157,6 +1191,29 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         next:(data) => { 
           //this.console.dir(data);
           this.toastService.showSuccess(data["message"]);
+          //refresh the wings, if they were changed by the order
+          this.wingsService.getWings_for_customer(this.customer.id).subscribe(wingsListInfo => {
+            this.wings = wingsListInfo.data.sort((w1:WingsListItem, w2:WingsListItem) => {
+              //this.console.log(w1.name);
+              const w1_len = w1.name.match(/[^\d]*(\d*)[^\d]*/);
+              const w2_len = w2.name.match(/[^\d]*(\d*)[^\d]*/);
+              if(w1_len && w2_len && w1_len.length > 1 && w2_len.length > 1){
+                return Number(w2_len[1]) - Number(w1_len[1]);
+              }
+              else {
+                return 0;
+              }
+            });
+            if(this.customerHat.save_wing_for_customer && this.customerHat.save_wing_name_for_customer){
+              const new_wing_created = this.wings.find(w => w.name == this.customerHat.save_wing_name_for_customer);
+              if(new_wing_created){
+                this.selected_wing_id = new_wing_created.id;
+              }
+              this.customerHat.save_wing_for_customer = false;
+              this.customerHat.save_wing_name_for_customer = "";
+            }
+          });
+
           this.customerHat.wing?.babies.forEach((hatBaby: WingBaby) => {
             let allocationBaby = hatBaby.position.toUpperCase().startsWith("C")?
               this.customer.babies.find(b => b.allocation_id == this.crown_allocation?.id && b.length == hatBaby.length) : 

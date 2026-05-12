@@ -43,16 +43,17 @@ async function getSingle(id, currentUserId){
     const customer_banks_allocations = helper.emptyOrRows(customer_banks_allocations_recs);
     customer.banks_baby_allocations = customer_banks_allocations;
 
-    const customer_baby_recs =  await db.query(
+    customer.babies =  helper.emptyOrRows(await db.query(
       `select 
         b.id, b.allocation_id, b.length, b.quantity, quantity_in_pending_orders
       from allocation_babies b 
       where b.allocation_id in (select cbb.id
       from customer_banks_allocations cbb 
-      where cbb.customer_bank_id in (select cb.id from customer_banks cb where cb.customer_id=(?)));`,[id]);
+      where cbb.customer_bank_id in (select cb.id from customer_banks cb where cb.customer_id=(?)));`,[id]));
 
-    const customer_babies = helper.emptyOrRows(customer_baby_recs);
-    customer.babies = customer_babies;
+    customer.knives = helper.emptyOrRows(await db.query(
+      `select knife from customer_knives where customer_id=(?);`, [id]))
+      .map(k => k.knife);
   }      
   return customer;
 }
@@ -404,9 +405,16 @@ async function save(customer, currentUserId, active_connection=null){
     ${columns.map(c => c+"=new_customers." + c).join(", ")}`,
     values,
     active_connection);
+  
 
     customer.id = (isNew)? result.insertId : customer.id;
     let bank_ids_info = await sync_customer_banks(customer, active_connection);
+
+    await db.transaction_query(`delete from customer_knives where customer_id=(?);`, [customer.id], active_connection);
+    if(customer.knives && customer.knives.length > 0){
+      const knife_values = customer.knives.map(knife => [customer.id, knife]);
+      await db.transaction_query(`insert into customer_knives (customer_id, knife) values ?`, [knife_values], active_connection);
+    }
 
     if(self_executing) {
       await db.transaction_commit(active_connection);
@@ -442,14 +450,14 @@ async function save(customer, currentUserId, active_connection=null){
         }
       });
 
-      saved_customer.banks_baby_allocations.forEach(saved_allocation => {
-        let alloc_id = bank_ids_info.allocation_ids.find(allocation_id_info => allocation_id_info.post_save_id == saved_allocation.id);
-        //console.log("found saved allocation info. before: " + alloc_id.pre_save_id + " -after-> " + saved_allocation.id);
-        if(alloc_id){
-          saved_allocation.pre_save_id = alloc_id.pre_save_id;
-        }
-      });
-    }
+    saved_customer.banks_baby_allocations.forEach(saved_allocation => {
+      let alloc_id = bank_ids_info.allocation_ids.find(allocation_id_info => allocation_id_info.post_save_id == saved_allocation.id);
+      //console.log("found saved allocation info. before: " + alloc_id.pre_save_id + " -after-> " + saved_allocation.id);
+      if(alloc_id){
+        saved_allocation.pre_save_id = alloc_id.pre_save_id;
+      }
+    });
+  }
 
     return { 
       message: "Saved successfully",

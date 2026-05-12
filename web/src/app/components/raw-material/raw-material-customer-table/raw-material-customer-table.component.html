@@ -1,21 +1,5 @@
-<app-confirmation-dialog 
-    #delete_confirmation 
-    modalTitle="Delete confirmation"
-    modalText=""
-    [btnYesIcon]=faTrashAlt
-    btnYesText="Delete"
-    btnYesClass="btn-danger">
-</app-confirmation-dialog>
 
-<app-confirmation-dialog
-  #not_enough_material
-  modalTitle="Not enough material!"
-  modalText="Not enough remaining material to top up.<br/>Please increase the raw material quantity."
-  btnYesText="I see..."
-  btnYesClass="btn btn-warning m-auto"
-  btnNoClass="d-none"
-  [dialogIcon]="faTriangleExclamation"
-  />
+<app-confirmation-dialog #confirm_action />
 
 <app-raw-material-customer-dialog  #bank_editor></app-raw-material-customer-dialog>
 

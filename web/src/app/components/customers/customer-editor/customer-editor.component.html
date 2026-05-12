@@ -1,15 +1,15 @@
 <app-confirmation-dialog 
-    #delete_confirmation 
-    modalTitle="Delete confirmation"
-    modalText="Are you sure you want to delete this customer, {{ customerItem.name }}?"
-    [btnYesIcon]=faTrashAlt
-    btnYesText="Delete"
-    btnYesClass="btn-danger">
-</app-confirmation-dialog>
+    #delete_confirmation />
 
 <app-unsaved-changes-dialog #unsaved_changes_dialog></app-unsaved-changes-dialog>
 
 <app-hats-calculator-dialog #hats_calculator />
+
+<app-save-changes-button 
+    #save_changes_button 
+    [show]="(!this.customer_form.pristine || hasUnsavedBankChanges)" 
+    (save)="saveCustomer(false)"
+    />
 
 <div class="row justify-content-center">
     <div class="col-12 col-md-9">
@@ -115,7 +115,24 @@
                             Show the smart hats calculation advisor
                         </label>
                     </div>
-                </div>               
+                </div>
+
+                <div class="advanced-row" *ngIf="!customerItem.is_demo_customer">
+                    <div>Allow the customer to pick the following knife lengths:</div>
+                    <app-babies-length-picker
+                        #knives_length_picker
+                        [selected_lengths]="customerItem.knives"
+                        (lengthChange)="customerItem.knives = $event; customer_form.form.markAsDirty()" 
+                        [multi_select]="true"
+                        [title]="''"
+                        [min_length]=4
+                        [max_length]=12.5                        
+                        />
+                    <div><a href="javascript:void(0)" (click)="selectUnselectAllKnives()">Select/unselect all</a></div>
+                </div>
+                <div class="advanced-row" *ngIf="customerItem.is_demo_customer">
+                    <fa-icon class="me-2" [icon]="faTriangleExclamation" size="1x"></fa-icon> Demo customers can have any knife length they want!
+                </div>
             </div>
         </div>
 
@@ -131,6 +148,31 @@
             <span class='icon-calculator1'></span>
             <div>Calculate &amp; order</div>
         </button>
+    </div>
+</div>
+
+<div class="row" style="margin: 20px 0px;" *ngIf="!customerItem.is_demo_customer">
+    <div class="col">
+
+        <div class="accordion" id="accordionExample">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                    <span class="icon-feather-wing me-2"></span> Wings of this customer
+                </button>
+                </h2>
+                <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    <app-wings-table 
+                        [customerId]="customerItem.id" 
+                        [showOnlyCustomerWings]="true"
+                        [full_width]="true"
+                        [show_title]="false"
+                        />        
+                </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

@@ -28,42 +28,52 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   faPencil: IconDefinition = faPencil;
   faTriangleExclamation: IconDefinition = faTriangleExclamation;
   
-  @ViewChild('delete_confirmation') delete_confirmation!: ConfirmationDialogComponent;
+  @ViewChild('confirm_action') confirm_action!: ConfirmationDialogComponent;
+  //@ViewChild('delete_confirmation') delete_confirmation!: ConfirmationDialogComponent;
   @ViewChild("bank_editor") bank_editor!: RawMaterialCustomerDialogComponent;
   @ViewChild("top_up_dialog") top_up_dialog! :RawMaterialQuantityDialogComponent;
-  @ViewChild("not_enough_material") not_enough_material! :RawMaterialQuantityDialogComponent;
+  //@ViewChild("not_enough_material") not_enough_material! :RawMaterialQuantityDialogComponent;
 
   @Input() banks: RawMaterialCustomerBank[] = [];
   @Input() parent_raw_material: RawMaterial | null = null;
   @Output() banksChanged: EventEmitter<void> = new EventEmitter();
   @Output() unsaved_changes: boolean = false;
 
-  pending_delete_index:number = -1;
+  // pending_delete_index:number = -1;
   banks_summary_string = "";
   banks_loaded_quantities: any[] = [];
   topped_up_bank : RawMaterialCustomerBank | null = null;
 
-  deleteBank(index:number, bank: RawMaterialCustomerBank){
-    this.delete_confirmation.modalText = `Are you sure you want to delete this bank for customer <strong>${bank.name}</strong>?`;
-    this.delete_confirmation.open();
-    this.pending_delete_index = index;
-  }
+  /*
+  <app-confirmation-dialog 
+    #delete_confirmation 
+    modalTitle="Delete confirmation"
+    modalText=""
+    [btnYesIcon]=faTrashAlt
+    btnYesText="Delete"
+    btnYesClass="btn-danger">
+</app-confirmation-dialog>
+  */
+  async deleteBank(index:number, bank: RawMaterialCustomerBank){
 
-  ngAfterViewInit(): void {
-    this.delete_confirmation.confirm.subscribe((value: Boolean) => {
-      if(this.pending_delete_index >= 0){
-        this.banks.splice(this.pending_delete_index, 1);
+    const confirmed = await this.confirm_action.open_with_message({
+      modalTitle: "Delete confirmation",
+      modalText: `Are you sure you want to delete this bank for customer <strong>${bank.name}</strong>?`,
+      btnYesIcon: faTrashAlt,
+      btnYesText: "Delete",
+      btnYesClass: "btn-danger"
+    });
+    if(confirmed) {
+      if(index >= 0){
+        this.banks.splice(index, 1);
       }
-      this.pending_delete_index = -1;
       this.recalculateSums();
       this.banksChanged.emit();
       this.unsaved_changes = true;
-    });
+    }
+  }
 
-    this.delete_confirmation.cancel.subscribe(() => {
-      this.pending_delete_index = -1;
-    });
-
+  ngAfterViewInit(): void {
     this.bank_editor.dialogWrapper.confirm.subscribe((b: RawMaterialCustomerBank)=>{ 
       this.closedCustomerEditor(b); 
     });
@@ -179,7 +189,7 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
     this.unsaved_changes = true;
   }
 
-  top_up(bank :RawMaterialCustomerBank) {
+  async top_up(bank :RawMaterialCustomerBank) {
     if(this.parent_raw_material && this.parent_raw_material.remaining_quantity > 0){
       this.top_up_dialog.dialogWrapper.modalTitle = "+ Top up customer bank";
       this.top_up_dialog.show_units_to_kg_adjustment = (this.parent_raw_material.quantity_units == "kg");
@@ -198,7 +208,14 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
       this.top_up_dialog.open();
     }
     else {
-      this.not_enough_material.open();
+     await this.confirm_action.open_with_message({
+        modalTitle: "Not enough material!",
+        modalText: "Not enough remaining material to top up.<br/>Please increase the raw material quantity.",
+        btnYesText: "I see...",
+        btnYesClass: "btn btn-warning m-auto",
+        btnNoClass: "d-none",
+        dialogIcon: faTriangleExclamation,
+      });
     }
   }
 }

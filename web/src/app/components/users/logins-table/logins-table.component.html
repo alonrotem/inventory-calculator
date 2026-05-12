@@ -3,22 +3,7 @@
     [icon_size]="'2x'"  
     *ngIf="fetching" />
 
-<app-confirmation-dialog 
-    #clear_logins_confirm
-    [modalTitle]="'Log everyone out?'"
-    [btnYesClass]="'btn-danger'"
-    [btnYesIcon]="faBan"
-    (confirm)="clearLogins_confirmed()"
-    />
-
-<app-confirmation-dialog 
-    #clear_single_login_confirm
-    [modalTitle]="'Cancel this login?'"
-    [modalText]="'<div class=\'text-warning\'>This will log out this device.</div>Are you sure?'"
-    [btnYesClass]="'btn-danger'"
-    [btnYesIcon]="faBan"
-    (confirm)="clearLogins_confirmed()"
-    />
+<app-confirmation-dialog #confirm_action />
 
 <div *ngIf="!fetching">
     <div *ngIf="user_logins.length > 0">

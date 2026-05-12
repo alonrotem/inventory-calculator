@@ -1,0 +1,31 @@
+
+.save-changes-fixed-bar {
+  position: fixed;
+  top: 83px;
+  right: 32px;
+  z-index: 9999;
+  background: var(--bs-success);
+  /*border-radius: 4px;*/
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  will-change: transform, opacity;
+}
+
+.save {
+  display: inline-block;
+  padding: 8px 16px;
+  background: transparent;
+  color: white;
+  border: none;
+  /*border-radius: 4px;*/
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.save:hover {
+  background-color: #0056b3;
+}

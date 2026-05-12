@@ -1,11 +1,5 @@
-<app-confirmation-dialog #confirm_delete_logs
-  modalTitle="Clear system logs"
-  modalText="Are you sure you want to delete all the system logs?"
-  [btnYesIcon]=faTrash
-  btnYesText="Clear 'em!"
-  btnYesClass="btn-danger"
-  btnNoText="Cancel"
-/>
+<app-confirmation-dialog #confirm_delete_logs />
+
 <app-modal-dialog 
     #log_preview
     [btnSaveClass]="'d-none'"

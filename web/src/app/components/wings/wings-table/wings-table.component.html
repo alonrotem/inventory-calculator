@@ -1,5 +1,5 @@
-<div class="row justify-content-center"><div class="col-12 col-md-9">
-<h1><span class="icon-feather-wing"></span> Wings</h1>
+<div class="row justify-content-center"><div class="col-12 {{ full_width ? '':'col-md-9'}}">
+<h1 *ngIf="show_title"><span class="icon-feather-wing"></span> Wings</h1>
 
   <app-page-loading 
       [loading_message]="'Loading wings...'" 
@@ -8,7 +8,7 @@
       [stretch_height]="true" />
 
 <div [hidden]="loading">
-  <a id="btnNewRaw" class="btn btn-primary" routerLink="/templates/wings/editor">+ Wing</a>
+  <a id="btnNewRaw" class="btn btn-primary" routerLink="/templates/wings/editor" [queryParams]="{ c_id: customerId }">+ Wing</a>
 
   <div class="infotitle" [hidden]="loading || this.wingsList.length <= 0">Total: {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'wing':'wings' }}</div>
 
@@ -27,8 +27,8 @@
       <tr 
         *ngFor="let wing of this.wingsList" 
         routerLink="/templates/wings/editor" 
-        [queryParams]="{ id: wing.id }" role="button">
-        <td class="text-nowrap">{{ wing.name }}</td>
+        [queryParams]="{ id: wing.id, c_id: customerId }" role="button">
+        <td class="text-nowrap {{wing.is_customer_wing?'text-primary':''}}">{{ wing.name }}{{ wing.is_customer_wing ? ' (customer)' : '' }}</td>
         <td><span class="icon-knife"></span> {{ wing.knife | number: '1.1-1' }} cm</td>
         <td><span class="icon-feather-wing"></span> L ({{ wing.Left }})</td>
         <td><span class="icon-feather-wing-r"></span> R ({{ wing.Right }})</td>

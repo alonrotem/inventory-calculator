@@ -48,9 +48,10 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
   message_to_requester_on_decline: string = "";
   @ViewChild("customer_picker") customer_picker!: CustomerPickerComponent;
   @ViewChild("chkCreateNewCustoemr") chkCreateNewCustoemr!: ElementRef;
-  @ViewChild("confirm_approval_dialog") confirm_approval_dialog! :ConfirmationDialogComponent;
-  @ViewChild("confirm_deletion_dialog") confirm_deletion_dialog! :ConfirmationDialogComponent;
-  @ViewChild("error_dialog") error_dialog! :ConfirmationDialogComponent;
+  @ViewChild("confirm_action") confirm_action! :ConfirmationDialogComponent;
+  // @ViewChild("confirm_approval_dialog") confirm_approval_dialog! :ConfirmationDialogComponent;
+  // @ViewChild("confirm_deletion_dialog") confirm_deletion_dialog! :ConfirmationDialogComponent;
+  // @ViewChild("error_dialog") error_dialog! :ConfirmationDialogComponent;
   @ViewChild("confirm_decline_dialog") confirm_decline_dialog! :ModalDialogComponent;
 
   //selectedCustomerIDs: number [] = [];
@@ -115,7 +116,7 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
     }
   }
 
-  getAccountRequestDetails(id: number) {
+  async getAccountRequestDetails(id: number) {
     this.loading = true;
     this.usersService.getAccountRequestDetails(id).subscribe({
       next: (req: AccountRequestDetails) => {
@@ -124,10 +125,17 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
         this.loading = false;
         this.set_instructions_and_approval_btn_status();
       },
-      error: (error: any) => {
+      error: async (error: any) => {
         this.toastService.showError(error.error.message);
-        this.error_dialog.modalText = `An error has occurred fetching this request:<br/>${error.error.message}`;
-        this.error_dialog.open();
+        await this.confirm_action.open_with_message({
+          modalText: `An error has occurred fetching this request:<br/>${error.error.message}`,
+          modalTitle: 'Error',
+          btnYesText: 'Back to the list',
+          btnYesClass: 'btn-warning',
+          btnYesIcon: faArrowLeft,
+          btnNoClass: 'd-none'
+        });
+        this.go_to_account_requests();
         this.loading = false;
       }
     });
@@ -159,27 +167,30 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
     }
   }
 
-  confirm_approval(){
-    let role_name = (['a','e','i','o','u'].indexOf(this.request.role.name.toLowerCase()[0]) == 0)? "an" : "a";
-    if(this.request.role.name.toLowerCase() == 'administrator'){
-      role_name += `<span class='text-danger'> ${this.request.role.name.toLowerCase()}<span>`;
-      this.confirm_approval_dialog.dialogIcon = faTriangleExclamation;
-      this.confirm_approval_dialog.dialogIconClass = "text-warning";
-    }
-    else {
-      role_name += ` ${this.request.role.name.toLowerCase()}`;
-      this.confirm_approval_dialog.dialogIcon = faUser;
-      this.confirm_approval_dialog.dialogIconClass = "";
-    }
-    this.confirm_approval_dialog.modalText = `Are you sure you want to confirm this request for this user as ${role_name}?`;
-    this.confirm_approval_dialog.open();
-  }
+  async confirm_approval(){
+    const is_admin = (this.request.role.name.toLowerCase() == 'administrator');
 
-  confirm_approval_confirmed() {
+    let role_name = (['a','e','i','o','u'].indexOf(this.request.role.name.toLowerCase()[0]) == 0)? "an" : "a" +
+      ((is_admin)? 
+        `<span class='text-danger'> ${this.request.role.name.toLowerCase()}<span>` :
+        ` ${this.request.role.name.toLowerCase()}`);
+
+    const confirmed = await this.confirm_action.open_with_message({
+      modalText: `Are you sure you want to confirm this request for this user as ${role_name}?`,
+      modalTitle: 'Confirm approval',
+      btnYesText: 'Approve',
+      btnNoText: 'Cancel',
+      btnYesIcon: faCheck,
+      btnYesClass: 'btn-success',
+      dialogIcon: (is_admin)? faTriangleExclamation : faUser,
+      dialogIconClass: (is_admin)? "text-warning" : ""
+    });
+    if(confirmed){
     this.usersService.approveAccountRequest(this.request).subscribe({
       next: (result: any) => { this.navigateWithToastMessage("users/account_requests", "Request approved successfully", false); /*this.toastService.showSuccess(result); console.dir(result);*/ },
       error: (error: any) => { this.toastService.showError(error.error.message); console.dir(error); }
     });
+  }
   }
 
   go_to_orders(customer_id: number, customer_name: string){    
@@ -197,20 +208,25 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
     });
   }
 
-  deleteRequest(){
-    this.confirm_approval_dialog.modalText = `Are you sure you want to delete this request?`;
-    this.confirm_deletion_dialog.open();
-  }
-
-  delete_request_confirmed() {
-    this.usersService.deleteAccountRequest(this.request.id).subscribe({
-      next: (response: boolean) => {
-        this.navigateWithToastMessage('users/account_requests', 'Request deleted successfully', false);
-      },
-      error: (err: any) => {
-        this.toastService.showError(err.error["message"]);
-      }
+  async deleteRequest(){
+    const confirmed = await this.confirm_action.open_with_message({
+      modalText: `Are you sure you want to delete this request?`,
+      modalTitle: 'Delete request?',
+      btnYesText: 'Delete',
+      btnNoText: 'Cancel',
+      btnYesIcon: faTrash,
+      btnYesClass: 'btn-danger'
     });
+    if(confirmed){
+      this.usersService.deleteAccountRequest(this.request.id).subscribe({
+        next: (response: boolean) => {
+          this.navigateWithToastMessage('users/account_requests', 'Request deleted successfully', false);
+        },
+        error: (err: any) => {
+          this.toastService.showError(err.error["message"]);
+        }
+      });
+    }
   }
 
   reset_decline_dialog(){

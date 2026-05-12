@@ -21,7 +21,9 @@
         </div>
             -->
         <div>
-            <app-babies-length-picker #length_picker [(length)]="highlighted_baby_length" />
+            <app-babies-length-picker #length_picker 
+                [selected_lengths]="[highlighted_baby_length]" 
+                (lengthChange)="highlighted_baby_length = $event[0]" />
         </div>
     </div>
     <div class="form-floating mt-3">

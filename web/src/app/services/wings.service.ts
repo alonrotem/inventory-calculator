@@ -32,8 +32,9 @@ export class WingsService {
     });
   };
 
-  getWings_for_customer = (customerID: number): Observable<WingsList> => {
+  getWings_for_customer = (customerID: number, customerWingsOnly: boolean=false): Observable<WingsList> => {
     return this.apiService.get(`${environment.serverUrl}/wings/customer/${customerID}`, {
+      params: { customerWingsOnly },
       responseType: 'json'
     });
   };
@@ -89,6 +90,10 @@ export class WingsService {
     }
     return of(wing_data);
     */
+  }
+
+  get_wing_ids_assigned_to_customer = (customer_id: number): Observable<number[]> => {
+    return this.apiService.get(`${environment.serverUrl}/wings/customer/${customer_id}/wing_ids`, { responseType: 'json' }) as Observable<number[]>;
   }
 
   sort_babies(items: WingBaby[], reversed: boolean = false): WingBaby[] {

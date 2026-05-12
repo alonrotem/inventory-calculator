@@ -199,8 +199,10 @@ async function save_material(rawMaterial, active_connection=null){
     }
     if(self_executing) {
       await db.transaction_commit(active_connection);
-    }    
-    return {message};
+    }
+    const material = await getSingle(id);
+    
+    return {message, material};
   }
   catch(error){
     if(self_executing) {

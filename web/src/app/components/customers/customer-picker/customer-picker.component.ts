@@ -43,7 +43,7 @@ export class CustomerPickerComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     console.log("CustomerPickerComponent ngOnChanges called with changes:");
     console.dir(changes);
-    if(changes['pickedCustomers']){
+    if(changes['pickedCustomers'] && changes['pickedCustomers'].currentValue){
       this.pickedCustomers = changes['pickedCustomers'].currentValue.filter((c: BasicCustomerInfo) => !c.is_demo_customer);
     }
   }

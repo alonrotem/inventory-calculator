@@ -1,11 +1,11 @@
 <app-confirmation-dialog 
-    #delete_confirmation 
-    modalTitle="Delete confirmation"
-    modalText="Are you sure you want to delete this raw material, {{ rawMaterialItem.name }}?"
-    [btnYesIcon]=faTrashAlt
-    btnYesText="Delete"
-    btnYesClass="btn-danger">
-</app-confirmation-dialog>
+    #delete_confirmation />
+
+<app-save-changes-button 
+    #save_changes_button 
+    [show]="(!this.raw_material_form.pristine || this.customer_table.unsaved_changes)" 
+    (save)="save(false)"
+    />
 
 <app-unsaved-changes-dialog #unsaved_changes_dialog></app-unsaved-changes-dialog>
 
@@ -17,7 +17,6 @@
 
 <div class="row justify-content-center">
 <div class="col-12 col-md-8">
-
     <h3><span class="icon-leaf"></span> {{ this.title }}</h3>
 
     <form novalidate #raw_material_form="ngForm" [id]="'raw_material_form'">

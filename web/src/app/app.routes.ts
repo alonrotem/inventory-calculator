@@ -62,7 +62,7 @@ export const routes: Routes = [
         component: WingsEditorComponent,
         canDeactivate: [UnsavedChangesGuard],
         canActivate: [ authGuard ],
-        data: { permissions: [{ area: 'wings', permission: 'R' }] }
+        data: { permissions: [{ area: 'wings', permission: 'R' }, { area: 'wings_through_orders', permission: 'R' }] }
     },
     {
         path: 'inventory/customers',

@@ -69,11 +69,22 @@
                         [items]="systemWings"
                         bindLabel="name"
                         bindValue="id"
-                        [(ngModel)]="assistant_selected_wing_id"        
+                        [(ngModel)]="assistant_selected_wing_id"
+                        class="wing-selector"
                         >
-                        @for (wing of systemWings; track wing) {
-                            <ng-option [value]="wing.id">{{ wing.name }}</ng-option>
-                        }
+                        <ng-template ng-label-tmp let-item="item">
+                            <!-- Customize the selected label here -->
+                            <span [className]="item.customers[0].id == customer_id ? 'text-primary' : ''">
+                            {{ item.name }} <span *ngIf="item.customers[0].id == customer_id"> (private)</span>
+                            </span>
+                        </ng-template>
+
+                        <ng-template ng-option-tmp let-item="item">
+                            <!-- Customize the dropdown options here -->
+                            <span [className]="item.customers[0].id == customer_id ? 'text-primary' : ''">
+                            {{ item.name }} <span *ngIf="item.customers[0].id == customer_id"> (private)</span>
+                            </span>
+                        </ng-template>
                         </ng-select>
                     </td>
                 </tr>
@@ -174,6 +185,7 @@
         <div class="message">
             <div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon> With this allocation you can make up to {{ suggestions.max_num_of_hats }} {{ (suggestions.max_num_of_hats == 1)? 'hat': 'hats' }} of type <strong>{{ suggestions.max_hat_wing_name }}</strong></div>
             <div *ngIf="show_options_button"><button class="btn btn-success" (click)="openAdviseTable()">Show me!</button></div>
+            <!--div *ngIf="(show_help_me_adjust_button && wall_allocation && crown_allocation && wall_allocation.id == crown_allocation.id)"><button class="btn btn-info" (click)="helpCreateHat()">Help me adjust my allocation!</button></div-->
         </div>
     </div>
     <div class="advisor-content" *ngIf="!calculating && suggestions.max_num_of_hats <= 0 && try_to_exceed < 0 && (!wait_for_saved_changes || !pending_saved_changes) && (!not_enough_data)">

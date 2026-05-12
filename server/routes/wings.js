@@ -69,7 +69,7 @@ router.get('/',
     auth_request([{requiredArea:'wings', requiredPermission:'R'}, {requiredArea: 'wings_through_orders', requiredPermission:'R'}]),
     logger.info(`get /wings/customer/${req.params.id}`);
     try {
-      const response = await wings.getWingsForCustomer(req.params.id);
+      const response = await wings.getWingsForCustomer(req.params.id, req.query.customerWingsOnly === 'true');
       logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
       res.json(response);
     } 
@@ -110,7 +110,7 @@ router.get('/',
   });
 
   router.put('/', 
-    auth_request([{requiredArea:'wings', requiredPermission:'U'}]),
+    auth_request([{requiredArea:'wings', requiredPermission:'U'}, {requiredArea:'wings_through_orders', requiredPermission:'U'}]),
     async function(req, res, next) {
     logger.info(`put /wings/`);
     try {
@@ -126,7 +126,7 @@ router.get('/',
   });
 
   router.delete('/:id', 
-    auth_request([{requiredArea:'wings', requiredPermission:'D'}]),
+    auth_request([{requiredArea:'wings', requiredPermission:'D'}, {requiredArea:'wings_through_orders', requiredPermission:'D'}]),
     async function(req, res, next) {
     logger.info(`delete /wings/${req.params.id}`);
     try {

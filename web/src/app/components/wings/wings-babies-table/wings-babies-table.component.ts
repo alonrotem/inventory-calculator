@@ -49,7 +49,7 @@ export class WingsBabiesTableComponent implements OnChanges {
     this.wingsbabies.push({
       id: 0,
       wing_id: this.wing_id,
-      length: this.picker.get_length(),
+      length: this.picker.get_selected_lengths()[0] || 0,
       position: this.wingPrefix + (this.wingsbabies.filter((b)=> b.position.startsWith(this.wingPrefix)).length + 1)
     });
     this.picker.reset();

@@ -1,15 +1,6 @@
-<app-confirmation-dialog 
-    #delete_confirmation 
-    modalTitle="Delete confirmation"
-    modalText="Are you sure you want to delete this wing, {{ wing!.name }}?"
-    [btnYesIcon]=faTrashAlt
-    btnYesText="Delete"
-    btnYesClass="btn-danger"
-    [reverseButtons]="true">
-</app-confirmation-dialog>
+<app-confirmation-dialog #confirm_action />
 
-<app-confirmation-dialog 
-    #confirm_action></app-confirmation-dialog>
+<app-save-changes-button #btn_save (save)="save(false, false)" [show]="!this.wingForm.pristine && show_titles_buttons" />
 
 <app-unsaved-changes-dialog #unsaved_changes_dialog></app-unsaved-changes-dialog>
 
@@ -27,10 +18,11 @@
   [btnCancelClass]="'d-none'"
   [modalSize]="'l'">
     <app-crown-editor 
-        [crown_babies]="this.wing!.babies | sortbabies | prefix: 'C'"
+        [crown_babies]="(this.wing && this.wing.babies) ? this.wing.babies : [] | sortbabies | prefix: 'C'"
         (crown_babiesChanged)="onCrownBabiesChanged($event)"
-        [wing_id]="this.wing!.id"
-        [(crown_width)]="this.wing!.crown_width"
+        [wing_id]="(this.wing && this.wing.id) ? this.wing.id : 0"
+        [crown_width]="(this.wing && this.wing.crown_width) ? this.wing.crown_width : 0"
+        (crown_widthChange)="this.wing!.crown_width=$event"
     />  
 </app-modal-dialog>
 
@@ -57,7 +49,7 @@
                 </button>
             </div>
             <div class="col-2">
-                <button #btn_save class="btn btn-success upper-button" type="submit" (click)="save()" title="Save">
+                <button #btn_save class="btn btn-success upper-button" type="submit" (click)="save(false, true)" title="Save">
                     <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
                 </button>
             </div>
@@ -73,18 +65,18 @@
                 
                 <button class="btn btn-danger me-3" (click)="reset_wing()"><fa-icon [icon]="faEraser"></fa-icon> Reset</button>
 
-                <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <span class="icon-feather-wing"></span> Copy design from...
-                </button>
-                <ul class="dropdown-menu">
-                    <li *ngFor="let wing of wings"><a class="dropdown-item" (click)="copyFromWing(wing.id)">{{ wing.name }}</a></li>
-                </ul>
+                <div class="dropdown" *ngIf="show_titles_buttons">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="icon-feather-wing"></span> Copy design from...
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li *ngFor="let wing of wings"><a class="dropdown-item" (click)="copyFromWing(wing.id)">{{ wing.name }}</a></li>
+                    </ul>
                 </div>
             </div>
         </div>
 
-        <div class="row">
+        <div class="row" *ngIf="show_titles_buttons" [hidden]="!(user$ | async) || ((user$ | async)?.roles | filter: '': 'customer' | length) > 0">
             <div class="col bordered-section">
                 <div class="d-flex flex-nowrap align-items-start">
                     <input #chk_connect_wing_to_customers class="form-check-input me-2" type="checkbox" name="customer_options" id="customer_options_real" [value]="false" [checked]="wing && wing.customers && wing.customers.length > 0">
@@ -96,13 +88,14 @@
                     <app-customer-picker
                         #customer_picker 
                         [(pickedCustomers)]="wing!.customers"
+                        (pickedCustomersChange)="this.wingForm.form.markAsDirty()"
                         [disabled]="false"
                         />
                     </div>                
             </div>
         </div>
 
-        <div class="row">
+        <div class="row" *ngIf="!show_only_custom_knives || custom_knife_lengths.length > 0">
             <div class="col">
                 <div class="d-flex align-items-center">
                     <span class="icon-knife" style="font-size: 30px; margin-right: 10px;"></span> Select the knife for this wing:
@@ -111,9 +104,12 @@
                     #wing_width
                     [show_invalid_message]="false"
                     [title]="''"
-                    [(length)]="wing!.knife"
+                    [selected_lengths]="[wing!.knife]"
+                    (lengthChange)="wing!.knife = $event[0]"
                     [min_length]=4
                     [max_length]=12.5
+                    [show_only_custom_lengths]="show_only_custom_knives"
+                    [custom_lengths]="custom_knife_lengths"
                     (lengthChange)="babies_length_clicked()"
                  />
                  <div class="d-flex align-items-center" style="margin-top:15px;">
@@ -207,7 +203,7 @@
                     #top_picker
                     [show_invalid_message]="false"
                     [title]="'Choose top length:'"
-                    [length]="get_top()"
+                    [selected_lengths]="[get_top()]"
                     (lengthChange)="set_top()"
                     (lengthChange)="babies_length_clicked()"
                 />
@@ -223,6 +219,8 @@
                     (crown_babiesChanged)="onCrownBabiesChanged($event)"
                     [wing_id]="this.wing.id"
                     [(crown_width)]="this.wing.crown_width"
+                    (num_of_crown_babiesChanged)="this.wingForm.form.markAsDirty()"
+                    (crown_widthChange)="this.wingForm.form.markAsDirty()"
                 />
                 <!--
                 <app-babies-length-picker
@@ -256,7 +254,7 @@
                 </button>
             </div>            
                 <div class="col-12 d-flex justify-content-center {{ this.is_new_wing? 'col-md-4':'col-md-3' }}">
-                    <button #btn_save class="btn btn-success" type="submit" (click)="save()">
+                    <button #btn_save class="btn btn-success" type="submit" (click)="save(false, true)">
                         <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
                         <div>Save Wing</div>
                     </button>
