@@ -35,6 +35,7 @@ export class NavbarComponent implements AfterViewInit {
     router.events.subscribe(e => {
       if (e instanceof NavigationEnd) {
         this.currentUrl = e.url;
+        this.collapse_mobile_menu();
     }});
   }
   ngAfterViewInit(): void {

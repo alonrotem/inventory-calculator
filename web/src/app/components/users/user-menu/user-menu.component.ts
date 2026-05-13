@@ -1,6 +1,6 @@
 import { AsyncPipe, NgClass, NgIf } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { NavigationEnd, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
 import { UsersService } from '../../../services/users.service';
 import { BasicUserInfoStatus } from '../../../../types';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -8,6 +8,9 @@ import { IconDefinition } from '@fortawesome/fontawesome-common-types';
 import { faAddressCard, faArrowRightFromBracket, faRightToBracket } from '@fortawesome/free-solid-svg-icons';
 import { tap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
+import { StateService } from '../../../services/state.service';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-user-menu',
@@ -16,7 +19,7 @@ import { environment } from '../../../../environments/environment';
   templateUrl: './user-menu.component.html',
   styleUrl: './user-menu.component.scss'
 })
-export class UserMenuComponent implements OnInit {
+export class UserMenuComponent extends NavigatedMessageComponent implements OnInit {
 
   userInfo: BasicUserInfoStatus = {
     id: 0,
@@ -49,9 +52,20 @@ export class UserMenuComponent implements OnInit {
   faArrowRightFromBracket: IconDefinition = faArrowRightFromBracket;
   faRightToBracket: IconDefinition = faRightToBracket;
   faAddressCard: IconDefinition = faAddressCard;
-  
-  constructor(private usersService: UsersService, private router: Router){
-   this.refreshUserInfo();
+  /**
+   * 
+
+   * constructor(
+       protected toastService: ToastService,
+       protected stateService: StateService,
+       protected router: Router,
+       protected activatedRoute: ActivatedRoute,
+       @Inject(Boolean) protected suppressNavigationToast: boolean = false
+   */
+  constructor(toastService: ToastService, stateService: StateService, private usersService: UsersService, router: Router, activatedRoute: ActivatedRoute){
+   
+    super(toastService, stateService, router, activatedRoute, true);
+   
     router.events.subscribe(e => {
       if (e instanceof NavigationEnd) {
         this.currentUrl = e.url;
@@ -87,19 +101,14 @@ export class UserMenuComponent implements OnInit {
     }    
   }
 
-  refreshUserInfo(){
-
-  }
-
   logout(){
-    this.usersService.logout().subscribe({
-      next: (response: {message: string}) => {
-        //alert(response.message);
-        this.refreshUserInfo();
-      },
-      error: (error) => {
-        console.log(error);
-      }
-    });
+    let nextPageMessage = "Logged out successfully";
+    let isError = false;
+    let pendingNavigationMessage = this.getPendingMessage();
+    if(pendingNavigationMessage && pendingNavigationMessage.textInfo) {
+      nextPageMessage = pendingNavigationMessage.textInfo;
+      isError = pendingNavigationMessage.isError;
+    }
+    this.navigateWithToastMessage('users/signout', nextPageMessage, isError);
   }
 }

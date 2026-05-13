@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { ToastService } from '../../../services/toast.service';
 import { StateService } from '../../../services/state.service';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -15,15 +15,15 @@ export abstract class NavigatedMessageComponent {
     protected toastService: ToastService,
     protected stateService: StateService,
     protected router: Router,
-    protected activatedRoute: ActivatedRoute
+    protected activatedRoute: ActivatedRoute,
+    @Inject(Boolean) protected suppressNavigationToast: boolean = false
   ) {
     // Only show toast if this component matches the activated route
     const routeComponent = this.activatedRoute.routeConfig?.component;
-    if (routeComponent && this.constructor === routeComponent) {
+    if (routeComponent && this.constructor === routeComponent && !this.suppressNavigationToast) {
       this.showNavigationToastIfMessagePending();
     }
   }
-
 
   navigateWithToastMessage(destination: string, message: string, isError: boolean = false, queryParams?: Record<string, any>) {
     const currentUrlTree = this.router.parseUrl(this.router.url);
@@ -70,33 +70,37 @@ export abstract class NavigatedMessageComponent {
 
   showNavigationToastIfMessagePending(){
     console.log(`Checking for pending navigation message (url ${this.router.url})...`);
-    let nav = this.router.getCurrentNavigation();
-    if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {
-      let info = nav.extras.state['info']['textInfo'];
-      let isError = nav.extras.state['info']['isError'];
-      if(isError)
-      {
-        this.toastService.showError(info);
+    const pendingMessage = this.getPendingMessage();
+    if (pendingMessage) {
+      if (pendingMessage.isError) {
+        this.toastService.showError(pendingMessage.textInfo);
+      } else {
+        this.toastService.showSuccess(pendingMessage.textInfo);
       }
-      else
-      {
-        this.toastService.showSuccess(info);
-      }
-      
     }
-    else
-    {
-      //alert("empty");
-      const state = this.stateService.getState();
-      if(state && state.message){
-        if(!state.isError) {
-          this.toastService.showSuccess(state.message);
-        }
-        else {
-          this.toastService.showError(state.message);
-        }
+    this.stateService.clearState();
+  }
+
+  getPendingMessage(): { textInfo: string, isError: boolean } | null {
+    let nav = this.router.getCurrentNavigation();
+    let info = null;
+    let isError = false;
+
+    const state = this.stateService.getState();
+    if(state && state.message){
+      info = state.message;
+      isError = state.isError;
+    }
+    else {
+      if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {
+        info = nav.extras.state['info']['textInfo'];
+        isError = nav.extras.state['info']['isError'];
       }
-      this.stateService.clearState();
-    }    
+    }
+
+    if(info) {
+      return { textInfo: info, isError: isError };
+    }
+    return null;
   }
 }

@@ -31,6 +31,7 @@ import { ForbiddenComponent } from './components/common/forbidden/forbidden.comp
 import { SettingsUserDetailsComponent } from './components/settings/settings-user-details/settings-user-details.component';
 import { SettingsUserInvitesComponent } from './components/settings/settings-user-invites/settings-user-invites.component';
 import { SettingsUserInviteDetailsComponent } from './components/settings/settings-user-invite-details/settings-user-invite-details.component';
+import { SignoutComponent } from './components/users/signout/signout.component';
 
 export const routes: Routes = [
     {
@@ -125,6 +126,10 @@ export const routes: Routes = [
         path: 'users/signup',
         component: SignupComponent,
     },
+    {
+        path: 'users/signout',
+        component: SignoutComponent,
+    },    
     {
         path: 'users/verify',
         component: VerifyComponent,
