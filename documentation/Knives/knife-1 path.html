@@ -1,0 +1,149 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inkscape Output</title>
+</head>
+<body>
+    <canvas id='canvas' width='1672' height='2024'></canvas>
+    <script>
+
+//------------ HELPER FUNCTIONS -------------
+class Point {
+	constructor(x, y) {
+	  this.x = x;
+	  this.y = y;
+	}
+  }
+
+function line_length(p1, p2) {
+    var a = p1.x - p2.x;
+    var b = p1.y - p2.y;
+    return Math.sqrt(a**2 + b**2);
+  }
+
+function find_point_on_line(point_from, point_towards, distance){
+    var length = line_length(point_from, point_towards);
+    var distance_ratio = (distance/length);
+    var x_towards = point_from.x - (distance_ratio * (point_from.x - point_towards.x));
+    var y_towards = point_from.y - (distance_ratio * (point_from.y - point_towards.y));
+    return new Point(x_towards, y_towards);
+  }
+  
+
+function line_at_angle_from_point(origin_point, distance, angle){
+    var d_x = distance * Math.cos(angle * (Math.PI/180));
+    var d_y = distance * Math.sin(angle * (Math.PI/180));
+    var x2 = origin_point.x + d_x;
+    var y2 = origin_point.y + d_y;
+    return new Point(x2, y2);
+  }
+  //---------------------------------------
+
+    var ctx = document.getElementById("canvas").getContext("2d");
+    
+	var scale = 0.5;
+
+	/*
+	L1 baby spot points:
+		      ◄───── rt (right top)
+		     │        
+		     │        
+		     │        
+		─────┘        
+		▲     ▲       
+		│     │       
+		|   rb (right bottom)
+		|
+		holder
+	*/
+	var L1 = {
+		holder : { x: 139.740000, y: 612 },
+		rb : { x: 217.820000, y: 575 },
+		rt : { x: 229.600000, y: 467 }
+	};
+
+	//ctx.fillStyle = 'rgb(255, 0, 0)';
+	//ctx.fillRect(scale * L1.rt.x, scale * L1.rt.y, 5,5);
+
+	ctx.beginPath();
+	ctx.strokeStyle = 'rgb(0,0,0)';
+	ctx.lineWidth = 1;
+
+	//left side
+	ctx.moveTo(scale * 176, scale * 1860);
+	ctx.bezierCurveTo(scale * 176, scale * 1860, scale * 138.870000, scale * 614.260000, scale * L1.holder.x, scale * L1.holder.y);
+
+	// L1 niche
+	ctx.bezierCurveTo(scale * 142.430000, scale * 605.030000, scale * 153.260000, scale * 601.260000, scale * 160, scale * 599.650000);
+	ctx.lineTo(scale * 177, scale * 596.580000);
+	ctx.bezierCurveTo(scale * 191.200000, scale * 593.400000, scale * 208.120000, scale * 586.040000, scale * L1.rb.x, scale * L1.rb.y);
+	ctx.bezierCurveTo(scale * 227.490000, scale * 563.990000, scale * 228, scale * 521, scale * 228, scale * 521);
+	ctx.bezierCurveTo(scale * 228, scale * 521, scale * 228.680000, scale * 469.500000, scale * L1.rt.x, scale * L1.rt.y);
+	
+	//top curve + crown extension
+	ctx.bezierCurveTo(scale * 230.940000, scale * 463.360000, scale * 348, scale * 345.960000, scale * 348, scale * 345.960000);
+	ctx.bezierCurveTo(scale * 396.880000, scale * 299.210000, scale * 453.270000, scale * 253.440000, scale * 509, scale * 215.020000);
+	ctx.lineTo(scale * 571, scale * 174.310000);
+	ctx.lineTo(scale * 634, scale * 135.310000);
+	ctx.lineTo(scale * 671, scale * 117.690000);
+	ctx.bezierCurveTo(scale * 719.440000, scale * 95.450000, scale * 755.020000, scale * 84.240000, scale * 808, scale * 77.720000);
+	ctx.lineTo(scale * 870, scale * 74);
+	ctx.bezierCurveTo(scale * 870, scale * 74, scale * 927.610000, scale * 77.930000, scale * 947, scale * 81.420000);
+	ctx.bezierCurveTo(scale * 985.720000, scale * 88.410000, scale * 1023.870000, scale * 101.760000, scale * 1060, scale * 117.150000);
+	ctx.lineTo(scale * 1132, scale * 154.850000);
+	ctx.bezierCurveTo(scale * 1167.410000, scale * 175.170000, scale * 1257, scale * 236.880000, scale * 1257, scale * 236.880000);
+	ctx.bezierCurveTo(scale * 1264.840000, scale * 242.650000, scale * 1268.840000, scale * 246.870000, scale * 1279, scale * 247);
+	ctx.bezierCurveTo(scale * 1301.270000, scale * 247.260000, scale * 1394.430000, scale * 223.260000, scale * 1397.890000, scale * 224.740000);
+
+	// crown holder
+	ctx.bezierCurveTo(scale * 1402.580000, scale * 226.740000, scale * 1454, scale * 480, scale * 1454, scale * 480);
+
+	//completion knife
+	ctx.bezierCurveTo(scale * 1454, scale * 480, scale * 1370.090000, scale * 511.380000, scale * 1361, scale * 520.040000);
+	ctx.bezierCurveTo(scale * 1344.140000, scale * 536.110000, scale * 1314.580000, scale * 617, scale * 1314.580000, scale * 617);
+	ctx.lineTo(scale * 1020.670000, scale * 1333);
+	ctx.bezierCurveTo(scale * 1000.160000, scale * 1394.520000, scale * 980.370000, scale * 1456.260000, scale * 963.880000, scale * 1519);
+	ctx.bezierCurveTo(scale * 944.910000, scale * 1591.190000, scale * 930.020000, scale * 1664.990000, scale * 920.280000, scale * 1739);
+	ctx.lineTo(scale * 906, scale * 1860);
+	ctx.lineTo(scale * 176, scale * 1860);
+	//ctx.closePath();
+	ctx.moveTo(scale * 1269.450000, scale * 962.220000);
+	ctx.stroke();
+
+	// ---- Draw L1 
+	// 1. find the angle and length between L1.rb and L1.holder
+	// 2. infer cm length accordingto knife known size, compared to drawing width
+	// 3. continue the line from l1.holder at the same angle
+	// 4. make the rectangular side of L1 to the y coordinates of L1.rt.y
+	// 5. close the rect with the L1 niche
+
+	// draw the L1 holder
+	//ctx.strokeStyle = 'rgb(0,255,0)';
+	ctx.beginPath();
+	//ctx.lineWidth = 5;
+	ctx.moveTo(scale * L1.holder.x, scale * L1.holder.y);
+	ctx.bezierCurveTo(scale * 142.430000, scale * 605.030000, scale * 153.260000, scale * 601.260000, scale * 160, scale * 599.650000);
+	ctx.lineTo(scale * 177, scale * 596.580000);
+	ctx.bezierCurveTo(scale * 191.200000, scale * 593.400000, scale * 208.120000, scale * 586.040000, scale * L1.rb.x, scale * L1.rb.y);
+	ctx.bezierCurveTo(scale * 227.490000, scale * 563.990000, scale * 228, scale * 521, scale * 228, scale * 521);
+	ctx.bezierCurveTo(scale * 228, scale * 521, scale * 228.680000, scale * 469.500000, scale * L1.rt.x, scale * L1.rt.y);
+	ctx.stroke();
+
+
+	// ctx.fillStyle = 'rgb(255, 0, 0)';
+	// ctx.fillRect(scale * L1.rb.x, scale * L1.rb.y, 5,5);
+	// ctx.fillRect(scale * 142.430000, scale * 605.030000, 5,5);
+
+	var l1_lb = find_point_on_line(new Point(L1.rb.x, L1.rb.y), new Point(142.430000, 605.030000), 200);
+	//ctx.strokeStyle = 'rgb(255,0,0)';
+	ctx.beginPath();
+	ctx.moveTo(scale * 142.430000, scale * 605.030000);
+	ctx.lineTo(scale * l1_lb.x, scale * 605.030000);
+	ctx.lineTo(scale * l1_lb.x, scale * L1.rt.y);
+	ctx.lineTo(scale * L1.rt.x, scale * L1.rt.y);
+	ctx.stroke();
+
+    </script>
+</body>
+</html>
