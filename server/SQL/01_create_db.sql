@@ -344,7 +344,7 @@ CREATE TABLE  IF NOT EXISTS `raw_materials`
   `currency`		varchar(3) NULL,
   `notes`			varchar(255) NULL,
   `color`			varchar(128) null,
-  `is_usable_for_h_material` bool default true;
+  `is_usable_for_h_material` bool default true,
   `created_at`    	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`    	DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `created_by`	 	int null,
