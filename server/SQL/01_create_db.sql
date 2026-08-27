@@ -604,7 +604,7 @@ CREATE TABLE  IF NOT EXISTS `customer_hats`
 	CONSTRAINT fk_customer_hats_wing_id
 	  FOREIGN KEY (`wing_id`) REFERENCES wings(`id`) ON DELETE CASCADE,
 	CONSTRAINT fk_customer_hats_customer_id
-	  FOREIGN KEY (`customer_id`) REFERENCES customers(`id`) ON DELETE CASCADE,
+	  FOREIGN KEY (`customer_id`) REFERENCES customers(`id`) ON DELETE CASCADE
 	/*	  
 	CONSTRAINT fk_customer_hats_wall_alloc_id
 		FOREIGN KEY (`wall_allocation_id`) REFERENCES customer_banks_allocations(`id`)  ON DELETE CASCADE,
