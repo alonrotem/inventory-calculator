@@ -119,6 +119,7 @@
                         <div class="input-group">
                             <div class="form-floating">
                                 <input type="password" 
+                                    autocomplete="new-password"
                                     id="user_current_pass" class="form-control" placeholder="0" [(ngModel)]="password_change.current_password" name="user_current_pass" #user_current_pass="ngModel" (change)="checkPasswords()">
                                 <label for="user_current_pass">Current password</label>
                             </div>

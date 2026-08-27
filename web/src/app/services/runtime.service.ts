@@ -34,7 +34,7 @@ export class RuntimeService {
             })
           }),
           (error: GeolocationPositionError) => this.ngZone.run(() => {
-            //console.log('getCurrentPosition ERROR', Date.now(), error.code, error.message);
+            console.log('getCurrentPosition ERROR', Date.now(), error.code, error.message);
             resolve(null);
           }),
           options

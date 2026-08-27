@@ -14,9 +14,12 @@ export interface aggregated_babies {
 export interface hats_calculated {
   total_num_of_possible_hats: number,
   hat_babies: aggregated_babies[],
-  tails_used: number,
-  tails_remaining: number,
-  tails_overdraft: number,
+  tails_used_l: number,
+  tails_remaining_l: number,
+  tails_overdraft_l: number,
+  tails_used_r: number,
+  tails_remaining_r: number,
+  tails_overdraft_r: number,
   max_num_of_hats_with_tails: number,
   crown_babies: aggregated_babies[]
 }
@@ -39,7 +42,7 @@ export class HatsCalculatorService {
     crown_allocation_babies: Allocation_Baby[],
     tails_allocation: Customer_Bank_Baby_Allocation | null,
     allocations_are_different: boolean){
-
+      console.log("get max num of hats...");
     let max_num_of_wings_with_given_allocations = Infinity;
     let wall_babies_to_build_one_wing: summed_babies[] = [];
     let crown_babies_to_build_one_wing: summed_babies[] = [];
@@ -92,6 +95,7 @@ export class HatsCalculatorService {
       max_num_of_wings_with_given_allocations = Math.min(tails_allocation.tails_quantity, max_num_of_wings_with_given_allocations);
     }
 
+    console.log("returning: ", max_num_of_wings_with_given_allocations);
     return max_num_of_wings_with_given_allocations;
   }
 
@@ -102,20 +106,26 @@ export class HatsCalculatorService {
     wing: Wing | null, 
     wall_alocation: Customer_Bank_Baby_Allocation | null, 
     crown_allocation: Customer_Bank_Baby_Allocation | null,
-    tails_allocation: Customer_Bank_Baby_Allocation | null,
+    tails_allocation_l: Customer_Bank_Baby_Allocation | null,
+    tails_allocation_r: Customer_Bank_Baby_Allocation | null,
     wall_alocation_babies: Allocation_Baby[],
     crown_allocation_babies: Allocation_Baby[],
     wing_quantity_in_hat: number,
-    num_of_hats_to_order: number = -1) {
+    num_of_hats_to_order: number = -1,
+    is_tentative_calculation: boolean,
+    is_hat_material_different_than_crown: boolean) {
 
     let hats: hats_calculated = {
       total_num_of_possible_hats: Infinity,
       hat_babies: [],
       crown_babies: [],
       max_num_of_hats_with_tails: 0,
-      tails_used: 0,
-      tails_remaining: 0,
-      tails_overdraft: 0
+      tails_used_l: 0,
+      tails_remaining_l: 0,
+      tails_overdraft_l: 0,
+      tails_used_r: 0,
+      tails_remaining_r: 0,
+      tails_overdraft_r: 0
     };
 
     hats.total_num_of_possible_hats = Infinity;
@@ -128,18 +138,18 @@ export class HatsCalculatorService {
         if(wingBaby && wingBaby.position) {
           if(wingBaby.position.startsWith("C")){
             //keep crown babies separate
-            if(crown_allocation?.id != wall_alocation?.id) {
-              hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.crown_babies, wingBaby, crown_allocation_babies, wing_quantity_in_hat, wing.split_l1, hats.total_num_of_possible_hats);
+            if(crown_allocation?.id != wall_alocation?.id || is_hat_material_different_than_crown) {
+              hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.crown_babies, wingBaby, crown_allocation_babies, wing_quantity_in_hat, wing.split_l1, hats.total_num_of_possible_hats, is_tentative_calculation);
               appended = true;
             }
             else {
-              hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.hat_babies, wingBaby, wall_alocation_babies, wing_quantity_in_hat, wing.split_l1, hats.total_num_of_possible_hats);
+              hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.hat_babies, wingBaby, wall_alocation_babies, wing_quantity_in_hat, wing.split_l1, hats.total_num_of_possible_hats, is_tentative_calculation);
               appended = true;
             }
           }
         }
         if(!appended) {
-          hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.hat_babies, wingBaby, wall_alocation_babies, wing_quantity_in_hat, wing.split_l1, hats.total_num_of_possible_hats);
+          hats.total_num_of_possible_hats = this.append_to_babies_collection(hats.hat_babies, wingBaby, wall_alocation_babies, wing_quantity_in_hat, wing.split_l1, hats.total_num_of_possible_hats, is_tentative_calculation);
         }
       });
     }
@@ -147,7 +157,8 @@ export class HatsCalculatorService {
     //now it's possible to calculate for each baby length how many will be left for this number of hats.
     //The remaining is calculated by the order, which should not exceed the number of possible hats.
     if(num_of_hats_to_order <= 0 || num_of_hats_to_order > hats.total_num_of_possible_hats) {
-      num_of_hats_to_order = hats.total_num_of_possible_hats;
+      console.log("=-=- updating to Math.min(10, ", hats.total_num_of_possible_hats ,") = ", Math.min(10, hats.total_num_of_possible_hats))
+      num_of_hats_to_order = Math.min(10, hats.total_num_of_possible_hats);
     }
 
     hats.hat_babies.forEach(b => {
@@ -161,30 +172,95 @@ export class HatsCalculatorService {
 
     //check how many tails (== num of wings in total) we can produce
     const allow_overdraft_of_tails = true; //maybe configurable in the future
-    if(tails_allocation) {
+    // Now calculating half-tails for each HL/HR.
+    /*
+    assume 5 wings per hat
+
+    if l and r are the same allocation, count the tails by 1 * wing_quantity
+    if they are different, they should be calcualted separately, and the max number of hats is the minimum between them
+
+    30 tails in allocation
+
+    */
+    //if l and r are the same allocation, count the tails by 1 * wing_quantity
+    if(tails_allocation_l && tails_allocation_r && tails_allocation_l.id == tails_allocation_r.id) {
       if(!allow_overdraft_of_tails){
-        hats.max_num_of_hats_with_tails = Math.floor(tails_allocation.tails_quantity / wing_quantity_in_hat);
+        hats.max_num_of_hats_with_tails = Math.floor(tails_allocation_l.tails_quantity / wing_quantity_in_hat);
         hats.total_num_of_possible_hats = Math.min(hats.total_num_of_possible_hats, hats.max_num_of_hats_with_tails);
         hats.max_num_of_hats_with_tails = hats.total_num_of_possible_hats;
-        hats.tails_used = hats.max_num_of_hats_with_tails * wing_quantity_in_hat;
-        hats.tails_remaining = tails_allocation.tails_quantity - hats.tails_used;
+        hats.tails_used_l = hats.max_num_of_hats_with_tails * wing_quantity_in_hat;
+        hats.tails_remaining_l = tails_allocation_l.tails_quantity - hats.tails_used_l;
       }
       else {
         //overdraft is allowed, the number of tails in the allocation does not affect the number of hats,
         //but customer can be overdrafting tails for later.
         let wings_in_all_hats = wing_quantity_in_hat * hats.total_num_of_possible_hats;
-        if(tails_allocation.tails_quantity >= wings_in_all_hats){
-          hats.tails_used = wings_in_all_hats;
-          hats.tails_remaining = tails_allocation.tails_quantity - wings_in_all_hats;
-          hats.tails_overdraft = 0;
+        if(tails_allocation_l.tails_quantity >= wings_in_all_hats){
+          hats.tails_used_l = wings_in_all_hats;
+          hats.tails_remaining_l = tails_allocation_l.tails_quantity - wings_in_all_hats;
+          hats.tails_overdraft_l = 0;
         }
         else {
-          hats.tails_used = tails_allocation.tails_quantity;
-          hats.tails_remaining = 0;
-          hats.tails_overdraft = wings_in_all_hats - tails_allocation.tails_quantity;
+          hats.tails_used_l = tails_allocation_l.tails_quantity;
+          hats.tails_remaining_l = 0;
+          hats.tails_overdraft_l = wings_in_all_hats - tails_allocation_l.tails_quantity;
         }
       }
     }
+
+    // count tails for each allocation separately, and the max number of hats is the minimum between them
+    else {
+      if(tails_allocation_l) {
+        if(!allow_overdraft_of_tails){
+          hats.max_num_of_hats_with_tails = Math.floor(tails_allocation_l.tails_quantity / (wing_quantity_in_hat / 2));
+          hats.total_num_of_possible_hats = Math.min(hats.total_num_of_possible_hats, hats.max_num_of_hats_with_tails);
+          hats.max_num_of_hats_with_tails = hats.total_num_of_possible_hats;
+          hats.tails_used_l = hats.max_num_of_hats_with_tails * (wing_quantity_in_hat /2);
+          hats.tails_remaining_l = tails_allocation_l.tails_quantity - hats.tails_used_l;
+        }
+        else {
+          //overdraft is allowed, the number of tails in the allocation does not affect the number of hats,
+          //but customer can be overdrafting tails for later.
+          let wings_in_all_hats = wing_quantity_in_hat * num_of_hats_to_order;//hats.total_num_of_possible_hats;
+          if(tails_allocation_l.tails_quantity >= (wings_in_all_hats /2)){
+            hats.tails_used_l = (wings_in_all_hats /2);
+            hats.tails_remaining_l = tails_allocation_l.tails_quantity - (wings_in_all_hats /2);
+            hats.tails_overdraft_l = 0;
+          }
+          else {
+            hats.tails_used_l = tails_allocation_l.tails_quantity;
+            hats.tails_remaining_l = 0;
+            hats.tails_overdraft_l = (wings_in_all_hats /2) - tails_allocation_l.tails_quantity;
+          }
+        }
+      }
+
+      if(tails_allocation_r ) {
+        if(!allow_overdraft_of_tails){
+          hats.max_num_of_hats_with_tails = Math.floor(tails_allocation_r .tails_quantity / (wing_quantity_in_hat / 2));
+          hats.total_num_of_possible_hats = Math.min(hats.total_num_of_possible_hats, hats.max_num_of_hats_with_tails);
+          hats.max_num_of_hats_with_tails = hats.total_num_of_possible_hats;
+          hats.tails_used_r  = hats.max_num_of_hats_with_tails * (wing_quantity_in_hat /2);
+          hats.tails_remaining_r  = tails_allocation_r .tails_quantity - hats.tails_used_r ;
+        }
+        else {
+          //overdraft is allowed, the number of tails in the allocation does not affect the number of hats,
+          //but customer can be overdrafting tails for later.
+          let wings_in_all_hats = wing_quantity_in_hat * num_of_hats_to_order;//hats.total_num_of_possible_hats;
+          if(tails_allocation_r .tails_quantity >= (wings_in_all_hats /2)){
+            hats.tails_used_r  = (wings_in_all_hats /2);
+            hats.tails_remaining_r  = tails_allocation_r .tails_quantity - (wings_in_all_hats /2);
+            hats.tails_overdraft_r  = 0;
+          }
+          else {
+            hats.tails_used_r  = tails_allocation_r .tails_quantity;
+            hats.tails_remaining_r  = 0;
+            hats.tails_overdraft_r  = (wings_in_all_hats /2) - tails_allocation_r .tails_quantity;
+          }
+        }
+      }      
+    }
+
     // console.log("Wing: ", wing?.name,  ", hats calculated:", hats.total_num_of_possible_hats);
     return hats;
   }
@@ -257,11 +333,12 @@ export class HatsCalculatorService {
     alocation_babies: Allocation_Baby[],      //the allocation of the baby (for quantity)
     wing_quantity: number,
     split_l1: number,
-    cur_max_hats: number)
+    cur_max_hats: number,
+    is_tentative_calculation: boolean)
   {
     let append_to_item = babies_collection.find(baby => baby.length == wingBaby.length);
     let baby_in_allocation_with_length = alocation_babies.find(b => b.length == wingBaby.length);
-    let allocation_quantity = (baby_in_allocation_with_length)? baby_in_allocation_with_length.quantity : 0;
+    let allocation_quantity = (is_tentative_calculation)? 9999999 : ((baby_in_allocation_with_length)? baby_in_allocation_with_length.quantity : 0);
     let position = wingBaby.position + ((wingBaby.position=="L1" && split_l1 > 1)? ("x" + split_l1) : "");
 
     if(append_to_item){
@@ -385,8 +462,5 @@ export class HatsCalculatorService {
       previous_baby_in_line = display_baby;
     });
   }
-
-            /*
-*/
   }
 }

@@ -66,8 +66,10 @@ export class NavbarComponent implements AfterViewInit {
   }
 
   collapse_mobile_menu(){
-    const navbarCollapse = this.navbarToggler.nativeElement;
-    navbarCollapse.classList.remove("show");
-    this.hamburger.collapse();
+    if(this.navbarToggler && this.navbarToggler.nativeElement && this.hamburger){
+      const navbarCollapse = this.navbarToggler.nativeElement;
+      navbarCollapse.classList.remove("show");
+      this.hamburger.collapse();
+    }
   }
 }

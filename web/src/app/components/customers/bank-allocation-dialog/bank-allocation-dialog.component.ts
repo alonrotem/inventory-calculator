@@ -33,6 +33,7 @@ export class BankAllocationDialogComponent implements ModalContentDirective, Mod
   @Input() AllocationType: Bank_Allocation_Type = Bank_Allocation_Type.babies;
   @Input() LockAllocationType: boolean = false;
   @Input() is_demo_customer: boolean = false;
+  @Input() is_material_usable_for_h_material: boolean = true;
   attemptedClose = false;
 
   allocation_type_cations: { [key: string]: string } = {
@@ -77,6 +78,9 @@ export class BankAllocationDialogComponent implements ModalContentDirective, Mod
     //console.log("this.meter.materialInUse " + this.meter.materialInUse);
     this.meter.totalCapacity = this.QuantityInBank;
     //console.log("this.meter.totalCapacity " + this.meter.totalCapacity);
+    if(!this.is_material_usable_for_h_material){
+      this.allocation_types = this.allocation_types.filter(t => t.name != "tails");
+    }
     this.meter.recalculate();
   }
 

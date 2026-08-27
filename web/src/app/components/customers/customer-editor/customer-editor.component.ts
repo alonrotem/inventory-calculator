@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, OnInit,QueryList,ViewChild, ViewChildren } from '@angular/core';
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
-import { Customer, Allocation_Baby, TransactionType, nameIdPair, RawMaterialNameColor } from '../../../../types';
+import { Customer, Allocation_Baby, TransactionType, nameIdPair, RawMaterialBasicDetails } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -73,8 +73,8 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
   faFlask: IconDefinition = faFlask;
   is_new_customer: Boolean = true;
   banks_loaded_quantities: any[] = [];
-  raw_materials_list: RawMaterialNameColor[] = [];
-  raw_materials_info: RawMaterialNameColor[] = [];
+  raw_materials_list: RawMaterialBasicDetails[] = [];
+  raw_materials_info: RawMaterialBasicDetails[] = [];
   selected_raw_material_id: number | null = null;
   is_current_user_demo_customer: boolean = false;
 
@@ -113,8 +113,8 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     ) { 
       super(toastService, stateService, router, activatedRoute);
 
-      this.rawMaterialsService.getRawMaterialNamesColors(0).subscribe({
-        next: (raw_materials: RawMaterialNameColor[]) => {
+      this.rawMaterialsService.getRawMaterialBasicDetails(0).subscribe({
+        next: (raw_materials: RawMaterialBasicDetails[]) => {
           this.raw_materials_info = raw_materials;
           raw_materials.forEach(m => this.insert_material_to_selector(m.id));
         },
@@ -134,7 +134,9 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
         id: raw_material.id, name: 
         raw_material.name, 
         color: raw_material.color, 
-        allow_shortening_babies_in_pairs: raw_material.allow_shortening_babies_in_pairs 
+        allow_shortening_babies_in_pairs: raw_material.allow_shortening_babies_in_pairs,
+        is_usable_for_h_material: raw_material.is_usable_for_h_material,
+        has_banks_for_current_customer: raw_material.has_banks_for_current_customer
       }
     ].sort((a, b) => a.name.localeCompare(b.name));
   }
@@ -210,6 +212,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
       raw_material_color: selected_raw_material!.color,
       raw_material_quantity_units: 'units',
       allow_shortening_babies_in_pairs: selected_raw_material!.allow_shortening_babies_in_pairs,
+      is_material_usable_for_h_material: selected_raw_material!.is_usable_for_h_material,
       pre_save_id: 0,
       id: 0,
       customer_id: this.customerItem.id,

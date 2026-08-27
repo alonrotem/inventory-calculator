@@ -30,7 +30,8 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() wing: Wing | null = null;
   @Input() wall_allocation: Customer_Bank_Baby_Allocation | null = null;
   @Input() crown_allocation: Customer_Bank_Baby_Allocation | null = null;
-  @Input() tails_allocation: Customer_Bank_Baby_Allocation | null = null;
+  @Input() tails_allocation_l: Customer_Bank_Baby_Allocation | null = null;
+  @Input() tails_allocation_r: Customer_Bank_Baby_Allocation | null = null;
   @Input() customer_wall_babies: Allocation_Baby[] = [];
   @Input() customer_crown_babies: Allocation_Baby[] = [];
   @Input() show_options_button: boolean = true;
@@ -362,12 +363,16 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
       // console.log("Calculating for wing " + wing.name + " with reduceTop " + reduceTop + " and reduceCrown " + reduceCrown);
       let hats_info = this.hatsCalculatorService.aggregateHatBabiesAndMatchingAllocations(
         adjustedWing,
-        wallAllocation, crownAllocation,               //same allocation for crown and wall
-        this.tails_allocation,                                          //not counting tails here
+        wallAllocation, 
+        crownAllocation,               //same allocation for crown and wall
+        this.tails_allocation_l, 
+        this.tails_allocation_r,                                          //not counting tails here
         wallAllocationBabies, crownAllocationBabies,  //same babies for crown and wall
-        wingsPerHat, -1);
+        wingsPerHat, -1, false,
+        wallAllocation.id != crownAllocation.id
+      );
       // console.log("Got " + hats_info.total_num_of_possible_hats + " hats");
-      if(this.tails_allocation && hats_info.max_num_of_hats_with_tails <= 0 && this.suggestions.wing_suggestions.length == 0){
+      if(this.tails_allocation_l && this.tails_allocation_r && hats_info.max_num_of_hats_with_tails <= 0 && this.suggestions.wing_suggestions.length == 0){
         this.try_to_exceed = -1;
         this.suggestions.max_num_of_hats = -1;
         return;
@@ -467,8 +472,9 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
       if(this.tails_bank && this.tails_bank.raw_material_id){
         queryParams["t_mat"] = this.tails_bank.raw_material_id;
       }
-      if(this.tails_allocation){
-        queryParams["t_aloc"] = this.tails_allocation.id;
+      // For now, at this stage, we consider just one allocation (L) for both L and R here
+      if(this.tails_allocation_l){
+        queryParams["t_aloc"] = this.tails_allocation_l.id;
       }
       this.router.navigate(['/inventory/customer/hat-calculator'], { 
         queryParams: queryParams,
@@ -507,11 +513,14 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
             wing, 
             this.wall_allocation, 
             this.crown_allocation,
-            null, 
+            null,
+            null,
             this.allocation_wall_babies, 
             this.allocation_crown_babies, 
             this.numOfWingsPerHat, 
-            this.assistant_num_of_hats);
+            this.assistant_num_of_hats,
+            false,
+            this.wall_allocation?.id != this.crown_allocation?.id);
             //// console.dir(aggregation);
 
           this.assistant_aggregated_hat_babies = aggregation.hat_babies;

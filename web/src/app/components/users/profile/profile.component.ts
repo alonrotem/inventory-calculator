@@ -87,13 +87,31 @@ export class ProfileComponent implements OnInit {
   hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
     return this.unsavedNavigationConfirmationService.handle({
       hasChanges: () =>
-        (!this.profile_form.pristine),
+        { 
+          this.debugPristineStatus();
+          return (!this.profile_form.pristine)
+        },
 
       saveFn: () => of(this.save()),
 
       confirmationDialog: this.unsaved_changes_dialog
     });
   }
+
+  debugPristineStatus() {
+    const controls = this.profile_form.form.controls;
+    
+    Object.keys(controls).forEach(controlName => {
+      const control = controls[controlName];
+      if (!control.pristine) {
+        console.log(`❌ Ruining pristine status: [${controlName}]`, {
+          value: control.value,
+          dirty: control.dirty,
+          touched: control.touched
+        });
+      }
+    });
+}
 
   ngOnInit(): void {
     this.isCustomer = false;
@@ -106,6 +124,8 @@ export class ProfileComponent implements OnInit {
         this.current_email = (this.pending_email)? this.pending_email : this.original_email;
         this.isCustomer = profile.roles.find(r => r.name.toLowerCase()=="customer") != undefined;
         this.loading = false;
+        this.profile_form.form.markAsPristine();
+        console.log("Loaded. Pristine: " + this.profile_form.pristine);
       },
       error: (err) => {
         this.toastService.showError("Error loading profile data");
@@ -154,6 +174,7 @@ export class ProfileComponent implements OnInit {
   photo_loaded() {
     //clear the URL, so that the new file will replace it
     this.user.photo_url='';
+    //this.profile_form.form.markAsPristine();
   }
 
   /*

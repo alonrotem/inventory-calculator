@@ -1,5 +1,29 @@
 # InventoryCalculator
 
+ - HR/HL separation
+ - Mayler thickness - save last choice as cookie for default
+ - order page - add all fields, add chart to page 2
+ - Number of wings - save last choice as cookie for default (default = 46 not 45)
+ - Hebrew / Yiddish translation
+ - Add list of users in the customer screen (admin)
+ - Allow customer send an invite for a new user
+ - order: add user id
+
+ - Optional banner for offers/deals -> leading to a page (post login): table: material / available kg / price per kg
+ - Knives
+
+BUGS:
+[ ] Editing a allocation and saving it does not update
+[-] Add save and close button option to allocation editor modal
+[-] H Material messages to fix
+[+] Profile page: asking to save every time.
+[ ] Login: Location not saved <- system problem on my windows
+[+] Add checkbox: use same allocation for wall and crown
+[+] Add checkbox: use same allocation for L and R H material tails
+[ ] "You are already at the max number of hats for this allocation" when the max is 0
+
+
+
 ===========================================================
 ----------------GENERATION----------------
 ng new inventory-calculator

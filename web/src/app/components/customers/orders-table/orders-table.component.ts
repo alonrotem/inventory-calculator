@@ -49,6 +49,7 @@ export class OrdersTableComponent extends NavigatedMessageComponent implements O
   updating_white_hair_status: boolean[] = [];
   updating_white_hair_notes_status: boolean[] = [];
   updating_order_notes_status: boolean[] = [];
+  notes_editor_caption: string = "";
 
   constructor(
     private ordersService: OrdersService, 
@@ -175,6 +176,7 @@ export class OrdersTableComponent extends NavigatedMessageComponent implements O
   }
 
   edit_white_hair_notes(index: number){
+    this.notes_editor_caption = "Edit white hair notes";
     this.pending_update_notes_index = index;
     this.pending_update_notes_property = "white_hair_notes";
     this.notes_editor_placeholder = this.orders[index].white_hair_notes;
@@ -183,6 +185,7 @@ export class OrdersTableComponent extends NavigatedMessageComponent implements O
   }
 
   edit_order_notes(index: number){
+    this.notes_editor_caption = "Edit order notes";
     this.pending_update_notes_index = index;
     this.pending_update_notes_property = "order_notes";
     this.notes_editor_placeholder = this.orders[index].order_notes;

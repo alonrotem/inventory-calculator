@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { DecimalPipe, Location, NgClass, NgFor, NgIf } from '@angular/common';
-import { Country, Currency, RawMaterial, RawMaterialCustomerBank, RawMaterialNameColor, TransactionType } from '../../../../types';
+import { Country, Currency, RawMaterial, RawMaterialCustomerBank, RawMaterialBasicDetails, TransactionType } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
 import { RouterLink, RouterOutlet, ActivatedRoute } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -66,7 +66,8 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     transaction_record: null,
     deleted_bank_records: [],
     color: '',
-    allow_shortening_babies_in_pairs: false
+    allow_shortening_babies_in_pairs: false,
+    is_usable_for_h_material: false
   }
 
   colors: string[] = [];
@@ -81,7 +82,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   faArrowLeft: IconDefinition = faArrowLeft;
   faClockRotateLeft : IconDefinition = faClockRotateLeft;
   is_new_material: Boolean = true;
-  raw_material_names: RawMaterialNameColor[] = [];
+  raw_material_names: RawMaterialBasicDetails[] = [];
   confirmResult: boolean | null = null;
   purchaseQuantity: number = 0;
   remainingQuantity: number = 0;
@@ -121,7 +122,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     stateService: StateService,
     private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService) { 
       super(toastService, stateService, router, activatedRoute);
-      this.rawMaterialsService.getRawMaterialNamesColors().subscribe({
+      this.rawMaterialsService.getRawMaterialBasicDetails().subscribe({
         next: (names)=> {
           this.raw_material_names = names;
         }

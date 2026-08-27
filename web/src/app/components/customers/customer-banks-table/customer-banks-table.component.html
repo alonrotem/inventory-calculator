@@ -3,6 +3,7 @@
 
 <app-bank-allocation-dialog 
   #allocation_dialog
+  [is_material_usable_for_h_material]="bank.is_material_usable_for_h_material"
 />
 
 <app-baby-editor-dialog 
@@ -38,6 +39,10 @@
               <span [className]="'color color-' + bank.raw_material_color.toLowerCase().replace(' ', '-')"></span>
           </span>
         </h5>
+        <div class="text-warning" style="margin-bottom: 0.5rem;" *ngIf="!bank.is_material_usable_for_h_material">
+          <fa-icon [icon]="faTriangleExclamation" size="1x"></fa-icon>
+          This material cannot be used for H allocations
+        </div>
         <span *ngIf="unsaved_changes" style="margin-left: 10px;">
           <span class="text-danger">* Unsaved changes</span>
            <button #btn_save class="btn btn-outline-success border-0 btn-save" type="submit" (click)="save_customer()"><!--[disabled]="!raw_material_form.form.valid"-->
@@ -182,7 +187,8 @@
           [crown_allocation]="bank_allocation"
 
           [tails_bank]="null"
-          [tails_allocation]="null"
+          [tails_allocation_l]="null"
+          [tails_allocation_r]="null"
 
           [customer_crown_babies]="this.babies"
           (assistantAutoAddBabies)="assistant_auto_add_babies($event)"

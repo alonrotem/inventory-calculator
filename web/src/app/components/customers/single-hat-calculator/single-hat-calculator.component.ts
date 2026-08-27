@@ -2,14 +2,14 @@ import { AfterViewInit, ChangeDetectorRef, Component, HostListener, Input, OnIni
 import { FormsModule } from '@angular/forms';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { WingsService } from '../../../services/wings.service';
-import { Bank_Allocation_Type, Customer, Customer_Bank_Baby_Allocation, CustomerHat, RawMaterialNameColor, Status, Wing, WingBaby, WingsListItem } from '../../../../types';
+import { Bank_Allocation_Type, Customer, Customer_Bank_Baby_Allocation, CustomerHat, RawMaterialBasicDetails, Status, Wing, WingBaby, WingsListItem } from '../../../../types';
 import { DecimalPipe, formatDate, JsonPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { WingDiagramComponent } from '../../wings/wing-diagram/wing-diagram.component';
 import { PrefixPipe } from '../../../utils/pipes/prefix-pipe';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
 import { Lightbox, LightboxModule } from 'ngx-lightbox';
 import { GlobalsService } from '../../../services/globals.service';
-import { faArrowDown, faArrowDown19, faArrowLeft, faArrowsRotate, faBasketShopping, faChartPie, faCopy, faRecordVinyl, faRuler, faSave, faScissors, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faArrowDown, faArrowDown19, faArrowLeft, faArrowsRotate, faBasketShopping, faChartPie, faCopy, faLightbulb, faRecordVinyl, faRuler, faSave, faScissors, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { AllocationPickerComponent } from '../allocation-picker/allocation-picker.component';
 import { StartsWithPipe } from '../../../utils/pipes/starts-with-pipe';
@@ -69,11 +69,10 @@ apply the sliders after the load
 })
 export class SingleHatCalculatorComponent extends NavigatedMessageComponent implements OnInit, AfterViewInit {
 
-
   wings: WingsListItem[] = []; //populating the list of wings to select
-  raw_material_names: RawMaterialNameColor[] = []; //populating the raw material selectors
-  raw_material_names_babies: RawMaterialNameColor[] = []; //populating the raw material selectors
-  raw_material_names_tails: RawMaterialNameColor[] = []; //populating the raw material selectors
+  raw_material_names: RawMaterialBasicDetails[] = []; //populating the raw material selectors
+  raw_material_names_babies: RawMaterialBasicDetails[] = []; //populating the raw material selectors
+  raw_material_names_tails: RawMaterialBasicDetails[] = []; //populating the raw material selectors
 
   //the current customer object
   @Input() customer: Customer = {
@@ -100,10 +99,13 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     },
     wall_allocation_id: 0,
     crown_allocation_id: 0,
-    tails_material_id: null,
-    tails_allocation_id: null,
+    tails_material_id_r: null,
+    tails_material_id_l: null,
+    tails_allocation_id_r: null,
+    tails_allocation_id_l: null,
     mayler_width: 0.17,
-    hr_hl_width: 0,
+    hl_width: 3.5,
+    hr_width: 3.5,
     white_hair: false,
     white_hair_notes: '',
     order_date: null,
@@ -112,7 +114,8 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     original_wing_name: '',
     crown_visible: 0,
     crown_length: 0,
-    tails_overdraft: 0,
+    tails_overdraft_r: 0,
+    tails_overdraft_l: 0,
     single_hat_orders: [],
     save_wing_for_customer: false,
     save_wing_name_for_customer: ''
@@ -152,6 +155,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   faCopy: IconDefinition = faCopy;
   faArrowDown: IconDefinition = faArrowDown;
   faSave: IconDefinition = faSave;
+  faLightbulb: IconDefinition = faLightbulb;
 
   summary_table_instructions: string = "";
   hat_babies: aggregated_babies[] = []; //containing aggregated babies with length, quantity and num of hats
@@ -164,7 +168,6 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
   inch_to_cm: number = 2.54;
   cm_to_inch: number = 0.393701;
-
 
   min_knife:number = 4;
   max_knife:number = 12.5;
@@ -239,7 +242,8 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   //hat_mayler = 0.17;
 
   arr_hr_hl: number[] = [3.5, 4, 4.5];
-  hat_hr_hl: number = 3.5;
+  hat_hr: number = 3.5;
+  hat_hl: number = 3.5;
 
   //hat_crown_visible: number = 0;
   //hat_white_hair: boolean = false;
@@ -257,9 +261,12 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   calculated_hats_info: hats_calculated = {
     total_num_of_possible_hats: 0,
     hat_babies: [],
-    tails_used: 0,
-    tails_remaining: 0,
-    tails_overdraft: 0,
+    tails_used_l: 0,
+    tails_remaining_l: 0,
+    tails_overdraft_l: 0,
+    tails_used_r: 0,
+    tails_remaining_r: 0,
+    tails_overdraft_r: 0,
     max_num_of_hats_with_tails: 0,
     crown_babies: []
   };
@@ -279,10 +286,13 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   
   wall_alocation: Customer_Bank_Baby_Allocation | null = null;
   crown_allocation: Customer_Bank_Baby_Allocation | null = null;
-  tails_allocation: Customer_Bank_Baby_Allocation | null = null;
+  tails_allocation_l: Customer_Bank_Baby_Allocation | null = null;
+  tails_allocation_r: Customer_Bank_Baby_Allocation | null = null;
   wall_allocation_units : string = "";
   crown_allocation_units : string = "";
   tails_allocation_units : string = "";
+  use_the_same_allocation_for_wall_and_crown: Boolean = true;
+  use_the_same_allocation_for_l_and_r_h_material: Boolean = true;
   /*
   num_of_allocations_with_wall_material = 0;
   num_of_allocations_with_crown_material = 0;
@@ -302,6 +312,13 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
   total_num_of_possible_hats: number = 0;
   highlight_lowest_number_in_table: boolean =  false;
+
+  is_wall_materiail_tentative: boolean = false;
+  is_crown_materiail_tentative: boolean = false;
+  is_hat_tentative: boolean = false;
+
+  is_hr_tentative: boolean = false;
+  is_hl_tentative: boolean = false;
 
   loading: boolean = true;
 
@@ -424,7 +441,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         this.customer = customer;
         this.customerHat.customer_id = this.customer.id;
 
-        this.rawMaterialsService.getRawMaterialNamesColors(id).subscribe({
+        this.rawMaterialsService.getRawMaterialBasicDetails(id).subscribe({
           next: (names)=> {
             this.raw_material_names = names;
 
@@ -458,7 +475,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
               .map(a => a.raw_material_id);
             
             //filter the raw materials lists to only ones with baby allocations
-            this.raw_material_names_tails = names;
+            this.raw_material_names_tails = names.filter(n=> n.is_usable_for_h_material);
               //.filter(material => raw_material_ids_with_tails_allocations.find(id => id == material.id));
 
 
@@ -484,22 +501,29 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
             this.allocation_selected(hat_allocation);
           }
           let crown_allocation = Number(this.activatedRoute.snapshot.queryParamMap.get('c_aloc'));
-          if(crown_allocation) {
+          if(crown_allocation && crown_allocation > 0) {
             this.pending_allocation_area_selection = "crown";
             this.allocation_selected(crown_allocation);
+
+            if(hat_allocation > 0){
+              this.use_the_same_allocation_for_wall_and_crown = (crown_allocation == hat_allocation);
+            }
           }
 
           let tails_material = this.activatedRoute.snapshot.queryParamMap.get('t_mat');
           if(tails_material && Number(tails_material) != 0) {
-            this.customerHat.tails_material_id = Number(tails_material);
-            let material_rec = this.raw_material_names.find(m => m.id == this.customerHat.tails_material_id);
-            if(material_rec) {
-              this.tails_material_changed(material_rec);
+            this.customerHat.tails_material_id_l = Number(tails_material);
+            this.customerHat.tails_material_id_r = Number(tails_material);
+            let material_rec_l = this.raw_material_names.find(m => m.id == this.customerHat.tails_material_id_l);
+            let material_rec_r = this.raw_material_names.find(m => m.id == this.customerHat.tails_material_id_r);
+            if(material_rec_l && material_rec_r) {
+              this.tails_material_changed(material_rec_l, material_rec_r);
             }
           }
           let tails_allocation = Number(this.activatedRoute.snapshot.queryParamMap.get('t_aloc'));
           if(tails_allocation  && Number(tails_allocation) != 0) {
-            this.pending_allocation_area_selection = "tails";
+            this.pending_allocation_area_selection = "tails_l";
+            this.use_the_same_allocation_for_l_and_r_h_material = true;
             this.allocation_selected(tails_allocation);
           }
 
@@ -535,13 +559,16 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   calculateVisibleCrown(){
     this.customerHat.crown_visible = 0;
     this.customerHat.crown_length = 0;
-    if(this.customerHat && this.customerHat.wing) {
-      const C1 = this.customerHat.wing.babies.find(b => b.position.toUpperCase() == "C1");
-      this.customerHat.crown_visible = (C1) ? C1.length : 0;
-      this.customerHat.crown_length = (C1)? C1.length : 0;
+    if(this.customerHat && this.customerHat.wing && this.customerHat.wing.babies && this.customerHat.wing.babies.length > 0) {
+      //const C1 = this.customerHat.wing.babies.find(b => b.position.toUpperCase() == "C1");
+      const longest_crown_baby = this.customerHat.wing.babies
+        .filter(c => c.position.toUpperCase().startsWith("C"))
+        .reduce((a, b) => (b.length > a.length ? b : a));
+      this.customerHat.crown_visible = (longest_crown_baby) ? longest_crown_baby.length : 0;
+      this.customerHat.crown_length = (longest_crown_baby)? longest_crown_baby.length : 0;
     }
-    if(this.customerHat.tails_allocation_id && this.customerHat.crown_visible > 0){
-      this.customerHat.crown_visible -= this.hat_hr_hl;
+    if(this.customerHat.tails_material_id_r && this.customerHat.crown_visible > 0){
+      this.customerHat.crown_visible -= this.customerHat.hr_width; //assuming hr (H material on the right) is on the side of the crown (R)
     }
   }
 
@@ -564,16 +591,21 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     let babies_in_wall_allocation = (this.wall_alocation)? (this.customer.babies.filter(b => b.allocation_id == this.wall_alocation?.id)) : [];
     let babies_in_crown_allocation = (this.crown_allocation)? (this.customer.babies.filter(b => b.allocation_id == this.crown_allocation?.id)) : [];
 
+    //console.log("-- before calculations, order amount ", this.order_amount);
     this.calculated_hats_info = this.hatsCalculatorService.aggregateHatBabiesAndMatchingAllocations(
       this.customerHat.wing,
       this.wall_alocation,
       this.crown_allocation,
-      this.tails_allocation,
+      this.tails_allocation_l,
+      this.tails_allocation_r,
       babies_in_wall_allocation,
       babies_in_crown_allocation,
       this.customerHat.wing_quantity,
-      this.order_amount
+      this.order_amount,
+      this.is_hat_tentative,
+      (this.customerHat.hat_material_id != this.customerHat.crown_material_id)
     );
+    //console.log("-- after calculations, order amount ", this.order_amount);
     /*
     this.console.log("=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
     this.console.log("CALVULATED HATS:");
@@ -593,14 +625,21 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       this.order_amount = this.total_num_of_possible_hats;
     }
     */
-    if(!this.tails_allocation) {      
-      this.calculated_hats_info.tails_used = 0;
-      this.calculated_hats_info.tails_remaining = 0;
-      this.calculated_hats_info.tails_overdraft = this.customerHat.wing_quantity * this.order_amount;
+    if(!this.tails_allocation_l) {      
+      this.calculated_hats_info.tails_used_l = 0;
+      this.calculated_hats_info.tails_remaining_l = 0;
+      this.calculated_hats_info.tails_overdraft_l = this.customerHat.wing_quantity * this.order_amount;
     }
-    this.customerHat.tails_overdraft = this.calculated_hats_info.tails_overdraft;
+    if(!this.tails_allocation_r) {
+      this.calculated_hats_info.tails_used_r = 0;
+      this.calculated_hats_info.tails_remaining_r = 0;
+      this.calculated_hats_info.tails_overdraft_r = this.customerHat.wing_quantity * this.order_amount;
+    }
+    this.customerHat.tails_overdraft_l = this.calculated_hats_info.tails_overdraft_l;
+    this.customerHat.tails_overdraft_r = this.calculated_hats_info.tails_overdraft_r;
 
-   this.advisor.runCalculations();
+    //console.log("-- after calculations, order amount ", this.order_amount);
+    this.advisor.runCalculations();
   }
  
   //invoked when the selection dialog is closed
@@ -612,7 +651,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       if(this.pending_allocation_area_selection == "wall") {
         this.wall_alocation = alloc;
         this.wall_allocation_units = bank? bank.raw_material_quantity_units : "";
-        if(this.customerHat.crown_material_id == this.customerHat.hat_material_id /* && !this.crown_allocation*/){
+        if(this.customerHat.crown_material_id == this.customerHat.hat_material_id || this.use_the_same_allocation_for_wall_and_crown/* && !this.crown_allocation*/){
           this.crown_allocation = alloc;
           this.crown_allocation_units = bank? bank.raw_material_quantity_units : "";
           this.customerHat.crown_allocation_id = alloc_id;
@@ -624,23 +663,63 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         this.crown_allocation_units = bank? bank.raw_material_quantity_units : "";
         this.customerHat.crown_allocation_id = alloc_id;
       }
-      else if(this.pending_allocation_area_selection == "tails") {
-        this.tails_allocation = alloc;
+      else if(this.pending_allocation_area_selection == "tails_l") {
+        this.tails_allocation_l = alloc;
         this.crown_allocation_units = bank? bank.raw_material_quantity_units : "";
-        this.customerHat.tails_allocation_id = alloc_id;
-      }      
+        this.customerHat.tails_allocation_id_l = alloc_id;
+        if(this.use_the_same_allocation_for_l_and_r_h_material){
+          this.tails_allocation_r = alloc;
+          this.crown_allocation_units = bank? bank.raw_material_quantity_units : "";
+          this.customerHat.tails_allocation_id_r = alloc_id;
+        }
+      }
+      else if(this.pending_allocation_area_selection == "tails_r") {
+        this.tails_allocation_r = alloc;
+        this.crown_allocation_units = bank? bank.raw_material_quantity_units : "";
+        this.customerHat.tails_allocation_id_r = alloc_id;
+      } 
     }
     this.aggregateHatBabiesAndMatchingAllocations();
     this.update_table_instructions();
-    this.order_amount = this.total_num_of_possible_hats;
+    this.order_amount = Math.min(this.total_num_of_possible_hats, 10);
     //this.recauculate_overdraft_tails();
     this.calculateVisibleCrown();
+  }
+
+  chkHMaterial_L_is_R_changed(){
+    if(this.use_the_same_allocation_for_l_and_r_h_material){      
+        this.crown_allocation = this.wall_alocation;
+        this.crown_allocation_units = this.wall_allocation_units;
+        this.customerHat.crown_allocation_id = this.customerHat.crown_allocation_id;
+    }
+  }
+
+  chkCrown_allocation_is_wall_allocation_changed(){
+    if(this.use_the_same_allocation_for_wall_and_crown){
+      this.customerHat.crown_material_id = this.customerHat.hat_material_id;
+      this.customerHat.crown_allocation_id = this.customerHat.wall_allocation_id;      
+      this.crown_allocation = this.wall_alocation;
+    }
+    this.update_customer(this.customer);
+    this.margins_changed();
+    this.update_table_instructions();
+    this.calculateVisibleCrown();      
+  }
+
+  use_the_same_allocation_for_l_and_r_h_material_changed(){
+    if(this.use_the_same_allocation_for_l_and_r_h_material){
+      this.customerHat.tails_material_id_r = this.customerHat.tails_material_id_l;
+      this.customerHat.tails_allocation_id_r = this.customerHat.tails_allocation_id_l;
+      this.tails_allocation_r = this.tails_allocation_l;
+    }
+    this.update_table_instructions();
+    this.calculateVisibleCrown();  
   }
 
   num_of_wings_changed(){
     this.aggregateHatBabiesAndMatchingAllocations();
     //this.recauculate_overdraft_tails();
-    this.order_amount = this.total_num_of_possible_hats;
+    this.order_amount = Math.min(this.total_num_of_possible_hats, 10);
   }
 
   generate_unique_hat_name(){
@@ -669,7 +748,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         //the order won't be affected if the parent wing itself changes.
         this.selected_wing_name = w.name;
         this.customerHat.wing = w;
-        this.customerHat.wing.id = 0;
+        this.customerHat.wing.id = w.id;
         this.customerHat.wing.name = this.generate_unique_hat_name();
         this.wing_original = (JSON.parse(JSON.stringify(w)));
         this.wing_unchanged = (JSON.parse(JSON.stringify(w)));
@@ -679,17 +758,21 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
         this.diagram.setColors(this.globalsService.currentTheme());
 
-        /**/
+        /*
         this.customerHat.hat_material_id = null;
         this.customerHat.crown_material_id = null;
-        this.customerHat.tails_material_id = null;
-        
+        this.customerHat.tails_material_id_l = null;
+        this.customerHat.tails_material_id_r = null;
+
         this.wall_alocation = null;
         this.crown_allocation = null;
-        this.tails_allocation = null;
+        this.tails_allocation_l = null;
+        this.tails_allocation_r = null;
         this.customerHat.wall_allocation_id = 0;
         this.customerHat.crown_allocation_id = 0;
-        this.customerHat.tails_allocation_id = 0;
+        this.customerHat.tails_allocation_id_l = 0;
+        this.customerHat.tails_allocation_id_r = 0;
+        */
         /*
         this.num_of_allocations_with_wall_material = 0;
         this.num_of_allocations_with_crown_material = 0;
@@ -698,7 +781,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
         this.aggregateHatBabiesAndMatchingAllocations();
         this.update_table_instructions();
-        this.order_amount = this.total_num_of_possible_hats;
+        this.order_amount = Math.min(this.total_num_of_possible_hats, 10);
         this.recalculate_hat_size();
         this.calculateVisibleCrown();
         this.calculate_wings_per_hat();
@@ -712,20 +795,25 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       id: 0, name: '', knife: 0, allow_shortening_babies_in_pairs: false,
       crown_width: 0, split_l1: 1, angled_crown: false, babies: [], customers: []
     };
+    this.update_table_instructions();
   }
 
-  wall_material_changed(material: RawMaterialNameColor){
+  wall_material_changed(material: RawMaterialBasicDetails){
     if(!material)
       return;
     this.customerHat.hat_material_id = material.id;
-    this.customerHat.crown_material_id = material.id;
     this.wall_alocation = null;
-    this.crown_allocation = null;
     this.customerHat.wall_allocation_id = 0;
-    this.customerHat.crown_allocation_id = 0;
     this.allow_shortening_material_babies_in_pairs = material.allow_shortening_babies_in_pairs;
     this.customerHat.shorten_top_by = 0;
-    this.customerHat.shorten_crown_by = 0;
+    if(this.use_the_same_allocation_for_wall_and_crown){
+      this.customerHat.crown_material_id = material.id;
+      this.crown_allocation = null;
+      this.customerHat.crown_allocation_id = 0;
+      this.customerHat.shorten_crown_by = 0;
+    }
+    this.is_wall_materiail_tentative = !material.has_banks_for_current_customer
+    this.is_hat_tentative = (this.is_wall_materiail_tentative || this.is_crown_materiail_tentative);
     this.margins_changed();
     this.update_table_instructions();
     this.calculateVisibleCrown();  
@@ -733,19 +821,22 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
   wall_material_cleared(){
     this.customerHat.hat_material_id = null;
-    this.customerHat.crown_material_id = null;
     this.wall_alocation = null;
-    this.crown_allocation = null;
     this.customerHat.wall_allocation_id = 0;
-    this.customerHat.crown_allocation_id = 0;
     this.customerHat.shorten_top_by = 0;
-    this.customerHat.shorten_crown_by = 0;
+    if(this.use_the_same_allocation_for_wall_and_crown){
+      this.customerHat.crown_material_id = null;
+      this.crown_allocation = null;
+      this.customerHat.crown_allocation_id = 0;
+      this.customerHat.shorten_crown_by = 0;
+    }
+    this.is_hat_tentative = (this.is_wall_materiail_tentative || this.is_crown_materiail_tentative);
     this.margins_changed();
     this.update_table_instructions();
     this.calculateVisibleCrown();  
   }
 
-  crown_material_changed(material: RawMaterialNameColor){
+  crown_material_changed(material: RawMaterialBasicDetails){
     if(!material)
       return;
     this.customerHat.crown_material_id = material.id;
@@ -753,21 +844,48 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.crown_allocation = null;
     this.customerHat.shorten_top_by = 0;
     this.customerHat.shorten_crown_by = 0;
+    this.is_crown_materiail_tentative = !material.has_banks_for_current_customer;
+    this.is_hat_tentative = (this.is_wall_materiail_tentative || this.is_crown_materiail_tentative);
     this.margins_changed();
     this.update_table_instructions();
     this.calculateVisibleCrown();
   }
 
-  tails_material_changed(material: RawMaterialNameColor){
-    if(!material)
+  tails_material_changed(material_l: RawMaterialBasicDetails | null, material_r: RawMaterialBasicDetails | null){
+    if(!material_l && !material_r)
       return;
-    this.customerHat.tails_material_id = material.id;
-    this.customerHat.tails_allocation_id = 0;
-    this.tails_allocation = null;
+    if(material_l){
+      this.customerHat.tails_material_id_l = material_l.id;
+      this.customerHat.tails_allocation_id_l = 0;
+      this.tails_allocation_l = null;
+
+      this.calculated_hats_info.tails_used_l = 0;
+      this.calculated_hats_info.tails_remaining_l = 0;
+      this.calculated_hats_info.tails_overdraft_l = this.customerHat.wing_quantity * this.order_amount;
+
+      if(this.use_the_same_allocation_for_l_and_r_h_material){
+        this.customerHat.tails_material_id_r = material_l.id;
+        this.customerHat.tails_allocation_id_r = 0;
+        this.tails_allocation_r = null;
+
+        this.calculated_hats_info.tails_used_r = 0;
+        this.calculated_hats_info.tails_remaining_r = 0;
+        this.calculated_hats_info.tails_overdraft_r = this.customerHat.wing_quantity * this.order_amount;
+        this.is_hr_tentative = !material_l.has_banks_for_current_customer;
+      }
+      this.is_hl_tentative = !material_l.has_banks_for_current_customer;
+    }
     
-    this.calculated_hats_info.tails_used = 0;
-    this.calculated_hats_info.tails_remaining = 0;
-    this.calculated_hats_info.tails_overdraft = this.customerHat.wing_quantity * this.order_amount;
+    if(material_r && !this.use_the_same_allocation_for_l_and_r_h_material){
+      this.customerHat.tails_material_id_r = material_r.id;
+      this.customerHat.tails_allocation_id_r = 0;
+      this.tails_allocation_r = null;
+
+      this.calculated_hats_info.tails_used_r = 0;
+      this.calculated_hats_info.tails_remaining_r = 0;
+      this.calculated_hats_info.tails_overdraft_r = this.customerHat.wing_quantity * this.order_amount;
+      this.is_hr_tentative = !material_r.has_banks_for_current_customer;
+    }
 
     this.update_table_instructions();
     this.calculateVisibleCrown();  
@@ -788,15 +906,25 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.crown_allocation = null;
     this.customerHat.shorten_top_by = 0;
     this.customerHat.shorten_crown_by = 0;
+    this.is_hat_tentative = (this.is_wall_materiail_tentative || this.is_crown_materiail_tentative);
     this.margins_changed();
     this.update_table_instructions();
     this.calculateVisibleCrown();
   }
 
-  tails_material_cleared() {
-    this.customerHat.tails_material_id = null;
-    this.customerHat.tails_allocation_id = 0;
-    this.tails_allocation = null;
+  tails_material_cleared(l_or_r: string) {
+    if(l_or_r === 'l') {
+      this.customerHat.tails_material_id_l = null;
+      this.customerHat.tails_allocation_id_l = 0;
+      this.tails_allocation_l = null;
+      this.is_hl_tentative = false;
+    } 
+    if(l_or_r === 'r' || this.use_the_same_allocation_for_l_and_r_h_material) {
+      this.customerHat.tails_material_id_r = null;
+      this.customerHat.tails_allocation_id_r = 0;
+      this.tails_allocation_r = null;
+      this.is_hr_tentative = false;
+    }
     this.update_table_instructions();
     this.calculateVisibleCrown();
     //this.recauculate_overdraft_tails();
@@ -808,7 +936,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       this.allocation_picker.banks = this.customer.banks.filter(bank => (materialFilter)? bank.raw_material_id == materialFilter : true);
       //this.allocation_picker.banks_baby_allocations = this.customer.banks_baby_allocations.filter(a => a.allocation_type == ((area!="tails")? Object.keys(Bank_Allocation_Type)[Object.values(Bank_Allocation_Type).indexOf(Bank_Allocation_Type.babies)] : Object.keys(Bank_Allocation_Type)[Object.values(Bank_Allocation_Type).indexOf(Bank_Allocation_Type.tails)]));
       this.allocation_picker.banks_baby_allocations = this.customer.banks_baby_allocations;
-      this.allocation_picker.banks_baby_allocation_type_filter = (area=="tails")? Bank_Allocation_Type.tails : Bank_Allocation_Type.babies;
+      this.allocation_picker.banks_baby_allocation_type_filter = (area=="tails_l" || area=="tails_r")? Bank_Allocation_Type.tails : Bank_Allocation_Type.babies;
       this.allocation_picker.babies = this.customer.babies;
       this.allocation_picker.customer = this.customer;
       this.allocation_picker.wing_id = (this.selected_wing_id)?? 0;
@@ -929,12 +1057,14 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     if(this.customerHat && this.customerHat.wing){
       if(this.customerHat.wing.babies){
         const L1 = this.customerHat.wing.babies.find(b => b.position.toUpperCase() == "L1");
-        const C1 = this.customerHat.wing.babies.find(b => b.position.toUpperCase() == "C1");
+        const longest_crown_baby = this.customerHat.wing.babies
+          .filter(c => c.position.toUpperCase().startsWith("C"))
+          .reduce((a, b) => (b.length > a.length ? b : a));
         const L1_len = (L1) ? L1.length : 0;
-        const C1_len = (C1) ? C1.length : 0;
-        this.wing_total_height += (L1_len + C1_len);
-        this.min_height_for_wing = (this.min_knife + L1_len + C1_len);
-        this.max_height_for_wing = (this.max_knife + L1_len + C1_len);
+        const longest_crown_baby_length = (longest_crown_baby) ? longest_crown_baby.length : 0;
+        this.wing_total_height += (L1_len + longest_crown_baby_length);
+        this.min_height_for_wing = (this.min_knife + L1_len + longest_crown_baby_length);
+        this.max_height_for_wing = (this.max_knife + L1_len + longest_crown_baby_length);
 
         //this.console.log("min: " + this.min_height_for_wing + "cm");
         //this.console.log("max: " + this.max_height_for_wing + "cm");
@@ -956,10 +1086,12 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
       if(this.customerHat.wing.babies){
         const L1 = this.customerHat.wing.babies.find(b => b.position.toUpperCase() == "L1");
-        const C1 = this.customerHat.wing.babies.find(b => b.position.toUpperCase() == "C1");
+        const longest_crown_baby = this.customerHat.wing.babies
+          .filter(c => c.position.toUpperCase().startsWith("C"))
+          .reduce((a, b) => (b.length > a.length ? b : a));
         const L1_len = (L1) ? L1.length : 0;
-        const C1_len = (C1) ? C1.length : 0;
-        this.wing_knife -= (L1_len + C1_len);
+        const longest_crown_baby_length = (longest_crown_baby) ? longest_crown_baby.length : 0;
+        this.wing_knife -= (L1_len + longest_crown_baby_length);
         this.customerHat.wing.knife = this.wing_knife;
       }
     }
@@ -1006,7 +1138,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     }
     this.check_for_wing_changes();
     this.aggregateHatBabiesAndMatchingAllocations();
-    this.order_amount = this.total_num_of_possible_hats;
+    this.order_amount = Math.min(this.total_num_of_possible_hats, 10);
     this.recalculate_hat_size();
     this.calculateVisibleCrown();
   }
@@ -1031,7 +1163,8 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
     this.check_for_wing_changes();
     this.aggregateHatBabiesAndMatchingAllocations();
-    this.order_amount = this.total_num_of_possible_hats;
+    this.console.log("***here " , this.total_babies_per_hat);
+    this.order_amount = Math.min(this.total_num_of_possible_hats, 10);
     this.recalculate_hat_size();
     this.calculateVisibleCrown();
   }
@@ -1060,10 +1193,14 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
   update_table_instructions(){
     this.summary_table_instructions = "";
-    if(this.customerHat.wing == null){
+    if(this.customerHat.wing == null || this.customerHat.wing.id <= 0) {
       this.summary_table_instructions = "Please select a wing";
     }
     else {
+      if(this.customerHat.wing.id > 0 && this.customerHat.wing.babies.length == 0) {
+        this.summary_table_instructions = "This wing design has no babies";
+      }
+      else {
       if(this.customerHat.hat_material_id == 0) {
         this.summary_table_instructions = "Please select the wall material";
       }/*
@@ -1077,13 +1214,16 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
             this.summary_table_instructions = "Please select the crown material";
           }
           else {
-            if(!this.wall_alocation) {
-              this.summary_table_instructions = "Please select the wall allocation";
+            if(!this.is_hat_tentative){
+              if(!this.wall_alocation) {
+                this.summary_table_instructions = "Please select the wall allocation";
+              }
+              else {
+                if(!this.crown_allocation) {
+                  this.summary_table_instructions = "Please select the crown allocation";
+                }
             }
-            else {
-              if(!this.crown_allocation) {
-                this.summary_table_instructions = "Please select the crown allocation";
-              }/*
+/*
               else {
                 if(!this.tails_allocation) {
                   this.summary_table_instructions = "Please select the H allocation";
@@ -1092,6 +1232,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
             }
           }
         }
+      }
       //}
     }
   }
@@ -1121,7 +1262,22 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.aggregateHatBabiesAndMatchingAllocations();
   }
 
-  placeOrder(){
+  async placeOrder(){
+    if(this.order_amount > 10){
+      const confirmed = await this.confirm_action.open_with_message({
+        modalTitle: "Large order",
+        modalText: `Are you sure you want want to order ${this. order_amount} hats?`,
+        dialogIcon: faTriangleExclamation,
+        btnYesIcon: faBasketShopping,
+        btnYesText: "I'm sure",
+        btnYesClass: "btn-success",
+        btnNoText: "Cancel"
+      });
+      if(!confirmed){
+        return;
+      }
+    }
+
     let babies_in_wall_allocation = (this.wall_alocation)? (this.customer.babies.filter(b => b.allocation_id == this.wall_alocation?.id)) : [];
     let babies_in_crown_allocation = (this.crown_allocation)? (this.customer.babies.filter(b => b.allocation_id == this.crown_allocation?.id)) : [];
 
@@ -1134,10 +1290,11 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         diameter_inches: this.diameter_inches,
         ordering_customer_name: "",
         num_of_hats: 1,
+        is_tentative: this.is_hat_tentative,
         status: {
           id: 0,
           date: new Date(),
-          order_status: Status.new          
+          order_status: (this.is_hat_tentative)? Status.tentative : Status.new
         }
       }));
     /*
@@ -1214,47 +1371,70 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
             }
           });
 
-          this.customerHat.wing?.babies.forEach((hatBaby: WingBaby) => {
-            let allocationBaby = hatBaby.position.toUpperCase().startsWith("C")?
-              this.customer.babies.find(b => b.allocation_id == this.crown_allocation?.id && b.length == hatBaby.length) : 
-              this.customer.babies.find(b => b.allocation_id == this.wall_alocation?.id && b.length == hatBaby.length);
-      
-            if(allocationBaby){
-              //this.console.log("Reducing baby " + allocationBaby.length  + " by  " + (this.order_amount * this.customerHat.wing_quantity));
-              allocationBaby.quantity -= (this.order_amount * this.customerHat.wing_quantity);
-              allocationBaby.quantity_in_pending_orders += (this.order_amount * this.customerHat.wing_quantity);
-              //allocationBaby.quantity_in_allocation += (this.order_amount * this.customerHat.wing_quantity);
-            }
-          });
-          //this.customerHat.tails_allocation_id
-          //let arr_adjusted_wings_per_hat = this.customerHat.adjusted_wings_per_hat.split(",");
-          const total_num_of_wings = this.customerHat.single_hat_orders
-            .reduce((accumulator, currentItem) => { 
-              //let curVal_num = parseInt(currentItem.wing_quantity);
-              //if(isNaN(curVal_num)){
-              //  curVal_num = 0;
-              //}
-              return accumulator + currentItem.wing_quantity;
-            }, 0);
-          if(this.tails_allocation){
-            if(this.tails_allocation.tails_quantity >= total_num_of_wings) {
-              this.tails_allocation.tails_quantity -= total_num_of_wings;
-              this.tails_allocation.tails_in_orders += total_num_of_wings;
+          // if not tentative
+          if(!this.is_hat_tentative){
+            this.customerHat.wing?.babies.forEach((hatBaby: WingBaby) => {
+              let allocationBaby = hatBaby.position.toUpperCase().startsWith("C")?
+                this.customer.babies.find(b => b.allocation_id == this.crown_allocation?.id && b.length == hatBaby.length) : 
+                this.customer.babies.find(b => b.allocation_id == this.wall_alocation?.id && b.length == hatBaby.length);
+        
+              if(allocationBaby){
+                //this.console.log("Reducing baby " + allocationBaby.length  + " by  " + (this.order_amount * this.customerHat.wing_quantity));
+                allocationBaby.quantity -= (this.order_amount * this.customerHat.wing_quantity);
+                allocationBaby.quantity_in_pending_orders += (this.order_amount * this.customerHat.wing_quantity);
+                //allocationBaby.quantity_in_allocation += (this.order_amount * this.customerHat.wing_quantity);
+              }
+            });
+            //this.customerHat.tails_allocation_id
+            //let arr_adjusted_wings_per_hat = this.customerHat.adjusted_wings_per_hat.split(",");
+            const total_num_of_wings = this.customerHat.single_hat_orders
+              .reduce((accumulator, currentItem) => { 
+                //let curVal_num = parseInt(currentItem.wing_quantity);
+                //if(isNaN(curVal_num)){
+                //  curVal_num = 0;
+                //}
+                return accumulator + currentItem.wing_quantity;
+              }, 0);
+
+            if (this.tails_allocation_l){
+              if(this.tails_allocation_l.tails_quantity >= total_num_of_wings) {
+                this.tails_allocation_l.tails_quantity -= total_num_of_wings;
+                this.tails_allocation_l.tails_in_orders += total_num_of_wings;
+              }
+              else {
+                const missing_tails_in_allocation = total_num_of_wings - this.tails_allocation_l.tails_quantity;
+                //move all the tails in the allocation to the orders, and the remainder to overdraft
+                this.tails_allocation_l.tails_in_orders += this.tails_allocation_l.tails_quantity;
+                this.tails_allocation_l.tails_quantity = 0;
+                this.customerHat.tails_overdraft_l = missing_tails_in_allocation;
+              }            
             }
             else {
-              const missing_tails_in_allocation = total_num_of_wings - this.tails_allocation.tails_quantity;
-              //move all the tails in the allocation to the orders, and the remainder to overdraft
-              this.tails_allocation.tails_in_orders += this.tails_allocation.tails_quantity;
-              this.tails_allocation.tails_quantity = 0;
-              this.customerHat.tails_overdraft = missing_tails_in_allocation;
+              this.customerHat.tails_overdraft_l = total_num_of_wings;
             }
-          }
-          else {
-            this.customerHat.tails_overdraft = total_num_of_wings;
-          }
-          this.aggregateHatBabiesAndMatchingAllocations();
-          this.order_amount = this.total_num_of_possible_hats;
-          if(this.customerHat && this.customerHat.wing){
+
+            if (this.tails_allocation_r){
+              if(this.tails_allocation_r.tails_quantity >= total_num_of_wings) {
+                this.tails_allocation_r.tails_quantity -= total_num_of_wings;
+                this.tails_allocation_r.tails_in_orders += total_num_of_wings;
+              }
+              else {
+                const missing_tails_in_allocation = total_num_of_wings - this.tails_allocation_r.tails_quantity;
+                //move all the tails in the allocation to the orders, and the remainder to overdraft
+                this.tails_allocation_r.tails_in_orders += this.tails_allocation_r.tails_quantity;
+                this.tails_allocation_r.tails_quantity = 0;
+                this.customerHat.tails_overdraft_r = missing_tails_in_allocation;
+              }            
+            }
+            else {
+              this.customerHat.tails_overdraft_r = total_num_of_wings;
+            }
+        }
+
+
+        this.aggregateHatBabiesAndMatchingAllocations();
+        this.order_amount = Math.min(this.total_num_of_possible_hats, 10);
+        if(this.customerHat && this.customerHat.wing){
             this.customerHat.wing.id = 0;
             this.customerHat.wing.name = this.generate_unique_hat_name();
           }
@@ -1326,7 +1506,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         this.customerHat.wing = {...this.advanced_wing_editor.unedited_wing, babies: [...this.advanced_wing_editor.unedited_wing.babies ] };
         this.aggregateHatBabiesAndMatchingAllocations();
         this.update_table_instructions();
-        this.order_amount = this.total_num_of_possible_hats;
+        this.order_amount = Math.min(this.total_num_of_possible_hats, 10);
         this.recalculate_hat_size();
         this.calculateVisibleCrown();
         this.calculate_wings_per_hat();       
@@ -1337,7 +1517,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         this.customerHat.wing = {...this.advanced_wing_editor.wing, babies: [...this.advanced_wing_editor.wing.babies ] };
         this.aggregateHatBabiesAndMatchingAllocations();
         this.update_table_instructions();
-        this.order_amount = this.total_num_of_possible_hats;
+        this.order_amount = Math.min(this.total_num_of_possible_hats, 10);
         this.recalculate_hat_size();
         this.calculateVisibleCrown();
         this.calculate_wings_per_hat();     

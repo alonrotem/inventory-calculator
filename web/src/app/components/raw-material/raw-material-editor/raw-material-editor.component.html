@@ -79,7 +79,7 @@
                     <label for="materialPurchaseQuantity">Total quantity purchased</label>
                 </div>
                 <ng-select [(ngModel)]="rawMaterialItem.quantity_units" name="quantityunits" [clearable]="false" #rawMaterialItem.quantity_units="ngModel" [disabled]="lock_quantity_control" (mousemove)="(!lock_quantity_control)? false: showTooltip('<strong>🔒 Locked</strong><br/>Measurement type is locked for editing, as it is used by customer banks.<br/>You can top it up with the top-up button!')" (mouseout)="this.show_tooltip=false">
-                    @for (unit of quantity_units; track unit) {
+                    @for (unit of quantity_units; track $index) {
                         <ng-option [value]="unit">{{unit}}</ng-option>
                     }
                 </ng-select>
@@ -175,7 +175,7 @@
             <div class="floating-label-group always-float">
             <label>Color</label>
                 <ng-select [(ngModel)]="rawMaterialItem.color" name="color" [clearable]="false" #color="ngModel" [required]="true">
-                    @for (color of colors; track color) {
+                    @for (color of colors; track $index) {
                         <ng-option [value]="color"><span [className]="'color color-' + color.toLowerCase().replace(' ', '-')"></span> {{ color }}</ng-option>
                     }
                 </ng-select>
@@ -205,6 +205,17 @@
             </div>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col col-12">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" [(ngModel)]="rawMaterialItem.is_usable_for_h_material" id="chk" name="chkIs_usable_for_h_material" />
+                <label class="form-check-label" for="chkIs_usable_for_h_material">
+                    Allow using this material as H material allocations
+                </label>
+            </div>
+        </div>
+    </div>    
 
     <div class="row">
         <div class="col col-12">

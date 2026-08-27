@@ -54,59 +54,54 @@ async function getSingleWingByName(name){
 
 async function getMultiple(page = 1, perPage, customer_id, customer_wings_only=false) {
   let subset =  '';
-  let customer_field = 'null as customer_id,';
-  let customer_join = '';
-  let customer_filter = '';
-  let customers_only_filter = '';
-
-
   if(page && perPage && page > 0 && perPage > 0)
   {
     const offset = helper.getOffset(page, perPage);
     subset = `LIMIT ${offset},${perPage}`
   }
-
+  let customer_filter = '';
   if(customer_id && customer_id > 0) {
-    customer_field = `wc.customer_id,`;
-    customer_join = `left join wings_customers wc on wc.wing_id=w.id`;
-    customer_filter = `and (wc.customer_id is null or wc.customer_id=${customer_id})`;
+    if(customer_wings_only){
+      customer_filter = `and (wc.customer_id=${customer_id})`;
+    }
+    else {
+      customer_filter = `and (wc.customer_id is null or wc.customer_id=${customer_id})`;
+    }
   }
 
-  if(customer_wings_only) {
-    customers_only_filter = `and EXISTS (SELECT 1 FROM wings_customers wc WHERE wc.wing_id = w.id)=1`;
-  }
-  
   const rows = await db.query(
-    `select 
-      w.id, w.name, 
-      EXISTS (SELECT 1 FROM wings_customers wc WHERE wc.wing_id = w.id) AS is_customer_wing,
-      w.knife, ${customer_field} w.split_l1, crown_width,
-      (SELECT COUNT(wb.id) + w.split_l1 FROM wings_babies wb, wings w
-              WHERE wb.parent_wing_id = 31 and w.id=31 and wb.position like'L%') as 'Left',
-      (SELECT COUNT(*) FROM wings_babies wb
-              WHERE wb.parent_wing_id = w.id and wb.position like'R%') as 'Right',
-      (SELECT COUNT(*) FROM wings_babies wb
-              WHERE wb.parent_wing_id = w.id and wb.position like'T%') as 'Top',
-      (SELECT COUNT(*) FROM wings_babies wb
-              WHERE wb.parent_wing_id = w.id and wb.position like'C%') as 'Crown'
-      from 
-        wings w ${customer_join}
-      where 
-        w.id not in (select wing_id from customer_hats)
-        ${customer_filter}
-        ${customers_only_filter}
-      order by w.name ${subset};`
+    `SELECT
+        w.id, w.name,
+        EXISTS (SELECT 1 FROM wings_customers wc2 WHERE wc2.wing_id = w.id) AS is_customer_wing,
+        w.knife, w.split_l1, crown_width,
+        GROUP_CONCAT(DISTINCT c.id) AS customer_id,
+        GROUP_CONCAT(DISTINCT c.name ORDER BY c.name SEPARATOR ', ') AS customer_name,
+        (SELECT COUNT(*) FROM wings_babies wb
+            WHERE wb.parent_wing_id = w.id AND wb.position LIKE 'L%') AS 'Left',
+        (SELECT COUNT(*) FROM wings_babies wb
+            WHERE wb.parent_wing_id = w.id AND wb.position LIKE 'R%') AS 'Right',
+        (SELECT COUNT(*) FROM wings_babies wb
+            WHERE wb.parent_wing_id = w.id AND wb.position LIKE 'T%') AS 'Top',
+        (SELECT COUNT(*) FROM wings_babies wb
+            WHERE wb.parent_wing_id = w.id AND wb.position LIKE 'C%') AS 'Crown'
+    FROM wings w
+    LEFT JOIN wings_customers wc ON wc.wing_id = w.id
+    LEFT JOIN customers c ON c.id = wc.customer_id
+    WHERE w.id NOT IN (SELECT wing_id FROM customer_hats ch)
+     ${customer_filter}
+    GROUP BY w.id, w.name, w.knife, w.split_l1, crown_width
+    order by w.name ${subset};`
   );
+
   const total = await db.query(
-    `select 
-      count(w.id) as count
-      from 
-        wings w ${customer_join}
-      where 
-        w.id not in (select wing_id from customer_hats)
-        ${customer_filter}
-        ${customers_only_filter}`
+    `SELECT COUNT(DISTINCT w.id) AS count
+      FROM wings w
+      LEFT JOIN wings_customers wc ON wc.wing_id = w.id
+      LEFT JOIN customers c ON c.id = wc.customer_id
+      WHERE w.id NOT IN (SELECT wing_id FROM customer_hats ch) 
+      ${customer_filter}`
   );
+
   const total_records = total[0].count;
   const total_pages = Math.ceil(total_records / perPage);
   const data = helper.emptyOrRows(rows);

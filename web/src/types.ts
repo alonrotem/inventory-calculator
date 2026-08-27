@@ -1,6 +1,7 @@
 import { HttpContext, HttpHeaders, HttpParams } from "@angular/common/http";
 import { EventEmitter } from "@angular/core";
 import { DialogClosingReason, ModalDialogComponent } from "./app/components/common/modal-dialog/modal-dialog.component";
+import { NumberValueAccessor } from "@angular/forms";
 
 export interface Options {
     headers?: HttpHeaders | {
@@ -53,6 +54,7 @@ export interface RawMaterial {
     currency: string; 
     notes: string;
     color: string;
+    is_usable_for_h_material: boolean;
     created_at: Date; 
     updated_at: Date; 
     created_by: number; 
@@ -63,11 +65,13 @@ export interface RawMaterial {
     deleted_bank_records: TransactionRecord[];
 }
 
-export interface RawMaterialNameColor {
+export interface RawMaterialBasicDetails {
     id: number;
     name: string;
     color: string;
     allow_shortening_babies_in_pairs: boolean;
+    is_usable_for_h_material: boolean;
+    has_banks_for_current_customer: boolean; // this is an optional field, when querying raw material names per specific customer
 }
 
 export interface RawMaterialCustomerBank {
@@ -112,8 +116,9 @@ export interface WingsListItem {
     Top: number;
     Right: number;
     Crown: number;
-    customer_id: number;
     is_customer_wing: boolean;
+    customer_id: number;
+    customer_name: string;
 }
 
 export interface WingsList {
@@ -285,6 +290,7 @@ export interface Customer_Bank {
     raw_material_color: string;
     raw_material_quantity_units: string;
     allow_shortening_babies_in_pairs: boolean;
+    is_material_usable_for_h_material: boolean;
     pre_save_id: number;
     id: number; 
     customer_id: number;
@@ -406,7 +412,8 @@ export interface CustomerHat {
     id: number;
 	hat_material_id: number | null;
 	crown_material_id: number| null;
-	tails_material_id: number | null;
+	tails_material_id_r: number | null;
+    tails_material_id_l: number | null;
     wing_quantity: number;
     //adjusted_wings_per_hat: string;
     customer_id: number;
@@ -416,15 +423,18 @@ export interface CustomerHat {
     original_wing_name: string;
     wall_allocation_id: number;
     crown_allocation_id: number;
-    tails_allocation_id: number | null;
-    tails_overdraft: number;
+    tails_allocation_id_r: number | null;
+    tails_allocation_id_l: number | null;
+    tails_overdraft_r: number;
+    tails_overdraft_l: number;
 
     crown_visible: number;
     crown_length: number;
 
     //kippa_size: number;
     mayler_width: number;
-    hr_hl_width: number;
+    hl_width: number;
+    hr_width: number;
     white_hair: boolean;
     white_hair_notes: string;
     order_date: Date | null;
@@ -447,6 +457,7 @@ export interface Order {
     ordering_customer_name: string;
     num_of_hats: number; //defaults to 1, this represents an order of a single hat
     status: OrderStatus;
+    is_tentative: boolean;
 }
 
 //these details are fetched per hat for the work order screen
@@ -482,6 +493,7 @@ export interface OrderDetails {
     original_order_date: Date | null;
 
     babies: WingBaby[];
+    is_tentative: boolean;
     //-----
 
 /* 
@@ -497,7 +509,8 @@ export enum Status {
     shipped = 'shipped',
     onhold = 'onhold',
     completed = 'completed',
-    cancelled = 'cancelled'
+    cancelled = 'cancelled',
+    tentative = 'tentative'
 }
 
 export interface OrderStatus {
@@ -526,10 +539,15 @@ export interface OrderListItem {
     knife: number;
     white_hair_notes: string;
     white_hair: boolean;
-    tails: number;
-    tails_overdraft: number;
+    tails_r: string;
+    tails_l: string;
+    tails_overdraft_r: number;
+    tails_overdraft_l: number;
+    tails_allocation_id_r: number;
+    tails_allocation_id_l: number;
     date: Date;
     order_notes: string;
+    is_tentative: boolean;
 }
 
 export interface OrdersList {

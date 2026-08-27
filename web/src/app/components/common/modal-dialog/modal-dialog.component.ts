@@ -1,4 +1,4 @@
-import { Component, ContentChild, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
+import { Component, ContentChild, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { NgClass, NgIf } from '@angular/common';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -46,6 +46,7 @@ export class ModalDialogComponent implements ModalDialog {
   modal_content_close_subscription:any;
   isOpen : boolean = false;
   @Input() canClose?: () => boolean; //an optional function to override closing on confirm
+  @ViewChild('btnSave', { read: ElementRef }) btnSave!: ElementRef;
   
   @ContentChild(ModalContentDirective) dialogContentComponent!: ModalContentDirective;
 
@@ -61,6 +62,8 @@ export class ModalDialogComponent implements ModalDialog {
     //console.log(this.modalSize);
     this.modalReference = this.modalService.open(this.content, { centered: true, size: this.modalSize, fullscreen: this.fullscreen });
     //console.log("openning " +this.dialogContentComponent);
+    //this.btnSave?.nativeElement.focus();
+
     this.opened.emit();
     if(this.dialogContentComponent){
       this.dialogContentComponent.onOpen();

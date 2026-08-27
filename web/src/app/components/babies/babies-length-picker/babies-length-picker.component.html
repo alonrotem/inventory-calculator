@@ -1,6 +1,6 @@
 <div class="picker-title">{{ this.title }}</div>
 <div>
-@for (current_length of lengths; track current_length) {
+@for (current_length of lengths; track $index) {
     <div 
         (click)="setLength(current_length)" 
         [className]="((this.selected_lengths.includes(Number(current_length)))? 'length-selector-box selected-length' :'length-selector-box')">{{ current_length }} {{ this.units }}</div>

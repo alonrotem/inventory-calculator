@@ -33,7 +33,7 @@ RUN node --version && npm --version
 
 RUN rm -rf node_modules
 RUN rm -rf ./package-lock.json
-RUN npm install -g @angular/cli@latest
+RUN npm install -g @angular/cli@18.2.20
 RUN npm config set legacy-peer-deps true
 RUN npm install --force
 # RUN ng analytics off

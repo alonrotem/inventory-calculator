@@ -18,7 +18,8 @@ function escapeForScript(value) {
   }
   
   if (typeof value === 'string') {
-    return "'" + value.replace(/'/g, "''") + "'";
+    var escaped = "'" + (value.replace(/'/g, "''").replace(/\"/g,'""')) + "'";
+    return escaped;
   }
   
   if (value instanceof Date) {
@@ -34,11 +35,11 @@ function escapeForScript(value) {
 
 async function get_all_table_names(){
     const tables_recs = helper.emptyOrRows(await db.query(
-        `select t.TABLE_NAME 
+        `select t.TABLE_NAME
             from information_schema.TABLES t 
         where 
             table_schema<>'mysql' 
-            and table_schema not like '%_schema' 
+            and table_schema=(select Database()) 
             and table_schema<>'sys' 
         order by table_name;`));
     if(!helper.isEmptyObj(tables_recs)){

@@ -28,7 +28,7 @@
         *ngFor="let wing of this.wingsList" 
         routerLink="/templates/wings/editor" 
         [queryParams]="{ id: wing.id, c_id: customerId }" role="button">
-        <td class="text-nowrap {{wing.is_customer_wing?'text-primary':''}}">{{ wing.name }}{{ wing.is_customer_wing ? ' (customer)' : '' }}</td>
+        <td class="text-nowrap {{wing.is_customer_wing?'text-primary':''}}">{{ wing.name }}{{ wing.customer_name ? ' ('+ wing.customer_name +')' : '' }}</td>
         <td><span class="icon-knife"></span> {{ wing.knife | number: '1.1-1' }} cm</td>
         <td><span class="icon-feather-wing"></span> L ({{ wing.Left }})</td>
         <td><span class="icon-feather-wing-r"></span> R ({{ wing.Right }})</td>

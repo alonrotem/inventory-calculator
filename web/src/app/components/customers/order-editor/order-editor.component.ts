@@ -50,7 +50,8 @@ export class OrderEditorComponent implements OnInit {
     hr_hl_width: 0,
     order_notes: '',
     original_order_date: null,
-    babies: []
+    babies: [],
+    is_tentative: false
   };
   faArrowsRotate: IconDefinition = faArrowsRotate;
   faSave: IconDefinition = faSave;

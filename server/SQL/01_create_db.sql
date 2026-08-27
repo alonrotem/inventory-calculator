@@ -344,6 +344,7 @@ CREATE TABLE  IF NOT EXISTS `raw_materials`
   `currency`		varchar(3) NULL,
   `notes`			varchar(255) NULL,
   `color`			varchar(128) null,
+  `is_usable_for_h_material` bool default true;
   `created_at`    	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`    	DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `created_by`	 	int null,
@@ -409,8 +410,8 @@ CREATE TABLE  IF NOT EXISTS `customer_banks_allocations` (
     `allocation_type`			ENUM('babies', 'tails') DEFAULT 'babies',
     
     # For allocations of type "tails"
-	`tails_quantity` INT NOT NULL DEFAULT(0),
-    `tails_in_orders` INT NOT NULL DEFAULT(0),
+	`tails_quantity` float not null default 0,
+    `tails_in_orders` float not null default 0,
     
     PRIMARY KEY (`id`),
     CONSTRAINT fk_customer_babies_bank
@@ -560,25 +561,31 @@ customerHat contains the details of the hat specs the customer ordered
 it holds an array of single hats by those specs, 
 each single hat can have a different kippa, designated customer name and number of wings
 */
+
 CREATE TABLE  IF NOT EXISTS `customer_hats`
 (
-	`id`				INT NOT NULL auto_increment,
-	`hat_material_id`	INT NOT NULL,
-	`crown_material_id`	INT NOT NULL,
-    `tails_material_id`	INT NULL,
-    `wing_id`			INT NOT NULL,
+	`id`					INT NOT NULL auto_increment,
+	`hat_material_id`		INT NOT NULL,
+	`crown_material_id`		INT NOT NULL,
+    `tails_material_id_r`	int NULL,
+    `tails_material_id_l`	int NULL,
+    `wing_id`				INT NOT NULL,
     --
     `original_wing_name` varchar(255) not null,
     `customer_id`		INT NOT NULL,
     `shorten_top_by`	float NULL,
     `shorten_crown_by`	float NULL,
-    `wall_allocation_id` INT NOT NULL,
-    `crown_allocation_id` INT NOT NULL,
-    `tails_allocation_id`	INT NULL,
-    `tails_overdraft`		INT default 0,
+    `wall_allocation_id` INT NOT null default 0,
+    `crown_allocation_id` INT NOT NULL default 0,
+    
+    `tails_allocation_id_r`	INT NOT NULL default 0,
+    `tails_allocation_id_l` INT NOT NULL default 0,
+    `tails_overdraft_r`		FLOAT not NULL default 0.17,
+    `tails_overdraft_l`		FLOAT not NULL default 0.17,
     
     `mayler_width`	FLOAT NULL,
-    `hr_hl_width`	FLOAT NULL default 0.17,
+    `hr_width`	FLOAT NULL default 0.17,
+    `hl_width`	FLOAT NULL default 0.17,
     --
     `crown_visible` FLOAT not null default 0,
 	`crown_length`	float not null default 0,
@@ -590,18 +597,23 @@ CREATE TABLE  IF NOT EXISTS `customer_hats`
 	  FOREIGN KEY (`hat_material_id`) REFERENCES raw_materials(`id`) ON DELETE CASCADE,
 	CONSTRAINT fk_customer_hats_crown_material_id
 	  FOREIGN KEY (`crown_material_id`) REFERENCES raw_materials(`id`) ON DELETE CASCADE,
-	CONSTRAINT fk_customer_hats_tails_material_id
-	  FOREIGN KEY (`tails_material_id`) REFERENCES raw_materials(`id`) ON DELETE CASCADE,
+	CONSTRAINT fk_customer_hats_tails_material_id_r
+	  FOREIGN KEY (`tails_material_id_r`) REFERENCES raw_materials(`id`) ON DELETE CASCADE,
+	CONSTRAINT fk_customer_hats_tails_material_id_l
+	  FOREIGN KEY (`tails_material_id_l`) REFERENCES raw_materials(`id`) ON DELETE CASCADE,
 	CONSTRAINT fk_customer_hats_wing_id
 	  FOREIGN KEY (`wing_id`) REFERENCES wings(`id`) ON DELETE CASCADE,
 	CONSTRAINT fk_customer_hats_customer_id
 	  FOREIGN KEY (`customer_id`) REFERENCES customers(`id`) ON DELETE CASCADE,
+	/*	  
 	CONSTRAINT fk_customer_hats_wall_alloc_id
 		FOREIGN KEY (`wall_allocation_id`) REFERENCES customer_banks_allocations(`id`)  ON DELETE CASCADE,
 	CONSTRAINT fk_customer_hats_crown_alloc_id
-		FOREIGN KEY (`crown_allocation_id`) REFERENCES customer_banks_allocations(`id`)  ON DELETE CASCADE /*,
-	CONSTRAINT fk_customer_hats_tails_alloc_id
-		FOREIGN KEY (`tails_allocation_id`) REFERENCES customer_banks_allocations(`id`)  ON DELETE CASCADE
+		FOREIGN KEY (`crown_allocation_id`) REFERENCES customer_banks_allocations(`id`)  ON DELETE CASCADE,
+	CONSTRAINT fk_customer_hats_tails_alloc_id_l
+		FOREIGN KEY (`tails_allocation_id_l`) REFERENCES customer_banks_allocations(`id`)  ON DELETE cascade,
+	CONSTRAINT fk_customer_hats_tails_alloc_id_r
+		FOREIGN KEY (`tails_allocation_id_r`) REFERENCES customer_banks_allocations(`id`)  ON DELETE CASCADE
 	*/
 );
 
@@ -614,11 +626,13 @@ CREATE TABLE IF NOT EXISTS `orders` (
     `kippa_size`	FLOAT NULL,
     `diameter_inches`	float not null default 12.5,
     `ordering_customer_name`	VARCHAR(255) NULL,
-    `tails_overdraft` int not null default 0,
+    `tails_overdraft_r` float null,
+    `tails_overdraft_l` float null,
     `isurgent`		BOOL default false,
     `white_hair`	BOOL default False,
     `white_hair_notes` Varchar(256) null,
-    `order_notes` Varchar(256) null,    
+    `order_notes` Varchar(256) null,
+    `is_tentative`	bool default false,
     PRIMARY KEY (`id`),
     CONSTRAINT fk_order_customer_hat_id
 	  FOREIGN KEY (`customer_hat_id`) REFERENCES customer_hats(`id`) ON DELETE CASCADE
@@ -634,7 +648,8 @@ CREATE TABLE IF NOT EXISTS `orders_status` (
             'shipped',
             'onhold',
             'completed',
-            'cancelled'
+            'cancelled',
+            'tentative'
 		) NOT NULL,
 	PRIMARY KEY (`id`),
     CONSTRAINT fk_order_status_order

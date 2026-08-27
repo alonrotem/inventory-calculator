@@ -54,7 +54,8 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     raw_material_quantity_units: '',
     transaction_history: [],
     raw_material_color: '',
-    allow_shortening_babies_in_pairs: false
+    allow_shortening_babies_in_pairs: false,
+    is_material_usable_for_h_material: true
   };
   @Input() banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
   @Input() babies: Allocation_Baby[] = [];
@@ -80,7 +81,8 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     raw_material_name: '', raw_material_quantity_units: '', id: 0, pre_save_id: 0,
     customer_id: 0, raw_material_id: 0, quantity: 0, remaining_quantity: 0, transaction_history: [],
     raw_material_color: '',
-    allow_shortening_babies_in_pairs: false
+    allow_shortening_babies_in_pairs: false,
+    is_material_usable_for_h_material: true
   };
   unchanged_banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
   unchanged_babies: Allocation_Baby[] = [];
@@ -509,7 +511,7 @@ recalculateBank(){
     );
     let babiesToEdit: { length: number; quantity: number }[] = [];
     this.babies_picker.dialogWrapper.btnSaveClass = "d-none";
-      this.babies_picker.dialogWrapper.btnCancelText = "(Esc to close)";
+      this.babies_picker.dialogWrapper.btnCancelText = "(Click here or Esc to close)";
     //if(baby_length > 0) {
       babiesToEdit = this.babies
         .filter(b => b.allocation_id == bank_allocation_id)

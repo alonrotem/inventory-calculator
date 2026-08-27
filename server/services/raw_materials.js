@@ -10,7 +10,7 @@ async function getSingle(id){
     const rows = await db.query(
       `SELECT  id, name, purchased_at, purchase_quantity, remaining_quantity, 
         quantity_units, units_per_kg, vendor_name, origin_country, price, 
-        currency, notes, color, allow_shortening_babies_in_pairs, 
+        currency, notes, color, allow_shortening_babies_in_pairs, is_usable_for_h_material,
         created_at, updated_at, created_by, updated_by
       FROM raw_materials WHERE id=${id}`
     );
@@ -40,7 +40,7 @@ async function getMultiple(page = 1, perPage){
   }
   const rows = await db.query(
     `SELECT rms.id, rms.name, rms.purchased_at, rms.purchase_quantity, rms.remaining_quantity, 
-        rms.quantity_units, rms.units_per_kg, rms.vendor_name, rms.origin_country, rms.price, 
+        rms.quantity_units, rms.units_per_kg, rms.vendor_name, rms.origin_country, rms.price, rms.is_usable_for_h_material,
         rms.currency, rms.notes, rms.color, rms.created_at, rms.updated_at, rms.created_by, rms.updated_by
     FROM raw_materials rms
     ORDER BY rms.updated_at desc ${subset}`
@@ -76,17 +76,22 @@ async function getNames(for_customer_id){
 
   //get all material names in the system
   let query = `
-    select distinct id, name, color, allow_shortening_babies_in_pairs from raw_materials
+    select distinct id, name, color, allow_shortening_babies_in_pairs, is_usable_for_h_material, 1 as has_banks_for_current_customer from raw_materials
     order by name, color;`;
 
   //or get just ones which are in bank(s) of a specific customer
   if(for_customer_id && for_customer_id > 0){
     query = `
-      select distinct rm.id, name, color, allow_shortening_babies_in_pairs
-        from raw_materials rm left join customer_banks cb 
-        on rm.id = cb.raw_material_id 
-        where cb.customer_id=${for_customer_id} 
-        order by name, color;`;
+      SELECT 
+          rm.id, name, color, allow_shortening_babies_in_pairs, is_usable_for_h_material,
+          IF(cb.raw_material_id IS NOT NULL, 1, 0) AS has_banks_for_current_customer
+      FROM 
+          raw_materials rm
+      LEFT JOIN 
+          customer_banks cb 
+          ON rm.id = cb.raw_material_id 
+          AND cb.customer_id = ${for_customer_id}
+      order by name, color;`;
   }
 
   const result = await db.query(query);
@@ -126,8 +131,8 @@ async function save_material(rawMaterial, active_connection=null){
       [rawMaterial.name, rawMaterial.color]);
     const rec = helper.emptyOrSingle(material_by_name_and_color);
     if(rec && 
-       rec['name'] &&rec['name'].toUpperCase() == rawMaterial.name.toUpperCase() && 
-       rec['color'] &&rec['color'].toUpperCase() == rawMaterial.color.toUpperCase() && 
+       rec['name'] && rec['name'].toUpperCase() == rawMaterial.name.toUpperCase() && 
+       rec['color'] && rec['color'].toUpperCase() == rawMaterial.color.toUpperCase() && 
        (rawMaterial.id <= 0 || rawMaterial.id != rec['id'])){
       throw new Error(`A material with the name ${rawMaterial.name} and color ${rawMaterial.color} already exists`);
     }
@@ -138,16 +143,17 @@ async function save_material(rawMaterial, active_connection=null){
       `INSERT INTO raw_materials 
       (id, name, purchased_at, purchase_quantity, remaining_quantity, 
         quantity_units, units_per_kg, vendor_name, origin_country, price, 
-        currency, notes, color, allow_shortening_babies_in_pairs, 
+        currency, notes, color, allow_shortening_babies_in_pairs, is_usable_for_h_material,
         created_at, updated_at, created_by, updated_by) 
       VALUES 
-      ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?))
+      ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?))
       as new_raw_materials
       ON DUPLICATE KEY UPDATE
       name=new_raw_materials.name, purchase_quantity=new_raw_materials.purchase_quantity, remaining_quantity=new_raw_materials.remaining_quantity,
       quantity_units=new_raw_materials.quantity_units, units_per_kg=new_raw_materials.units_per_kg, vendor_name=new_raw_materials.vendor_name, 
       origin_country=new_raw_materials.origin_country, price=new_raw_materials.price, currency=new_raw_materials.currency, color=new_raw_materials.color, 
       allow_shortening_babies_in_pairs=new_raw_materials.allow_shortening_babies_in_pairs,
+      is_usable_for_h_material=new_raw_materials.is_usable_for_h_material,
       created_by=new_raw_materials.created_by, updated_by=new_raw_materials.updated_by`,
       [
         rawMaterial.id, 
@@ -164,6 +170,7 @@ async function save_material(rawMaterial, active_connection=null){
         rawMaterial.notes, 
         rawMaterial.color,
         rawMaterial.allow_shortening_babies_in_pairs,
+        rawMaterial.is_usable_for_h_material,
         (isNew)? helper.nowDateStr(): helper.formatDate(rawMaterial.created_at), 
         helper.nowDateStr(), 
         rawMaterial.created_by, 

@@ -150,16 +150,12 @@ constructor(private apiService: ApiService, private runtimeService: RuntimeServi
       let locationData = null;
       
       try {
-        const geolocationTimeout: number = 3000;
-        const coords = await Promise.race([
-          this.runtimeService.getCurrentPosition({ 
-            enableHighAccuracy: false, 
-            maximumAge: 60000,
-            timeout: geolocationTimeout  
-          }),
-          new Promise<null>(resolve => setTimeout(() => resolve(null), geolocationTimeout))
-        ]);
-        //coords = { latitude: 42.680400235535714, longitude: 23.311328531456066, accuracy: 0 };
+            const coords = await this.runtimeService.getCurrentPosition({ 
+              enableHighAccuracy: false, 
+              maximumAge: 60000,
+              timeout: 10000  // Increased from 3000 to 10000 ms
+            });
+            //coords = { latitude: 42.680400235535714, longitude: 23.311328531456066, accuracy: 0 };
         
         
         if (coords) {

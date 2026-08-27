@@ -35,27 +35,31 @@
   [modalTitle]="'Fine-tune your order'"
   [btnSaveIcon]="faBasketShopping"
   [btnSaveText]="'Place order!'"
-  [btnSaveClass]="(max_number_of_wings_in_all_allocations > 0)? 'btn-success' : 'd-none'"
-  [btnCancelText]="(max_number_of_wings_in_all_allocations > 0)? 'Cancel': 'Close'"
+  [btnSaveClass]="(is_hat_tentative || max_number_of_wings_in_all_allocations > 0)? 'btn-success' : 'd-none'"
+  [btnCancelText]="(is_hat_tentative || max_number_of_wings_in_all_allocations > 0)? 'Cancel': 'Close'"
   [modalSize]="'xl'">
-  <div class="order_adjustment_dialog" *ngIf="max_number_of_wings_in_all_allocations <= 0">
+  <div class="order_adjustment_dialog" *ngIf="!is_hat_tentative && max_number_of_wings_in_all_allocations <= 0">
     You do not have sufficient wings to produce hats!
   </div>
-  <div class="order_adjustment_dialog" *ngIf="max_number_of_wings_in_all_allocations > 0">
+  <div class="order_adjustment_dialog" *ngIf="is_hat_tentative || max_number_of_wings_in_all_allocations > 0">
     
-    <div>You can produce a total of {{ max_number_of_wings_in_all_allocations }} wings with your allocations</div>
-    <div>In all hats, you are now using {{ allWingsInOrder }} wings</div>
-    <div class="d-flex flex-row align-items-center" style="margin: 15px 0px;">
-      <div>0</div>
-      <div class="progress" style="flex-grow:1; margin: 0px 15px;">    
-      <div class="bg-info"
-        role="progressbar" 
-        [style.width.%]="((allWingsInOrder)*100/max_number_of_wings_in_all_allocations)" 
-        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    <div [hidden]="is_hat_tentative">
+      <div>You can produce a total of {{ max_number_of_wings_in_all_allocations }} wings with your allocations</div>
+      <div>In all hats, you are now using {{ allWingsInOrder }} wings</div>
+      <div class="d-flex flex-row align-items-center" style="margin: 15px 0px;">
+        <div>0</div>
+        <div class="progress" style="flex-grow:1; margin: 0px 15px;">    
+        <div class="bg-info"
+          role="progressbar" 
+          [style.width.%]="((allWingsInOrder)*100/max_number_of_wings_in_all_allocations)" 
+          aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <div>{{ max_number_of_wings_in_all_allocations }}</div>
       </div>
-      <div>{{ max_number_of_wings_in_all_allocations }}</div>
     </div>
-
+    <div class="order-notes" [hidden]="!is_hat_tentative">
+      <fa-icon [icon]="faTriangleExclamation" class="text-warning"></fa-icon> This order is marked as tentative
+    </div>
 
     <table class="table table-responsive">
       <th>Hat in order</th>
@@ -241,33 +245,45 @@
                   [(ngModel)]="customerHat.hat_material_id"        
                   >
                     <ng-template ng-label-tmp let-item="item">
-                        <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> {{item.name}} - {{ item.color }}
+                        <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color }}</span>
                     </ng-template>
                       <ng-template ng-option-tmp let-item="item" let-index="index">
-                          <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> {{item.name}} - {{ item.color }}
+                          <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color }}</span>
                       </ng-template>          
                 </ng-select>
               </div>
-              <div class="sub-info-section">
-                <strong>Material allocation:</strong>
-              </div>
-              <div *ngIf="customerHat.hat_material_id">
-                <div>
-                  <div *ngIf="wall_alocation" class="text-success">
-                    Allocation #{{ wall_alocation.id }}, {{ wall_alocation.quantity | number : '1.1-1' }} {{ wall_allocation_units }}
+              <div [hidden]="!is_hat_tentative">
+                <div class="d-flex flex-row align-items-center flex-nowrap m-1">
+                  <div>
+                    <fa-icon [icon]="faTriangleExclamation" class="text-warning"></fa-icon>
                   </div>
-                  <div *ngIf="!wall_alocation">
-                    <span class="text-danger">Choose an allocation</span>
+                  <div class="ms-2">
+                    You don't have banks assigned to you with the selected materials. This order will be sent as tentative.
                   </div>
                 </div>
-                <div class="section-btn-wrapper">
-                  <button  
-                    class="btn btn-success" 
-                    style="padding: 0px 11px 1px 5px;" 
-                    (click)="open_material_allocation_picker(customerHat.hat_material_id, 'wall')">
-                    <span class="icon-baby"></span>
-                    Choose allocation
-                  </button>
+              </div>
+              <div [hidden]="is_hat_tentative">
+                <div class="sub-info-section">
+                  <strong>Material allocation:</strong>
+                </div>
+                <div *ngIf="customerHat.hat_material_id">
+                  <div>
+                    <div *ngIf="wall_alocation" class="text-success">
+                      Allocation #{{ wall_alocation.id }}, {{ wall_alocation.quantity | number : '1.1-1' }} {{ wall_allocation_units }}
+                    </div>
+                    <div *ngIf="!wall_alocation">
+                      <span class="text-danger">Choose an allocation</span>
+                    </div>
+                  </div>
+                  <div class="section-btn-wrapper">
+                    <button  
+                      class="btn btn-success" 
+                      style="padding: 0px 11px 1px 5px;" 
+                      (click)="open_material_allocation_picker(customerHat.hat_material_id, 'wall')">
+                      <span class="icon-baby"></span>
+                      Choose allocation
+                    </button>
+                  </div>
                 </div>
               </div>
               <div class="text-warning" *ngIf="raw_material_names_babies.length > 0 && customerHat.hat_material_id == null">
@@ -289,6 +305,13 @@
           <!-- Crown allocation section -->
           <div class="hat-info-section" [hidden]="raw_material_names.length == 0">
             <div><strong>Crown material:</strong></div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="use_the_same_allocation_for_wall_and_crown"  id="chkHMaterial_crown_is_wall" (change)="chkCrown_allocation_is_wall_allocation_changed()">
+            <label class="form-check-label" for="chkHMaterial_crown_is_wall">
+              Use the same allocation as wall
+            </label>
+          </div>
+          <div [hidden]="use_the_same_allocation_for_wall_and_crown">
             <div class="ng-autocomplete">
               <ng-select
                 #wing_selector
@@ -300,34 +323,45 @@
                 bindValue="id"
                 [(ngModel)]="customerHat.crown_material_id">
                   <ng-template ng-label-tmp let-item="item">
-                      <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> {{item.name}} - {{ item.color }}
+                      <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color }}</span>
                   </ng-template>
                     <ng-template ng-option-tmp let-item="item" let-index="index">
-                        <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> {{item.name}} - {{ item.color }}
+                        <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color }}</span>
                     </ng-template>          
               </ng-select>
             </div>
-
-          <div class="sub-info-section">
-              <strong>Material allocation:</strong>
-          </div>
-          <div *ngIf="customerHat.crown_material_id">
-            <div>
-              <div *ngIf="crown_allocation" class="text-success">
-                Allocation #{{ crown_allocation.id }}, {{ crown_allocation.quantity | number : '1.1-1' }} {{ crown_allocation_units }}
-              </div>
-              <div *ngIf="!crown_allocation">
-                <span class="text-danger">Choose an allocation</span>
+            <div [hidden]="!is_hat_tentative">
+              <div class="d-flex flex-row align-items-center flex-nowrap m-1">
+                <div>
+                  <fa-icon [icon]="faTriangleExclamation" class="text-warning"></fa-icon>
+                </div>
+                <div class="ms-2">
+                  You don't have banks assigned to you with the selected materials. This order will be sent as tentative.
+                </div>
               </div>
             </div>
-            <div class="section-btn-wrapper">
-              <button  
-                class="btn btn-success" 
-                style="padding: 0px 11px 1px 5px;" 
-                (click)="open_material_allocation_picker(customerHat.crown_material_id, 'crown')">
-                <span class="icon-baby"></span>
-                Choose allocation
-              </button>
+            <div [hidden]="is_hat_tentative">
+            <div class="sub-info-section">
+                <strong>Material allocation:</strong>
+            </div>
+            <div *ngIf="customerHat.crown_material_id">
+              <div>
+                <div *ngIf="crown_allocation" class="text-success">
+                  Allocation #{{ crown_allocation.id }}, {{ crown_allocation.quantity | number : '1.1-1' }} {{ crown_allocation_units }}
+                </div>
+                <div *ngIf="!crown_allocation">
+                  <span class="text-danger">Choose an allocation</span>
+                </div>
+              </div>
+              <div class="section-btn-wrapper">
+                <button  
+                  class="btn btn-success" 
+                  style="padding: 0px 11px 1px 5px;" 
+                  (click)="open_material_allocation_picker(customerHat.crown_material_id, 'crown')">
+                  <span class="icon-baby"></span>
+                  Choose allocation
+                </button>
+              </div>
             </div>
           </div>
               <div class="text-warning" *ngIf="raw_material_names_babies.length > 0 && customerHat.crown_material_id == null">
@@ -338,54 +372,67 @@
                 <span class="text-danger">No baby allocations with this material</span>
               </div>
               -->
+          </div>
         </div>
     <!--/Crown allocation section -->
 
     <!-- Tails allocation section -->
+     <!--================ L =================-->
     <div class="hat-info-section" [hidden]="raw_material_names.length == 0">
-      <div><strong>H material:</strong></div>
+      <div><strong>H material (L):</strong></div>
       <div class="ng-autocomplete">
         <ng-select
           #wing_selector
-          placeholder="H material"
-          (change)="tails_material_changed($event)"
-          (clear)="tails_material_cleared()"
+          placeholder="H material (L)"
+          (change)="tails_material_changed($event, null)"
+          (clear)="tails_material_cleared('l')"
           [items]="raw_material_names_tails"
           bindLabel="name"
           bindValue="id"
-          [(ngModel)]="customerHat.tails_material_id">
+          [(ngModel)]="customerHat.tails_material_id_l">
             <ng-template ng-label-tmp let-item="item">
-                <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> {{item.name}} - {{ item.color }}
+                <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color }}</span>
             </ng-template>
               <ng-template ng-option-tmp let-item="item" let-index="index">
-                  <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> {{item.name}} - {{ item.color }}
+                  <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color }}</span>
               </ng-template>          
         </ng-select>
       </div>
-
-    <div class="sub-info-section">
-        <strong>Material allocation:</strong>
-    </div>
-    <div *ngIf="customerHat.tails_material_id">
-      <div>
-        <div *ngIf="tails_allocation" class="text-success">
-          Allocation #{{ tails_allocation.id }}, {{ tails_allocation.quantity | number : '1.1-1' }} {{ tails_allocation_units }} ({{tails_allocation.tails_quantity}} tails)
-        </div>
-        <div *ngIf="!tails_allocation">
-          <span class="text-warning">Choose an allocation (optional)</span>
+      <div [hidden]="!is_hl_tentative">
+        <div class="d-flex flex-row align-items-center flex-nowrap m-1">
+          <div>
+            <fa-icon [icon]="faTriangleExclamation" class="text-warning"></fa-icon>
+          </div>
+          <div class="ms-2">
+            You don't have banks assigned to you with the selected materials. Left tails will be in overdraft.
+          </div>
         </div>
       </div>
-      <div class="section-btn-wrapper">
-        <button  
-          class="btn btn-success" 
-          style="padding: 0px 11px 1px 5px;" 
-          (click)="open_material_allocation_picker(customerHat.tails_material_id, 'tails')">
-          <span class="icon-tails"></span>
-          Choose allocation
-        </button>
+    <div [hidden]="is_hl_tentative">
+      <div class="sub-info-section">
+          <strong>Material allocation:</strong>
+      </div>
+      <div *ngIf="customerHat.tails_material_id_l">
+        <div>
+          <div *ngIf="tails_allocation_l" class="text-success">
+            Allocation #{{ tails_allocation_l.id }}, {{ tails_allocation_l.tails_quantity | number : '1.1-1' }} {{ tails_allocation_units }} ({{tails_allocation_l.tails_quantity}} tails)
+          </div>
+          <div *ngIf="!tails_allocation_l">
+            <span class="text-warning">Choose an allocation (optional)</span>
+          </div>
+        </div>
+        <div class="section-btn-wrapper">
+          <button  
+            class="btn btn-success" 
+            style="padding: 0px 11px 1px 5px;" 
+            (click)="open_material_allocation_picker(customerHat.tails_material_id_l, 'tails_l')">
+            <span class="icon-tails"></span>
+            Choose allocation
+          </button>
+        </div>
       </div>
     </div>
-      <div class="text-warning" *ngIf="raw_material_names_tails.length > 0 && customerHat.tails_material_id == null">
+      <div class="text-warning" *ngIf="raw_material_names_tails.length > 0 && customerHat.tails_material_id_l == null">
         Choose a material to get started
       </div>
       <!--
@@ -394,6 +441,82 @@
       </div>
       -->
   </div>
+  <!--================/L =================-->
+  <!--================ R =================-->
+  <div class="hat-info-section" [hidden]="raw_material_names.length == 0">
+    <div><strong>H material (R):</strong></div>
+
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" [(ngModel)]="use_the_same_allocation_for_l_and_r_h_material"  id="chkHMaterial_L_is_R" (change)="use_the_same_allocation_for_l_and_r_h_material_changed()">
+      <label class="form-check-label" for="chkHMaterial_L_is_R">
+        Use the same allocation as L tails
+      </label>
+    </div>
+    <div [hidden]="use_the_same_allocation_for_l_and_r_h_material">
+      <div class="ng-autocomplete">
+        <ng-select
+          #wing_selector
+          placeholder="H material (R)"
+          (change)="tails_material_changed(null, $event)"
+          (clear)="tails_material_cleared('r')"
+          [items]="raw_material_names_tails"
+          bindLabel="name"
+          bindValue="id"
+          [(ngModel)]="customerHat.tails_material_id_r">
+            <ng-template ng-label-tmp let-item="item">
+                <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color }}</span>
+            </ng-template>
+              <ng-template ng-option-tmp let-item="item" let-index="index">
+                  <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color }}</span>
+              </ng-template>          
+        </ng-select>
+      </div>
+
+    <div [hidden]="!is_hr_tentative">
+      <div class="d-flex flex-row align-items-center flex-nowrap m-1">
+        <div>
+          <fa-icon [icon]="faTriangleExclamation" class="text-warning"></fa-icon>
+        </div>
+        <div class="ms-2">
+          You don't have banks assigned to you with the selected materials. Left tails will be in overdraft.
+        </div>
+      </div>
+    </div>      
+    <div [hidden]="is_hr_tentative">
+      <div class="sub-info-section">
+          <strong>Material allocation:</strong>
+      </div>
+      <div *ngIf="customerHat.tails_material_id_r">
+        <div>
+          <div *ngIf="tails_allocation_r" class="text-success">
+            Allocation #{{ tails_allocation_r.id }}, {{ tails_allocation_r.tails_quantity | number : '1.1-1' }} {{ tails_allocation_units }} ({{tails_allocation_r.tails_quantity}} tails)
+          </div>
+          <div *ngIf="!tails_allocation_r">
+            <span class="text-warning">Choose an allocation (optional)</span>
+          </div>
+        </div>
+        <div class="section-btn-wrapper">
+          <button  
+            class="btn btn-success" 
+            style="padding: 0px 11px 1px 5px;" 
+            (click)="open_material_allocation_picker(customerHat.tails_material_id_r, 'tails_r')">
+            <span class="icon-tails"></span>
+            Choose allocation
+          </button>
+        </div>
+      </div>
+    </div>
+      <div class="text-warning" *ngIf="raw_material_names_tails.length > 0 && customerHat.tails_material_id_r == null">
+        Choose a material to get started
+      </div>
+      <!--
+      <div *ngIf="raw_material_names_tails.length > 0 && customerHat.tails_material_id != null && num_of_allocations_with_tails_material <= 0">
+        <span class="text-danger">No baby allocations with this material</span>
+      </div>
+      -->
+    </div>
+  </div>
+  <!--================ /R =================-->  
   <!--/Tails allocation section -->    
 
     <!-- Wing number picker -->
@@ -660,10 +783,10 @@
       <div class="d-flex flex-row align-items-center measurement-row">
         <div style="min-width: 150px;" class="d-flex flex-row align-items-center">
           <fa-icon [icon]="faRuler" style="margin-right: 10px;"></fa-icon>
-          <label for="tempB">HR/HL tails:</label>
+          <label for="tempB">H tails (L):</label>
         </div>
         <div class="flex-grow-1" style="margin-left: 15px;">
-          <select *ngIf="customerHat.tails_allocation_id" class="form-select" [(ngModel)]="hat_hr_hl" #select_hr_hl (change)="calculateVisibleCrown()">
+          <select *ngIf="customerHat.tails_material_id_l" class="form-select" [(ngModel)]="customerHat.hl_width" #select_hr_hl (change)="calculateVisibleCrown()">
             <option 
               *ngFor="let w of arr_hr_hl" 
               value="{{ w }}" 
@@ -672,8 +795,29 @@
             </option>
           </select>
 
-          <div *ngIf="!customerHat.tails_allocation_id" class="text-warning">
-            Select an allocation for tails
+          <div *ngIf="!customerHat.tails_material_id_l" class="text-warning">
+            Select material for tails (L)
+          </div>
+        </div>
+      </div>
+	  
+      <div class="d-flex flex-row align-items-center measurement-row">
+        <div style="min-width: 150px;" class="d-flex flex-row align-items-center">
+          <fa-icon [icon]="faRuler" style="margin-right: 10px;"></fa-icon>
+          <label for="tempB">H tails (R):</label>
+        </div>
+        <div class="flex-grow-1" style="margin-left: 15px;">
+          <select *ngIf="customerHat.tails_material_id_r" class="form-select" [(ngModel)]="customerHat.hr_width" #select_hr_hl (change)="calculateVisibleCrown()">
+            <option 
+              *ngFor="let w of arr_hr_hl" 
+              value="{{ w }}" 
+              >
+                {{ w  | number : '1.2-2' }} cm
+            </option>
+          </select>
+
+          <div *ngIf="!customerHat.tails_material_id_r" class="text-warning">
+            Select material for tails (R)
           </div>
         </div>
       </div>
@@ -746,6 +890,9 @@
         </tr>
         -->     
         <!--<td [attr.rowspan]="(hat_babies.length + crown_babies.length)">Message</td>-->
+        <tr *ngIf="summary_table_instructions && (hat_babies.length + crown_babies.length) == 0">
+          <td colspan="6"><div style="text-align: center; margin: 12px 0px;">{{ summary_table_instructions }}</div></td>
+        </tr>
         <tr *ngFor="let item of hat_babies; index as i">
           <td>{{ item.length | number : '1.1-1' }} cm</td>
           <td>{{ item.quantity }}</td>
@@ -755,17 +902,17 @@
             <div>{{ summary_table_instructions }}</div>
           </td>
 
-          <td *ngIf="!summary_table_instructions">{{ item.quantity_in_allocation }}</td>
-          <td *ngIf="!summary_table_instructions" [className]="(item.possible_num_of_hats == total_num_of_possible_hats)? 'text-danger' : ''">{{ (order_amount && order_amount > 0)? order_amount: '0' }} (max {{ item.possible_num_of_hats }})</td>
-          <td *ngIf="!summary_table_instructions">{{ item.remaining }}</td>
+          <td *ngIf="!summary_table_instructions">{{ (is_hat_tentative)? 'Tentative' : item.quantity_in_allocation }}</td>
+          <td *ngIf="!summary_table_instructions" [className]="(item.possible_num_of_hats == total_num_of_possible_hats)? 'text-danger' : ''">{{ (order_amount && order_amount > 0)? order_amount : '0' }} {{(is_hat_tentative)?'': ((item.possible_num_of_hats != total_num_of_possible_hats)? '' : '(max ' + item.possible_num_of_hats +')')}}</td>
+          <td *ngIf="!summary_table_instructions">{{ (is_hat_tentative)? '-': item.remaining }}</td>
         </tr>
         <tr *ngFor="let item of crown_babies">
           <td>{{ item.length | number : '1.1-1' }} cm</td>
           <td>{{ item.quantity }}</td>
           <td>{{ item.position }}</td>
-          <td *ngIf="!summary_table_instructions">{{ item.quantity_in_allocation }}</td>
-          <td *ngIf="!summary_table_instructions" [className]="(item.possible_num_of_hats == total_num_of_possible_hats)? 'text-danger' : ''">{{ (order_amount && order_amount > 0)? order_amount: '0' }} (max {{ item.possible_num_of_hats }})</td>
-          <td *ngIf="!summary_table_instructions">{{ item.remaining }}</td>
+          <td *ngIf="!summary_table_instructions">{{ (is_hat_tentative)? 'Tentative' : item.quantity_in_allocation }}</td>
+          <td *ngIf="!summary_table_instructions" [className]="(item.possible_num_of_hats == total_num_of_possible_hats)? 'text-danger' : ''">{{ (order_amount && order_amount > 0)? order_amount : '0' }} {{(is_hat_tentative)?'': ((item.possible_num_of_hats != total_num_of_possible_hats)? '' : '(max ' + item.possible_num_of_hats +')')}}</td>
+          <td *ngIf="!summary_table_instructions">{{ (is_hat_tentative)? '-': item.remaining }}</td>
         </tr>        
 
         <tr>
@@ -783,51 +930,94 @@
   <div class="h-material-analysis border border-warning"><!-- *ngIf="!summary_table_instructions && customerHat.tails_material_id != null && customerHat.tails_material_id >= 0"-->
     <div class="text-warning"><strong>H Material:</strong></div>
     
+
+    <div *ngIf="(this.customerHat.wing == null || this.customerHat.wing.id <= 0)">
+      Please select a wing
+    </div>
+
+    <div *ngIf="this.customerHat.wing != null && this.customerHat.wing.id > 0 && total_num_of_possible_hats == 0">
+      Not sufficient material to produce hats
+    </div>
+
     <!-- No H material selected (required for order) -->
-    <div *ngIf="customerHat.tails_material_id == null || customerHat.tails_material_id <= 0">
-      Please select the H material for this order.
+    <div *ngIf="
+      (this.customerHat.wing != null && this.customerHat.wing.id > 0) &&
+      (total_num_of_possible_hats > 0) &&
+      (customerHat.tails_material_id_l == null || customerHat.tails_material_id_l <= 0) &&
+      (customerHat.tails_material_id_r == null || customerHat.tails_material_id_r <= 0)" class="text-danger">
+      Please select the H materials for this order (L/R).
     </div>
 
-    <!-- H material selected (required for order), without allocation -->
-    <div *ngIf="customerHat.tails_material_id != null && customerHat.tails_material_id > 0 && tails_allocation == null">
-      H material selected with no allocation.<br/>
+    <!-- H material selected without allocation -->
+    <!-- H matrerial selected with equal allocation -->
+
+    <!-- L & R are equal and selected -->
+    <div *ngIf="
+      (customerHat.tails_material_id_l != null && customerHat.tails_material_id_r != null &&
+       customerHat.tails_material_id_l == customerHat.tails_material_id_r &&
+       customerHat.tails_material_id_l > 0 &&  customerHat.tails_material_id_r > 0)">
+      H material selected (L &amp; R)
+
+      <!-- without allocations -->
+      <div *ngIf="tails_allocation_l == null && tails_allocation_r == null">
+        No H material allocations.<br/>
+        {{ customerHat.wing_quantity }} {{ customerHat.wing_quantity==1? 'wing':'wings' }} x {{ order_amount }} {{ order_amount==1? 'hat':'hats' }} = {{ customerHat.wing_quantity * order_amount }} tails will be produced as overdraft.
+      </div>
+
+      <!-- with similar allocations -->
+       <div *ngIf="tails_allocation_l != null && tails_allocation_r != null && tails_allocation_l.id == tails_allocation_r.id">
+        L &amp; R llocation selected.<br/>
+        {{ customerHat.wing_quantity }} {{ customerHat.wing_quantity==1? 'wing':'wings' }} x {{ order_amount }} {{ order_amount==1? 'hat':'hats' }} = {{ customerHat.wing_quantity * order_amount }} tails required for order.<br/>
+        {{ tails_allocation_l.tails_quantity }} tails in allocation. <br/>
+        {{ (tails_allocation_l.tails_quantity >= (customerHat.wing_quantity * order_amount))? 0 : (customerHat.wing_quantity * order_amount) - tails_allocation_l.tails_quantity }} will be produced as overdraft.
+       </div>
     </div>
 
-    <!-- No hats can be produced at all (regardless of H material), can't be calculated -->
-    <div *ngIf="total_num_of_possible_hats <= 0" class="text-danger">
-      No sufficient wall and crown allocations to produce hats
+    <!-- L & R are different (or just one is selected) -->
+    <div *ngIf="
+      ((customerHat.tails_material_id_l != null || customerHat.tails_material_id_r != null) && 
+      (customerHat.tails_material_id_l != customerHat.tails_material_id_r)) ||
+      (tails_allocation_l?.id != tails_allocation_r?.id)">
+      <div class="row">
+        
+        <div class="col col-6">
+          <strong>Left tails</strong><br/>
+          <div *ngIf="(!tails_allocation_l || (tails_allocation_l && tails_allocation_l.id <= 0))">
+            No H material allocation.<br/>
+            ({{ customerHat.wing_quantity }} {{ customerHat.wing_quantity==1? 'wing':'wings' }} x {{ order_amount }} {{ order_amount==1? 'hat':'hats' }}) / 2 = {{ (customerHat.wing_quantity * order_amount)/2 }} tails will be produced as overdraft.
+          </div>
+          <div *ngIf="tails_allocation_l && tails_allocation_l.id > 0">
+            Allocation selected<br/>
+            ({{ customerHat.wing_quantity }} {{ customerHat.wing_quantity==1? 'wing':'wings' }} x {{ order_amount }} {{ order_amount==1? 'hat':'hats' }}) / 2 = {{ (customerHat.wing_quantity * order_amount)/2 }} left tails are required.<br/>
+            {{ tails_allocation_l.tails_quantity }} tails in allocation. <br/>
+            {{ (tails_allocation_l.tails_quantity >= (customerHat.wing_quantity * order_amount)/2)? 0 : (customerHat.wing_quantity * order_amount) / 2 - tails_allocation_l.tails_quantity }} will be produced as overdraft.
+          </div>
+        </div>
+        
+        <div class="col col-6">
+          <strong>Right tails</strong><br/>
+         <div *ngIf="(!tails_allocation_r || (tails_allocation_r && tails_allocation_r.id <= 0))">
+            No H material allocation.<br/>
+            ({{ customerHat.wing_quantity }} {{ customerHat.wing_quantity==1? 'wing':'wings' }} x {{ order_amount }} {{ order_amount==1? 'hat':'hats' }}) / 2 = {{ (customerHat.wing_quantity * order_amount)/2 }} tails will be produced as overdraft.
+          </div>
+          <div *ngIf="tails_allocation_r && tails_allocation_r.id > 0">
+            Allocation selected<br/>
+            ({{ customerHat.wing_quantity }} {{ customerHat.wing_quantity==1? 'wing':'wings' }} x {{ order_amount }} {{ order_amount==1? 'hat':'hats' }}) / 2 = {{ (customerHat.wing_quantity * order_amount)/2 }} left tails are required.<br/>
+            {{ tails_allocation_r.tails_quantity }} tails in allocation. <br/>
+            {{ (tails_allocation_r.tails_quantity >= (customerHat.wing_quantity * order_amount)/2)? 0 : (customerHat.wing_quantity * order_amount) / 2 - tails_allocation_r.tails_quantity }} will be produced as overdraft.
+          </div>
+        </div>
+      </div>
     </div>
-
-    <!-- Hats can be produced, no H material allocation selected, all tails will be overdraft -->
-    <div *ngIf="total_num_of_possible_hats > 0 && customerHat.tails_material_id != null && customerHat.tails_material_id > 0 && tails_allocation == null">
-      {{ customerHat.wing_quantity }} {{ customerHat.wing_quantity==1? 'wing':'wings' }} x {{ order_amount }} {{ order_amount==1? 'hat':'hats' }} = {{ customerHat.wing_quantity * order_amount }} tails will be requested to be produced (overdraft).
-    </div>
-
-    <!-- Hats can be produced, H material allocation selected, with enough tails, no need for overdraft -->
-    <div *ngIf="tails_allocation != null && tails_allocation.tails_quantity >= (customerHat.wing_quantity * order_amount)">
-      <span *ngIf="tails_allocation.tails_quantity >= customerHat.wing_quantity">
-        <div>{{ tails_allocation.tails_quantity }} tails in allocation.</div>
-        <div>{{ calculated_hats_info.tails_used }} used in wings,  {{ calculated_hats_info.tails_remaining }} will remain.</div>
-        <div class="text-danger">Max {{ calculated_hats_info.max_num_of_hats_with_tails }} {{ (calculated_hats_info.max_num_of_hats_with_tails == 1)? 'hat':'hats' }}</div>
-      </span>
-    </div>
-
-    <!-- Hats can be produced, H material allocation selected, with not enough tails, some will be overdraft -->
-    <div *ngIf="tails_allocation != null && (tails_allocation.tails_quantity < (customerHat.wing_quantity * order_amount))">
-        <div class="text-warning">Total of {{ (customerHat.wing_quantity * order_amount) }} wings/tails in this order.</div>
-        {{ calculated_hats_info.tails_used }} tails in selected allocation.<br/>
-        {{ calculated_hats_info.tails_remaining }} tails will remain,<br/>
-        {{ calculated_hats_info.tails_overdraft }} will be produced in overdraft.
-    </div>
-
   </div>
   <!--/H Material analysis -->
 
-  <div><h6>Max hats calculated: {{ total_num_of_possible_hats }}</h6></div>
+  <div [hidden]="is_hat_tentative"><h6>Max hats calculated: {{ total_num_of_possible_hats }}</h6></div>
 
   <div>
     <app-order-advisor
       #advisor
+      [hidden]="is_hat_tentative"
       [wing_id]="selected_wing_id ?? 0"
       [wall_allocation]="this.wall_alocation"
       [crown_allocation]="this.crown_allocation"
@@ -840,13 +1030,20 @@
       [show_help_me_adjust_button]="false"
       (fetchExceedInstructions)="exceedNumOfHats($event)"
     /><!--[tails_allocation]="this.tails_allocation"-->
-  </div> 
+
+    <div [hidden]="!is_hat_tentative" class="advisor">
+      <fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon>
+      <span class="ms-2">
+        This is a tentative order, and will be handled according to materials inventory.<br/>
+        Material will not be removed from any allocations until then.
+      </span>
+    </div> 
 
   <div *ngIf="!customer.is_demo_customer" style="border: 1px solid; border-radius: 10px; margin: 20px 0px;padding: 20px;">
     <div><h3>Place an order</h3></div>
-    <div *ngIf="total_num_of_possible_hats > 0 && customerHat.crown_allocation_id > 0 && customerHat.wall_allocation_id > 0">
+    <div *ngIf="(total_num_of_possible_hats > 0 && customerHat.crown_allocation_id > 0 && customerHat.wall_allocation_id > 0) || is_hat_tentative">
 
-      <div *ngIf="customerHat.tails_material_id != null && customerHat.tails_material_id > 0">
+      <div *ngIf="customerHat.tails_material_id_l != null && customerHat.tails_material_id_l > 0 && customerHat.tails_material_id_r != null && customerHat.tails_material_id_r > 0">
 
         <div>
         <div class="form-check">
@@ -881,6 +1078,9 @@
         </div> 
       </div>
 
+      <div class="order-notes" [hidden]="!is_hat_tentative">
+        <fa-icon [icon]="faTriangleExclamation" class="text-warning"></fa-icon> This order is marked as tentative
+      </div>
         <div>Submit an order for
         <input type="number" min="0" [attr.max]="total_num_of_possible_hats" [(ngModel)]="order_amount"  (change)="order_amount_changed()" />
           {{ order_amount == 1 ? 'hat' : 'hats' }}
@@ -895,7 +1095,7 @@
 
           <div *ngIf="placing_order">
             <fa-icon [icon]="faArrowsRotate" [animation]="'spin'" size="1x"></fa-icon>
-            Loading order...
+            Placing order...
           </div>
 
         </button>
@@ -907,7 +1107,7 @@
         Your max allocation is limited to a max of {{ total_num_of_possible_hats }} hats
       </div>
     </div>
-    <div *ngIf="customerHat.tails_material_id == null || customerHat.tails_material_id <= 0" class="text-danger">
+    <div *ngIf="customerHat.tails_material_id_l == null || customerHat.tails_material_id_l <= 0 || customerHat.tails_material_id_r == null || customerHat.tails_material_id_r <= 0" class="text-danger">
       Choose H material to place an order
     </div>
 
@@ -916,8 +1116,8 @@
     <div class="order-notes" *ngIf="total_num_of_possible_hats <= 0 && customerHat.crown_allocation_id > 0 && customerHat.wall_allocation_id > 0">
       No sufficient quota to order hats
     </div>
-    <div class="order-notes" *ngIf="customerHat.crown_allocation_id <= 0 || customerHat.wall_allocation_id <= 0">
-      {{ summary_table_instructions }} to calculate and place an order
+    <div class="order-notes" *ngIf="(customerHat.crown_allocation_id <= 0 || customerHat.wall_allocation_id <= 0) && !is_hat_tentative">
+      {{ summary_table_instructions }} to calculate and place an order {{is_hat_tentative}}
     </div>
     <div>
       <a href="javascript:void(0)" (click)="go_to_orders()">See all your orders</a>

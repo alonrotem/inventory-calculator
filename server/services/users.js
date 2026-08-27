@@ -1415,7 +1415,7 @@ async function get_admins_emails(){
   if(process.env.EMAIL_TEST_ADMINS){
     admins_emails = process.env.EMAIL_TEST_ADMINS.split(",");
   }
-    else {
+  else {
     const administrators = helper.emptyOrRows(await db.query(
       `select u.username, u.firstname, u.lastname, u.email
         from users u inner join user_roles ur
