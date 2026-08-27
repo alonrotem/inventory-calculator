@@ -830,26 +830,26 @@ ON DUPLICATE KEY UPDATE
         -- Check if the table exists
         SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'orders');
         -- Prepare the INSERT statement only if the table exists
-        SET @sql = IF(@table_exists > 0, "INSERT INTO `orders` (`id`, `customer_hat_id`, `customer_order_seq_number`, `wing_quantity`, `num_of_hats`, `kippa_size`, `diameter_inches`, `ordering_customer_name`, `tails_overdraft_r`, `isurgent`, `white_hair`, `white_hair_notes`, `order_notes`, `tails_overdraft_l`) 
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `orders` (`id`, `customer_hat_id`, `customer_order_seq_number`, `wing_quantity`, `num_of_hats`, `kippa_size`, `diameter_inches`, `ordering_customer_name`, `tails_overdraft_r`, `isurgent`, `white_hair`, `white_hair_notes`, `order_notes`, `tails_overdraft_l`, `is_tentative`) 
 VALUES
-(14, 2, 1, 46, 1, 56, 11.5, 'HM', 23, 0, 0, '', '', 23),
-(15, 3, 2, 46, 1, 56.5, 11.5, 'HM', 23, 0, 0, '', '', 23),
-(16, 3, 3, 46, 1, 56.5, 11.5, 'HM', 23, 0, 0, '', '', 23),
-(17, 3, 4, 46, 1, 56.5, 11.5, 'HM', 23, 0, 0, '', '', 23),
-(18, 3, 5, 46, 1, 56.5, 11.5, 'HM', 23, 0, 0, '', '', 23),
-(19, 4, 6, 45, 1, 56, 11.5, 'H', 22.5, 0, 0, '', '', 22.5),
-(20, 4, 7, 45, 1, 56, 11.5, 'H', 22.5, 0, 0, '', '', 22.5),
-(21, 5, 8, 45, 1, 56, 11.5, 'hh', 22.5, 0, 0, '', '', 22.5),
-(22, 6, 9, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21),
-(23, 6, 10, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21),
-(24, 6, 11, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21),
-(25, 6, 12, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21),
-(26, 6, 13, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21),
-(27, 6, 14, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21),
-(28, 6, 15, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21)
+(14, 2, 1, 46, 1, 56, 11.5, 'HM', 23, 0, 0, '', '', 23, 0),
+(15, 3, 2, 46, 1, 56.5, 11.5, 'HM', 23, 0, 0, '', '', 23, 0),
+(16, 3, 3, 46, 1, 56.5, 11.5, 'HM', 23, 0, 0, '', '', 23, 0),
+(17, 3, 4, 46, 1, 56.5, 11.5, 'HM', 23, 0, 0, '', '', 23, 0),
+(18, 3, 5, 46, 1, 56.5, 11.5, 'HM', 23, 0, 0, '', '', 23, 0),
+(19, 4, 6, 45, 1, 56, 11.5, 'H', 22.5, 0, 0, '', '', 22.5, 0),
+(20, 4, 7, 45, 1, 56, 11.5, 'H', 22.5, 0, 0, '', '', 22.5, 0),
+(21, 5, 8, 45, 1, 56, 11.5, 'hh', 22.5, 0, 0, '', '', 22.5, 0),
+(22, 6, 9, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21, 0),
+(23, 6, 10, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21, 0),
+(24, 6, 11, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21, 0),
+(25, 6, 12, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21, 0),
+(26, 6, 13, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21, 0),
+(27, 6, 14, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21, 0),
+(28, 6, 15, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21, 0)
 as new_orders
 ON DUPLICATE KEY UPDATE
-`customer_hat_id`=new_orders.`customer_hat_id`, `customer_order_seq_number`=new_orders.`customer_order_seq_number`, `wing_quantity`=new_orders.`wing_quantity`, `num_of_hats`=new_orders.`num_of_hats`, `kippa_size`=new_orders.`kippa_size`, `diameter_inches`=new_orders.`diameter_inches`, `ordering_customer_name`=new_orders.`ordering_customer_name`, `tails_overdraft_r`=new_orders.`tails_overdraft_r`, `isurgent`=new_orders.`isurgent`, `white_hair`=new_orders.`white_hair`, `white_hair_notes`=new_orders.`white_hair_notes`, `order_notes`=new_orders.`order_notes`, `tails_overdraft_l`=new_orders.`tails_overdraft_l`;", 'SELECT \'Table orders does not exist\'');
+`customer_hat_id`=new_orders.`customer_hat_id`, `customer_order_seq_number`=new_orders.`customer_order_seq_number`, `wing_quantity`=new_orders.`wing_quantity`, `num_of_hats`=new_orders.`num_of_hats`, `kippa_size`=new_orders.`kippa_size`, `diameter_inches`=new_orders.`diameter_inches`, `ordering_customer_name`=new_orders.`ordering_customer_name`, `tails_overdraft_r`=new_orders.`tails_overdraft_r`, `isurgent`=new_orders.`isurgent`, `white_hair`=new_orders.`white_hair`, `white_hair_notes`=new_orders.`white_hair_notes`, `order_notes`=new_orders.`order_notes`, `tails_overdraft_l`=new_orders.`tails_overdraft_l`, `is_tentative`=new_orders.`is_tentative`;", 'SELECT \'Table orders does not exist\'');
         -- Execute the prepared statement
         PREPARE stmt FROM @sql;
         EXECUTE stmt; #USING @value1, @value2;
@@ -892,16 +892,16 @@ ON DUPLICATE KEY UPDATE
         -- Check if the table exists
         SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'raw_materials');
         -- Prepare the INSERT statement only if the table exists
-        SET @sql = IF(@table_exists > 0, "INSERT INTO `raw_materials` (`id`, `name`, `purchased_at`, `purchase_quantity`, `remaining_quantity`, `quantity_units`, `units_per_kg`, `vendor_name`, `origin_country`, `price`, `currency`, `notes`, `color`, `created_at`, `updated_at`, `created_by`, `updated_by`, `allow_shortening_babies_in_pairs`) 
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `raw_materials` (`id`, `name`, `purchased_at`, `purchase_quantity`, `remaining_quantity`, `quantity_units`, `units_per_kg`, `vendor_name`, `origin_country`, `price`, `currency`, `notes`, `color`, `created_at`, `updated_at`, `created_by`, `updated_by`, `allow_shortening_babies_in_pairs`, `is_usable_for_h_material`) 
 VALUES
-(1, 'DM ', '2026-03-08 00:00:00', 270, 0, 'units', 0, 'Tif', 'US', 0, 'USD', '49 jambo', 'Dark brown', '2026-03-08 14:47:36', '2026-03-08 14:52:29', 0, 0, 0),
-(2, 'Sable', '2026-03-12 00:00:00', 1680, 195, 'units', 0, '', 'GR', 0, 'USD', 'Tails', 'Light brown', '2026-03-12 10:16:26', '2026-05-13 11:51:34', 0, 0, 0),
-(3, 'DM', '2026-04-17 00:00:00', 2000, 500, 'units', 0, '', 'US', 5, 'USD', '', 'Natural', '2026-04-17 11:25:43', '2026-04-29 13:14:34', 0, 0, 0),
-(4, 'Fisher', '2026-06-19 00:00:00', 300, 100, 'units', 0, '', 'US', 3, 'USD', '', 'Natural', '2026-06-19 08:58:24', '2026-06-19 08:58:48', 0, 0, 0),
-(5, 'BM H', '2026-06-19 00:00:00', 1000, 200, 'units', 0, 'Leon', 'US', 0, 'USD', '', 'Natural', '2026-06-19 09:11:50', '2026-06-19 09:11:50', 0, 0, 0)
+(1, 'DM ', '2026-03-08 00:00:00', 270, 0, 'units', 0, 'Tif', 'US', 0, 'USD', '49 jambo', 'Dark brown', '2026-03-08 14:47:36', '2026-03-08 14:52:29', 0, 0, 0, 1),
+(2, 'Sable', '2026-03-12 00:00:00', 1680, 195, 'units', 0, '', 'GR', 0, 'USD', 'Tails', 'Light brown', '2026-03-12 10:16:26', '2026-05-13 11:51:34', 0, 0, 0, 1),
+(3, 'DM', '2026-04-17 00:00:00', 2000, 500, 'units', 0, '', 'US', 5, 'USD', '', 'Natural', '2026-04-17 11:25:43', '2026-04-29 13:14:34', 0, 0, 0, 1),
+(4, 'Fisher', '2026-06-19 00:00:00', 300, 100, 'units', 0, '', 'US', 3, 'USD', '', 'Natural', '2026-06-19 08:58:24', '2026-06-19 08:58:48', 0, 0, 0, 1),
+(5, 'BM H', '2026-06-19 00:00:00', 1000, 200, 'units', 0, 'Leon', 'US', 0, 'USD', '', 'Natural', '2026-06-19 09:11:50', '2026-06-19 09:11:50', 0, 0, 0, 1)
 as new_raw_materials
 ON DUPLICATE KEY UPDATE
-`name`=new_raw_materials.`name`, `purchased_at`=new_raw_materials.`purchased_at`, `purchase_quantity`=new_raw_materials.`purchase_quantity`, `remaining_quantity`=new_raw_materials.`remaining_quantity`, `quantity_units`=new_raw_materials.`quantity_units`, `units_per_kg`=new_raw_materials.`units_per_kg`, `vendor_name`=new_raw_materials.`vendor_name`, `origin_country`=new_raw_materials.`origin_country`, `price`=new_raw_materials.`price`, `currency`=new_raw_materials.`currency`, `notes`=new_raw_materials.`notes`, `color`=new_raw_materials.`color`, `created_at`=new_raw_materials.`created_at`, `updated_at`=new_raw_materials.`updated_at`, `created_by`=new_raw_materials.`created_by`, `updated_by`=new_raw_materials.`updated_by`, `allow_shortening_babies_in_pairs`=new_raw_materials.`allow_shortening_babies_in_pairs`;", 'SELECT \'Table raw_materials does not exist\'');
+`name`=new_raw_materials.`name`, `purchased_at`=new_raw_materials.`purchased_at`, `purchase_quantity`=new_raw_materials.`purchase_quantity`, `remaining_quantity`=new_raw_materials.`remaining_quantity`, `quantity_units`=new_raw_materials.`quantity_units`, `units_per_kg`=new_raw_materials.`units_per_kg`, `vendor_name`=new_raw_materials.`vendor_name`, `origin_country`=new_raw_materials.`origin_country`, `price`=new_raw_materials.`price`, `currency`=new_raw_materials.`currency`, `notes`=new_raw_materials.`notes`, `color`=new_raw_materials.`color`, `created_at`=new_raw_materials.`created_at`, `updated_at`=new_raw_materials.`updated_at`, `created_by`=new_raw_materials.`created_by`, `updated_by`=new_raw_materials.`updated_by`, `allow_shortening_babies_in_pairs`=new_raw_materials.`allow_shortening_babies_in_pairs`, `is_usable_for_h_material`=new_raw_materials.`is_usable_for_h_material`;", 'SELECT \'Table raw_materials does not exist\'');
         -- Execute the prepared statement
         PREPARE stmt FROM @sql;
         EXECUTE stmt; #USING @value1, @value2;
@@ -1884,30 +1884,21 @@ ON DUPLICATE KEY UPDATE
         -- Prepare the INSERT statement only if the table exists
         SET @sql = IF(@table_exists > 0, "INSERT INTO `wings_customers` (`wing_id`, `customer_id`) 
 VALUES
-(92, 10),
 (97, 10),
-(96, 17),
+(99, 17),
+(100, 17),
+(97, 10),
+(99, 17),
+(100, 17),
+(97, 10),
+(99, 17),
+(100, 17),
+(97, 10),
 (99, 17),
 (100, 17),
 (101, 17),
-(92, 10),
-(97, 10),
 (96, 17),
-(99, 17),
-(100, 17),
-(101, 17),
-(92, 10),
-(97, 10),
-(96, 17),
-(99, 17),
-(100, 17),
-(101, 17),
-(92, 10),
-(97, 10),
-(96, 17),
-(99, 17),
-(100, 17),
-(101, 17)
+(92, 10)
 as new_wings_customers
 ON DUPLICATE KEY UPDATE
 `wing_id`=new_wings_customers.`wing_id`, `customer_id`=new_wings_customers.`customer_id`;", 'SELECT \'Table wings_customers does not exist\'');
