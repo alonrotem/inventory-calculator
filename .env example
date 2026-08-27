@@ -1,0 +1,2 @@
+MYSQL_ROOT_PASSWORD=db_pass
+MYSQL_DATABASE=db_name

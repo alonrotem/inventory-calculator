@@ -41,6 +41,13 @@ services:
       dockerfile: ./Dockerfile
       context:  ./server/SQL/
       no_cache: true
+    environment:
+    # These variables should be defined in an .env file in the same folder of this compose script
+    # example content:
+    # MYSQL_ROOT_PASSWORD=db_pass
+    # MYSQL_DATABASE=db_name
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
     # command: /bin/bash -c 'mysql -u root -p12345678 < /docker-entrypoint-initdb.d/create_db.sql'
     #ports:
     #  - "3306:3306"
