@@ -318,11 +318,10 @@ async function create(customerHat, currentUserId, active_connection=null){
                     isurgent,
                     white_hair,
                     white_hair_notes,
-                    order_notes,
-                    is_tentative
+                    order_notes
                 )
                 VALUES
-                ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_order
+                ((?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?),(?)) as new_order
                 ON DUPLICATE KEY UPDATE
                     id=new_order.id,
                     customer_hat_id=new_order.customer_hat_id,
@@ -337,8 +336,7 @@ async function create(customerHat, currentUserId, active_connection=null){
                     isurgent=new_order.isurgent,
                     white_hair=new_order.white_hair,
                     white_hair_notes=new_order.white_hair_notes,
-                    order_notes=new_order.order_notes,
-                    is_tentative=new_order.is_tentative`,
+                    order_notes=new_order.order_notes`,
                     [
                         id,
                         hat_id,
@@ -353,9 +351,7 @@ async function create(customerHat, currentUserId, active_connection=null){
                         customerHat.isurgent,
                         customerHat.white_hair,
                         customerHat.white_hair_notes,
-                        customerHat.order_notes,
-                        single_hat_order.is_tentative
-                    ],
+                        customerHat.order_notes                    ],
                     active_connection
             );
 
@@ -515,8 +511,7 @@ async function get_orders_list(page = 1, perPage, customer_id, currentUserId){
             ch.tails_allocation_id_r,
             ch.tails_allocation_id_l,
             os.date,
-            o.order_notes,
-            o.is_tentative
+            o.order_notes
         from 
             customer_hats ch 
             left join orders o on o.customer_hat_id = ch.id
@@ -571,56 +566,60 @@ async function get_order_details(order_id, currentUserId){
 
     const rows = await db.query(
     `select 
-        o.id,
-        CASE WHEN c.customer_code IS NOT NULL 
-            THEN concat(c.customer_code, o.customer_order_seq_number)
-            ELSE o.customer_order_seq_number
-        END AS hat_id_with_customer,
-        os.order_status,
-        o.isurgent,
-        c.name customer_name,
-        #------
-        ch.original_wing_name wing_name,
-        rm_wall.name wall_material,
-        rm_wall.color wall_material_color,
-        #------
-        o.kippa_size,
-        o.diameter_inches,
-        o.wing_quantity,
-        o.is_tentative,
-        #-------
-        rm_crown.name crown_material,
-        rm_crown.color crown_material_color,
-        #-------
-        ch.crown_visible,
-        ch.crown_length,
-        w.knife,
-        o.white_hair_notes,
-        o.white_hair,
-        #-------
-        rm_tails.name h_material,
-        rm_tails.color h_material_color,
-        #-------
-        os.date,
-        #===NEW
-        ch.shorten_top_by shorten_top_by,
-        ch.shorten_crown_by shorten_crown_by,
-        ch.tails_overdraft tails_overdraft,
-        ch.mayler_width mayler_width,
-        ch.hr_hl_width hr_hl_width,
-        o.order_notes order_notes,
-        ch.order_date original_order_date,
-        ch.wing_id wing_id
-        #=======
-        from orders o 
-        left join customer_hats ch on o.customer_hat_id=ch.id
-        left join customers c on ch.customer_id=c.id
-        left join orders_status os on os.order_id = o.id
-        left join wings w on ch.wing_id = w.id
-        left join raw_materials rm_wall on ch.hat_material_id=rm_wall.id
-        left join raw_materials rm_crown on ch.crown_material_id=rm_crown.id
-        left join raw_materials rm_tails on ch.tails_material_id=rm_tails.id
-        where os.date = (select MAX(os2.date) FROM orders_status os2 where os.id = os2.id)
+    o.id,
+    CASE WHEN c.customer_code IS NOT NULL 
+        THEN concat(c.customer_code, o.customer_order_seq_number)
+        ELSE o.customer_order_seq_number
+    END AS hat_id_with_customer,
+    os.order_status,
+    o.isurgent,
+    c.name customer_name,
+    #------
+    ch.original_wing_name wing_name,
+    rm_wall.name wall_material,
+    rm_wall.color wall_material_color,
+    #------
+    o.kippa_size,
+    o.diameter_inches,
+    o.wing_quantity,
+    #-------
+    rm_crown.name crown_material,
+    rm_crown.color crown_material_color,
+    #-------
+    ch.crown_visible,
+    ch.crown_length,
+    w.knife,
+    o.white_hair_notes,
+    o.white_hair,
+    #-------
+    rm_tails_l.name h_material_l,
+    rm_tails_l.color h_material_color_l,
+    rm_tails_r.name h_materiall_r,
+    rm_tails_r.color h_material_color_r,
+    #-------
+    os.date,
+    #===NEW
+    ch.shorten_top_by shorten_top_by,
+    ch.shorten_crown_by shorten_crown_by,
+    ch.tails_overdraft_l tails_overdraft_l,
+    ch.tails_overdraft_r tails_overdraft_r,
+    ch.mayler_width mayler_width,
+    ch.hl_width  hl_width,
+    ch.hr_width  hr_width,
+    o.order_notes order_notes,
+    ch.order_date original_order_date,
+    ch.wing_id wing_id
+    #=======
+    from orders o 
+    left join customer_hats ch on o.customer_hat_id=ch.id
+    left join customers c on ch.customer_id=c.id
+    left join orders_status os on os.order_id = o.id
+    left join wings w on ch.wing_id = w.id
+    left join raw_materials rm_wall on ch.hat_material_id=rm_wall.id
+    left join raw_materials rm_crown on ch.crown_material_id=rm_crown.id
+    left join raw_materials rm_tails_l on ch.tails_material_id_l=rm_tails_l.id
+    left join raw_materials rm_tails_r on ch.tails_material_id_r=rm_tails_r.id
+    where os.date = (select MAX(os2.date) FROM orders_status os2 where os.id = os2.id)
    and o.id=${order_id}`);
 
     let order_details = helper.emptyOrSingle(rows);

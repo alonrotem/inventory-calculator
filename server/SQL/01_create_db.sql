@@ -632,7 +632,6 @@ CREATE TABLE IF NOT EXISTS `orders` (
     `white_hair`	BOOL default False,
     `white_hair_notes` Varchar(256) null,
     `order_notes` Varchar(256) null,
-    `is_tentative`	bool default false,
     PRIMARY KEY (`id`),
     CONSTRAINT fk_order_customer_hat_id
 	  FOREIGN KEY (`customer_hat_id`) REFERENCES customer_hats(`id`) ON DELETE CASCADE

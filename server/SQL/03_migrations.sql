@@ -153,7 +153,8 @@ update orders set tails_overdraft_l = tails_overdraft_r
 CALL add_column_if_not_exists('raw_materials', 'is_usable_for_h_material', 'bool default true');
 
 -- make tentative orders
-CALL add_column_if_not_exists('orders', 'is_tentative', 'bool default false');
+# CALL add_column_if_not_exists('orders', 'is_tentative', 'bool default false');
+call drop_column_if_exists('orders', 'is_tentative');
 call convert_column_type('orders_status', 'order_status', 'ENUM(
 			''new'',
             ''inline'',

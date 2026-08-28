@@ -457,7 +457,7 @@ export interface Order {
     ordering_customer_name: string;
     num_of_hats: number; //defaults to 1, this represents an order of a single hat
     status: OrderStatus;
-    is_tentative: boolean;
+    //is_tentative: boolean;
 }
 
 //these details are fetched per hat for the work order screen
