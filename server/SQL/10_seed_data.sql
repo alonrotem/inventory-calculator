@@ -830,26 +830,26 @@ ON DUPLICATE KEY UPDATE
         -- Check if the table exists
         SET @table_exists = (SELECT COUNT(*) num FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'orders');
         -- Prepare the INSERT statement only if the table exists
-        SET @sql = IF(@table_exists > 0, "INSERT INTO `orders` (`id`, `customer_hat_id`, `customer_order_seq_number`, `wing_quantity`, `num_of_hats`, `kippa_size`, `diameter_inches`, `ordering_customer_name`, `tails_overdraft_r`, `isurgent`, `white_hair`, `white_hair_notes`, `order_notes`, `tails_overdraft_l`, `is_tentative`) 
+        SET @sql = IF(@table_exists > 0, "INSERT INTO `orders` (`id`, `customer_hat_id`, `customer_order_seq_number`, `wing_quantity`, `num_of_hats`, `kippa_size`, `diameter_inches`, `ordering_customer_name`, `tails_overdraft_r`, `isurgent`, `white_hair`, `white_hair_notes`, `order_notes`, `tails_overdraft_l`) 
 VALUES
-(14, 2, 1, 46, 1, 56, 11.5, 'HM', 23, 0, 0, '', '', 23, 0),
-(15, 3, 2, 46, 1, 56.5, 11.5, 'HM', 23, 0, 0, '', '', 23, 0),
-(16, 3, 3, 46, 1, 56.5, 11.5, 'HM', 23, 0, 0, '', '', 23, 0),
-(17, 3, 4, 46, 1, 56.5, 11.5, 'HM', 23, 0, 0, '', '', 23, 0),
-(18, 3, 5, 46, 1, 56.5, 11.5, 'HM', 23, 0, 0, '', '', 23, 0),
-(19, 4, 6, 45, 1, 56, 11.5, 'H', 22.5, 0, 0, '', '', 22.5, 0),
-(20, 4, 7, 45, 1, 56, 11.5, 'H', 22.5, 0, 0, '', '', 22.5, 0),
-(21, 5, 8, 45, 1, 56, 11.5, 'hh', 22.5, 0, 0, '', '', 22.5, 0),
-(22, 6, 9, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21, 0),
-(23, 6, 10, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21, 0),
-(24, 6, 11, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21, 0),
-(25, 6, 12, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21, 0),
-(26, 6, 13, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21, 0),
-(27, 6, 14, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21, 0),
-(28, 6, 15, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21, 0)
+(14, 2, 1, 46, 1, 56, 11.5, 'HM', 23, 0, 0, '', '', 23),
+(15, 3, 2, 46, 1, 56.5, 11.5, 'HM', 23, 0, 0, '', '', 23),
+(16, 3, 3, 46, 1, 56.5, 11.5, 'HM', 23, 0, 0, '', '', 23),
+(17, 3, 4, 46, 1, 56.5, 11.5, 'HM', 23, 0, 0, '', '', 23),
+(18, 3, 5, 46, 1, 56.5, 11.5, 'HM', 23, 0, 0, '', '', 23),
+(19, 4, 6, 45, 1, 56, 11.5, 'H', 22.5, 0, 0, '', '', 22.5),
+(20, 4, 7, 45, 1, 56, 11.5, 'H', 22.5, 0, 0, '', '', 22.5),
+(21, 5, 8, 45, 1, 56, 11.5, 'hh', 22.5, 0, 0, '', '', 22.5),
+(22, 6, 9, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21),
+(23, 6, 10, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21),
+(24, 6, 11, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21),
+(25, 6, 12, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21),
+(26, 6, 13, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21),
+(27, 6, 14, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21),
+(28, 6, 15, 42, 1, 56, 11.5, 'H&M', 21, 0, 0, '', '', 21)
 as new_orders
 ON DUPLICATE KEY UPDATE
-`customer_hat_id`=new_orders.`customer_hat_id`, `customer_order_seq_number`=new_orders.`customer_order_seq_number`, `wing_quantity`=new_orders.`wing_quantity`, `num_of_hats`=new_orders.`num_of_hats`, `kippa_size`=new_orders.`kippa_size`, `diameter_inches`=new_orders.`diameter_inches`, `ordering_customer_name`=new_orders.`ordering_customer_name`, `tails_overdraft_r`=new_orders.`tails_overdraft_r`, `isurgent`=new_orders.`isurgent`, `white_hair`=new_orders.`white_hair`, `white_hair_notes`=new_orders.`white_hair_notes`, `order_notes`=new_orders.`order_notes`, `tails_overdraft_l`=new_orders.`tails_overdraft_l`, `is_tentative`=new_orders.`is_tentative`;", 'SELECT \'Table orders does not exist\'');
+`customer_hat_id`=new_orders.`customer_hat_id`, `customer_order_seq_number`=new_orders.`customer_order_seq_number`, `wing_quantity`=new_orders.`wing_quantity`, `num_of_hats`=new_orders.`num_of_hats`, `kippa_size`=new_orders.`kippa_size`, `diameter_inches`=new_orders.`diameter_inches`, `ordering_customer_name`=new_orders.`ordering_customer_name`, `tails_overdraft_r`=new_orders.`tails_overdraft_r`, `isurgent`=new_orders.`isurgent`, `white_hair`=new_orders.`white_hair`, `white_hair_notes`=new_orders.`white_hair_notes`, `order_notes`=new_orders.`order_notes`, `tails_overdraft_l`=new_orders.`tails_overdraft_l`;", 'SELECT \'Table orders does not exist\'');
         -- Execute the prepared statement
         PREPARE stmt FROM @sql;
         EXECUTE stmt; #USING @value1, @value2;
@@ -1884,15 +1884,6 @@ ON DUPLICATE KEY UPDATE
         -- Prepare the INSERT statement only if the table exists
         SET @sql = IF(@table_exists > 0, "INSERT INTO `wings_customers` (`wing_id`, `customer_id`) 
 VALUES
-(97, 10),
-(99, 17),
-(100, 17),
-(97, 10),
-(99, 17),
-(100, 17),
-(97, 10),
-(99, 17),
-(100, 17),
 (97, 10),
 (99, 17),
 (100, 17),
