@@ -5,7 +5,7 @@ import { OrdersService } from '../../../services/orders.service';
 import { firstValueFrom } from 'rxjs';
 import { OrderDetails, Status } from '../../../../types';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faArrowLeft, faArrowRight, faArrowsRotate, faSave, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faArrowRight, faArrowsRotate, faPencil, faSave, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { DateStrPipe } from "../../../utils/pipes/date_pipe";
 import { NgFor, NgIf } from '@angular/common';
 import { SortBabiesPipe } from "../../../utils/pipes/sort-babies-pipe";
@@ -22,40 +22,48 @@ import { PageLoadingComponent } from "../../common/page-loading/page-loading.com
 })
 export class OrderEditorComponent implements OnInit {
   orderDetails: OrderDetails = {
-    id: 0,
-    hat_id_with_customer: '',
-    order_status: Status.new,
-    isurgent: false,
-    customer_name: '',
-    wing_name: '',
-    wall_material: '',
-    wall_material_color: '',
-    diameter_inches: 12.5,
-    kippa_size: 0,
-    wing_quantity: 0,
-    crown_material: '',
-    crown_material_color: '',
-    crown_visible: 0,
-    crown_length: 0,
-    knife: 0,
-    white_hair_notes: '',
-    white_hair: false,
-    h_material: '',
-    h_material_color: '',
-    date: new Date(),
-    shorten_top_by: 0,
-    shorten_crown_by: 0,
-    tails_overdraft: 0,
-    mayler_width: 0,
-    hr_hl_width: 0,
-    order_notes: '',
-    original_order_date: null,
-    babies: [],
-    is_tentative: false
+    /*✓*/ id: 0,
+    /*✓*/ hat_id_with_customer: '',
+    /*✓*/ isurgent: false,
+    /*-*/ customer_name: '',
+    /*✓*/ wall_material: '',
+    /*✓*/ wall_material_color: '',
+    /*-*/ kippa_size: 0,
+    /*-*/ diameter_inches: 0,
+    /*-*/ wing_quantity: 0,
+    /*-*/ crown_material: '',
+    /*-*/ wall_allocation_id: 0,
+    /*-*/ crown_allocation_id: 0,
+    /*-*/ tails_allocation_id_l: 0,
+    /*-*/ tails_allocation_id_r: 0,
+    /*-*/ crown_visible: 0,
+    /*-*/ crown_length: 0,
+    /*-*/ knife: 0,
+    /*-*/ white_hair_notes: '',
+    /*-*/ white_hair: false,
+    /*-*/ h_material_l: '',
+    /*-*/ h_material_color_l: '',
+    /*-*/ h_materiall_r: '',
+    /*-*/ h_material_color_r: '',
+    /*-*/ shorten_top_by: 0,
+    /*-*/ shorten_crown_by: 0,
+    /*-*/ tails_overdraft_l: 0,
+    /*-*/ tails_overdraft_r: 0,
+    /*-*/ mayler_width: 0,
+    /*-*/ hl_width: 0,
+    /*-*/ hr_width: 0,
+    /*-*/ order_notes: '',
+    /*✓*/ babies: [],
+    /*-*/ wing_name: '',
+    /*✓*/ create_date: null,
+    /*✓*/ last_update_date: null,
+    /*✓*/ last_status: ''
   };
   faArrowsRotate: IconDefinition = faArrowsRotate;
   faSave: IconDefinition = faSave;
   faArrowLeft: IconDefinition = faArrowLeft;
+  faPencil: IconDefinition = faPencil;
+  faTriangleExclamation: IconDefinition = faTriangleExclamation;
   customer_id: number = 0;
   loading: boolean = false;
   unsaved_changes: boolean = false;
@@ -108,6 +116,10 @@ export class OrderEditorComponent implements OnInit {
       }
     });
   }
+
+  openUpdateStatus(){}
+
+  openHistoryDialog(){}
 
   print() {
     window.print();

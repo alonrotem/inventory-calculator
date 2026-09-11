@@ -320,6 +320,8 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   is_hr_tentative: boolean = false;
   is_hl_tentative: boolean = false;
 
+  knives_lengths: { length: number, count: number }[] = [];
+
   loading: boolean = true;
 
   constructor(
@@ -439,6 +441,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         }
 
         this.customer = customer;
+        this.knives_lengths = customer.knives.map(knife => { return { length: knife, count: 0 } });
         this.customerHat.customer_id = this.customer.id;
 
         this.rawMaterialsService.getRawMaterialBasicDetails(id).subscribe({
@@ -699,6 +702,10 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       this.customerHat.crown_material_id = this.customerHat.hat_material_id;
       this.customerHat.crown_allocation_id = this.customerHat.wall_allocation_id;      
       this.crown_allocation = this.wall_alocation;
+      this.is_hat_tentative = this.is_wall_materiail_tentative;
+    }
+    else {
+      
     }
     this.update_customer(this.customer);
     this.margins_changed();
@@ -941,6 +948,23 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       this.allocation_picker.customer = this.customer;
       this.allocation_picker.wing_id = (this.selected_wing_id)?? 0;
       this.pending_allocation_area_selection = area;
+      switch(area){
+        case "wall":
+            this.allocation_picker.selected_allocation_id = this.customerHat.wall_allocation_id;
+            break;
+        case "crown":
+            this.allocation_picker.selected_allocation_id = this.customerHat.crown_allocation_id;
+            break;
+        case "tails_l":
+            this.allocation_picker.selected_allocation_id = this.customerHat.tails_allocation_id_l;
+            break;
+        case "tails_r":
+            this.allocation_picker.selected_allocation_id = this.customerHat.tails_allocation_id_r;
+            break;
+        default:
+            this.allocation_picker.selected_allocation_id = null;
+            break;
+      }
       this.allocation_picker.dialogWrapper.open();
     }
   }
@@ -1442,6 +1466,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         },
         error:(error) => { 
           this.toastService.showError("Failed to issue order");
+          this.placing_order = false;
          }
       }
     );

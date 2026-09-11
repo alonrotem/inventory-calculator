@@ -157,7 +157,7 @@ export class HatsCalculatorService {
     //now it's possible to calculate for each baby length how many will be left for this number of hats.
     //The remaining is calculated by the order, which should not exceed the number of possible hats.
     if(num_of_hats_to_order <= 0 || num_of_hats_to_order > hats.total_num_of_possible_hats) {
-      console.log("=-=- updating to Math.min(10, ", hats.total_num_of_possible_hats ,") = ", Math.min(10, hats.total_num_of_possible_hats))
+      //console.log("=-=- updating to Math.min(10, ", hats.total_num_of_possible_hats ,") = ", Math.min(10, hats.total_num_of_possible_hats))
       num_of_hats_to_order = Math.min(10, hats.total_num_of_possible_hats);
     }
 

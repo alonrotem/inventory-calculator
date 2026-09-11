@@ -1,24 +1,14 @@
-import { NgIf } from '@angular/common';
+import { DecimalPipe, NgIf } from '@angular/common';
 import { AfterViewInit, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 
 @Component({
   selector: 'app-babies-length-picker',
   standalone: true,
-  imports: [ NgIf ],
+  imports: [ NgIf, DecimalPipe ],
   templateUrl: './babies-length-picker.component.html',
   styleUrl: './babies-length-picker.component.scss'
 })
 export class BabiesLengthPickerComponent implements OnInit, AfterViewInit {
-  ngOnInit(): void {
-    this.lengths = 
-      (this.show_only_custom_lengths)?
-      this.custom_lengths.map(l => l.toFixed(1).toString()) :
-      Array.from({ length: (((this.max_length - this.min_length)*(1/this.length_step))+1) }, (v, k) => (this.min_length + this.length_step + ((k-1)*this.length_step)).toFixed(1));
-  }
-
-  ngAfterViewInit(): void {
-    //this.lengths = Array.from({ length: (((this.max_length - this.min_length)*(1/this.length_step))+1) }, (v, k) => (this.min_length + this.length_step + ((k-1)*this.length_step)).toFixed(1));
-  }
 
   @Input() title: string ="Pick a baby length:"; 
   @Input() min_length: number = 5;
@@ -34,13 +24,28 @@ export class BabiesLengthPickerComponent implements OnInit, AfterViewInit {
   @Output() cancel = new EventEmitter<void>();
 
   @Input() show_only_custom_lengths: boolean = false;
-  @Input() custom_lengths: number[] = []; 
+  @Input() custom_lengths: { length: number, count: number }[] = []; 
+  @Input() show_counts: boolean = false;
 
   console = console;
   Number = Number;
-  lengths : string[] = [];
+  //count is optional, if show_counts is true
+  lengths: { length: number, count: number }[] = [];
   
-  setLength(length: string){
+  ngOnInit(): void {
+    this.lengths = 
+      ((this.show_only_custom_lengths)?
+        this.custom_lengths.map(l => {return { length: length, count: l.count } }) :
+        Array.from({ length: (((this.max_length - this.min_length)*(1/this.length_step))+1) }, (v, k) => (this.min_length + this.length_step + ((k-1)*this.length_step))).map(item => { return { length: item, count: 0 } }))
+      .sort((a, b) => { return (a.length < b.length)?-1:1; });
+  }
+
+  ngAfterViewInit(): void {
+    //this.lengths = Array.from({ length: (((this.max_length - this.min_length)*(1/this.length_step))+1) }, (v, k) => (this.min_length + this.length_step + ((k-1)*this.length_step)).toFixed(1));
+  }
+
+  //set a specific length as active, and emit the lengthChange event with the new selected length
+  setLength(length: number){
     if(this.multi_select){
       if(this.selected_lengths.includes(Number(length)))
         this.selected_lengths = this.selected_lengths.filter(l => l != Number(length));
@@ -54,6 +59,15 @@ export class BabiesLengthPickerComponent implements OnInit, AfterViewInit {
     this.lengthChange.emit(this.selected_lengths);
   }
 
+  setCountForLength(length: number, count: number){
+    this.lengths.find(l => l.length == length)!.count = count;
+  }
+
+  getCountForLength(length: number): number{
+    return this.lengths.find(l => l.length == length)?.count ?? 0;
+  }
+
+  //clear the selected lengths
   public reset() {
     this.selected_lengths = [];
   }
@@ -63,7 +77,7 @@ export class BabiesLengthPickerComponent implements OnInit, AfterViewInit {
     if(this.selected_lengths.length > 0)
       this.selected_lengths = [];
     else
-      this.selected_lengths = this.lengths.map(l => Number(l));
+      this.selected_lengths = this.lengths.map(l => l.length);
     this.lengthChange.emit(this.selected_lengths);
   }
 
@@ -73,7 +87,7 @@ export class BabiesLengthPickerComponent implements OnInit, AfterViewInit {
       return false;
     
     for (let length of this.selected_lengths) {
-      if (this.lengths.findIndex((item) => item == length.toFixed(1).toString()) == -1)
+      if (this.lengths.findIndex((item) => item.length == length) == -1)
         return true;
     };
     return false;

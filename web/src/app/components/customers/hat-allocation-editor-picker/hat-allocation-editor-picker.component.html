@@ -5,6 +5,8 @@
     [btnSaveClass]="'d-none'"
     (cancel)="cancel_changes()">
     <div modalContent>
+        alloc: {{ selected_allocation_id }}
+
         <app-customer-banks-table 
             #banks_table
             *ngFor="let bank of banks"
@@ -22,6 +24,7 @@
             (babies_picker_open)="babies_picker_open()"
             (babies_picker_closed)="babies_picker_closed()"
             (customer_updated)="update_customer($event)"
+            (babies_updated)="babies_updated($event)"
         
             [show_hat_advisor]="true"
             [advisor_show_options_button]="false"

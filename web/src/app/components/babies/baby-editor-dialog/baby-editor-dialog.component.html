@@ -4,6 +4,21 @@
 <!--<form novalidate #baby_editor_form="ngForm" [formGroup]="babyFormEditor">-->
     <div *ngIf="!is_demo_customer" class="text-warning">Available units: {{ units_available | number: '1.' }}</div>
     <div *ngIf="is_demo_customer" class="text-success">Demo customer, no quota.</div>
+    <div class="d-flex flex-row flex-nowrap justify-content-start">
+        <div class="form-check">
+        <input class="form-check-input" type="radio" name="radioEditMode" id="radioEditMode" [(ngModel)]="babyEditMode" [value]="true" (change)="switch_mode()">
+        <label class="form-check-label" for="radioEditMode">
+            Edit quantities
+        </label>
+        </div>
+        <div class="form-check ms-3">
+        <input class="form-check-input" type="radio" name="radioEditMode" id="radioTopUpMode" [(ngModel)]="babyEditMode" [value]="false" (change)="switch_mode()">
+        <label class="form-check-label" for="radioTopUpMode">
+            Top up
+        </label>
+        </div>        
+    </div>
+
     <div class="form-floating">
         <!--
         <ng-select name="length" #length formControlName="length" [formGroup]="babyFormEditor" [clearable]="false" style="display:none">
@@ -23,39 +38,53 @@
         <div>
             <app-babies-length-picker #length_picker 
                 [selected_lengths]="[highlighted_baby_length]" 
-                (lengthChange)="highlighted_baby_length = $event[0]" />
+                (lengthChange)="highlightLength($event)"
+                [show_counts]="true"
+                
+                /><!--[counts_per_length]="counts_per_length" (lengthChange)="highlighted_baby_length = $event[0]" -->
         </div>
     </div>
-    <div class="form-floating mt-3">
-        <!--
+    <div class="form-floating mt-3" [hidden]="!babyEditMode">
         <input 
-            type="number" 
-            class="form-control" 
-            placeholder="0" 
-            required min="1" 
             #quantity 
+            type="text" 
+            [appNumericInput]="{ minimumValue: '0' }"
+            inputmode="decimal"
+            
+            class="form-control"
+            placeholder="1" 
             [(ngModel)]="highlighted_baby_quantity" 
+            name="highlighted_baby_quantity" 
+            required="true" 
+            min="0" 
             (focus)="$any($event.target).select()" 
             (keyup.enter)="sendit($event)">
--->
-                        <input 
-                            #quantity 
-                            type="text" 
-                            [appNumericInput]="{ minimumValue: '0' }"
-                            inputmode="decimal"
-                            
-                            class="form-control"
-                            placeholder="1" 
-                            [(ngModel)]="highlighted_baby_quantity" 
-                            name="highlighted_baby_quantity" 
-                            required="true" 
-                            min="0" 
-                            (focus)="$any($event.target).select()" 
-                            (keyup.enter)="sendit($event)"><!--#highlighted_baby_quantity="ngModel" 
-                            maximumValue:( (units_available > 0 ? units_available : 0) + highlighted_baby_quantity_before_change).toString()-->
-
         <label for="quantity">Quantity</label>
     </div>
+    <div [className]="(babyEditMode)? 'd-none': 'top-up'">
+        <span>{{ highlighted_baby_quantity | number: '1.0-0' }}</span>
+        <span>+</span>
+        <div class="form-floating">
+            <input 
+                #quantity_top_up
+                type="text" 
+                [appNumericInput]="{ minimumValue: '0' }"
+                inputmode="decimal"
+                class="form-control"
+                placeholder="0" 
+                [(ngModel)]="highlighted_baby_top_up" 
+                name="highlighted_baby_top_up" 
+                required="true" 
+                min="0" 
+                (focus)="$any($event.target).select()" 
+                (keyup.enter)="sendit($event)">
+            <label for="highlighted_baby_top_up">Top up</label>
+        </div>
+        <span>=</span>
+        <span>{{ (highlighted_baby_quantity + highlighted_baby_top_up) | number: '1.0-0' }}</span>
+    </div>
+
+
     <div *ngIf="customer_banks_babies_reduce_from_allocation">Maximum: {{ units_available + highlighted_baby_quantity_before_change }}</div>
     <div *ngIf="customer_banks_babies_reduce_from_allocation && highlighted_baby_quantity > units_available + highlighted_baby_quantity_before_change" class="text-danger">Not enough available units. Maximum of {{ units_available | number: '1.' }} + {{ highlighted_baby_quantity_before_change | number: '1.' }} = {{ units_available + highlighted_baby_quantity_before_change | number: '1.' }}</div>
     <!--div class="text-danger" *ngIf="babyFormEditor.get('quantity')?.invalid && (babyFormEditor.get('quantity')?.touched || babyFormEditor.get('quantity')?.dirty || isSubmitted) && (babyFormEditor.get('quantity') && !babyFormEditor.get('quantity')?.value)"> 

@@ -154,7 +154,7 @@
         [stretch_width]="true"
         [show_titles_buttons]="false"
         [show_only_custom_knives]="!customer.is_demo_customer"
-        [custom_knife_lengths]="customer.knives"
+        [custom_knife_lengths]="knives_lengths"
     />
 </app-modal-dialog>
 
@@ -235,7 +235,7 @@
               <div><strong>Wall material:</strong></div>
               <div class="ng-autocomplete">
                 <ng-select
-                  #wing_selector
+                  #wall_material_selector
                   placeholder="Wall material"
                   (change)="wall_material_changed($event)"
                   (clear)="wall_material_cleared()"
@@ -314,7 +314,7 @@
           <div [hidden]="use_the_same_allocation_for_wall_and_crown">
             <div class="ng-autocomplete">
               <ng-select
-                #wing_selector
+                #crown_material_selector
                 placeholder="Crown material"
                 (change)="crown_material_changed($event)"
                 (clear)="crown_material_cleared()"
@@ -382,7 +382,7 @@
       <div><strong>H material (L):</strong></div>
       <div class="ng-autocomplete">
         <ng-select
-          #wing_selector
+          #tails_l_material_selector
           placeholder="H material (L)"
           (change)="tails_material_changed($event, null)"
           (clear)="tails_material_cleared('l')"
@@ -455,7 +455,7 @@
     <div [hidden]="use_the_same_allocation_for_l_and_r_h_material">
       <div class="ng-autocomplete">
         <ng-select
-          #wing_selector
+          #tails_r_material_selector
           placeholder="H material (R)"
           (change)="tails_material_changed(null, $event)"
           (clear)="tails_material_cleared('r')"
@@ -627,6 +627,9 @@
 
       <div style="margin-bottom: 15px;"><strong>Measurements:</strong></div>
       
+      <!-- visible only if wing is selected -->
+      <div [hidden]="(this.customerHat.wing == null || this.customerHat.wing.id <= 0)"> 
+
       <div *ngIf="arr_knives.length > 0" class="d-flex flex-row align-items-center measurement-row">
         <div class="d-flex flex-row align-items-center" style="min-width: 150px;">
           <span class="icon-knife" style="font-size: 30px; margin-right: 10px;"></span>
@@ -830,9 +833,15 @@
         <div class="flex-grow-1" style="margin-left: 15px;">
             {{ customerHat.crown_visible  | number : '1.2-2' }} cm
         </div>
-      </div>      
+      </div>
 
-    </div>
+      </div> <!-- visible only if wing is selected -->
+      
+      <div [hidden]="(this.customerHat.wing != null && this.customerHat.wing.id > 0)" class="text-warning pt-5 pb-5">
+        Please select a wing to see the measurements and knife options.
+      </div>
+
+    </div> <!--measurements section-->
   </div>
   <!--/knife and size -->
 </div>
@@ -1043,7 +1052,8 @@
     <div><h3>Place an order</h3></div>
     <div *ngIf="(total_num_of_possible_hats > 0 && customerHat.crown_allocation_id > 0 && customerHat.wall_allocation_id > 0) || is_hat_tentative">
 
-      <div *ngIf="customerHat.tails_material_id_l != null && customerHat.tails_material_id_l > 0 && customerHat.tails_material_id_r != null && customerHat.tails_material_id_r > 0">
+      <div>
+        <!--*ngIf="customerHat.tails_material_id_l != null && customerHat.tails_material_id_l > 0 && customerHat.tails_material_id_r != null && customerHat.tails_material_id_r > 0"-->
 
         <div>
         <div class="form-check">
@@ -1078,6 +1088,10 @@
         </div> 
       </div>
 
+      <div *ngIf="customerHat.tails_material_id_l == null || customerHat.tails_material_id_l <= 0 || customerHat.tails_material_id_r == null || customerHat.tails_material_id_r <= 0" class="text-danger order-notes">
+        Note: This order is without H materials!
+      </div>
+
       <div class="order-notes" [hidden]="!is_hat_tentative">
         <fa-icon [icon]="faTriangleExclamation" class="text-warning"></fa-icon> This order is marked as tentative
       </div>
@@ -1106,9 +1120,6 @@
       <div class="text-danger" *ngIf="order_amount > total_num_of_possible_hats">
         Your max allocation is limited to a max of {{ total_num_of_possible_hats }} hats
       </div>
-    </div>
-    <div *ngIf="customerHat.tails_material_id_l == null || customerHat.tails_material_id_l <= 0 || customerHat.tails_material_id_r == null || customerHat.tails_material_id_r <= 0" class="text-danger">
-      Choose H material to place an order
     </div>
 
 

@@ -42,7 +42,10 @@ export class HatAllocationEditorPickerComponent implements ModalContentDirective
   @Input() num_wings_per_hat: number = 44;
   @Output() allocation_selected = new EventEmitter<Customer_Bank_Baby_Allocation>();
   @Output() customer_updated = new EventEmitter<Customer>();
+  @Output() babies_of_selected_allocation_updated = new EventEmitter<void>();
   @Input() banks_baby_allocation_type_filter: Bank_Allocation_Type | null = null;
+  @Input() selected_allocation_id: number | null = null;
+  @Output() selected_allocation_idChange = new EventEmitter<number | null>();
 
   ngAfterViewInit(): void {
     if(this.banks_table){
@@ -88,8 +91,31 @@ export class HatAllocationEditorPickerComponent implements ModalContentDirective
     }
     return true;
   }
+
+  babies_updated(babies:Allocation_Baby[]){
+    //console.log("babies_updated. customer: ", this.customer, " babies: ", babies);
+    let updated_allocation_id: number | null = null;
+    if(babies.length > 0){
+      updated_allocation_id = babies[0].allocation_id;
+    }
+    if(updated_allocation_id != null && updated_allocation_id == this.selected_allocation_id){
+      const alloc = this.banks_baby_allocations.find(a => a.id == updated_allocation_id);
+      this.banks_table.save_customer();
+      this.selected_allocation_id = updated_allocation_id;
+      this.selected_allocation_idChange.emit(updated_allocation_id);
+      this.allocation_selected.emit(alloc);
+      this.banksTableOpen = false; //ok to close
+      this.dialogWrapper.onConfirm();
+
+
+
+      this.babies_of_selected_allocation_updated.emit();
+    }
+  }
   
   allocation_clicked(alloc: Customer_Bank_Baby_Allocation){
+    this.selected_allocation_id = alloc.id;
+    this.selected_allocation_idChange.emit(alloc.id);
     this.allocation_selected.emit(alloc);
     this.dialogWrapper.onConfirm();
   }

@@ -86,8 +86,8 @@ call convert_column_type('customer_hats', 'tails_material_id_r', 'int NULL');
 call add_column_if_not_exists('customer_hats', 'tails_material_id_r', 'int NULL');
 call add_column_if_not_exists('customer_hats', 'tails_material_id_l', 'int NULL');
 */
-call add_fk('customer_hats', 'fk_customer_hats_tails_material_id_r', 'tails_material_id_r', 'raw_materials', 'id', true);
-call add_fk('customer_hats', 'fk_customer_hats_tails_material_id_l', 'tails_material_id_l', 'raw_materials', 'id', true);
+-- call add_fk('customer_hats', 'fk_customer_hats_tails_material_id_r', 'tails_material_id_r', 'raw_materials', 'id', true);
+-- call add_fk('customer_hats', 'fk_customer_hats_tails_material_id_l', 'tails_material_id_l', 'raw_materials', 'id', true);
 
 -- Tails allocation (r/l)
 call drop_fk('customer_hats', 'fk_customer_hats_tails_alloc_id');
@@ -171,6 +171,12 @@ call drop_fk('customer_hats', 'fk_customer_hats_crown_alloc_id');
 
 call convert_column_type('customer_hats', 'wall_allocation_id', 'INT NOT null default 0');
 call convert_column_type('customer_hats', 'crown_allocation_id', 'INT NOT null default 0');
+
+CALL add_column_if_not_exists('orders_status', 'notes','varchar(255) NULL');
+CALL add_column_if_not_exists('orders_status', 'updated_by', 'int not null default 1');
+
+call drop_fk('customer_hats', 'fk_customer_hats_tails_material_id_r');
+call drop_fk('customer_hats', 'fk_customer_hats_tails_material_id_l');
 
 -- +++++++++++++++++++++++++++++++++++++++++++++
 -- Clear duplicate records on the wings_customers table

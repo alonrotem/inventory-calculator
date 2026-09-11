@@ -84,7 +84,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   @Input() stretch_width: boolean = false;
   @Input() show_titles_buttons: boolean = true;
   @Input() show_only_custom_knives: boolean = false;
-  @Input() custom_knife_lengths: number[] = [];
+  @Input() custom_knife_lengths: { length: number, count: number }[] = [];
   wing_id: number = 0;
   wings: WingsListItem[] = [];
   customer_id: number= 0;

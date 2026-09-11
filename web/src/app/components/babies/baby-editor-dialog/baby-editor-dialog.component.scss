@@ -15,3 +15,16 @@
     background-color: var(--bs-body-color);
     color: var(--bs-body-bg);
 }
+
+.top-up {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.top-up span {
+    padding-bottom: 8px;
+    margin: 0px 4px;
+}

@@ -416,7 +416,8 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
   }
 
   customer_bank_babies_updated(newBabies: Allocation_Baby[]){
-    this.customerItem.babies = newBabies;
+    //alert("2");
+    this.customerItem.babies = (JSON.parse(JSON.stringify(newBabies)));
     this.recalculateBanks();
   }
 

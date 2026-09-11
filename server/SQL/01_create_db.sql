@@ -597,16 +597,18 @@ CREATE TABLE  IF NOT EXISTS `customer_hats`
 	  FOREIGN KEY (`hat_material_id`) REFERENCES raw_materials(`id`) ON DELETE CASCADE,
 	CONSTRAINT fk_customer_hats_crown_material_id
 	  FOREIGN KEY (`crown_material_id`) REFERENCES raw_materials(`id`) ON DELETE CASCADE,
-	CONSTRAINT fk_customer_hats_tails_material_id_r
-	  FOREIGN KEY (`tails_material_id_r`) REFERENCES raw_materials(`id`) ON DELETE CASCADE,
-	CONSTRAINT fk_customer_hats_tails_material_id_l
-	  FOREIGN KEY (`tails_material_id_l`) REFERENCES raw_materials(`id`) ON DELETE CASCADE,
 	CONSTRAINT fk_customer_hats_wing_id
 	  FOREIGN KEY (`wing_id`) REFERENCES wings(`id`) ON DELETE CASCADE,
 	CONSTRAINT fk_customer_hats_customer_id
 	  FOREIGN KEY (`customer_id`) REFERENCES customers(`id`) ON DELETE CASCADE
 	/*	  
-	CONSTRAINT fk_customer_hats_wall_alloc_id
+	CONSTRAINT fk_customer_hats_tails_material_id_r
+	  FOREIGN KEY (`tails_material_id_r`) REFERENCES raw_materials(`id`) ON DELETE CASCADE,
+	CONSTRAINT fk_customer_hats_tails_material_id_l
+	  FOREIGN KEY (`tails_material_id_l`) REFERENCES raw_materials(`id`) ON DELETE CASCADE,
+
+	
+			CONSTRAINT fk_customer_hats_wall_alloc_id
 		FOREIGN KEY (`wall_allocation_id`) REFERENCES customer_banks_allocations(`id`)  ON DELETE CASCADE,
 	CONSTRAINT fk_customer_hats_crown_alloc_id
 		FOREIGN KEY (`crown_allocation_id`) REFERENCES customer_banks_allocations(`id`)  ON DELETE CASCADE,
@@ -650,6 +652,8 @@ CREATE TABLE IF NOT EXISTS `orders_status` (
             'cancelled',
             'tentative'
 		) NOT NULL,
+	`notes`				varchar(255) NULL,
+	`updated_by`		int not null default 1,
 	PRIMARY KEY (`id`),
     CONSTRAINT fk_order_status_order
 	  FOREIGN KEY (`order_id`) REFERENCES orders(`id`) ON DELETE CASCADE        

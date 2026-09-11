@@ -5,7 +5,7 @@ import { Pipe, PipeTransform } from '@angular/core';
   standalone: true
 })
 export class DateStrPipe implements PipeTransform {
-  transform(value: any): string {
+  transform(value: any, includeTime: boolean=true): string {
     if(!value) {
       return "";
     }
@@ -22,7 +22,9 @@ export class DateStrPipe implements PipeTransform {
     return  d.getDate().toString().padStart(2, '0') + 
         "/" + (d.getMonth()+1).toString().padStart(2, '0') + 
         "/" + d.getFullYear() + 
-        " " + d.getHours().toString().padStart(2, '0') + 
-        ":" + d.getMinutes().toString().padStart(2, '0');
+        ((includeTime)?
+          (" " + d.getHours().toString().padStart(2, '0') + 
+          ":" + d.getMinutes().toString().padStart(2, '0')) :
+          '');
   }
 }

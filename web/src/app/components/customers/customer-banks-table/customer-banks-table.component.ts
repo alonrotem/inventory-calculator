@@ -96,7 +96,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   @Output() babies_picker_open = new EventEmitter<void>();
   @Output() babies_picker_closed = new EventEmitter<void>();
   @Output() afterViewInit = new EventEmitter<void>();
-  @Output() babies_updated = new EventEmitter<any>();
+  @Output() babies_updated = new EventEmitter<Allocation_Baby[]>();
   @Output() customer_updated = new EventEmitter<Customer>();
   @Input() show_hat_advisor: boolean = false;
   @Input() advisor_show_options_button: boolean = true;
@@ -119,7 +119,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   newAllcoationCounter: number = -1;
   pendingAllocationIdAction: number = -999;
   pendingBabyAppendAllocation: number = -999;
-  pendingBabyAppendBaby: number = -999;
+  //pendingBabyAppendBaby: number = -999;
   pendingMergedSourceAllocationID: number = -999;
   newAllocationIdCounter = -1;
   unsaved_changes: boolean = false;
@@ -167,9 +167,35 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     //if so, pass it to the order calculator (in the querystring), when opened
     this.tails_allocation_in_this_bank = this.banks_baby_allocations.find(alloc => alloc.allocation_type == Bank_Allocation_Type.tails && alloc.customer_bank_id == this.bank.id);
 
-    this.babies_picker.appendBaby.subscribe((baby_info: { length: number; quantity: number }) => { this.append_baby(baby_info) });
-    this.babies_picker.dialogWrapper.close.subscribe(() => { this.babies_picker_closed.emit(); });
-    this.babies_picker.dialogWrapper.cancel.subscribe(() => { this.babies_picker_closed.emit(); });
+    //this.babies_picker.appendBaby.subscribe((baby_info: { length: number; quantity: number }) => { this.append_baby(baby_info) });
+    this.babies_picker.babiesUpdated.subscribe((babies_info: {changes_made: boolean, babies: { length: number; quantity: number }[]}) => { 
+      /*
+          this.pendingBabyAppendAllocation = bank_allocation_id;
+    const curr_baby = this.babies.find(b => 
+      b.allocation_id == bank_allocation_id && b.length == baby_length
+    );*/
+      if(babies_info.changes_made) {
+        babies_info.babies.forEach(baby_info => { 
+          const baby_to_update = this.babies.find(b => b.allocation_id == this.pendingBabyAppendAllocation && b.length == baby_info.length);
+          if(baby_to_update) {
+            baby_to_update.quantity = baby_info.quantity;
+          }
+          else {
+            this.babies.push({
+              id: 0,
+              allocation_id: this.pendingBabyAppendAllocation,
+              length: baby_info.length,
+              quantity: baby_info.quantity,
+              quantity_in_pending_orders: 0
+            });
+          }
+        });
+        this.babies_updated.emit(this.babies);
+        this.unsaved_changes = true;
+      }
+    });
+    this.babies_picker.dialogWrapper.close.subscribe(() => {  this.babies_picker_closed.emit(); });
+    this.babies_picker.dialogWrapper.cancel.subscribe(() => {  this.babies_picker_closed.emit(); });
 
     this.allocation_dialog.dialogWrapper.modalTitle = "Manage allocation";
 
@@ -510,14 +536,15 @@ recalculateBank(){
       b.allocation_id == bank_allocation_id && b.length == baby_length
     );
     let babiesToEdit: { length: number; quantity: number }[] = [];
-    this.babies_picker.dialogWrapper.btnSaveClass = "d-none";
-      this.babies_picker.dialogWrapper.btnCancelText = "(Click here or Esc to close)";
+    this.babies_picker.dialogWrapper.btnSaveIcon = faSave;
+    this.babies_picker.dialogWrapper.btnSaveClass = "btn-success";
+    this.babies_picker.dialogWrapper.btnCancelText = "Cancel";
     //if(baby_length > 0) {
-      babiesToEdit = this.babies
-        .filter(b => b.allocation_id == bank_allocation_id)
-        .map(b => ({ length: b.length, quantity: b.quantity }));
-      this.babies_picker.babyEditMode = true;
-      this.babies_picker.dialogWrapper.modalTitle = "Edit babies";
+    babiesToEdit = this.babies
+      .filter(b => b.allocation_id == bank_allocation_id)
+      .map(b => ({ length: b.length, quantity: b.quantity }));
+    this.babies_picker.babyEditMode = false;
+    this.babies_picker.dialogWrapper.modalTitle = "Edit babies";
     //}
     //else {
     //  this.babies_picker.babyEditMode = false;
@@ -530,7 +557,7 @@ recalculateBank(){
     let units_available = allocation_quantity - num_of_babies_in_allocation;
     this.babies_picker.units_available = (this.customer_banks_babies_reduce_from_allocation) ? units_available : allocation_quantity;
 
-    this.babies_picker.babies_to_edit = babiesToEdit;
+    this.babies_picker.babies_data = babiesToEdit;
     this.babies_picker.highlighted_baby_length = baby_length;
     this.babies_picker.highlighted_baby_quantity = (curr_baby)? curr_baby.quantity : 0;
 
@@ -706,6 +733,7 @@ recalculateBank(){
             quantity_in_pending_orders: 0
           }];
         }
+        alert("1");
         this.customer = {...this.customer, babies: [...this.babies]};
         if(allocation && this.customer_banks_babies_reduce_from_allocation){
           allocation.remaining_quantity -= baby_to_append.remaining;

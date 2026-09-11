@@ -2,59 +2,84 @@
     <div class="col-12 col-md-8 order-editor">
 
         <div class="toolbar">
-            <!--http://localhost:4200/inventory/customer/orders?customer_id=10-->
-            <button class="btn btn-warning" (click)="goToCustomersList()"><fa-icon [icon]="faArrowLeft"></fa-icon></button>
-            <button class="btn btn-secondary" (click)="print()"><span class="icon-printer"></span> Print</button>
-            <button class="btn btn-secondary" (click)="exportPdf()"><span class="icon-file-pdf"></span> PDF</button>
-            <button class="btn btn-success" *ngIf="unsaved_changes"><fa-icon [icon]="faSave"></fa-icon></button>
+            <span>
+                <!--http://localhost:4200/inventory/customer/orders?customer_id=10-->
+                <button class="btn btn-warning" (click)="goToCustomersList()"><fa-icon [icon]="faArrowLeft"></fa-icon></button>
+                <button class="btn btn-secondary" (click)="print()"><span class="icon-printer"></span> Print</button>
+                <button class="btn btn-secondary" (click)="exportPdf()"><span class="icon-file-pdf"></span> PDF</button>
+                <button class="btn btn-success" *ngIf="unsaved_changes"><fa-icon [icon]="faSave"></fa-icon></button>
+            </span>
+            <span class="order-status-area">
+                <span>Order status: <span class="order-status order-status-{{orderDetails.last_status}}">{{ orderDetails.last_status }}</span></span>
+                <span style="cursor:pointer;" (click)="openUpdateStatus()">
+                    <span class="text-primary">
+                        <fa-icon [icon]="faPencil"></fa-icon>
+                    </span>
+                </span>
+                <span>
+                    <span class="icon-history"(click)="openHistoryDialog()" style="font-size: 23px; cursor:pointer;" title="History records"></span>
+                </span>
+            </span>
         </div>
 
         <div class="printable-content" #printSection>
     
+        <!-- loading animation -->
+        <app-page-loading 
+            [loading_message]="'Loading order...'" 
+            [icon_size]="'3x'" 
+            [hidden]="!loading" 
+            [stretch_height]="true" />            
+
         <!-- heading -->
         <div class="heading d-flex flex-nowrap flex-row justify-content-between align-items-center">
             <div>
                 <img src="/assets/images/romtech-w-logo-light.png" alt="">
             </div>
             <div>
-                <h3>Job Order</h3>
+                <h3>Job Order {{ orderDetails.id > 0 ? '#' + orderDetails.id : '' }}</h3>
+            </div>
+        </div>
+        <div class="fields-row">
+            For customer: {{ orderDetails.customer_name }}. Created on {{ orderDetails.create_date | dateStr }}.
+            <div *ngIf="orderDetails.isurgent" class="text-danger">
+                <fa-icon [icon]="faTriangleExclamation"></fa-icon> This order is marked as urgent!
             </div>
         </div>
 
-        <!-- loading animation -->
-        <app-page-loading 
-            [loading_message]="'Loading order...'" 
-            [icon_size]="'3x'" 
-            [hidden]="!loading" 
-            [stretch_height]="true" />
-
         <div  [hidden]="loading">
             <div class="row fields-row">
-                <div class="col-3 d-flex flex-column">
-                    <div class="detail-title">Order last update</div>
-                    <div class="detail-field flex-grow-1">{{ orderDetails.date | dateStr }}</div>
+                <div class="col-lg-3 col-6 d-flex flex-column">
+                    <div class="detail-title">Last update</div>
+                    <div class="detail-field flex-grow-1">{{ orderDetails.last_update_date | dateStr: false }}</div>
                 </div>
-                <div class="col-3 d-flex flex-column">
+                <div class="col-lg-3 col-6 d-flex flex-column">
                     <div class="detail-title">Hat #</div>
                     <div class="detail-field flex-grow-1">{{ orderDetails.hat_id_with_customer }}</div>
                 </div>
-                <div class="col-3 d-flex flex-column">
+                <div class="col-lg-3 col-6 d-flex flex-column">
                     <div class="detail-title">Hat style</div>
                     <div class="detail-field flex-grow-1">{{ orderDetails.wing_name }}</div>
                 </div>
-                <div class="col-3 d-flex flex-column">
+                <div class="col-lg-3 col-6 d-flex flex-column">
                     <div class="detail-title">Knife model</div>
                     <div class="detail-field flex-grow-1">{{ orderDetails.knife }}</div>
                 </div>
             </div>
 
             <div class="row  fields-row">
-                <div class="col-3"></div>
-                <div class="col-3 d-flex flex-column">
+                <div class="col-2"></div>
+                <div class="col-4 d-flex flex-column">
                     <div class="detail-title">Material</div>
-                    <div class="detail-field flex-grow-1">{{ orderDetails.wall_material }} {{ orderDetails.wall_material_color }}</div>
+                    <div class="detail-field flex-grow-1 material-container">
+                        <span>{{ orderDetails.wall_material }} {{ orderDetails.wall_material_color }}</span>
+                        <span class="alloc-container">
+                            <div>Alloc #</div>
+                            {{ orderDetails.wall_allocation_id }}
+                        </span>
+                    </div>
                 </div>
-                <div class="col-3 d-flex flex-column">
+                <div class="col-4 d-flex flex-column">
                     <div class="detail-title">Wings</div>
                     <div class="detail-field flex-grow-1">{{ orderDetails.wing_quantity }}</div>
                 </div>
@@ -73,9 +98,12 @@
                         </tr>
                     </table>
                 </div>
-                <div class="col-4"></div>
                 <div class="col-4">
-                                        <table>
+
+                </div>
+                <div class="col-4">
+                                        
+                    <table>
                         <tr *ngFor="let baby of (orderDetails.babies | sortbabies | prefix: 'R' : false)">
                             <td>
                                 {{ baby.position }}
@@ -89,16 +117,28 @@
             </div> <!-- babies list -->
             
             <div class="row fields-row">
-                <div class="col">
+                <div class="col-12 col-md-6">
                     <table class="checks-table">
-                        <tr><td>A</td><td>Crown</td><td><div></div></td><td>Checked A</td><td><div></div></td></tr>
-                        <tr><td>B</td><td>FR</td><td><div></div></td><td>Checked AB</td><td><div></div></td></tr>
-                        <tr><td>C</td><td>H</td><td><div></div></td><td>Checked ABC</td><td><div></div></td></tr>
-                        <tr><td>D</td><td>Sew</td><td><div></div></td><td>Checked ABCD</td><td><div></div></td></tr>
-                        <tr><td>E</td><td>2nd R</td><td><div></div></td><td>Checked ABCDE</td><td><div></div></td></tr>
-                        <tr><td>F</td><td>Cover</td><td><div></div></td><td>Checked ABCDEF</td><td><div></div></td></tr>
-                        <tr><td>G</td><td>Sewing on band</td><td><div></div></td><td>Checked ABCDEFG</td><td><div></div></td></tr>
-                        <tr><td>H</td><td>Glance</td><td><div></div></td><td>Checked ABCDEFGH</td><td><div></div></td></tr>
+                        <tr><td>A</td><td>Crown</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>B</td><td>FR</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>C</td><td>H</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>D</td><td>Sew</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>E</td><td>2nd R</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>F</td><td>Cover</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>G</td><td>Sewing on band</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>H</td><td>Glance</td><td><div class="check_line"></div></td></tr>
+                    </table>
+                </div>
+                <div class="col-12 col-md-6">
+                    <table class="checks-table">
+                        <tr><td>Checked A</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>Checked AB</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>Checked ABC</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>Checked ABCD</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>Checked ABCDE</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>Checked ABCDEF</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>Checked ABCDEFG</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>Checked ABCDEFGH</td><td><div class="check_line"></div></td></tr>
                     </table>
                 </div>
             </div>
