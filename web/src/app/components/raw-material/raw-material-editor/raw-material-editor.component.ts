@@ -603,10 +603,11 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     this.purchase_editor.open();
   }
 
-  async edit_bank(bank_id:number){
+  // Returns false if the user declined to discard the changes of the bank currently being edited
+  async edit_bank(bank_id:number): Promise<boolean> {
     if(this.is_bank_saveable){
       if(!await this.verify_cancellation_of_unsaved_changes()){
-        return;
+        return false;
       }
     }
     let bank = this.rawMaterialItem.customer_banks.find(b => b.id == bank_id);
@@ -639,6 +640,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     //console.log("min/man " + this.meter.totalCapacity + " - " + this.meter.materialInUse);
     this.meter.recalculate();
     this.checkIfBankIsSaveable();
+    return true;
   }
 
   customerBankQuantityChanged(quantity:number){
@@ -688,8 +690,8 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     return cancel;
   }
 
-  clear_bank(){
-    let is_new_bank = (this.edited_bank.customer_id <= 0);
+  // keep_in_collection: pass true after saving, so a newly added (unsaved, negative id) bank is not discarded
+  clear_bank(keep_in_collection: boolean = false){
     let edited_bank_quantity = this.edited_bank.quantity;
     let unedited_bank_quantity = 0;
     let unedited_bank = this.rawMaterialItem.customer_banks.find(b => b.id == this.edited_bank.id);
@@ -705,7 +707,8 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     this.max_bank_quantity = Infinity;
 
 
-    if(!is_new_bank){
+    // Cancelling a newly added bank removes it from the collection. Existing banks are never touched.
+    if(!keep_in_collection && this.edited_bank.id < 0){
       const bankIndex = this.rawMaterialItem.customer_banks.findIndex(b => b.id == this.edited_bank.id);
       if(bankIndex >= 0) {
         this.rawMaterialItem.customer_banks.splice(bankIndex, 1);
@@ -732,7 +735,9 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   }
 
   // Triggered when the user types in the input box (string) or selects an item from the dropdown (object)
-  onCustomerChanged(val: string | { id: number; name: string } | null) {
+  async onCustomerChanged(val: string | { id: number; name: string } | null) {
+    // The autocomplete's ngModel update (which overwrites edited_bank.name) runs after this synchronous part
+    const previous_name = this.edited_bank.name;
     // The autocomplete can report the same value more than once (typing + selecting), so ignore repeats
     const name = ((val && typeof val === 'object') ? val.name : (val ?? '')).toLowerCase();
     if (name === this.last_customer_name_handled) {
@@ -749,7 +754,11 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
       if(this.purchase_edited_customer_id){
         let existing_bank = this.rawMaterialItem.customer_banks.find(b => b.customer_id == this.purchase_edited_customer_id);
         if(existing_bank){
-          this.edit_bank(existing_bank.id);
+          if(!await this.edit_bank(existing_bank.id)){
+            // User kept editing the current bank: put its name back
+            this.edited_bank.name = previous_name;
+            this.last_customer_name_handled = null;
+          }
         }
         else {
           let bank: RawMaterialCustomerBank = {
@@ -765,10 +774,23 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
             transaction_record: null
           };
           this.rawMaterialItem.customer_banks.push(bank);
-          this.edit_bank(bank.id);
-        }        
+          if(!await this.edit_bank(bank.id)){
+            // User kept editing the current bank: drop the bank we just added and put the name back
+            const bankIndex = this.rawMaterialItem.customer_banks.findIndex(b => b.id == bank.id);
+            if(bankIndex >= 0) {
+              this.rawMaterialItem.customer_banks.splice(bankIndex, 1);
+            }
+            this.edited_bank.name = previous_name;
+            this.last_customer_name_handled = null;
+          }
+        }
       }
     }
+  }
+
+  // The autocomplete's model is the selected item object when picking from the list, but a string when typing
+  onCustomerModelChange(value: string | { id: number; name: string } | null) {
+    this.edited_bank.name = (value && typeof value === 'object') ? value.name : (value ?? '');
   }
 
   // Triggered when the user clears the input completely
@@ -784,5 +806,17 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     this.clear_bank();
     // Wait for the modal to finish closing and the autocomplete to re-render, then focus it
     setTimeout(() => this.customerAutocomplete?.focus(), 300);
+  }
+
+  save_bank_changes(){
+    if(this.is_bank_saveable){
+      const bankIndex = this.rawMaterialItem.customer_banks.findIndex(b => b.id == this.edited_bank.id);
+      if(bankIndex >= 0) {
+        // Replace the item in the collection (reassigning a local variable would not update the array)
+        this.rawMaterialItem.customer_banks[bankIndex] = JSON.parse(JSON.stringify(this.edited_bank));
+      }
+    }
+    // The bank now lives in the collection, so only reset the editor
+    this.clear_bank(true);
   }
 }

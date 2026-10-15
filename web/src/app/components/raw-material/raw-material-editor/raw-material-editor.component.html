@@ -148,7 +148,8 @@
                         (inputCleared)="onCustomerCleared()"
                         name="customerName"
                         [initialValue]="edited_bank.name"
-                        [(ngModel)]="edited_bank.name"
+                        [ngModel]="edited_bank.name"
+                        (ngModelChange)="onCustomerModelChange($event)"
                         required="true">
                     </ng-autocomplete>
                     <ng-template #itemTemplate let-item>
@@ -197,8 +198,8 @@
         </div>
         <div class="row">
             <div class="col d-flex flex-row justify-content-center justify-content-around">
-                <button class="btn btn-success" [disabled]="!is_bank_saveable">
-                    <fa-icon [icon]="faSave"></fa-icon> Save bank changes
+                <button class="btn btn-success" [disabled]="!is_bank_saveable" (click)="save_bank_changes()">
+                    Update bank
                 </button>
 
                 <button class="btn btn-warning" [disabled]="!is_bank_cancellable" (click)="verify_cancellation_of_unsaved_changes()">
