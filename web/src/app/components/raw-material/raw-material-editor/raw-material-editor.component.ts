@@ -154,6 +154,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   @ViewChild("meter") meter!: CapacityBarComponent;
   @ViewChild("confirm_action") confirm_action!: ConfirmationDialogComponent;
   @ViewChild("customerAutocomplete") customerAutocomplete!: AutocompleteComponent;
+  private last_customer_name_handled: string | null = null;
   
   constructor(
     private rawMaterialsService: RawMaterialsService, 
@@ -627,6 +628,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
         transaction_record: null
       };
     }
+    this.last_customer_name_handled = null;
     this.edited_bank_initial_quantity = this.edited_bank.quantity;
     this.edited_purchase_initial_remaining_quantity = this.editedPurchase.remaining_quantity;
     this.meter.bankQuantity = this.edited_bank.quantity;
@@ -717,19 +719,24 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     this.is_bank_saveable = false;
     this.is_bank_cancellable = false;
     this.purchase_edited_customer_id = 0;
+    this.last_customer_name_handled = null;
   }
 
-  // Triggered when a user clicks/selects an item from the dropdown list
-  onCustomerSelected(item: { id: number; name: string }) {
-    this.purchase_edited_customer_id = item ? item.id : 0;
-  }
-
-  // Triggered when the user types in the input box
-  onCustomerChanged(val: string) {
-    // Look for an exact match in your list while they type
-    const match = this.customer_names.find(c => c.name.toLowerCase() === val.toLowerCase());
-    
-    // If an exact match is found, use its ID. Otherwise, reset to 0.
+  // Triggered when the user types in the input box (string) or selects an item from the dropdown (object)
+  onCustomerChanged(val: string | { id: number; name: string } | null) {
+    // The autocomplete can report the same value more than once (typing + selecting), so ignore repeats
+    const name = ((val && typeof val === 'object') ? val.name : (val ?? '')).toLowerCase();
+    if (name === this.last_customer_name_handled) {
+      return;
+    }
+    this.last_customer_name_handled = name;
+    console.log("customer changed ", val);
+    if (val && typeof val === 'object') {
+      this.purchase_edited_customer_id = val.id;
+      return;
+    }
+    // Typing: look for an exact match in the list. Otherwise, reset to 0.
+    const match = this.customer_names.find(c => c.name.toLowerCase() === name);
     this.purchase_edited_customer_id = match ? match.id : 0;
   }
 
