@@ -692,10 +692,10 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     let is_new_bank = (this.edited_bank.customer_id <= 0);
     let edited_bank_quantity = this.edited_bank.quantity;
     let unedited_bank_quantity = 0;
-    if(!is_new_bank){
-      let unedited_bank = this.rawMaterialItem.customer_banks.find(b => b.id == this.edited_bank.id);
-      unedited_bank_quantity = unedited_bank?.quantity ?? 0;
-    }
+    let unedited_bank = this.rawMaterialItem.customer_banks.find(b => b.id == this.edited_bank.id);
+    unedited_bank_quantity = unedited_bank?.quantity ?? 0;
+
+
     this.editedPurchase.remaining_quantity += (edited_bank_quantity - unedited_bank_quantity);
     this.meter.bankQuantity = 0;
     this.meter.totalCapacity = 0;
@@ -703,6 +703,14 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     this.meter.recalculate();
     this.min_bank_quantity = 0;
     this.max_bank_quantity = Infinity;
+
+
+    if(!is_new_bank){
+      const bankIndex = this.rawMaterialItem.customer_banks.findIndex(b => b.id == this.edited_bank.id);
+      if(bankIndex >= 0) {
+        this.rawMaterialItem.customer_banks.splice(bankIndex, 1);
+      }
+    }
 
     this.edited_bank = {
       id: this.new_bank_counter,
@@ -715,7 +723,8 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
       quantity_units: '',
       quantity_in_kg: 0,
       transaction_record: null
-    }
+    }    
+
     this.is_bank_saveable = false;
     this.is_bank_cancellable = false;
     this.purchase_edited_customer_id = 0;
@@ -733,11 +742,33 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     console.log("customer changed ", val);
     if (val && typeof val === 'object') {
       this.purchase_edited_customer_id = val.id;
-      return;
+      // Typing: look for an exact match in the list. Otherwise, reset to 0.
+      const match = this.customer_names.find(c => c.name.toLowerCase() === name);
+      this.purchase_edited_customer_id = match ? match.id : 0;
+
+      if(this.purchase_edited_customer_id){
+        let existing_bank = this.rawMaterialItem.customer_banks.find(b => b.customer_id == this.purchase_edited_customer_id);
+        if(existing_bank){
+          this.edit_bank(existing_bank.id);
+        }
+        else {
+          let bank: RawMaterialCustomerBank = {
+            id: this.new_bank_counter--,
+            name: val.name,
+            business_name: '',
+            raw_material_purchase_id: this.editedPurchase.id,
+            customer_id: val.id,
+            quantity: 0,
+            remaining_quantity: 0,
+            quantity_units: 'units',
+            quantity_in_kg: 0,
+            transaction_record: null
+          };
+          this.rawMaterialItem.customer_banks.push(bank);
+          this.edit_bank(bank.id);
+        }        
+      }
     }
-    // Typing: look for an exact match in the list. Otherwise, reset to 0.
-    const match = this.customer_names.find(c => c.name.toLowerCase() === name);
-    this.purchase_edited_customer_id = match ? match.id : 0;
   }
 
   // Triggered when the user clears the input completely
