@@ -12,7 +12,7 @@ import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faSave, faTrashAlt, faTimesCircle, IconDefinition, faArrowLeft, faClockRotateLeft, faCartShopping, faArrowRightArrowLeft, faArrowDownShortWide } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmationDialogComponent } from "../../common/confirmation-dialog/confirmation-dialog.component";
-import { AutocompleteLibModule } from 'angular-ng-autocomplete';
+import { AutocompleteComponent, AutocompleteLibModule } from 'angular-ng-autocomplete';
 import { ToastService } from '../../../services/toast.service';
 import { HasUnsavedChanges } from '../../../guards/unsaved-changes-guard';
 import { Observable } from 'rxjs';
@@ -153,6 +153,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   @ViewChild('purchase_editor') purchase_editor!: ModalDialogComponent;
   @ViewChild("meter") meter!: CapacityBarComponent;
   @ViewChild("confirm_action") confirm_action!: ConfirmationDialogComponent;
+  @ViewChild("customerAutocomplete") customerAutocomplete!: AutocompleteComponent;
   
   constructor(
     private rawMaterialsService: RawMaterialsService, 
@@ -743,5 +744,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
       return;
     }
     this.clear_bank();
+    // Wait for the modal to finish closing and the autocomplete to re-render, then focus it
+    setTimeout(() => this.customerAutocomplete?.focus(), 300);
   }
 }

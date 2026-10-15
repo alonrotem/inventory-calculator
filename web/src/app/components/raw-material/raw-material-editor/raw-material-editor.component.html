@@ -138,7 +138,7 @@
         <div class="row">
             <div class="col">
                 <div class="ng-autocomplete-wrapper">
-                    <ng-autocomplete 
+                    <ng-autocomplete #customerAutocomplete
                         [data]="customer_names"
                         placeholder="Customer name"
                         [itemTemplate]="itemTemplate"
@@ -252,7 +252,7 @@
                 <div class="col-12 col-md-6 me-3">
                     <div style="display: flex; flex-wrap: nowrap; justify-content: flex-start; align-items: center;">
                         <div class="ng-autocomplete" style="flex-grow: 1;">
-                            <ng-autocomplete 
+                            <ng-autocomplete #customerAutocomplete
                                 [data]="raw_material_names"
                                 placeholder="Select a material or enter a new one*"
                                 [itemTemplate]="itemTemplate"
