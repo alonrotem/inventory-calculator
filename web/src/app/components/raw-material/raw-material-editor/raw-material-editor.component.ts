@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { DecimalPipe, Location, NgClass, NgFor, NgIf } from '@angular/common';
-import { Country, Currency, RawMaterial, RawMaterialCustomerBank, RawMaterialBasicDetails, TransactionType } from '../../../../types';
+import { Country, Currency, RawMaterial, RawMaterialCustomerBank, RawMaterialBasicDetails, TransactionType, RawMaterialPurchase, Customers, Customer_Bank } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
 import { RouterLink, RouterOutlet, ActivatedRoute } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -10,7 +10,7 @@ import { InfoService } from '../../../services/info.service';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faSave, faTrashAlt, faTimesCircle, IconDefinition, faArrowLeft, faClockRotateLeft } from '@fortawesome/free-solid-svg-icons';
+import { faSave, faTrashAlt, faTimesCircle, IconDefinition, faArrowLeft, faClockRotateLeft, faCartShopping, faArrowRightArrowLeft, faArrowDownShortWide } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmationDialogComponent } from "../../common/confirmation-dialog/confirmation-dialog.component";
 import { AutocompleteLibModule } from 'angular-ng-autocomplete';
 import { ToastService } from '../../../services/toast.service';
@@ -26,6 +26,9 @@ import { UnsavedNavigationConfirmationService } from '../../../services/unsaved-
 import { NumericInputDirective } from '../../../utils/directives/auto-numeric.directive';
 import { SaveChangesButtonComponent } from "../../common/save-changes-button/save-changes-button.component";
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
+import { CustomersService } from '../../../services/customers.service';
+import { CapacityBarComponent } from '../capacity-bar/capacity-bar.component';
+import { FilterPipe } from '../../../utils/pipes/filter-pipe';
 
 
 @Component({
@@ -38,7 +41,9 @@ import { NavigatedMessageComponent } from '../../common/navigated-message/naviga
     RawMaterialCustomerTableComponent, RawMaterialQuantityDialogComponent,
     RawMaterialHistoryDialogComponent, NgClass,
     UnsavedChangesDialogComponent, NgFor, NumericInputDirective,
-    SaveChangesButtonComponent
+    SaveChangesButtonComponent,
+    ModalDialogComponent,
+    CapacityBarComponent, FilterPipe
 ],
   templateUrl: './raw-material-editor.component.html',
   styleUrl: './raw-material-editor.component.scss'
@@ -48,26 +53,17 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   public rawMaterialItem : RawMaterial = {
     id: 0,
     name: "",
-    purchased_at: new Date(),
     updated_at: new Date(),
     created_by: 0,
     updated_by: 0,
-    units_per_kg: 0,
-    vendor_name: '',
-    origin_country: 'US',
-    price: 0,
-    currency: 'USD',
-    notes: '',
     created_at: new Date(),
-    purchase_quantity: 0,
-    remaining_quantity: 0,
-    quantity_units: 'units',
     customer_banks: [],
     transaction_record: null,
     deleted_bank_records: [],
     color: '',
     allow_shortening_babies_in_pairs: false,
-    is_usable_for_h_material: false
+    is_usable_for_h_material: false,
+    purchases: []
   }
 
   colors: string[] = [];
@@ -81,6 +77,9 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   faTimesCircle:IconDefinition = faTimesCircle;
   faArrowLeft: IconDefinition = faArrowLeft;
   faClockRotateLeft : IconDefinition = faClockRotateLeft;
+  faCartShopping: IconDefinition = faCartShopping;
+  faArrowRightArrowLeft: IconDefinition = faArrowRightArrowLeft;
+  faArrowDownShortWide: IconDefinition = faArrowDownShortWide;
   is_new_material: Boolean = true;
   raw_material_names: RawMaterialBasicDetails[] = [];
   confirmResult: boolean | null = null;
@@ -97,6 +96,46 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   insufficient_quantity_for_banks: boolean = false;
   curr_total_in_banks: number = 0;
   console=console;
+
+  customer_names: { id: number; name: string; }[] = [];
+  purchase_edited_customer_id = 0;
+
+  editedPurchase: RawMaterialPurchase = {
+    id: 0,
+    raw_material_id: 0,
+    purchased_at: new Date(),
+    purchase_quantity: 0,
+    remaining_quantity: 0,
+    quantity_units: 'units',
+    units_per_kg: 0,
+    vendor_name: '',
+    origin_country: 'US',
+    price: 0,
+    currency: 'USD',
+    notes: ''
+  };
+
+  edited_bank: RawMaterialCustomerBank = {
+    id: 0,
+    name: '',
+    business_name: '',
+    raw_material_purchase_id: 0,
+    customer_id: 0,
+    quantity: 0,
+    remaining_quantity: 0,
+    quantity_units: '',
+    quantity_in_kg: 0,
+    transaction_record: null
+  };
+  new_purchase_counter = -1;
+  new_bank_counter = -1;
+  edited_bank_initial_quantity = 0;
+  edited_purchase_initial_remaining_quantity = 0;
+  min_bank_quantity = -Infinity;
+  max_bank_quantity = Infinity;
+  is_bank_saveable = false;
+  is_bank_cancellable = false;
+
   @ViewChild("materialName", { read: ElementRef }) materialName! :ElementRef;
   @ViewChild("suggestions", { read: ElementRef }) suggestions!: ElementRef;
   @ViewChild("purchasedAt", { read: ElementRef }) purchase_date!: ElementRef;
@@ -111,6 +150,9 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   @ViewChild('history_dialog') history_dialog!: RawMaterialHistoryDialogComponent;
   @ViewChild('customer_table') customer_table!: RawMaterialCustomerTableComponent;
   @ViewChild('save_changes_button') save_changes_button!: SaveChangesButtonComponent;
+  @ViewChild('purchase_editor') purchase_editor!: ModalDialogComponent;
+  @ViewChild("meter") meter!: CapacityBarComponent;
+  @ViewChild("confirm_action") confirm_action!: ConfirmationDialogComponent;
   
   constructor(
     private rawMaterialsService: RawMaterialsService, 
@@ -120,16 +162,25 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     router: Router,
     toastService: ToastService,
     stateService: StateService,
-    private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService) { 
+    private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService,
+    private customersService: CustomersService) { 
       super(toastService, stateService, router, activatedRoute);
       this.rawMaterialsService.getRawMaterialBasicDetails().subscribe({
         next: (names)=> {
+          this.console.log(names);
           this.raw_material_names = names;
         }
       });
       this.rawMaterialsService.getRawMaterialQuantityUnits().subscribe({
         next: (quantity_units)=> {
           this.quantity_units = quantity_units;
+        }
+      });
+
+      this.customersService.getCustomers({ } as any).subscribe({
+        next: (customers: Customers) => {
+        this.customer_names = customers.data.map((c) => { return { id: c.id, name: c.name } });
+          //this.customers = customers.data;
         }
       });
   }
@@ -228,8 +279,8 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
         }
         else {
           this.rawMaterialItem = rawMaterial;
-          this.initial_quantity = rawMaterial.purchase_quantity;
-          this.initial_remaining = rawMaterial.remaining_quantity;
+          //this.initial_quantity = rawMaterial.purchase_quantity;
+          //this.initial_remaining = rawMaterial.remaining_quantity;
           this.initial_in_banks = rawMaterial.customer_banks.reduce((n, {quantity}) => n + quantity, 0);
           this.initial_totals_per_bank = rawMaterial.customer_banks.map(b => ({ 
             bank_id: b.id, 
@@ -248,6 +299,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   }
 
   save(navigate_after_save: boolean = true){
+    /*
     this.raw_material_form.form.markAllAsTouched();
     if((this.raw_material_form.form.valid) && (!this.insufficient_quantity_for_banks))
     {
@@ -329,7 +381,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
       let current_bank_ids = this.rawMaterialItem.customer_banks.filter(bank => bank.id > 0).map(bank => bank.id);
       let deleted_banks = this.initial_totals_per_bank.filter(bank => current_bank_ids.indexOf(bank.bank_id) < 0);
       let total_quantity_in_deleted_banks = deleted_banks.reduce((n, {bank_quantity}) => n + bank_quantity, 0);
-      let cur_raw_material_quantity = this.rawMaterialItem.remaining_quantity - total_quantity_in_deleted_banks;
+      //let cur_raw_material_quantity = this.rawMaterialItem.remaining_quantity - total_quantity_in_deleted_banks;
       //console.log("quantity before banks were deleted: " + cur_raw_material_quantity);
       if(!this.rawMaterialItem.deleted_bank_records) {
         this.rawMaterialItem.deleted_bank_records = [];
@@ -337,7 +389,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
       deleted_banks.forEach(bank => {
         let date = new Date();
         date.setSeconds(date.getSeconds() + artificial_secs);
-        cur_raw_material_quantity += bank.bank_quantity;
+        //cur_raw_material_quantity += bank.bank_quantity;
         //console.log("Deleted costomer bank " + bank.bank_name + ", quantity " + bank.bank_quantity + " remaining "+ cur_raw_material_quantity);
         this.rawMaterialItem.deleted_bank_records.push({
           id: 0,
@@ -401,6 +453,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
       this.toastService.showError("Please fill all the mandatory fields before saving!");
 
     }
+    */
   }
 
   gotoMaterialsList(textInfo: string = '', isError: Boolean = false) {
@@ -463,6 +516,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     //End hack
     //---------------------------------------------------------------
 
+    /*
     if(this.currency.itemsList) {
       let curr = this.currency.itemsList.findByLabel(this.rawMaterialItem.currency);
       this.currency.select(curr);
@@ -476,6 +530,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
       }
       this.raw_material_form.form.markAsDirty();
     });
+    */
     this.raw_material_form.form.markAsPristine();
   }
 
@@ -484,6 +539,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   }
 
   recalculateRemaining() {
+    /*
     //console.log("recalculateRemaining");
     this.curr_total_in_banks = (this.rawMaterialItem.quantity_units == "kg")? 
       this.rawMaterialItem.customer_banks.reduce((n, { quantity_in_kg }) => n + quantity_in_kg, 0) :
@@ -492,9 +548,11 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     this.rawMaterialItem.remaining_quantity = this.rawMaterialItem.purchase_quantity - this.curr_total_in_banks;
     this.lock_quantity_control = this.curr_total_in_banks > 0;
     this.insufficient_quantity_for_banks = this.rawMaterialItem.remaining_quantity < 0;
+    */
   }
 
   openQuantityDialog(){
+    /*
     //this.quantityDialogContent.remaining_quantity = this.rawMaterialItem.remaining_quantity;
     this.quantityDialog.editedObject = {
       top_up_quantity: 0,
@@ -508,9 +566,181 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     this.quantityDialog.rawMaterialQuantityUnits = this.rawMaterialItem.quantity_units;
     this.quantityDialog.show_units_to_kg_adjustment = false;
     this.quantityDialog.open();
+    */
   }
 
   openHistoryDialog() {
     this.history_dialog.open(this.rawMaterialItem);
+  }
+
+  open_purchase_editor(purchase_id = 0) {
+    this.purchase_editor.modalTitle = (purchase_id)? 'Edit purchase':'Add purchase';
+    this.purchase_editor.btnSaveClass= "btn-success";
+    this.purchase_editor.btnSaveIcon = faCartShopping;
+    this.purchase_editor.btnSaveText = (purchase_id)? 'Save changes':'Add purchase';
+    this.purchase_editor.btnCancelText = "Cancel";
+    if(purchase_id!=0){
+      this.editedPurchase = this.rawMaterialItem.purchases.find(p => p.id == purchase_id) ?? this.editedPurchase;
+    }
+    else {
+      this.editedPurchase = {
+        id: 0,
+        raw_material_id: 0,
+        purchased_at: new Date(),
+        purchase_quantity: 0,
+        remaining_quantity: 0,
+        quantity_units: 'units',
+        units_per_kg: 0,
+        vendor_name: '',
+        origin_country: 'US',
+        price: 0,
+        currency: 'USD',
+        notes: ''
+      };
+    }
+    this.purchase_editor.open();
+  }
+
+  async edit_bank(bank_id:number){
+    if(this.is_bank_saveable){
+      if(!await this.cancel_bank_change()){
+        return;
+      }
+    }
+    let bank = this.rawMaterialItem.customer_banks.find(b => b.id == bank_id);
+    if(bank) {
+      this.edited_bank = JSON.parse(JSON.stringify(bank));
+      this.console.log(this.edited_bank);
+    }
+    else {
+      this.edited_bank = {
+        id: this.new_bank_counter,
+        name: '',
+        business_name: '',
+        raw_material_purchase_id: 0,
+        customer_id: 0,
+        quantity: 0,
+        remaining_quantity: 0,
+        quantity_units: '',
+        quantity_in_kg: 0,
+        transaction_record: null
+      };
+    }
+    this.edited_bank_initial_quantity = this.edited_bank.quantity;
+    this.edited_purchase_initial_remaining_quantity = this.editedPurchase.remaining_quantity;
+    this.meter.bankQuantity = this.edited_bank.quantity;
+    this.meter.materialInUse = this.edited_bank.quantity - this.edited_bank.remaining_quantity;
+    this.meter.totalCapacity = this.edited_bank.quantity + this.editedPurchase.remaining_quantity;
+    this.max_bank_quantity = this.meter.totalCapacity;
+    this.min_bank_quantity = this.meter.materialInUse;
+    //console.log("min/man " + this.meter.totalCapacity + " - " + this.meter.materialInUse);
+    this.meter.recalculate();
+    this.checkIfBankIsSaveable();
+  }
+
+  customerBankQuantityChanged(quantity:number){
+    this.edited_bank.quantity = quantity;
+    this.editedPurchase.remaining_quantity = this.edited_purchase_initial_remaining_quantity - (quantity - this.edited_bank_initial_quantity);
+    this.edited_bank.remaining_quantity = quantity - this.meter.materialInUse;
+
+    this.meter.bankQuantity = this.edited_bank.quantity;
+    this.meter.materialInUse = this.edited_bank.quantity - this.edited_bank.remaining_quantity;
+    this.meter.totalCapacity = this.edited_bank.quantity + this.editedPurchase.remaining_quantity;
+    this.meter.recalculate();
+    this.checkIfBankIsSaveable();
+    this.is_bank_cancellable = true;
+  }
+
+  checkIfBankIsSaveable(){
+    let quantity_is_within_boundaries = (this.edited_bank.quantity >= this.min_bank_quantity) && (this.edited_bank.quantity <= this.max_bank_quantity);
+    let is_new_bank = (this.edited_bank.customer_id <= 0);
+    let quantity_changed = false;
+    if(!is_new_bank){
+      let unedited_bank = this.rawMaterialItem.customer_banks.find(b => b.id == this.edited_bank.id);
+      quantity_changed = unedited_bank?.quantity != this.edited_bank.quantity;
+    }
+
+    this.is_bank_saveable = 
+      ((quantity_is_within_boundaries) && 
+       ((is_new_bank) || (!is_new_bank && quantity_changed))); 
+  }
+
+  async cancel_bank_change(){
+    let cancel = true;
+    this.checkIfBankIsSaveable();
+    if(this.is_bank_saveable){
+      if(await this.confirm_action.open_with_message({
+        modalText: "Are you sure you want to cancel the changes you made to this bank?",
+        modalTitle: "Cancel changes",
+        btnYesText: "Cancel changes",
+        btnYesClass: "btn-danger"
+      })) {
+        this.clear_bank();
+        cancel = true;
+      }
+      else {
+        cancel = false;
+      }
+    }
+    return cancel;
+  }
+
+  clear_bank(){
+    let is_new_bank = (this.edited_bank.customer_id <= 0);
+    let edited_bank_quantity = this.edited_bank.quantity;
+    let unedited_bank_quantity = 0;
+    if(!is_new_bank){
+      let unedited_bank = this.rawMaterialItem.customer_banks.find(b => b.id == this.edited_bank.id);
+      unedited_bank_quantity = unedited_bank?.quantity ?? 0;
+    }
+    this.editedPurchase.remaining_quantity += (edited_bank_quantity - unedited_bank_quantity);
+    this.meter.bankQuantity = 0;
+    this.meter.totalCapacity = 0;
+    this.meter.materialInUse = 0;
+    this.meter.recalculate();
+    this.min_bank_quantity = 0;
+    this.max_bank_quantity = Infinity;
+
+    this.edited_bank = {
+      id: this.new_bank_counter,
+      name: '',
+      business_name: '',
+      raw_material_purchase_id: 0,
+      customer_id: 0,
+      quantity: 0,
+      remaining_quantity: 0,
+      quantity_units: '',
+      quantity_in_kg: 0,
+      transaction_record: null
+    }
+    this.is_bank_saveable = false;
+    this.is_bank_cancellable = false;
+    this.purchase_edited_customer_id = 0;
+  }
+
+  // Triggered when a user clicks/selects an item from the dropdown list
+  onCustomerSelected(item: { id: number; name: string }) {
+    this.purchase_edited_customer_id = item ? item.id : 0;
+  }
+
+  // Triggered when the user types in the input box
+  onCustomerChanged(val: string) {
+    // Look for an exact match in your list while they type
+    const match = this.customer_names.find(c => c.name.toLowerCase() === val.toLowerCase());
+    
+    // If an exact match is found, use its ID. Otherwise, reset to 0.
+    this.purchase_edited_customer_id = match ? match.id : 0;
+  }
+
+  // Triggered when the user clears the input completely
+  async onCustomerCleared() {
+    //if(this.is_bank_saveable){
+      if(!await this.cancel_bank_change()){
+        console.log(this.edited_bank);
+        //this.edited_bank.name = "Avi Bar";
+        return;
+      }
+    //}
+    this.clear_bank();
   }
 }

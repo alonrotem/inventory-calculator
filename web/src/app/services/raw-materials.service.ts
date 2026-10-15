@@ -25,6 +25,7 @@ export class RawMaterialsService {
   };
 
   getRawMaterialBasicDetails = (customer_id: number=-1): Observable<RawMaterialBasicDetails[]> => {
+    console.log("getRawMaterialBasicDetails...")
     return this.apiService.get(`${environment.serverUrl}/raw_materials/names/${customer_id}`, {
       responseType: 'json'
     });

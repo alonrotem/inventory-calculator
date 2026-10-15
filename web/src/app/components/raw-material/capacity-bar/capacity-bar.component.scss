@@ -73,3 +73,25 @@
     border-radius: 7px;    
   }
   
+  .capacity-bar-horizontal {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+
+  .bar-container {
+    display:flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    align-items: center;
+    flex-grow: 1;
+  }
+
+  .capacity-bar-horizontal .bar-container {
+    margin-right: 10px;
+  }
+
+  .capacity-bar-horizontal .legend-row div {
+    margin-left: 10px;
+  }

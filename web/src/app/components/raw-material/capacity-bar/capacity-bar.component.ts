@@ -15,6 +15,7 @@ export class CapacityBarComponent {
   @Input() bankQuantity: number = 0;
   @Input() no_limit: boolean = false;
   @Input() show_in_use:boolean = true;
+  @Input() is_horizontal:boolean = false;
   notInUseCapacity: number = 0;
 
   @Output() bankQuantityChanged = new EventEmitter<number>();
@@ -28,6 +29,7 @@ export class CapacityBarComponent {
 
   //To be called whenever data is fed to this component, to invoke recalculation
   recalculate() {
+    console.log('Recalculating capacity bar... this.notInUseCapacity: ', this.notInUseCapacity, ' this.bankQuantity: ', this.bankQuantity, ' this.materialInUse: ', this.materialInUse);
     this.notInUseCapacity = this.bankQuantity - this.materialInUse;
     setTimeout(() => {
       const container = this.elRef.nativeElement.querySelector('.capacity-container');

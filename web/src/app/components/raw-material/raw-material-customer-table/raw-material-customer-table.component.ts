@@ -38,6 +38,7 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   @Input() parent_raw_material: RawMaterial | null = null;
   @Output() banksChanged: EventEmitter<void> = new EventEmitter();
   @Output() unsaved_changes: boolean = false;
+  @Output() bank_clicked: EventEmitter<number> = new EventEmitter<number>();
 
   // pending_delete_index:number = -1;
   banks_summary_string = "";
@@ -112,6 +113,7 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   }
 
   recalculateSums(){
+    /*
     this.banks_summary_string = "";
     let totalQuantity = this.banks.reduce((acc, cur) => acc + cur.quantity, 0);
     let totalQuantity_kg = this.banks.reduce((acc, cur) => acc + cur.quantity_in_kg, 0);
@@ -123,9 +125,11 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
     else {
       this.banks_summary_string = "No material used by customer banks."
     }
+    */
   }
 
   openCustomerEditor(bank: RawMaterialCustomerBank | null){
+    /*
     this.bank_editor.rawMaterialQuantityUnits = this.parent_raw_material!.quantity_units;
     this.bank_editor.rawMaterialUnitsPerKg = this.parent_raw_material!.units_per_kg;
     if(bank) {
@@ -152,6 +156,11 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
     this.bank_editor.currentRawMaterialRemainingQuantity = (this.parent_raw_material?.remaining_quantity)? this.parent_raw_material?.remaining_quantity : 0;
     this.bank_editor.banks = this.banks;
     this.bank_editor.dialogWrapper.open();
+    */
+  }
+
+  bankClicked(bank_id: number){
+    this.bank_clicked.emit(bank_id);
   }
 
   closedCustomerEditor(bank: RawMaterialCustomerBank){
@@ -166,7 +175,7 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
       bankWithSameCustomerName.customer_id = (bank.customer_id != 0)? bank.customer_id : bankWithSameCustomerName.customer_id;
       bankWithSameCustomerName.id = (bank.id != 0)? bank.id : bankWithSameCustomerName.id;
       bankWithSameCustomerName.business_name = bank.business_name;
-      bankWithSameCustomerName.raw_material_id = bank.raw_material_id;
+      bankWithSameCustomerName.raw_material_purchase_id = bank.raw_material_purchase_id;
       bankWithSameCustomerName.remaining_quantity = bank.remaining_quantity;
       bankWithSameCustomerName.quantity = bank.quantity;
       bankWithSameCustomerName.quantity_in_kg = bank.quantity_in_kg;
@@ -190,6 +199,7 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   }
 
   async top_up(bank :RawMaterialCustomerBank) {
+    /*
     if(this.parent_raw_material && this.parent_raw_material.remaining_quantity > 0){
       this.top_up_dialog.dialogWrapper.modalTitle = "+ Top up customer bank";
       this.top_up_dialog.show_units_to_kg_adjustment = (this.parent_raw_material.quantity_units == "kg");
@@ -217,5 +227,6 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
         dialogIcon: faTriangleExclamation,
       });
     }
+      */
   }
 }

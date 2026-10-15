@@ -15,6 +15,12 @@ h3 {
     margin: 25px 0;
 }
 
+.upper-button {
+    width: 60px;
+    height: 60px;
+    margin-left: 20px;
+}
+
 .buttons-area button {
     display: flex;
     flex-direction: column;
@@ -44,6 +50,7 @@ h3 {
     justify-content: center;
 }
 
+/*
 .ng-autocomplete {
     border: var(--bs-border-width) solid var(--bs-border-color);
     border-radius: var(--bs-border-radius);
@@ -52,11 +59,13 @@ h3 {
 ::ng-deep .autocomplete-container.active {
     z-index: 9999 !important;
 }
+    */
 
-::ng-deep .ng-autocomplete {
-    width: auto !important;
+.ng-autocomplete, ::ng-deep .ng-autocomplete {
+    width: 100% !important;
 }
 
+/*
 ::ng-deep .input-container input {
     color: var(--bs-body-color) !important;
     background-color: var(--bs-body-bg) !important;
@@ -77,6 +86,8 @@ h3 {
     height: auto !important;
 }
 
+
+    */
 ::ng-deep .autocomplete-container .input-container .x i {
     color: var(--bs-body-color) !important;
 }
@@ -84,7 +95,7 @@ h3 {
 ::ng-deep .autocomplete-container .not-found {
     color: var(--bs-body-bg) !important;
     background-color: var(--bs-body-color) !important;    
-}
+}    
 
 .tooltip {
     position: absolute;
@@ -124,4 +135,36 @@ h3 {
 
 .always-float ::ng-deep .ng-value-container {
     margin-top: 12px;
+}
+
+.purchases-section {
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    padding: 10px;
+}
+
+.progress {
+    height: 5px;
+    margin: 10px 0px;
+}
+
+
+.ng-autocomplete-wrapper {
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    height: 58px;
+    display: flex;
+    align-items: center;
+}
+
+
+.bank-editing-section {
+    border: var(--bs-border-width) solid var(--bs-body-color);
+    border-radius: var(--bs-border-radius);
+    padding: 20px;
+    margin: 20px 0px;    
+}
+
+.bank-editing-section .col {
+    margin: 10px 0px;
 }

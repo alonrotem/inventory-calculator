@@ -20,8 +20,19 @@ export interface Options {
     } | boolean;
 }
 
+export interface RawMaterialListItem {
+    id: number;
+    name: string;
+    color: string;
+    total_quantity: number;
+    total_remaining: number;
+    last_purchase_quantity_units: string;
+    last_purchase: Date | null; //null if no purchases yet
+    last_update_by: string;
+}
+
 export interface RawMaterials {
-    data: RawMaterial[];
+    data: RawMaterialListItem[];
     meta: { 
         page: number;
         total_records: number;
@@ -43,16 +54,16 @@ export interface Babies {
 export interface RawMaterial {
     id: number;
     name: string;
-    purchased_at: Date;
-    purchase_quantity: number;
-    remaining_quantity: number; 
-    quantity_units: string; 
-    units_per_kg: number; 
-    vendor_name: string; 
-    origin_country: string; 
-    price: number; 
-    currency: string; 
-    notes: string;
+    //purchased_at: Date;
+    //purchase_quantity: number;
+    //remaining_quantity: number; 
+    //quantity_units: string; 
+    //units_per_kg: number; 
+    //vendor_name: string; 
+    //origin_country: string; 
+    //price: number; 
+    //currency: string; 
+    //notes: string;
     color: string;
     is_usable_for_h_material: boolean;
     created_at: Date; 
@@ -63,6 +74,22 @@ export interface RawMaterial {
     customer_banks: RawMaterialCustomerBank[];
     transaction_record: TransactionRecord | null;
     deleted_bank_records: TransactionRecord[];
+    purchases: RawMaterialPurchase[];
+}
+
+export interface RawMaterialPurchase {
+    id: number;
+    raw_material_id: number;
+    purchased_at: Date;
+    purchase_quantity: number;
+    remaining_quantity: number;
+    quantity_units: string;
+    units_per_kg: number;
+    vendor_name: string;
+    origin_country: string;
+    price: number;
+    currency: string;
+    notes: string;
 }
 
 export interface RawMaterialBasicDetails {
@@ -78,7 +105,8 @@ export interface RawMaterialCustomerBank {
     id: number;
     name: string;
     business_name: string;
-    raw_material_id: number;
+    //raw_material_id: number; // <- REMOVE
+    raw_material_purchase_id: number;
     customer_id: number;
     quantity: number;
     remaining_quantity: number;

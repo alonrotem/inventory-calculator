@@ -8,20 +8,33 @@ const { raw } = require('mysql2');
 
 async function getSingle(id){
     const rows = await db.query(
-      `SELECT  id, name, purchased_at, purchase_quantity, remaining_quantity, 
-        quantity_units, units_per_kg, vendor_name, origin_country, price, 
-        currency, notes, color, allow_shortening_babies_in_pairs, is_usable_for_h_material,
+      `SELECT  id, name,  color, allow_shortening_babies_in_pairs, is_usable_for_h_material,
         created_at, updated_at, created_by, updated_by
       FROM raw_materials WHERE id=${id}`
+      /*
+      /purchased_at, purchase_quantity, remaining_quantity, 
+        quantity_units, units_per_kg, vendor_name, origin_country, price, 
+        currency, notes,
+        */
     );
     const raw_material = helper.emptyOrSingle(rows);
     if(!helper.isEmptyObj(raw_material)){
+      const purchases = await db.query(
+        `select 
+          rmp.id, rmp.raw_material_id, rmp.purchased_at, rmp.purchase_quantity, rmp.remaining_quantity, 
+          rmp.quantity_units, rmp.units_per_kg, rmp.vendor_name, rmp.origin_country, rmp.price, 
+          rmp.currency, rmp.notes 
+        from raw_material_purchases rmp where rmp.raw_material_id=${id}
+        order by rmp.purchased_at desc;`);
+      raw_material.purchases = helper.emptyOrRows(purchases);
+
       const customer_bank_rows = await db.query(
         `select 
-        cb.id, c.name, c.business_name, cb.raw_material_id, cb.customer_id, cb.quantity, cb.remaining_quantity, cb.quantity_units, cb.quantity_in_kg
+        cb.id, c.name, c.business_name, cb.raw_material_purchase_id, cb.customer_id, cb.quantity, cb.remaining_quantity, cb.quantity_units, cb.quantity_in_kg
         FROM customer_banks cb left join customers c on cb.customer_id = c.id 
-        left join raw_materials rm on rm.id=cb.raw_material_id
-        WHERE cb.raw_material_id=${id} and c.is_demo_customer=0 order by c.name;`);
+        left join raw_material_purchases rmp on rmp.id = cb.raw_material_purchase_id 
+        left join raw_materials rm on rmp.raw_material_id = rm.id
+        WHERE rm.id=${id} and c.is_demo_customer=0 order by c.name;`);
       const customer_banks = helper.emptyOrRows(customer_bank_rows);
       raw_material.customer_banks = customer_banks;
     }
@@ -39,18 +52,34 @@ async function getMultiple(page = 1, perPage){
     subset = `LIMIT ${offset},${perPage}`
   }
   const rows = await db.query(
-    `SELECT rms.id, rms.name, rms.purchased_at, rms.purchase_quantity, rms.remaining_quantity, 
-        rms.quantity_units, rms.units_per_kg, rms.vendor_name, rms.origin_country, rms.price, rms.is_usable_for_h_material,
-        rms.currency, rms.notes, rms.color, rms.created_at, rms.updated_at, rms.created_by, rms.updated_by
-    FROM raw_materials rms
-    ORDER BY rms.updated_at desc ${subset}`
-    /*
-    `SELECT rms.id, rms.name, rms.purchased_at, rms.weight, rms.units, rms.units_per_kg, rms.vendor_name, rms.origin_country,
-      rms.price, rms.currency, rms.notes, ifnull(sum(bb.quantity),0) as babies_quantity, rms.created_at, rms.updated_at, rms.created_by, rms.updated_by
-    FROM raw_materials rms left join babies bb on rms.id=bb.raw_material_parent_id
-    group by rms.id
-    ORDER BY rms.updated_at desc ${subset}`
-    */
+    `WITH latest_purchases AS (
+        SELECT 
+            rmp.*,
+            ROW_NUMBER() OVER (
+                PARTITION BY rmp.raw_material_id 
+                ORDER BY rmp.purchased_at DESC, rmp.id DESC
+            ) AS rn
+        FROM raw_material_purchases rmp
+    )
+    SELECT 
+        rm.id,
+        rm.name,
+        rm.color,
+        COALESCE(SUM(rmp.purchase_quantity), 0) AS total_quantity,
+        COALESCE(SUM(rmp.remaining_quantity), 0) AS total_remaining,
+        MAX(rmp.purchased_at) AS last_purchase,
+        lp.quantity_units AS last_purchase_quantity_units,
+        CONCAT(u.firstname, ' ', u.lastname) AS last_update_by
+    FROM raw_materials rm
+    LEFT JOIN raw_material_purchases rmp 
+        ON rm.id = rmp.raw_material_id
+    LEFT JOIN latest_purchases lp 
+        ON rm.id = lp.raw_material_id AND lp.rn = 1
+    LEFT JOIN users u 
+        ON u.id = lp.updated_by
+    GROUP BY 
+        rm.id, rm.name, rm.color, lp.quantity_units, u.firstname, u.lastname
+    ORDER BY last_purchase DESC ${subset}`
   );
   const total = await db.query(
     `SELECT count(*) as count FROM raw_materials`
