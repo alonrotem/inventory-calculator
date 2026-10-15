@@ -19,7 +19,7 @@
     [modalSize]="'lg'"
     [btnCancelText]="'Cancel bank changes'"
     [btnCancelClass]="'btn-warning'"
-    (cancel)="cancel_bank_change()">
+    (cancel)="verify_cancellation_of_unsaved_changes()">
     <div modalContent>
         
         <div class="row">
@@ -201,7 +201,7 @@
                     <fa-icon [icon]="faSave"></fa-icon> Save bank changes
                 </button>
 
-                <button class="btn btn-warning" [disabled]="!is_bank_cancellable" (click)="cancel_bank_change()">
+                <button class="btn btn-warning" [disabled]="!is_bank_cancellable" (click)="verify_cancellation_of_unsaved_changes()">
                     Cancel bank changes
                 </button>
             </div>

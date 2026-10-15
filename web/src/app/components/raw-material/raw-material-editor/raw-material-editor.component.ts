@@ -603,7 +603,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
 
   async edit_bank(bank_id:number){
     if(this.is_bank_saveable){
-      if(!await this.cancel_bank_change()){
+      if(!await this.verify_cancellation_of_unsaved_changes()){
         return;
       }
     }
@@ -665,7 +665,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
        ((is_new_bank) || (!is_new_bank && quantity_changed))); 
   }
 
-  async cancel_bank_change(){
+  async verify_cancellation_of_unsaved_changes(){
     let cancel = true;
     this.checkIfBankIsSaveable();
     if(this.is_bank_saveable){
@@ -734,13 +734,14 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
 
   // Triggered when the user clears the input completely
   async onCustomerCleared() {
-    //if(this.is_bank_saveable){
-      if(!await this.cancel_bank_change()){
-        console.log(this.edited_bank);
-        //this.edited_bank.name = "Avi Bar";
-        return;
+    if(!await this.verify_cancellation_of_unsaved_changes()){        
+      //revert the customer's name the user clared
+      let unedited_bank = this.rawMaterialItem.customer_banks.find(b => b.id == this.edited_bank.id);
+      if(unedited_bank){
+        this.edited_bank.name = unedited_bank.name;
       }
-    //}
+      return;
+    }
     this.clear_bank();
   }
 }
