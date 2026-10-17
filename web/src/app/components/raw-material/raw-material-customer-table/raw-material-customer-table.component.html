@@ -37,7 +37,7 @@
         <td class="text-center" *ngIf="!bank.bank_in_use" (click)="deleteBank(i, bank)">
           <fa-icon class="text-danger" [icon]="faTrashCan"></fa-icon>
         </td>
-        <td class="text-center" *ngIf="bank.bank_in_use">
+        <td class="text-center" *ngIf="bank.bank_in_use" [appTooltip]="'This bank cannot be deleted,<br/>because its allocations are used in customer orders'">
           <fa-icon style="color:var(--bs-gray)" [icon]="faTrashCan"></fa-icon>
         </td>
       </tr>

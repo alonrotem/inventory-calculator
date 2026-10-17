@@ -50,7 +50,7 @@
                             id="materialPurchaseQuantity" class="form-control" placeholder="0" [(ngModel)]="editedPurchase.purchase_quantity" name="materialPurchaseQuantity" #purchase_quantity="ngModel" (change)="recalculateRemaining()">
                         <label for="materialPurchaseQuantity">Total quantity purchased</label>
                     </div>
-                    <ng-select [(ngModel)]="editedPurchase.quantity_units" name="quantityunits" [clearable]="false" #rawMaterialItem.quantity_units="ngModel" [disabled]="lock_quantity_control" (mousemove)="(!lock_quantity_control)? false: showTooltip('<strong>🔒 Locked</strong><br/>Measurement type is locked for editing, as it is used by customer banks.<br/>You can top it up with the top-up button!')" (mouseout)="this.show_tooltip=false">
+                    <ng-select [(ngModel)]="editedPurchase.quantity_units" name="quantityunits" [clearable]="false" #rawMaterialItem.quantity_units="ngModel" [disabled]="lock_quantity_control" [appTooltip]="'<strong>🔒 Locked</strong><br/>Measurement type is locked for editing, as it is used by customer banks.<br/>You can top it up with the top-up button!'" [tooltipEnabled]="lock_quantity_control"><!---->
                         @for (unit of quantity_units; track $index) {
                             <ng-option [value]="unit">{{unit}}</ng-option>
                         }
@@ -225,8 +225,6 @@
 <!--*************/Purchase editor *************-->
 
 <app-raw-material-quantity-dialog #quantityDialog></app-raw-material-quantity-dialog>
-
-<div #tooltip class="tooltip">Tooltip</div>
 
 <div class="row justify-content-center">
 <div class="col-12 col-md-8">

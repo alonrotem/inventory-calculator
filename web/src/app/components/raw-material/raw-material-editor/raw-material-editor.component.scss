@@ -97,21 +97,6 @@ h3 {
     background-color: var(--bs-body-color) !important;    
 }    
 
-.tooltip {
-    position: absolute;
-    background-color: lightyellow;
-    border: 1px solid black;
-    display: block;
-    z-index: 999;
-    color: black;
-    font-size: 12px;
-    padding: 10px 20px;
-    text-align: center;
-    border-radius: 7px;
-    display:none;
-    opacity: 1;
-  }
-
 
 /*==============*/
 .always-float {

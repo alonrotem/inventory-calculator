@@ -9,6 +9,7 @@ import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/co
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { RawMaterialCustomerDialogComponent } from "../raw-material-customer-dialog/raw-material-customer-dialog.component";
 import { RawMaterialQuantityDialogComponent } from '../raw-material-quantity-dialog/raw-material-quantity-dialog.component';
+import { TooltipDirective } from '../../common/tooltip/tooltip.directive';
 
 @Component({
   selector: 'app-raw-material-customer-table',
@@ -16,7 +17,9 @@ import { RawMaterialQuantityDialogComponent } from '../raw-material-quantity-dia
   imports: [
     FaIconComponent, RouterModule, NgFor, NgIf,
     ConfirmationDialogComponent, 
-    RawMaterialCustomerDialogComponent, RawMaterialQuantityDialogComponent, DecimalPipe ],
+    RawMaterialCustomerDialogComponent, RawMaterialQuantityDialogComponent, DecimalPipe,
+    TooltipDirective
+   ],
   templateUrl: './raw-material-customer-table.component.html',
   styleUrl: './raw-material-customer-table.component.scss'
 })

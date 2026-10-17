@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { DecimalPipe, Location, NgClass, NgFor, NgIf } from '@angular/common';
 import { Country, Currency, RawMaterial, RawMaterialCustomerBank, RawMaterialBasicDetails, TransactionType, RawMaterialPurchase, Customers, Customer_Bank } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
@@ -29,6 +29,7 @@ import { NavigatedMessageComponent } from '../../common/navigated-message/naviga
 import { CustomersService } from '../../../services/customers.service';
 import { CapacityBarComponent } from '../capacity-bar/capacity-bar.component';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
+import { TooltipDirective } from '../../common/tooltip/tooltip.directive';
 
 
 @Component({
@@ -43,7 +44,7 @@ import { FilterPipe } from '../../../utils/pipes/filter-pipe';
     UnsavedChangesDialogComponent, NgFor, NumericInputDirective,
     SaveChangesButtonComponent,
     ModalDialogComponent,
-    CapacityBarComponent, FilterPipe
+    CapacityBarComponent, FilterPipe, TooltipDirective
 ],
   templateUrl: './raw-material-editor.component.html',
   styleUrl: './raw-material-editor.component.scss'
@@ -86,7 +87,6 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   purchaseQuantity: number = 0;
   remainingQuantity: number = 0;
   lock_quantity_control: boolean = false;
-  show_tooltip = false;
 
   // keeping track of changes, for the history records
   initial_quantity = 0;
@@ -146,7 +146,6 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   @ViewChild("btn_save", { read: ElementRef }) btn_save!: ElementRef;
   @ViewChild("price", { read: ElementRef }) price!: ElementRef;
   @ViewChild("currency") currency!: NgSelectComponent;
-  @ViewChild("tooltip", { read: ElementRef }) tooltip!: ElementRef;
   @ViewChild('quantityDialog') quantityDialog!: RawMaterialQuantityDialogComponent
   @ViewChild('history_dialog') history_dialog!: RawMaterialHistoryDialogComponent;
   @ViewChild('customer_table') customer_table!: RawMaterialCustomerTableComponent;
@@ -186,28 +185,6 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
           //this.customers = customers.data;
         }
       });
-  }
-
-  @HostListener('document:mousemove', ['$event']) 
-  onMouseMove(event : any) {
-    if(this.show_tooltip){
-      this.tooltip.nativeElement.style.top = (event.pageY + 19) + "px";
-      this.tooltip.nativeElement.style.left = (event.pageX + 12) + "px";
-      this.tooltip.nativeElement.style.display = "block";
-    }
-    else {
-      this.tooltip.nativeElement.style.display = "none";
-      this.tooltip.nativeElement.style.top = "0px";
-      this.tooltip.nativeElement.style.left = "0px";
-    }
-  }
-
-  showTooltip(content: string){
-    this.tooltip.nativeElement.innerHTML = content;
-    this.show_tooltip = true;
-  }
-  hideTooltip (){
-    this.show_tooltip = false;
   }
 
   hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
@@ -601,6 +578,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
         notes: ''
       };
     }
+    this.lock_quantity_control = this.rawMaterialItem.customer_banks.filter(b => b.raw_material_purchase_id == purchase_id).length > 0;
     this.purchase_editor.open();
   }
 
