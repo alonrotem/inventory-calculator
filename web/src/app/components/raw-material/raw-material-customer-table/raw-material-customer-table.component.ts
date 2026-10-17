@@ -64,6 +64,11 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
     return groups;
   }
 
+  // A purchase can't be deleted if any of its banks is used in customer orders
+  isPurchaseInUse(banks: RawMaterialCustomerBank[]): boolean {
+    return banks.some(b => b.bank_in_use);
+  }
+
   // The groups are rebuilt on every change detection, so track them by purchase to avoid re-rendering the DOM
   trackGroup(index: number, group: { purchase: RawMaterialPurchase | null }) {
     return group.purchase ? group.purchase.id : -1;

@@ -20,3 +20,15 @@
 .action-icon {
     margin-right: 10px;
 }
+
+.table-buttons-area {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    margin: 20px 0px;
+}
+
+.table-buttons-area  button {
+    margin-right: 30px;
+}
