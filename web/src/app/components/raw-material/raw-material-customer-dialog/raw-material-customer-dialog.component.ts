@@ -37,7 +37,8 @@ export class RawMaterialCustomerDialogComponent implements ModalContentDirective
     remaining_quantity: 0,
     quantity_units: 'units',
     quantity_in_kg: 0,
-    transaction_record: null
+    transaction_record: null,
+    bank_in_use: false
   };
   @Input() banks: RawMaterialCustomerBank[] = [];
   @Input() rawMaterialQuantityUnits: string = 'units';
@@ -166,7 +167,8 @@ export class RawMaterialCustomerDialogComponent implements ModalContentDirective
         remaining_quantity: 0,
         quantity_units: 'units',
         quantity_in_kg: 0,
-        transaction_record: null
+        transaction_record: null,
+        bank_in_use: false
       });
     }
   }

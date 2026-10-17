@@ -34,7 +34,12 @@
           {{ bank.quantity | number: (bank.quantity_units=='kg')?'1.2-2':'1.0-0' }} {{ bank.quantity_units }} ({{ bank.remaining_quantity | number: (bank.quantity_units=='kg')?'1.2-2':'1.0-0' }} not allocated)
         </td>
         <td class="text-center"><button class="btn btn-primary" (click)="top_up(bank)">+</button></td>
-        <td class="text-center" (click)="deleteBank(i, bank)"><fa-icon class="text-danger" [icon]="faTrashCan"></fa-icon></td>
+        <td class="text-center" *ngIf="!bank.bank_in_use" (click)="deleteBank(i, bank)">
+          <fa-icon class="text-danger" [icon]="faTrashCan"></fa-icon>
+        </td>
+        <td class="text-center" *ngIf="bank.bank_in_use">
+          <fa-icon style="color:var(--bs-gray)" [icon]="faTrashCan"></fa-icon>
+        </td>
       </tr>
     </tbody>
   </table>

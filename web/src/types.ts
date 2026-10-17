@@ -113,6 +113,7 @@ export interface RawMaterialCustomerBank {
     quantity_units: string;
     quantity_in_kg: number;
     transaction_record: TransactionRecord | null;
+    bank_in_use: boolean;
 }
 
 export interface CustomerBanksBabies {

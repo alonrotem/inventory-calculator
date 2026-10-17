@@ -125,7 +125,8 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     remaining_quantity: 0,
     quantity_units: '',
     quantity_in_kg: 0,
-    transaction_record: null
+    transaction_record: null,
+    bank_in_use: false
   };
   new_purchase_counter = -1;
   new_bank_counter = -1;
@@ -626,7 +627,8 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
         remaining_quantity: 0,
         quantity_units: '',
         quantity_in_kg: 0,
-        transaction_record: null
+        transaction_record: null,
+        bank_in_use: false
       };
     }
     this.last_customer_name_handled = null;
@@ -725,7 +727,8 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
       remaining_quantity: 0,
       quantity_units: '',
       quantity_in_kg: 0,
-      transaction_record: null
+      transaction_record: null,
+      bank_in_use: false
     }    
 
     this.is_bank_saveable = false;
@@ -771,7 +774,8 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
             remaining_quantity: 0,
             quantity_units: 'units',
             quantity_in_kg: 0,
-            transaction_record: null
+            transaction_record: null,
+            bank_in_use: false
           };
           this.rawMaterialItem.customer_banks.push(bank);
           if(!await this.edit_bank(bank.id)){

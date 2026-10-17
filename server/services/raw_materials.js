@@ -30,8 +30,13 @@ async function getSingle(id){
 
       const customer_bank_rows = await db.query(
         `select 
-        cb.id, c.name, c.business_name, cb.raw_material_purchase_id, cb.customer_id, cb.quantity, cb.remaining_quantity, cb.quantity_units, cb.quantity_in_kg
-        FROM customer_banks cb left join customers c on cb.customer_id = c.id 
+        cb.id, c.name, c.business_name, cb.raw_material_purchase_id, cb.customer_id, cb.quantity, cb.remaining_quantity, cb.quantity_units, cb.quantity_in_kg,
+        EXISTS (
+          select 1 from customer_banks_allocations cba
+          join customer_hats ch on cba.id in (ch.tails_allocation_id_r, ch.tails_allocation_id_l, ch.wall_allocation_id, ch.crown_allocation_id)
+          where cba.customer_bank_id = cb.id
+        ) as bank_in_use
+        FROM customer_banks cb left join customers c on cb.customer_id = c.id
         left join raw_material_purchases rmp on rmp.id = cb.raw_material_purchase_id 
         left join raw_materials rm on rmp.raw_material_id = rm.id
         WHERE rm.id=${id} and c.is_demo_customer=0 order by c.name;`);
