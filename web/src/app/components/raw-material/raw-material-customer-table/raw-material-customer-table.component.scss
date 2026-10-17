@@ -1,3 +1,18 @@
+.purchase-group {
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    padding: 10px 15px;
+    margin-bottom: 15px;
+}
+
+.purchase-group-header {
+    margin-bottom: 8px;
+}
+
+.purchase-group .table {
+    margin-bottom: 0;
+}
+
 .addbtn_container {
     margin: 20px 0;
 }

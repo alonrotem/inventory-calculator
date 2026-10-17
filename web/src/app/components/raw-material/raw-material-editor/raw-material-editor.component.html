@@ -217,6 +217,7 @@
                     [banks]="rawMaterialItem.customer_banks | filter: 'raw_material_purchase_id': editedPurchase.id"
                     [parent_raw_material]="rawMaterialItem"
                     (bank_clicked)="edit_bank($event)"
+                    (bank_deleted)="delete_bank($event)"
                 />                
             </div>
         </div>
@@ -435,8 +436,10 @@
             <app-raw-material-customer-table 
                 #customer_table
                 [banks]="rawMaterialItem.customer_banks"
+                [purchases]="rawMaterialItem.purchases"
                 [parent_raw_material]="rawMaterialItem"
                 (banksChanged)="recalculateRemaining()"
+                (bank_deleted)="delete_bank($event)"
             />
             </div>
     </div>

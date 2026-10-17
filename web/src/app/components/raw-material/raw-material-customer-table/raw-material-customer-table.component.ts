@@ -1,10 +1,10 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faMoneyCheckDollar, faPencil, faTrashAlt, faTrashCan, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
-import { RawMaterial, RawMaterialCustomerBank } from '../../../../types';
+import { RawMaterial, RawMaterialCustomerBank, RawMaterialPurchase } from '../../../../types';
 import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { RouterModule } from '@angular/router';
-import { DecimalPipe, NgFor, NgIf } from '@angular/common';
+import { DecimalPipe, NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { RawMaterialCustomerDialogComponent } from "../raw-material-customer-dialog/raw-material-customer-dialog.component";
@@ -18,7 +18,7 @@ import { TooltipDirective } from '../../common/tooltip/tooltip.directive';
     FaIconComponent, RouterModule, NgFor, NgIf,
     ConfirmationDialogComponent, 
     RawMaterialCustomerDialogComponent, RawMaterialQuantityDialogComponent, DecimalPipe,
-    TooltipDirective
+    TooltipDirective, NgTemplateOutlet, DateStrPipe
    ],
   templateUrl: './raw-material-customer-table.component.html',
   styleUrl: './raw-material-customer-table.component.scss'
@@ -37,11 +37,37 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   @ViewChild("top_up_dialog") top_up_dialog! :RawMaterialQuantityDialogComponent;
   //@ViewChild("not_enough_material") not_enough_material! :RawMaterialQuantityDialogComponent;
 
+  @Input() purchases: RawMaterialPurchase[] = [];
   @Input() banks: RawMaterialCustomerBank[] = [];
+  // When false and there is only one purchase, the banks are listed in a single table, without the purchase box
+  @Input() group_single_purchase: boolean = true;
   @Input() parent_raw_material: RawMaterial | null = null;
   @Output() banksChanged: EventEmitter<void> = new EventEmitter();
   @Output() unsaved_changes: boolean = false;
   @Output() bank_clicked: EventEmitter<number> = new EventEmitter<number>();
+  @Output() bank_deleted: EventEmitter<RawMaterialCustomerBank> = new EventEmitter<RawMaterialCustomerBank>();
+
+  get is_grouped(): boolean {
+    return this.purchases.length > 0 && (this.group_single_purchase || this.purchases.length > 1);
+  }
+
+  // The banks of each purchase (matched by raw_material_purchase_id), plus a trailing group (purchase: null)
+  // for banks that don't match any of the purchases
+  get bank_groups(): { purchase: RawMaterialPurchase | null, banks: RawMaterialCustomerBank[] }[] {
+    const groups: { purchase: RawMaterialPurchase | null, banks: RawMaterialCustomerBank[] }[] =
+      this.purchases.map(p => ({ purchase: p, banks: this.banks.filter(b => b.raw_material_purchase_id == p.id) }));
+    const known_purchase_ids = new Set(this.purchases.map(p => p.id));
+    const unlinked_banks = this.banks.filter(b => !known_purchase_ids.has(b.raw_material_purchase_id));
+    if(unlinked_banks.length > 0) {
+      groups.push({ purchase: null, banks: unlinked_banks });
+    }
+    return groups;
+  }
+
+  // The groups are rebuilt on every change detection, so track them by purchase to avoid re-rendering the DOM
+  trackGroup(index: number, group: { purchase: RawMaterialPurchase | null }) {
+    return group.purchase ? group.purchase.id : -1;
+  }
 
   // pending_delete_index:number = -1;
   banks_summary_string = "";
@@ -68,9 +94,8 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
       btnYesClass: "btn-danger"
     });
     if(confirmed) {
-      if(index >= 0){
-        this.banks.splice(index, 1);
-      }
+      // `banks` may be a filtered copy of the parent's array, so the parent must do the actual removal
+      this.bank_deleted.emit(bank);
       this.recalculateSums();
       this.banksChanged.emit();
       this.unsaved_changes = true;

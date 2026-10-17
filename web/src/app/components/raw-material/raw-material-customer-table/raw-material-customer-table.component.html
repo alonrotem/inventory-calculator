@@ -10,12 +10,9 @@
   <div *ngIf="unsaved_changes" class="text-danger" style="margin-left: 15px;">* Unsaved changes</div>
 </div>
 
-<div>
- <div class="addbtn_container">
-  <a id="btnNewRaw" class="btn btn-primary" (click)="openCustomerEditor(null)">+ Add customer bank</a>
-</div>
-<div [hidden]="this.banks.length <= 0">{{ banks_summary_string }}</div>
-  <table class="table table-responsive table-striped table-hover" [hidden]="banks.length <= 0">
+<!-- One banks table, used either once (ungrouped) or once per purchase (grouped) -->
+<ng-template #banks_table let-table_banks>
+  <table class="table table-responsive table-striped table-hover">
     <thead>
       <tr>
         <th scope="col">Customer</th>
@@ -27,7 +24,7 @@
     </thead>
     <tbody>
       <tr
-        *ngFor="let bank of banks; index as i" role="button">
+        *ngFor="let bank of table_banks; index as i" role="button">
         <td class="hover-warning" routerLink="/inventory/customer/editor" [queryParams]="{ id: bank.customer_id}"><span class="icon-address-book action-icon"></span>{{ bank.name }}<span class="text-success" [hidden]="bank.customer_id!=0" title="This non-existing customer will be created">*</span></td>
         <td>{{ bank.business_name }}</td>
         <td class="hover-warning" (click)="bankClicked(bank.id)"><fa-icon class="action-icon" [icon]="faPencil"></fa-icon>
@@ -43,6 +40,41 @@
       </tr>
     </tbody>
   </table>
+</ng-template>
+
+<div>
+ <div class="addbtn_container">
+  <a id="btnNewRaw" class="btn btn-primary" (click)="openCustomerEditor(null)">+ Add customer bank</a>
+</div>
+<div [hidden]="this.banks.length <= 0">{{ banks_summary_string }}</div>
+
+  <ng-container *ngIf="banks.length > 0">
+    <!-- Grouped by purchase: a bordered box per purchase -->
+    <ng-container *ngIf="is_grouped; else ungrouped">
+      <div class="purchase-group" *ngFor="let group of bank_groups; trackBy: trackGroup">
+        <div class="purchase-group-header">
+          <ng-container *ngIf="group.purchase; else other_banks">
+            <strong>Vendor: </strong>{{ group.purchase.vendor_name? group.purchase.vendor_name: '-' }},
+            <strong>Purchase of {{ group.purchase.purchased_at | dateStr:false }}</strong>
+            <span *ngIf="group.purchase.vendor_name"> from {{ group.purchase.vendor_name }}</span>
+            <span class="text-muted">
+              &mdash; {{ group.purchase.purchase_quantity | number: (group.purchase.quantity_units=='kg')?'1.2-2':'1.0-0' }} {{ group.purchase.quantity_units }}
+              ({{ group.purchase.remaining_quantity | number: (group.purchase.quantity_units=='kg')?'1.2-2':'1.0-0' }} remaining)
+            </span>
+          </ng-container>
+          <ng-template #other_banks><strong>Banks not linked to a purchase</strong></ng-template>
+        </div>
+        <ng-container *ngIf="group.banks.length > 0; else no_group_banks">
+          <ng-container *ngTemplateOutlet="banks_table; context: { $implicit: group.banks }"></ng-container>
+        </ng-container>
+        <ng-template #no_group_banks><div class="text-muted p-2">No customer banks for this purchase.</div></ng-template>
+      </div>
+    </ng-container>
+
+    <ng-template #ungrouped>
+      <ng-container *ngTemplateOutlet="banks_table; context: { $implicit: banks }"></ng-container>
+    </ng-template>
+  </ng-container>
 
   <div [hidden]="this.banks.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
     No customer banks added for this raw material.<br/>

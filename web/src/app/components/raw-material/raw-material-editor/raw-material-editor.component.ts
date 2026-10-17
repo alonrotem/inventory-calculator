@@ -623,6 +623,18 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     return true;
   }
 
+  // Called by the customer tables, which only receive a (possibly filtered) copy of customer_banks
+  delete_bank(bank: RawMaterialCustomerBank){
+    const bankIndex = this.rawMaterialItem.customer_banks.findIndex(b => b.id == bank.id);
+    if(bankIndex >= 0){
+      this.rawMaterialItem.customer_banks.splice(bankIndex, 1);
+      // The deleted bank's material goes back to the purchase
+      if(bank.raw_material_purchase_id == this.editedPurchase.id){
+        this.editedPurchase.remaining_quantity += bank.quantity;
+      }
+    }
+  }
+
   customerBankQuantityChanged(quantity:number){
     this.edited_bank.quantity = quantity;
     this.editedPurchase.remaining_quantity = this.edited_purchase_initial_remaining_quantity - (quantity - this.edited_bank_initial_quantity);
