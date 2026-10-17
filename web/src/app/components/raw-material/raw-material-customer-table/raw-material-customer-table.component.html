@@ -65,15 +65,16 @@
             </span>
 
             <div class="table-buttons-area">
-              <button class="btn btn-success"><fa-icon [icon]="faPencil"></fa-icon> Edit this purchase</button>
-              <button class="btn btn-primary">+ Add a bank</button>
+              <button class="btn btn-success" (click)="emit_edit_purchase(group.purchase.id)"><fa-icon [icon]="faPencil"></fa-icon> Edit this purchase</button>
+              <button class="btn btn-primary" (click)="emit_add_bank(group.purchase.id)">+ Add a bank</button>
               <!-- A disabled button gets no mouse events, so the tooltip goes on a wrapper -->
               <span class="d-inline-block"
                 [appTooltip]="'This purchase cannot be deleted,<br/>because one or more of its banks are used in customer orders'"
                 [tooltipEnabled]="isPurchaseInUse(group.banks)">
-                <button class="btn btn-danger" [disabled]="isPurchaseInUse(group.banks)"><fa-icon [icon]="faTrashCan"></fa-icon> Delete this purchase</button>
+                <button (click)="emit_delete_purchase(group.purchase.id)" class="btn btn-danger" [disabled]="isPurchaseInUse(group.banks)"><fa-icon [icon]="faTrashCan"></fa-icon> Delete this purchase</button>
               </span>
             </div>
+
           </ng-container>
           <ng-template #other_banks><strong>Banks not linked to a purchase</strong></ng-template>
         </div>

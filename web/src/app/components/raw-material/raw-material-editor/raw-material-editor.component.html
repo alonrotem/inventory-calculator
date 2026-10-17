@@ -440,6 +440,9 @@
                 [parent_raw_material]="rawMaterialItem"
                 (banksChanged)="recalculateRemaining()"
                 (bank_deleted)="delete_bank($event)"
+
+                (edit_purchase)="open_purchase_editor($event)"
+                (add_bank)="open_purchase_editor($event)"
             />
             </div>
     </div>

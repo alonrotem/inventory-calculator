@@ -46,6 +46,9 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   @Output() unsaved_changes: boolean = false;
   @Output() bank_clicked: EventEmitter<number> = new EventEmitter<number>();
   @Output() bank_deleted: EventEmitter<RawMaterialCustomerBank> = new EventEmitter<RawMaterialCustomerBank>();
+  @Output() edit_purchase: EventEmitter<number> = new EventEmitter<number>();
+  @Output() delete_purchase: EventEmitter<number> = new EventEmitter<number>();
+  @Output() add_bank: EventEmitter<number> = new EventEmitter<number>();
 
   get is_grouped(): boolean {
     return this.purchases.length > 0 && (this.group_single_purchase || this.purchases.length > 1);
@@ -261,5 +264,17 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
       });
     }
       */
+  }
+
+  emit_edit_purchase(purchase_id: number) {
+    this.edit_purchase.emit(purchase_id);
+  }
+
+  emit_add_bank(purchase_id: number) {
+    this.add_bank.emit(purchase_id);
+  }
+
+  emit_delete_purchase(purchase_id: number){
+    this.delete_purchase.emit(purchase_id);
   }
 }
