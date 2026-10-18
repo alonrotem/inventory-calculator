@@ -44,7 +44,7 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   @Input() parent_raw_material: RawMaterial | null = null;
   @Output() banksChanged: EventEmitter<void> = new EventEmitter();
   @Output() unsaved_changes: boolean = false;
-  @Output() bank_clicked: EventEmitter<number> = new EventEmitter<number>();
+  @Output() bank_clicked: EventEmitter<{ purchase_id: number, bank_id: number }> = new EventEmitter<{ purchase_id: number, bank_id: number }>();
   @Output() bank_deleted: EventEmitter<RawMaterialCustomerBank> = new EventEmitter<RawMaterialCustomerBank>();
   @Output() edit_purchase: EventEmitter<number> = new EventEmitter<number>();
   @Output() delete_purchase: EventEmitter<number> = new EventEmitter<number>();
@@ -195,8 +195,8 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
     */
   }
 
-  bankClicked(bank_id: number){
-    this.bank_clicked.emit(bank_id);
+  bankClicked(purchase_id: number, bank_id: number){
+    this.bank_clicked.emit({ purchase_id, bank_id });
   }
 
   closedCustomerEditor(bank: RawMaterialCustomerBank){

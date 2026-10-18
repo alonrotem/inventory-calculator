@@ -19,7 +19,8 @@
     [modalSize]="'lg'"
     [btnCancelText]="'Cancel bank changes'"
     [btnCancelClass]="'btn-warning'"
-    (cancel)="verify_cancellation_of_unsaved_changes()">
+    [preventDismiss]="true"
+    >
     <div modalContent>
         
         <div class="row">
@@ -216,7 +217,7 @@
                     #purchase_customer_table
                     [banks]="rawMaterialItem.customer_banks | filter: 'raw_material_purchase_id': editedPurchase.id"
                     [parent_raw_material]="rawMaterialItem"
-                    (bank_clicked)="edit_bank($event)"
+                    (bank_clicked)="edit_bank($event.bank_id)"
                     (bank_deleted)="delete_bank($event)"
                 />                
             </div>
@@ -442,7 +443,8 @@
                 (bank_deleted)="delete_bank($event)"
 
                 (edit_purchase)="open_purchase_editor($event)"
-                (add_bank)="open_purchase_editor($event)"
+                (add_bank)="open_purchase_editor($event, true)"
+                (bank_clicked)="open_purchase_editor($event.purchase_id, false, $event.bank_id)"
             />
             </div>
     </div>

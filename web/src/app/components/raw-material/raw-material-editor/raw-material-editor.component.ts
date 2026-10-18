@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, forwardRef, OnInit, ViewChild } from '@angular/core';
 import { DecimalPipe, Location, NgClass, NgFor, NgIf } from '@angular/common';
 import { Country, Currency, RawMaterial, RawMaterialCustomerBank, RawMaterialBasicDetails, TransactionType, RawMaterialPurchase, Customers, Customer_Bank } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
@@ -15,9 +15,11 @@ import { ConfirmationDialogComponent } from "../../common/confirmation-dialog/co
 import { AutocompleteComponent, AutocompleteLibModule } from 'angular-ng-autocomplete';
 import { ToastService } from '../../../services/toast.service';
 import { HasUnsavedChanges } from '../../../guards/unsaved-changes-guard';
-import { Observable } from 'rxjs';
+import { Observable, take } from 'rxjs';
 import { RawMaterialCustomerTableComponent } from '../raw-material-customer-table/raw-material-customer-table.component';
-import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
+import { DialogClosingReason, ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
+import { ModalContentDirective } from '../../common/directives/modal-content.directive';
+import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
 import { RawMaterialQuantityDialogComponent } from '../raw-material-quantity-dialog/raw-material-quantity-dialog.component';
 import { RawMaterialHistoryDialogComponent } from '../raw-material-history-dialog/raw-material-history-dialog.component';
 import { UnsavedChangesDialogComponent } from "../../common/unsaved-changes-dialog/unsaved-changes-dialog.component";
@@ -43,9 +45,14 @@ import { TooltipDirective } from '../../common/tooltip/tooltip.directive';
     RawMaterialHistoryDialogComponent, NgClass,
     UnsavedChangesDialogComponent, NgFor, NumericInputDirective,
     SaveChangesButtonComponent,
-    ModalDialogComponent,
+    ModalDialogComponent, ModalContentDirective,
     CapacityBarComponent, FilterPipe, TooltipDirective
 ],
+  // Lets the [modalContent] directive of the purchase editor modal call this component's beforeClose()
+  providers: [{
+    provide: MODAL_OBJECT_EDITOR,
+    useExisting: forwardRef(() => RawMaterialEditorComponent)
+  }],
   templateUrl: './raw-material-editor.component.html',
   styleUrl: './raw-material-editor.component.scss'
 })
@@ -553,7 +560,9 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     this.history_dialog.open(this.rawMaterialItem);
   }
 
-  open_purchase_editor(purchase_id = 0) {
+  // focus_customer: also scroll to the customer autocomplete, focus it, and drop its list down
+  // bank_id: once the editor is open, also start editing that bank
+  open_purchase_editor(purchase_id = 0, focus_customer = false, bank_id = 0) {
     this.purchase_editor.modalTitle = (purchase_id)? 'Edit purchase':'Add purchase';
     this.purchase_editor.btnSaveClass= "btn-success";
     this.purchase_editor.btnSaveIcon = faCartShopping;
@@ -580,6 +589,73 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     }
     this.lock_quantity_control = this.rawMaterialItem.customer_banks.filter(b => b.raw_material_purchase_id == purchase_id).length > 0;
     this.purchase_editor.open();
+
+    // However the modal gets closed (save, cancel, X, Esc), the next time it opens it must be blank
+    const opened_modal = this.purchase_editor.modalReference;
+    opened_modal.hidden.pipe(take(1)).subscribe(() => {
+      // (if the modal was already re-opened before this one finished hiding, leave the new session alone)
+      if(this.purchase_editor.modalReference === opened_modal){
+        this.clear_bank();
+      }
+    });
+
+    if(bank_id != 0){
+      // `shown` emits once the modal is fully open
+      this.purchase_editor.modalReference.shown.pipe(take(1)).subscribe(async () => {
+        await this.edit_bank(bank_id);
+        this.scroll_to_customer_autocomplete(false);
+      });
+    }
+
+    if(focus_customer){
+      // Wait for the modal to finish opening, so the autocomplete is in the DOM and visible
+      setTimeout(() => this.scroll_to_customer_autocomplete(true), 350);
+    }
+  }
+
+  // Scrolls the customer autocomplete into view. open_list: also focus it and drop its list down
+  scroll_to_customer_autocomplete(open_list: boolean) {
+    const input: HTMLInputElement | undefined = this.customerAutocomplete?.searchInput?.nativeElement;
+    if(!input){
+      return;
+    }
+    if(open_list){
+      this.customerAutocomplete.open();
+      // Focusing scrolls instantly (which would cancel a smooth scroll), so focus without scrolling first
+      input.focus({ preventScroll: true });
+    }
+    // Scroll afterwards, once the dropdown list (if any) has been rendered below the input
+    setTimeout(() => input.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+  }
+
+  private closing_check_pending = false;
+  private closing_confirmed = false;
+
+  // Called by the purchase editor modal (through the [modalContent] directive) before it closes.
+  // The confirmation is async, so when there are unsaved bank changes we block this close,
+  // ask the user, and if they confirm, close the modal again with the check skipped.
+  beforeClose(reason: DialogClosingReason): Boolean {
+    if(this.closing_check_pending){
+      // Waiting for the user's answer: ignore Enter/Escape/clicks meanwhile
+      return false;
+    }
+    if(reason != DialogClosingReason.cancel || this.closing_confirmed){
+      this.closing_confirmed = false;
+      return true;
+    }
+    this.checkIfBankIsSaveable();
+    if(!this.is_bank_saveable){
+      return true;
+    }
+    this.closing_check_pending = true;
+    this.verify_cancellation_of_unsaved_changes().then(discard => {
+      this.closing_check_pending = false;
+      if(discard){
+        this.closing_confirmed = true;
+        this.purchase_editor.onCancel();
+      }
+    });
+    return false;
   }
 
   // Returns false if the user declined to discard the changes of the bank currently being edited
@@ -648,7 +724,16 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     this.is_bank_cancellable = true;
   }
 
+  //Checks if the currently edited bank can and needs to be saved.
+  //Set the is_bank_savable for reference, and for the UI buttons behavior
   checkIfBankIsSaveable(){
+
+    //if no active bank, nothing needs to be saved
+    if(this.edited_bank.id == 0) {
+      this.is_bank_saveable = false;
+      return;
+    }
+
     let quantity_is_within_boundaries = (this.edited_bank.quantity >= this.min_bank_quantity) && (this.edited_bank.quantity <= this.max_bank_quantity);
     let is_new_bank = (this.edited_bank.customer_id <= 0);
     let quantity_changed = false;
@@ -679,6 +764,9 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
         cancel = false;
       }
     }
+    else {
+      this.clear_bank();
+    }
     return cancel;
   }
 
@@ -708,7 +796,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     }
 
     this.edited_bank = {
-      id: this.new_bank_counter,
+      id: 0,
       name: '',
       business_name: '',
       raw_material_purchase_id: 0,

@@ -37,6 +37,9 @@ export class ModalDialogComponent implements ModalDialog {
   @Input() modalSize: string = "m";
   @Input() fullscreen: boolean = false;
   @Input() modalBodyClass: string = "";
+  // Stops bootstrap from closing the modal on its own (backdrop click, Esc), so closing always goes through
+  // onCancel()/onConfirm() and the content's beforeClose(). Esc is still handled here by onEscdownHandler.
+  @Input() preventDismiss: boolean = false;
 
   @Output() opened = new EventEmitter<any>();
   @Output() confirm = new EventEmitter<any>();
@@ -60,7 +63,11 @@ export class ModalDialogComponent implements ModalDialog {
   
   public open() {
     //console.log(this.modalSize);
-    this.modalReference = this.modalService.open(this.content, { centered: true, size: this.modalSize, fullscreen: this.fullscreen });
+    this.modalReference = this.modalService.open(this.content, {
+      centered: true, size: this.modalSize, fullscreen: this.fullscreen,
+      backdrop: this.preventDismiss ? 'static' : true,
+      keyboard: !this.preventDismiss
+    });
     //console.log("openning " +this.dialogContentComponent);
     //this.btnSave?.nativeElement.focus();
 
