@@ -20,6 +20,8 @@
     [btnCancelText]="'Cancel bank changes'"
     [btnCancelClass]="'btn-warning'"
     [preventDismiss]="true"
+    (confirm)="save_purchase()"
+    (cancel)="discard_unsaved_purchase()"
     >
     <div modalContent>
         

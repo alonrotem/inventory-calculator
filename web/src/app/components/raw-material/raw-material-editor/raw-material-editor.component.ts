@@ -573,7 +573,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     }
     else {
       this.editedPurchase = {
-        id: 0,
+        id: this.new_purchase_counter--,
         raw_material_id: 0,
         purchased_at: new Date(),
         purchase_quantity: 0,
@@ -610,6 +610,31 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     if(focus_customer){
       // Wait for the modal to finish opening, so the autocomplete is in the DOM and visible
       setTimeout(() => this.scroll_to_customer_autocomplete(true), 350);
+    }
+  }
+
+  // The purchase editor modal was confirmed: add the purchase, or update it if it's already in the list
+  save_purchase() {
+    const purchase: RawMaterialPurchase = JSON.parse(JSON.stringify(this.editedPurchase));
+    purchase.raw_material_id = this.rawMaterialItem.id;
+
+    const purchaseIndex = this.rawMaterialItem.purchases.findIndex(p => p.id == purchase.id);
+    if(purchaseIndex >= 0) {
+      this.rawMaterialItem.purchases[purchaseIndex] = purchase;
+    }
+    else {
+      this.rawMaterialItem.purchases.push(purchase);
+    }
+    // so the "save changes" button shows up
+    this.raw_material_form?.form.markAsDirty();
+  }
+
+  // The purchase editor modal was cancelled: a purchase that was never saved takes its new banks with it
+  discard_unsaved_purchase() {
+    const is_saved_in_list = this.rawMaterialItem.purchases.some(p => p.id == this.editedPurchase.id);
+    if(!is_saved_in_list) {
+      this.rawMaterialItem.customer_banks = this.rawMaterialItem.customer_banks
+        .filter(b => b.raw_material_purchase_id != this.editedPurchase.id);
     }
   }
 
