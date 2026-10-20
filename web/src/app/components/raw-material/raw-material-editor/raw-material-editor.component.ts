@@ -286,11 +286,13 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   }
 
   save(navigate_after_save: boolean = true){
-    /*
+    
     this.raw_material_form.form.markAllAsTouched();
     if((this.raw_material_form.form.valid) && (!this.insufficient_quantity_for_banks))
     {
+
       this.raw_material_form.form.markAsPristine();
+      /*
       this.rawMaterialItem.purchased_at =  new Date(this.purchase_date.nativeElement.value);
       
       let added_to_banks_since_last_load = 0;
@@ -394,7 +396,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
         });
         artificial_secs++;
       });
-
+      */
       this.btn_save.nativeElement.classList.add("disabled");
 
       this.rawMaterialsService.save(this.rawMaterialItem).subscribe(
@@ -440,7 +442,6 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
       this.toastService.showError("Please fill all the mandatory fields before saving!");
 
     }
-    */
   }
 
   gotoMaterialsList(textInfo: string = '', isError: Boolean = false) {
@@ -587,6 +588,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
         notes: ''
       };
     }
+    this.edited_purchase_last_quantity = this.editedPurchase.purchase_quantity;
     this.lock_quantity_control = this.rawMaterialItem.customer_banks.filter(b => b.raw_material_purchase_id == purchase_id).length > 0;
     this.purchase_editor.open();
 
@@ -611,6 +613,31 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
       // Wait for the modal to finish opening, so the autocomplete is in the DOM and visible
       setTimeout(() => this.scroll_to_customer_autocomplete(true), 350);
     }
+  }
+
+  // The quantity of the purchase that customer banks already hold: the purchase can't go below it
+  get min_purchase_quantity(): number {
+    return this.rawMaterialItem.customer_banks
+      .filter(b => b.raw_material_purchase_id == this.editedPurchase.id)
+      .reduce((sum, b) => sum + b.quantity, 0);
+  }
+
+  get is_purchase_quantity_too_low(): boolean {
+    return (Number(this.editedPurchase.purchase_quantity) || 0) < this.min_purchase_quantity;
+  }
+
+  // An arrow function, because the modal calls it without this component as `this`
+  can_save_purchase = (): boolean => !this.is_purchase_quantity_too_low;
+
+  // The purchase quantity as of the last adjustment of the remaining quantity
+  private edited_purchase_last_quantity = 0;
+
+  // The remaining quantity follows the purchase quantity by the same difference: a new purchase
+  // starts with all of its quantity remaining, and adding 100 to an existing one adds 100 to what remains
+  purchaseQuantityChanged(new_quantity: number | string | null) {
+    const quantity = Number(new_quantity) || 0;
+    this.editedPurchase.remaining_quantity += (quantity - this.edited_purchase_last_quantity);
+    this.edited_purchase_last_quantity = quantity;
   }
 
   // The purchase editor modal was confirmed: add the purchase, or update it if it's already in the list
@@ -858,7 +885,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
       this.purchase_edited_customer_id = match ? match.id : 0;
 
       if(this.purchase_edited_customer_id){
-        let existing_bank = this.rawMaterialItem.customer_banks.find(b => b.customer_id == this.purchase_edited_customer_id);
+        let existing_bank = this.rawMaterialItem.customer_banks.find(b => b.customer_id == this.purchase_edited_customer_id && b.raw_material_purchase_id == this.editedPurchase.id);
         if(existing_bank){
           if(!await this.edit_bank(existing_bank.id)){
             // User kept editing the current bank: put its name back

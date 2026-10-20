@@ -20,6 +20,7 @@
     [btnCancelText]="'Cancel bank changes'"
     [btnCancelClass]="'btn-warning'"
     [preventDismiss]="true"
+    [canClose]="can_save_purchase"
     (confirm)="save_purchase()"
     (cancel)="discard_unsaved_purchase()"
     >
@@ -50,7 +51,7 @@
                         <input type="text" 
                             [appNumericInput]="{ decimalPlaces: (editedPurchase.quantity_units=='kg')? 2: 0 }"
                             inputmode="decimal"
-                            id="materialPurchaseQuantity" class="form-control" placeholder="0" [(ngModel)]="editedPurchase.purchase_quantity" name="materialPurchaseQuantity" #purchase_quantity="ngModel" (change)="recalculateRemaining()">
+                            id="materialPurchaseQuantity" class="form-control" [class.is-invalid]="is_purchase_quantity_too_low" placeholder="0" [(ngModel)]="editedPurchase.purchase_quantity" name="materialPurchaseQuantity" #purchase_quantity="ngModel" (ngModelChange)="purchaseQuantityChanged($event)">
                         <label for="materialPurchaseQuantity">Total quantity purchased</label>
                     </div>
                     <ng-select [(ngModel)]="editedPurchase.quantity_units" name="quantityunits" [clearable]="false" #rawMaterialItem.quantity_units="ngModel" [disabled]="lock_quantity_control" [appTooltip]="'<strong>🔒 Locked</strong><br/>Measurement type is locked for editing, as it is used by customer banks.<br/>You can top it up with the top-up button!'" [tooltipEnabled]="lock_quantity_control"><!---->
@@ -58,7 +59,10 @@
                             <ng-option [value]="unit">{{unit}}</ng-option>
                         }
                     </ng-select>
-                </div>                
+                </div>
+                <div class="text-danger small mt-1" *ngIf="is_purchase_quantity_too_low">
+                    The quantity can't be lower than {{ min_purchase_quantity | number: (editedPurchase.quantity_units == 'kg')? ('1.2-2') : ('1.0') }} {{ editedPurchase.quantity_units }}, which is already used by customer banks.
+                </div>
             </div>
             <div class="col" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; flex-wrap: nowrap;">
                 <span style="text-align: center;"><strong>Remaining:<br/></strong>

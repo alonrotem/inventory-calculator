@@ -96,7 +96,7 @@ router.get('/single/:id', auth_request([{ requiredArea: 'raw_materials', require
     logger.info(`put /raw_materials`);
     try {
       logger.debug(`Body: ${ JSON.stringify(req.body) }`);
-      const response = await raw_materials.save_material(req.body);
+      const response = await raw_materials.save_material(req.body, req["auth_token"].id);
       logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
       res.json(response);
     } 

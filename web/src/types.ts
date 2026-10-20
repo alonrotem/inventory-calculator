@@ -105,7 +105,6 @@ export interface RawMaterialCustomerBank {
     id: number;
     name: string;
     business_name: string;
-    //raw_material_id: number; // <- REMOVE
     raw_material_purchase_id: number;
     customer_id: number;
     quantity: number;
