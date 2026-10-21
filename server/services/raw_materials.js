@@ -118,13 +118,15 @@ async function getNames(for_customer_id){
     query = `
       SELECT 
           rm.id, name, color, allow_shortening_babies_in_pairs, is_usable_for_h_material,
-          IF(cb.raw_material_id IS NOT NULL, 1, 0) AS has_banks_for_current_customer
-      FROM 
+          EXISTS (
+              SELECT 1
+              FROM raw_material_purchases rmp
+              JOIN customer_banks cb ON cb.raw_material_purchase_id = rmp.id
+              WHERE rmp.raw_material_id = rm.id
+                AND cb.customer_id = ${for_customer_id}
+          ) AS has_banks_for_current_customer
+      FROM
           raw_materials rm
-      LEFT JOIN 
-          customer_banks cb 
-          ON rm.id = cb.raw_material_id 
-          AND cb.customer_id = ${for_customer_id}
       order by name, color;`;
   }
 

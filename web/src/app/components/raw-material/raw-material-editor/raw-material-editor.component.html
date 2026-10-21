@@ -311,7 +311,7 @@
                     <fa-icon [icon]="faCartShopping"></fa-icon> Add purchase
                 </button>
             </div>
-            <table class="purchases-table table table-responsive table-striped table-hover">
+            <table *ngIf="this.rawMaterialItem.purchases.length > 0" class="purchases-table table table-responsive table-striped table-hover">
                 <thead>
                     <tr>
                         <th scope="col">Vendor</th>
@@ -348,6 +348,10 @@
                     </tbody>
             </table>
 
+            <div class="no-purchase-info" *ngIf="this.rawMaterialItem.purchases.length <= 0">
+                No purchases saved for this material.<br/>
+                Add a purchase, then you can add customer banks to it.
+            </div>
         </div>
     </div>
 

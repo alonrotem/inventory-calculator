@@ -325,7 +325,7 @@ export interface Customer_Bank {
     raw_material_id: number;
     quantity: number;
     remaining_quantity: number;
-
+    raw_material_purchase_id: number;
     transaction_history: TransactionRecord[];
 }
 

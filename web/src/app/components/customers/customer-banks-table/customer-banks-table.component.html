@@ -39,6 +39,7 @@
               <span [className]="'color color-' + bank.raw_material_color.toLowerCase().replace(' ', '-')"></span>
           </span>
         </h5>
+        <div>Purchase ID #{{ bank.raw_material_purchase_id }}</div>
         <div class="text-warning" style="margin-bottom: 0.5rem;" *ngIf="!bank.is_material_usable_for_h_material">
           <fa-icon [icon]="faTriangleExclamation" size="1x"></fa-icon>
           This material cannot be used for H allocations

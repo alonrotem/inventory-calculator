@@ -157,3 +157,11 @@ h3 {
 .purchases-table td {
     cursor: pointer;
 }
+
+.no-purchase-info {
+    height: 90px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
