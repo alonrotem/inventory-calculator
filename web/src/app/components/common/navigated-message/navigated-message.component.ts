@@ -95,6 +95,11 @@ export abstract class NavigatedMessageComponent {
       if (nav && nav.extras.state && nav.extras.state['info'] && nav.extras.state['info']['textInfo']) {
         info = nav.extras.state['info']['textInfo'];
         isError = nav.extras.state['info']['isError'];
+        nav.extras.state['info'] = null;
+      }
+      // The router also saved the state in the history entry, which survives a page refresh
+      if (history.state?.info) {
+        history.replaceState({ ...history.state, info: null }, '');
       }
     }
 
