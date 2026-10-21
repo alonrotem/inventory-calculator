@@ -345,7 +345,7 @@ CREATE TABLE  IF NOT EXISTS `raw_materials`
   FOREIGN KEY (`color`) REFERENCES material_colors(`color`) ON DELETE CASCADE
 );
 
-CREATE TABLE `raw_material_purchases` (
+CREATE TABLE IF NOT EXISTS `raw_material_purchases` (
   `id`                  INT NOT NULL AUTO_INCREMENT,
   `raw_material_id`     INT NOT NULL,
   `purchased_at`        DATE NOT NULL DEFAULT (CURRENT_DATE),
@@ -361,11 +361,9 @@ CREATE TABLE `raw_material_purchases` (
   `updated_by`	 		int null,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_raw_material_purchases_material`
-    FOREIGN KEY (`raw_material_id`) REFERENCES `raw_materials`(`id`) ON DELETE cascade,
-  CONSTRAINT fk_raw_material_country
-  	FOREIGN KEY (`origin_country`) REFERENCES countries(`code`),
-  CONSTRAINT fk_raw_material_currency
-  	FOREIGN KEY (`currency`) REFERENCES currencies(`code`)
+    FOREIGN KEY (`raw_material_id`) REFERENCES `raw_materials`(`id`) ON DELETE cascade
+  -- fk_raw_material_country / fk_raw_material_currency are added by 03_migrations.sql (add_fk),
+  -- because FK names are schema-unique and legacy DBs still have them on raw_materials until migrated
 );
 
 CREATE TABLE  IF NOT EXISTS `customers` (
@@ -407,7 +405,7 @@ CREATE TABLE  IF NOT EXISTS `customer_banks` (
   CONSTRAINT fk_raw_material_customer
     FOREIGN KEY (`customer_id`) REFERENCES customers(`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_customer_bank_raw_material_purchase`
-    FOREIGN KEY (`raw_material_purchase_id`) REFERENCES `raw_material_purchases`(`id`) ON DELETE CASCADE;  
+    FOREIGN KEY (`raw_material_purchase_id`) REFERENCES `raw_material_purchases`(`id`) ON DELETE CASCADE
 );
 
 /*

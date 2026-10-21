@@ -195,17 +195,28 @@ DROP PROCEDURE IF EXISTS migrate_raw_material_banks_if_needed;
 DELIMITER $$
 CREATE PROCEDURE migrate_raw_material_banks_if_needed()
 BEGIN
-    -- Check if raw_material_purchases table already exists
-    IF NOT EXISTS (
-        SELECT 1 
-        FROM information_schema.tables 
-        WHERE table_schema = DATABASE() 
-          AND table_name = 'raw_material_purchases'
-    ) THEN       
+    DECLARE legacy_banks INT DEFAULT 0;
+
+    -- Migrate only while raw_materials still carries the legacy purchase columns
+    -- (01_create_db.sql may already have created an empty raw_material_purchases table)
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = DATABASE()
+          AND table_name = 'raw_materials'
+          AND column_name = 'purchase_quantity'
+    ) THEN
+        -- customer_banks still points at raw_materials (legacy), decided once up front
+        SELECT COUNT(*) INTO legacy_banks
+        FROM information_schema.columns
+        WHERE table_schema = DATABASE()
+          AND table_name = 'customer_banks'
+          AND column_name = 'raw_material_id';
+
         START TRANSACTION;
 
         -- 1. Create table
-        CREATE TABLE `raw_material_purchases` (
+        CREATE TABLE IF NOT EXISTS `raw_material_purchases` (
           `id`                  INT NOT NULL AUTO_INCREMENT,
           `raw_material_id`     INT NOT NULL,
           `purchased_at`        DATE NOT NULL DEFAULT (CURRENT_DATE),
@@ -231,40 +242,44 @@ BEGIN
         SELECT 
           `id`, `purchased_at`, `purchase_quantity`, `remaining_quantity`,
           `quantity_units`, `units_per_kg`, `vendor_name`, `origin_country`, `price`, `currency`, `notes`
-        FROM `raw_materials`;
+        FROM `raw_materials` rm
+        WHERE NOT EXISTS (
+          SELECT 1 FROM `raw_material_purchases` p WHERE p.`raw_material_id` = rm.`id`
+        );
 
-        -- 3. Modify customer_banks schema
-        ALTER TABLE `customer_banks`
-          DROP FOREIGN KEY `fk_customer_raw_material`,
-          CHANGE COLUMN `raw_material_id` `raw_material_purchase_id` INT NOT NULL;
+        -- 3-5. Re-point customer_banks from raw_materials to raw_material_purchases
+        IF legacy_banks > 0 THEN
+            CALL drop_fk('customer_banks', 'fk_customer_raw_material');
 
-        -- 4. Update FK values in customer_banks
-        UPDATE `customer_banks` cb
-        JOIN `raw_material_purchases` rmp 
-          ON cb.`raw_material_purchase_id` = rmp.`raw_material_id`
-        SET cb.`raw_material_purchase_id` = rmp.`id`;
+            ALTER TABLE `customer_banks`
+              CHANGE COLUMN `raw_material_id` `raw_material_purchase_id` INT NOT NULL;
 
-        -- 5. Add new foreign key constraint
-        ALTER TABLE `customer_banks`
-          ADD CONSTRAINT `fk_customer_bank_raw_material_purchase`
-            FOREIGN KEY (`raw_material_purchase_id`) REFERENCES `raw_material_purchases`(`id`) ON DELETE CASCADE;
+            -- Update FK values (one purchase was created per raw material)
+            UPDATE `customer_banks` cb
+            JOIN `raw_material_purchases` rmp
+              ON cb.`raw_material_purchase_id` = rmp.`raw_material_id`
+            SET cb.`raw_material_purchase_id` = rmp.`id`;
 
-        -- 6. Clean up raw_materials columns
-        ALTER TABLE `raw_materials`
-          DROP FOREIGN KEY `fk_raw_material_country`,
-          DROP FOREIGN KEY `fk_raw_material_currency`,
-          DROP COLUMN `purchased_at`,
-          DROP COLUMN `purchase_quantity`,
-          DROP COLUMN `remaining_quantity`,
-          DROP COLUMN `quantity_units`,
-          DROP COLUMN `units_per_kg`,
-          DROP COLUMN `vendor_name`,
-          DROP COLUMN `origin_country`,
-          DROP COLUMN `price`,
-          DROP COLUMN `currency`,
-          DROP COLUMN `notes`;
+            ALTER TABLE `customer_banks`
+              ADD CONSTRAINT `fk_customer_bank_raw_material_purchase`
+                FOREIGN KEY (`raw_material_purchase_id`) REFERENCES `raw_material_purchases`(`id`) ON DELETE CASCADE;
+        END IF;
 
-        COMMIT;        
+        -- 6. Clean up raw_materials: drop the FKs first (if present), then the columns (if present)
+        CALL drop_fk('raw_materials', 'fk_raw_material_country');
+        CALL drop_fk('raw_materials', 'fk_raw_material_currency');
+        CALL drop_column_if_exists('raw_materials', 'purchased_at');
+        CALL drop_column_if_exists('raw_materials', 'purchase_quantity');
+        CALL drop_column_if_exists('raw_materials', 'remaining_quantity');
+        CALL drop_column_if_exists('raw_materials', 'quantity_units');
+        CALL drop_column_if_exists('raw_materials', 'units_per_kg');
+        CALL drop_column_if_exists('raw_materials', 'vendor_name');
+        CALL drop_column_if_exists('raw_materials', 'origin_country');
+        CALL drop_column_if_exists('raw_materials', 'price');
+        CALL drop_column_if_exists('raw_materials', 'currency');
+        CALL drop_column_if_exists('raw_materials', 'notes');
+
+        COMMIT;
     END IF;
 END $$
 DELIMITER ;
