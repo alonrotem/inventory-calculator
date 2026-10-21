@@ -225,6 +225,7 @@
                     [parent_raw_material]="rawMaterialItem"
                     (bank_clicked)="edit_bank($event.bank_id)"
                     (bank_deleted)="delete_bank($event)"
+                    (top_up_bank)="top_up_bank($event)"
                 />                
             </div>
         </div>
@@ -458,6 +459,7 @@
                 (banksChanged)="recalculateRemaining()"
                 (bank_deleted)="delete_bank($event)"
 
+                (top_up_bank)="top_up_bank($event)"
                 (edit_purchase)="open_purchase_editor($event)"
                 (delete_purchase)="delete_purchase($event)"
                 (add_bank)="open_purchase_editor($event, true)"

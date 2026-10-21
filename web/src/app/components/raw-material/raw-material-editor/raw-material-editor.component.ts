@@ -10,7 +10,7 @@ import { InfoService } from '../../../services/info.service';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faSave, faTrashAlt, faTimesCircle, IconDefinition, faArrowLeft, faClockRotateLeft, faCartShopping, faArrowRightArrowLeft, faArrowDownShortWide } from '@fortawesome/free-solid-svg-icons';
+import { faSave, faTrashAlt, faTimesCircle, IconDefinition, faArrowLeft, faClockRotateLeft, faCartShopping, faArrowRightArrowLeft, faArrowDownShortWide, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmationDialogComponent } from "../../common/confirmation-dialog/confirmation-dialog.component";
 import { AutocompleteComponent, AutocompleteLibModule } from 'angular-ng-autocomplete';
 import { ToastService } from '../../../services/toast.service';
@@ -539,22 +539,89 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     */
   }
 
-  openQuantityDialog(){
-    /*
-    //this.quantityDialogContent.remaining_quantity = this.rawMaterialItem.remaining_quantity;
-    this.quantityDialog.editedObject = {
-      top_up_quantity: 0,
-      current_quantity: this.rawMaterialItem.purchase_quantity,
-      remaining_quantity: this.rawMaterialItem.remaining_quantity,
-      quantity_units: this.rawMaterialItem.quantity_units,
-      current_quantity_kg: 0, // this is just for banks
-      max_topping: 0
-    };
-    this.quantityDialog.dialogWrapper.modalTitle = "+ Top up quantity";
-    this.quantityDialog.rawMaterialQuantityUnits = this.rawMaterialItem.quantity_units;
-    this.quantityDialog.show_units_to_kg_adjustment = false;
-    this.quantityDialog.open();
-    */
+  // True while the top-up dialog is open on top of the purchase editor. The purchase editor
+  // listens to Enter/Esc on the document too, and must ignore them meanwhile.
+  top_up_dialog_open = false;
+
+  // The top-up button of the purchase editor: the purchase can be topped up by any quantity
+  async openQuantityDialog() {
+    const top_up = await this.ask_top_up_quantity({
+      title: "+ Top up purchase",
+      quantity_units: this.editedPurchase.quantity_units,
+      current_quantity: this.editedPurchase.purchase_quantity,
+      remaining_quantity: this.editedPurchase.remaining_quantity
+    });
+    if(top_up === null) {
+      return;
+    }
+    this.editedPurchase.purchase_quantity += top_up;
+    this.editedPurchase.remaining_quantity += top_up;
+    this.edited_purchase_last_quantity = this.editedPurchase.purchase_quantity;
+
+    // A bank being edited can now take the added material
+    if(this.edited_bank.id != 0) {
+      this.edited_purchase_initial_remaining_quantity += top_up;
+      this.meter.totalCapacity += top_up;
+      this.max_bank_quantity = this.meter.totalCapacity;
+      this.meter.recalculate();
+      this.checkIfBankIsSaveable();
+    }
+    this.raw_material_form?.form.markAsDirty();
+  }
+
+  // The top-up button of a bank in the customer tables: the bank can be topped up by the remaining quantity of its purchase
+  async top_up_bank(table_bank: RawMaterialCustomerBank) {
+    const bank = this.rawMaterialItem.customer_banks.find(b => b.id == table_bank.id) ?? table_bank;
+    const purchase = (bank.raw_material_purchase_id == this.editedPurchase.id)?
+      this.editedPurchase :
+      this.rawMaterialItem.purchases.find(p => p.id == bank.raw_material_purchase_id);
+    if(!purchase) {
+      return;
+    }
+
+    if(purchase.remaining_quantity <= 0) {
+      await this.confirm_action.open_with_message({
+        modalTitle: "Not enough material!",
+        modalText: "Not enough remaining material in the purchase to top up.<br/>Please increase the purchase quantity.",
+        btnYesText: "I see...",
+        btnYesClass: "btn btn-warning m-auto",
+        btnNoClass: "d-none",
+        dialogIcon: faTriangleExclamation,
+      });
+      return;
+    }
+
+    const top_up = await this.ask_top_up_quantity({
+      title: "+ Top up customer bank",
+      quantity_units: bank.quantity_units,
+      current_quantity: bank.quantity,
+      remaining_quantity: bank.remaining_quantity,
+      max_topping: purchase.remaining_quantity
+    });
+    if(top_up === null) {
+      return;
+    }
+    bank.quantity += top_up;
+    bank.remaining_quantity += top_up;
+    if(bank.quantity_units == "kg") {
+      bank.quantity_in_kg += top_up;
+    }
+    else if(purchase.units_per_kg > 0) {
+      bank.quantity_in_kg += top_up / purchase.units_per_kg;
+    }
+    purchase.remaining_quantity -= top_up;
+    this.raw_material_form?.form.markAsDirty();
+  }
+
+  // Opens the top-up dialog, and resolves with the quantity to top up by (null if cancelled)
+  private async ask_top_up_quantity(options: Parameters<RawMaterialQuantityDialogComponent['open']>[0]): Promise<number | null> {
+    this.top_up_dialog_open = true;
+    try {
+      return await this.quantityDialog.open(options);
+    }
+    finally {
+      this.top_up_dialog_open = false;
+    }
   }
 
   openHistoryDialog() {
@@ -627,7 +694,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   }
 
   // An arrow function, because the modal calls it without this component as `this`
-  can_save_purchase = (): boolean => !this.is_purchase_quantity_too_low;
+  can_save_purchase = (): boolean => !this.is_purchase_quantity_too_low && !this.top_up_dialog_open;
 
   // The purchase quantity as of the last adjustment of the remaining quantity
   private edited_purchase_last_quantity = 0;
@@ -687,6 +754,9 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   // The confirmation is async, so when there are unsaved bank changes we block this close,
   // ask the user, and if they confirm, close the modal again with the check skipped.
   beforeClose(reason: DialogClosingReason): Boolean {
+    if(this.top_up_dialog_open){
+      return false;
+    }
     if(this.closing_check_pending){
       // Waiting for the user's answer: ignore Enter/Escape/clicks meanwhile
       return false;

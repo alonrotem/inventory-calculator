@@ -8,7 +8,6 @@ import { DecimalPipe, NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { RawMaterialCustomerDialogComponent } from "../raw-material-customer-dialog/raw-material-customer-dialog.component";
-import { RawMaterialQuantityDialogComponent } from '../raw-material-quantity-dialog/raw-material-quantity-dialog.component';
 import { TooltipDirective } from '../../common/tooltip/tooltip.directive';
 
 @Component({
@@ -17,7 +16,7 @@ import { TooltipDirective } from '../../common/tooltip/tooltip.directive';
   imports: [
     FaIconComponent, RouterModule, NgFor, NgIf,
     ConfirmationDialogComponent, 
-    RawMaterialCustomerDialogComponent, RawMaterialQuantityDialogComponent, DecimalPipe,
+    RawMaterialCustomerDialogComponent, DecimalPipe,
     TooltipDirective, NgTemplateOutlet, DateStrPipe
    ],
   templateUrl: './raw-material-customer-table.component.html',
@@ -34,8 +33,6 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   @ViewChild('confirm_action') confirm_action!: ConfirmationDialogComponent;
   //@ViewChild('delete_confirmation') delete_confirmation!: ConfirmationDialogComponent;
   @ViewChild("bank_editor") bank_editor!: RawMaterialCustomerDialogComponent;
-  @ViewChild("top_up_dialog") top_up_dialog! :RawMaterialQuantityDialogComponent;
-  //@ViewChild("not_enough_material") not_enough_material! :RawMaterialQuantityDialogComponent;
 
   @Input() purchases: RawMaterialPurchase[] = [];
   @Input() banks: RawMaterialCustomerBank[] = [];
@@ -48,6 +45,7 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   @Output() bank_deleted: EventEmitter<RawMaterialCustomerBank> = new EventEmitter<RawMaterialCustomerBank>();
   @Output() edit_purchase: EventEmitter<number> = new EventEmitter<number>();
   @Output() delete_purchase: EventEmitter<number> = new EventEmitter<number>();
+  @Output() top_up_bank: EventEmitter<RawMaterialCustomerBank> = new EventEmitter<RawMaterialCustomerBank>();
   @Output() add_bank: EventEmitter<number> = new EventEmitter<number>();
 
   get is_grouped(): boolean {
@@ -80,7 +78,6 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   // pending_delete_index:number = -1;
   banks_summary_string = "";
   banks_loaded_quantities: any[] = [];
-  topped_up_bank : RawMaterialCustomerBank | null = null;
 
   /*
   <app-confirmation-dialog 
@@ -113,21 +110,6 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   ngAfterViewInit(): void {
     this.bank_editor.dialogWrapper.confirm.subscribe((b: RawMaterialCustomerBank)=>{ 
       this.closedCustomerEditor(b); 
-    });
-
-    this.top_up_dialog.dialogWrapper.confirm.subscribe(() => {
-      if(this.topped_up_bank){
-        let top_up = this.top_up_dialog.editedObject.top_up_quantity;
-        if(top_up > 0) {
-          this.topped_up_bank.quantity += top_up;
-          this.topped_up_bank.quantity_in_kg += this.top_up_dialog.editedObject.current_quantity_kg;
-          this.topped_up_bank.remaining_quantity += top_up;
-        }  
-      }
-      this.topped_up_bank = null;
-      this.recalculateSums();
-      this.banksChanged.emit();
-      this.unsaved_changes = true;
     });
   }
 
@@ -234,36 +216,9 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
     this.unsaved_changes = true;
   }
 
-  async top_up(bank :RawMaterialCustomerBank) {
-    /*
-    if(this.parent_raw_material && this.parent_raw_material.remaining_quantity > 0){
-      this.top_up_dialog.dialogWrapper.modalTitle = "+ Top up customer bank";
-      this.top_up_dialog.show_units_to_kg_adjustment = (this.parent_raw_material.quantity_units == "kg");
-      this.top_up_dialog.rawMaterialQuantityUnits = this.parent_raw_material.quantity_units;
-      this.top_up_dialog.rawMaterialUnitsPerKg = this.parent_raw_material.units_per_kg;
-      this.top_up_dialog.editedObject = {
-        top_up_quantity: 0,
-        current_quantity: bank.quantity,
-        current_quantity_kg: bank.quantity_in_kg,
-        remaining_quantity: bank.remaining_quantity,
-        quantity_units: bank.quantity_units,
-        max_topping: this.parent_raw_material!.remaining_quantity
-      };
-      this.top_up_dialog.rawMaterial_quantity_units = this.parent_raw_material.quantity_units;
-      this.topped_up_bank = bank;
-      this.top_up_dialog.open();
-    }
-    else {
-     await this.confirm_action.open_with_message({
-        modalTitle: "Not enough material!",
-        modalText: "Not enough remaining material to top up.<br/>Please increase the raw material quantity.",
-        btnYesText: "I see...",
-        btnYesClass: "btn btn-warning m-auto",
-        btnNoClass: "d-none",
-        dialogIcon: faTriangleExclamation,
-      });
-    }
-      */
+  // The parent owns the purchases' quantities, so it opens the top-up dialog
+  top_up(bank: RawMaterialCustomerBank) {
+    this.top_up_bank.emit(bank);
   }
 
   emit_edit_purchase(purchase_id: number) {
