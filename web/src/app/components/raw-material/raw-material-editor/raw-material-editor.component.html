@@ -315,6 +315,7 @@
                         <th scope="col">Vendor</th>
                         <th scope="col">Purchase quantity</th>
                         <th scope="col">Purchase date</th>
+                        <th scope="col" class="text-center">Remove</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -331,6 +332,15 @@
                         </td>
                         <td>
                             {{ purchase.purchased_at | dateStr}}
+                        </td>
+                        <td class="text-center" (click)="$event.stopPropagation()">
+                            <span *ngIf="!is_purchase_in_use(purchase.id)" class="text-danger" style="cursor:pointer;" (click)="delete_purchase(purchase.id)">
+                                <fa-icon [icon]="faTrashAlt"></fa-icon>
+                            </span>
+                            <span *ngIf="is_purchase_in_use(purchase.id)"
+                                [appTooltip]="'This purchase cannot be deleted,<br/>because one or more of its banks are used in customer orders'">
+                                <fa-icon style="color:var(--bs-gray)" [icon]="faTrashAlt"></fa-icon>
+                            </span>
                         </td>
                     </tr>
                     </tbody>
@@ -449,6 +459,7 @@
                 (bank_deleted)="delete_bank($event)"
 
                 (edit_purchase)="open_purchase_editor($event)"
+                (delete_purchase)="delete_purchase($event)"
                 (add_bank)="open_purchase_editor($event, true)"
                 (bank_clicked)="open_purchase_editor($event.purchase_id, false, $event.bank_id)"
             />

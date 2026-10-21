@@ -763,6 +763,34 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     }
   }
 
+  // A purchase can't be deleted if any of its banks is used in customer orders
+  is_purchase_in_use(purchase_id: number): boolean {
+    return this.rawMaterialItem.customer_banks.some(b => b.raw_material_purchase_id == purchase_id && b.bank_in_use);
+  }
+
+  // Deletes the purchase, and all of its banks, after the user confirms
+  async delete_purchase(purchase_id: number) {
+    const purchase = this.rawMaterialItem.purchases.find(p => p.id == purchase_id);
+    if(!purchase || this.is_purchase_in_use(purchase_id)) {
+      return;
+    }
+    const banks_count = this.rawMaterialItem.customer_banks.filter(b => b.raw_material_purchase_id == purchase_id).length;
+    const confirmed = await this.confirm_action.open_with_message({
+      modalTitle: "Delete confirmation",
+      modalText: `Are you sure you want to delete this purchase` +
+        (banks_count > 0 ? ` and its ${banks_count} customer ${banks_count == 1 ? 'bank' : 'banks'}?` : `?`),
+      btnYesIcon: this.faTrashAlt,
+      btnYesText: "Delete",
+      btnYesClass: "btn-danger"
+    });
+    if(confirmed) {
+      this.rawMaterialItem.purchases = this.rawMaterialItem.purchases.filter(p => p.id != purchase_id);
+      this.rawMaterialItem.customer_banks = this.rawMaterialItem.customer_banks.filter(b => b.raw_material_purchase_id != purchase_id);
+      // so the "save changes" button shows up
+      this.raw_material_form?.form.markAsDirty();
+    }
+  }
+
   customerBankQuantityChanged(quantity:number){
     this.edited_bank.quantity = quantity;
     this.editedPurchase.remaining_quantity = this.edited_purchase_initial_remaining_quantity - (quantity - this.edited_bank_initial_quantity);
