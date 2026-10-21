@@ -34,7 +34,7 @@ export class RawMaterialHistoryDialogComponent {
     this.transactionHistoryService.get_history_for_raw_material(raw_material.id).subscribe((records: HistoryReportRecord[])=> {
       this.history_records = records;
       this.raw_material_name = raw_material.name;
-      this.raw_material_units = raw_material.quantity_units;
+      //this.raw_material_units = raw_material.quantity_units;
       this.loading = false;
     });
     this.dialog.open();

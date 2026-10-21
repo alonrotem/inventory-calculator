@@ -219,6 +219,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
       raw_material_id: selected_raw_material!.id,
       quantity: 1000000,
       remaining_quantity: 1000000,
+      raw_material_purchase_id: 0,
       transaction_history: []
     });
   }

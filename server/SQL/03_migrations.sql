@@ -190,4 +190,96 @@ DROP TABLE wings_customers;
 RENAME TABLE wings_customers_clean TO wings_customers;
 -- +++++++++++++++++++++++++++++++++++++++++++++
 
+-- ========= NEW SEPARATE RAW MATERIAL PURCHASES ==================
+DROP PROCEDURE IF EXISTS migrate_raw_material_banks_if_needed;
+DELIMITER $$
+CREATE PROCEDURE migrate_raw_material_banks_if_needed()
+BEGIN
+    -- Check if raw_material_purchases table already exists
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM information_schema.tables 
+        WHERE table_schema = DATABASE() 
+          AND table_name = 'raw_material_purchases'
+    ) THEN       
+        START TRANSACTION;
+
+        -- 1. Create table
+        CREATE TABLE `raw_material_purchases` (
+          `id`                  INT NOT NULL AUTO_INCREMENT,
+          `raw_material_id`     INT NOT NULL,
+          `purchased_at`        DATE NOT NULL DEFAULT (CURRENT_DATE),
+          `purchase_quantity`   DECIMAL(15,2) NOT NULL,
+          `remaining_quantity`  DECIMAL(15,2) NOT NULL,
+          `quantity_units`      ENUM('kg', 'units') DEFAULT 'units',
+          `units_per_kg`        FLOAT NULL,
+          `vendor_name`         VARCHAR(255) NULL,
+          `origin_country`      VARCHAR(2) NULL,
+          `price`               FLOAT NULL,
+          `currency`            VARCHAR(3) NULL,
+          `notes`               VARCHAR(255) NULL,
+          PRIMARY KEY (`id`),
+          CONSTRAINT `fk_raw_material_purchases_material`
+            FOREIGN KEY (`raw_material_id`) REFERENCES `raw_materials`(`id`) ON DELETE CASCADE
+        );
+
+        -- 2. Migrate data
+        INSERT INTO `raw_material_purchases` (
+          `raw_material_id`, `purchased_at`, `purchase_quantity`, `remaining_quantity`,
+          `quantity_units`, `units_per_kg`, `vendor_name`, `origin_country`, `price`, `currency`, `notes`
+        )
+        SELECT 
+          `id`, `purchased_at`, `purchase_quantity`, `remaining_quantity`,
+          `quantity_units`, `units_per_kg`, `vendor_name`, `origin_country`, `price`, `currency`, `notes`
+        FROM `raw_materials`;
+
+        -- 3. Modify customer_banks schema
+        ALTER TABLE `customer_banks`
+          DROP FOREIGN KEY `fk_customer_raw_material`,
+          CHANGE COLUMN `raw_material_id` `raw_material_purchase_id` INT NOT NULL;
+
+        -- 4. Update FK values in customer_banks
+        UPDATE `customer_banks` cb
+        JOIN `raw_material_purchases` rmp 
+          ON cb.`raw_material_purchase_id` = rmp.`raw_material_id`
+        SET cb.`raw_material_purchase_id` = rmp.`id`;
+
+        -- 5. Add new foreign key constraint
+        ALTER TABLE `customer_banks`
+          ADD CONSTRAINT `fk_customer_bank_raw_material_purchase`
+            FOREIGN KEY (`raw_material_purchase_id`) REFERENCES `raw_material_purchases`(`id`) ON DELETE CASCADE;
+
+        -- 6. Clean up raw_materials columns
+        ALTER TABLE `raw_materials`
+          DROP FOREIGN KEY `fk_raw_material_country`,
+          DROP FOREIGN KEY `fk_raw_material_currency`,
+          DROP COLUMN `purchased_at`,
+          DROP COLUMN `purchase_quantity`,
+          DROP COLUMN `remaining_quantity`,
+          DROP COLUMN `quantity_units`,
+          DROP COLUMN `units_per_kg`,
+          DROP COLUMN `vendor_name`,
+          DROP COLUMN `origin_country`,
+          DROP COLUMN `price`,
+          DROP COLUMN `currency`,
+          DROP COLUMN `notes`;
+
+        COMMIT;        
+    END IF;
+END $$
+DELIMITER ;
+-- Run the procedure
+CALL migrate_raw_material_banks_if_needed();
+-- Clean up
+DROP PROCEDURE IF EXISTS migrate_raw_material_banks_if_needed;
+
+call add_fk('raw_material_purchases', 'fk_raw_material_country', 'origin_country', 'countries', 'code', true);
+call add_fk('raw_material_purchases', 'fk_raw_material_currency', 'currency', 'currencies', 'code', true);
+-- =========/ NEW SEPARATE RAW MATERIAL PURCHASES ==================  
+
+-- Set raw materials user
+update raw_materials rm set rm.created_by=1, rm.updated_by=1 where rm.created_by=0; 
+CALL add_column_if_not_exists('raw_material_purchases', 'updated_by','int null');
+update raw_material_purchases set updated_by=1 where updated_by is null;
+
 select "Migrations done", CURRENT_TIMESTAMP;

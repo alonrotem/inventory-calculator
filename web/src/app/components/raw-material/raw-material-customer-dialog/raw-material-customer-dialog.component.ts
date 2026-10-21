@@ -31,13 +31,14 @@ export class RawMaterialCustomerDialogComponent implements ModalContentDirective
     id: 0,
     name: '',
     business_name: '',
-    raw_material_id: 0,
+    raw_material_purchase_id: 0,
     customer_id: 0,
     quantity: 0,
     remaining_quantity: 0,
     quantity_units: 'units',
     quantity_in_kg: 0,
-    transaction_record: null
+    transaction_record: null,
+    bank_in_use: false
   };
   @Input() banks: RawMaterialCustomerBank[] = [];
   @Input() rawMaterialQuantityUnits: string = 'units';
@@ -126,7 +127,7 @@ export class RawMaterialCustomerDialogComponent implements ModalContentDirective
       this.editedObject.name = this.editedObjectCopy.name;
       this.editedObject.quantity = this.editedObjectCopy.quantity;
       this.editedObject.quantity_units = this.editedObjectCopy.quantity_units;
-      this.editedObject.raw_material_id = this.editedObjectCopy.raw_material_id;
+      this.editedObject.raw_material_purchase_id = this.editedObjectCopy.raw_material_purchase_id;
       this.editedObject.remaining_quantity = ((this.editedObjectCopy.id <= 0) ? this.editedObjectCopy.quantity : this.editedObjectCopy.quantity - this.min_quantity );
       this.editedObject.quantity_in_kg = (this.rawMaterialQuantityUnits == "kg")? this.editedObjectCopy.quantity_in_kg : 0;
       this.editedObjectCopy.quantity = 0; // reset the quantity before closing, so that on the next load there is no boundaries issue
@@ -160,13 +161,14 @@ export class RawMaterialCustomerDialogComponent implements ModalContentDirective
         id: 0,
         name: customer_name,
         business_name: '',
-        raw_material_id: 0,
+        raw_material_purchase_id: 0,
         customer_id: customer_id,
         quantity: 0,
         remaining_quantity: 0,
         quantity_units: 'units',
         quantity_in_kg: 0,
-        transaction_record: null
+        transaction_record: null,
+        bank_in_use: false
       });
     }
   }

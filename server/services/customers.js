@@ -28,11 +28,18 @@ async function getSingle(id, currentUserId){
   if(!helper.isEmptyObj(customer)) {
     const customer_banks_recs =  await db.query(
       `select 
-          rm.name raw_material_name, rm.color raw_material_color, cb.quantity_units raw_material_quantity_units, rm.allow_shortening_babies_in_pairs allow_shortening_babies_in_pairs, rm. is_usable_for_h_material is_material_usable_for_h_material,
-          cb.id, cb.customer_id, cb.raw_material_id, cb.quantity, cb.remaining_quantity 
-        from customer_banks cb
-        left join raw_materials rm on cb.raw_material_id = rm.id
-        where cb.customer_id=(?);`, [id]);
+          rm.name raw_material_name, rm.color raw_material_color,
+          rmp.quantity_units raw_material_quantity_units, 
+          rm.allow_shortening_babies_in_pairs allow_shortening_babies_in_pairs,
+          rm. is_usable_for_h_material is_material_usable_for_h_material,      
+          cb.id, cb.customer_id, 
+          cb.raw_material_purchase_id,
+          rmp.raw_material_id, cb.quantity, cb.remaining_quantity 
+          
+      from customer_banks cb
+            left join raw_material_purchases rmp on cb.raw_material_purchase_id = rmp.id
+            left join raw_materials rm on rmp.raw_material_id  = rm.id
+            where cb.customer_id=(?);`, [id]);
     const customer_banks = helper.emptyOrRows(customer_banks_recs);
     customer.banks = customer_banks;
 

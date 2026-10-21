@@ -55,7 +55,8 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     transaction_history: [],
     raw_material_color: '',
     allow_shortening_babies_in_pairs: false,
-    is_material_usable_for_h_material: true
+    is_material_usable_for_h_material: true,
+    raw_material_purchase_id: 0
   };
   @Input() banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
   @Input() babies: Allocation_Baby[] = [];
@@ -82,7 +83,8 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     customer_id: 0, raw_material_id: 0, quantity: 0, remaining_quantity: 0, transaction_history: [],
     raw_material_color: '',
     allow_shortening_babies_in_pairs: false,
-    is_material_usable_for_h_material: true
+    is_material_usable_for_h_material: true,
+    raw_material_purchase_id: 0
   };
   unchanged_banks_baby_allocations: Customer_Bank_Baby_Allocation[] = [];
   unchanged_babies: Allocation_Baby[] = [];

@@ -1,4 +1,7 @@
-<app-modal-dialog #quantityDialog>
+<app-modal-dialog #quantityDialog
+    [btnSaveText]="'Top up!'"
+    [btnCancelText]="'Cancel'"
+>
     <div modalContent>
         <form novalidate #quantityForm="ngForm" [id]="'quantityForm'">
             <div class="row">
@@ -18,7 +21,8 @@
                                     }"
                                     inputmode="decimal"          
                                     #topUpQuantity="ngModel" 
-                                    [ngClass]="{'form-control': true, 'invalid': (quantityForm.touched && (editedObject.top_up_quantity <=0 || (editedObject.max_topping > 0 ? editedObject.top_up_quantity > editedObject.max_topping : false)))}"
+                                    #topUpInput 
+                                    [ngClass]="{'form-control': true, 'invalid': (quantityForm.touched && (entered_quantity <= 0 || (editedObject.max_topping > 0 && entered_quantity > editedObject.max_topping))), 'is-invalid': (editedObject.max_topping > 0 && entered_quantity > editedObject.max_topping)}"
                                     placeholder="0"
                                     [(ngModel)]="editedObject.top_up_quantity"
                                     name="topUpQuantity"
@@ -47,12 +51,16 @@
                         topUpQuantity.value > editedObject.top_up_quantity {{ topUpQuantity.value > editedObject.top_up_quantity }}<br/>
                         validation error {{ (attemptedClose && topUpQuantity.value!='' && editedObject.max_topping > 0 && topUpQuantity.value > editedObject.top_up_quantity) }}
                     </div-->
-                    <div class="text-success" *ngIf="editedObject.max_topping > 0 && topUpQuantity.value <= editedObject.max_topping">
+                    <div class="text-success" *ngIf="editedObject.max_topping > 0 && entered_quantity <= editedObject.max_topping">
                         Maximum available material: 
                         {{ editedObject.max_topping | number: (editedObject.quantity_units? '1.0-0': '1.2-2') }} {{ editedObject.quantity_units }}
                     </div>
-                    <div class="text-danger" *ngIf="(topUpQuantity.value!='' && editedObject.max_topping > 0 && topUpQuantity.value > editedObject.max_topping)">
-                        Not enough material, cannot top more than {{ editedObject.max_topping | number: (editedObject.quantity_units? '1.0-0': '1.2-2') }} {{ editedObject.quantity_units }}
+                    <div class="text-danger fw-bold" *ngIf="editedObject.max_topping > 0 && entered_quantity > editedObject.max_topping">
+                        <strong>Quantity exceeds the remaining quantity!</strong><br/>
+                        Cannot top up by more than {{ editedObject.max_topping | number: (editedObject.quantity_units? '1.0-0': '1.2-2') }} {{ editedObject.quantity_units }}
+                    </div>
+                    <div class="text-danger" *ngIf="attemptedClose && entered_quantity <= 0">
+                        Please enter a quantity greater than 0
                     </div>
                     <!--
                     validation:

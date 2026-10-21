@@ -17,9 +17,8 @@
     <thead>
       <tr>
         <th scope="col">Name</th>
-        <th scope="col">Purchased at</th>
-        <th scope="col">Quantity</th>
-        <th scope="col">Last update</th>
+        <th scope="col">Total quantity</th>
+        <th scope="col">Last purchase</th>
         <th scope="col">Last update by</th>
       </tr>
     </thead>
@@ -32,6 +31,16 @@
           <span [className]="'color color-' + rawMaterial.color.toLowerCase().replace(' ', '-')"></span>
           {{ rawMaterial.name }} - {{ rawMaterial.color }}
         </td>
+        <td>
+          {{ rawMaterial.total_quantity | number: ((rawMaterial.last_purchase_quantity_units=='kg')? ('1.2-2'): ('1.0')) }} 
+          {{ rawMaterial.last_purchase_quantity_units }}
+          ({{ rawMaterial.total_remaining | number: ((rawMaterial.last_purchase_quantity_units=='kg')? ('1.2-2'): ('1.0')) }} left)
+        </td>
+        <td>
+          {{ (rawMaterial.last_purchase)? (rawMaterial.last_purchase | dateStr) : '-' }}
+        </td>
+        <td>{{ rawMaterial.last_update_by }}</td>
+        <!--
         <td>{{ rawMaterial.purchased_at | dateStr }}</td>
         <td>
           {{ rawMaterial.purchase_quantity | number: ((rawMaterial.quantity_units=='kg')? ('1.2-2'): ('1.0')) }} 
@@ -40,6 +49,7 @@
         </td>
         <td>{{ rawMaterial.updated_at | dateStr }}</td>
         <td>{{ rawMaterial.updated_by }}</td>
+        -->
       </tr>
     </tbody>
   </table>

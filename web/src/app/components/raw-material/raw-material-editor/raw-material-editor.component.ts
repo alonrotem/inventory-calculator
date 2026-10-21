@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, forwardRef, OnInit, ViewChild } from '@angular/core';
 import { DecimalPipe, Location, NgClass, NgFor, NgIf } from '@angular/common';
-import { Country, Currency, RawMaterial, RawMaterialCustomerBank, RawMaterialBasicDetails, TransactionType } from '../../../../types';
+import { Country, Currency, RawMaterial, RawMaterialCustomerBank, RawMaterialBasicDetails, TransactionType, RawMaterialPurchase, Customers, Customer_Bank } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
 import { RouterLink, RouterOutlet, ActivatedRoute } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -10,14 +10,16 @@ import { InfoService } from '../../../services/info.service';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faSave, faTrashAlt, faTimesCircle, IconDefinition, faArrowLeft, faClockRotateLeft } from '@fortawesome/free-solid-svg-icons';
+import { faSave, faTrashAlt, faTimesCircle, IconDefinition, faArrowLeft, faClockRotateLeft, faCartShopping, faArrowRightArrowLeft, faArrowDownShortWide, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmationDialogComponent } from "../../common/confirmation-dialog/confirmation-dialog.component";
-import { AutocompleteLibModule } from 'angular-ng-autocomplete';
+import { AutocompleteComponent, AutocompleteLibModule } from 'angular-ng-autocomplete';
 import { ToastService } from '../../../services/toast.service';
 import { HasUnsavedChanges } from '../../../guards/unsaved-changes-guard';
-import { Observable } from 'rxjs';
+import { Observable, take } from 'rxjs';
 import { RawMaterialCustomerTableComponent } from '../raw-material-customer-table/raw-material-customer-table.component';
-import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
+import { DialogClosingReason, ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
+import { ModalContentDirective } from '../../common/directives/modal-content.directive';
+import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
 import { RawMaterialQuantityDialogComponent } from '../raw-material-quantity-dialog/raw-material-quantity-dialog.component';
 import { RawMaterialHistoryDialogComponent } from '../raw-material-history-dialog/raw-material-history-dialog.component';
 import { UnsavedChangesDialogComponent } from "../../common/unsaved-changes-dialog/unsaved-changes-dialog.component";
@@ -26,6 +28,10 @@ import { UnsavedNavigationConfirmationService } from '../../../services/unsaved-
 import { NumericInputDirective } from '../../../utils/directives/auto-numeric.directive';
 import { SaveChangesButtonComponent } from "../../common/save-changes-button/save-changes-button.component";
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
+import { CustomersService } from '../../../services/customers.service';
+import { CapacityBarComponent } from '../capacity-bar/capacity-bar.component';
+import { FilterPipe } from '../../../utils/pipes/filter-pipe';
+import { TooltipDirective } from '../../common/tooltip/tooltip.directive';
 
 
 @Component({
@@ -38,8 +44,15 @@ import { NavigatedMessageComponent } from '../../common/navigated-message/naviga
     RawMaterialCustomerTableComponent, RawMaterialQuantityDialogComponent,
     RawMaterialHistoryDialogComponent, NgClass,
     UnsavedChangesDialogComponent, NgFor, NumericInputDirective,
-    SaveChangesButtonComponent
+    SaveChangesButtonComponent,
+    ModalDialogComponent, ModalContentDirective,
+    CapacityBarComponent, FilterPipe, TooltipDirective
 ],
+  // Lets the [modalContent] directive of the purchase editor modal call this component's beforeClose()
+  providers: [{
+    provide: MODAL_OBJECT_EDITOR,
+    useExisting: forwardRef(() => RawMaterialEditorComponent)
+  }],
   templateUrl: './raw-material-editor.component.html',
   styleUrl: './raw-material-editor.component.scss'
 })
@@ -48,26 +61,17 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   public rawMaterialItem : RawMaterial = {
     id: 0,
     name: "",
-    purchased_at: new Date(),
     updated_at: new Date(),
     created_by: 0,
     updated_by: 0,
-    units_per_kg: 0,
-    vendor_name: '',
-    origin_country: 'US',
-    price: 0,
-    currency: 'USD',
-    notes: '',
     created_at: new Date(),
-    purchase_quantity: 0,
-    remaining_quantity: 0,
-    quantity_units: 'units',
     customer_banks: [],
     transaction_record: null,
     deleted_bank_records: [],
     color: '',
     allow_shortening_babies_in_pairs: false,
-    is_usable_for_h_material: false
+    is_usable_for_h_material: false,
+    purchases: []
   }
 
   colors: string[] = [];
@@ -81,13 +85,15 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   faTimesCircle:IconDefinition = faTimesCircle;
   faArrowLeft: IconDefinition = faArrowLeft;
   faClockRotateLeft : IconDefinition = faClockRotateLeft;
+  faCartShopping: IconDefinition = faCartShopping;
+  faArrowRightArrowLeft: IconDefinition = faArrowRightArrowLeft;
+  faArrowDownShortWide: IconDefinition = faArrowDownShortWide;
   is_new_material: Boolean = true;
   raw_material_names: RawMaterialBasicDetails[] = [];
   confirmResult: boolean | null = null;
   purchaseQuantity: number = 0;
   remainingQuantity: number = 0;
   lock_quantity_control: boolean = false;
-  show_tooltip = false;
 
   // keeping track of changes, for the history records
   initial_quantity = 0;
@@ -97,6 +103,47 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   insufficient_quantity_for_banks: boolean = false;
   curr_total_in_banks: number = 0;
   console=console;
+
+  customer_names: { id: number; name: string; }[] = [];
+  purchase_edited_customer_id = 0;
+
+  editedPurchase: RawMaterialPurchase = {
+    id: 0,
+    raw_material_id: 0,
+    purchased_at: new Date(),
+    purchase_quantity: 0,
+    remaining_quantity: 0,
+    quantity_units: 'units',
+    units_per_kg: 0,
+    vendor_name: '',
+    origin_country: 'US',
+    price: 0,
+    currency: 'USD',
+    notes: ''
+  };
+
+  edited_bank: RawMaterialCustomerBank = {
+    id: 0,
+    name: '',
+    business_name: '',
+    raw_material_purchase_id: 0,
+    customer_id: 0,
+    quantity: 0,
+    remaining_quantity: 0,
+    quantity_units: '',
+    quantity_in_kg: 0,
+    transaction_record: null,
+    bank_in_use: false
+  };
+  new_purchase_counter = -1;
+  new_bank_counter = -1;
+  edited_bank_initial_quantity = 0;
+  edited_purchase_initial_remaining_quantity = 0;
+  min_bank_quantity = -Infinity;
+  max_bank_quantity = Infinity;
+  is_bank_saveable = false;
+  is_bank_cancellable = false;
+
   @ViewChild("materialName", { read: ElementRef }) materialName! :ElementRef;
   @ViewChild("suggestions", { read: ElementRef }) suggestions!: ElementRef;
   @ViewChild("purchasedAt", { read: ElementRef }) purchase_date!: ElementRef;
@@ -106,11 +153,15 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   @ViewChild("btn_save", { read: ElementRef }) btn_save!: ElementRef;
   @ViewChild("price", { read: ElementRef }) price!: ElementRef;
   @ViewChild("currency") currency!: NgSelectComponent;
-  @ViewChild("tooltip", { read: ElementRef }) tooltip!: ElementRef;
   @ViewChild('quantityDialog') quantityDialog!: RawMaterialQuantityDialogComponent
   @ViewChild('history_dialog') history_dialog!: RawMaterialHistoryDialogComponent;
   @ViewChild('customer_table') customer_table!: RawMaterialCustomerTableComponent;
   @ViewChild('save_changes_button') save_changes_button!: SaveChangesButtonComponent;
+  @ViewChild('purchase_editor') purchase_editor!: ModalDialogComponent;
+  @ViewChild("meter") meter!: CapacityBarComponent;
+  @ViewChild("confirm_action") confirm_action!: ConfirmationDialogComponent;
+  @ViewChild("customerAutocomplete") customerAutocomplete!: AutocompleteComponent;
+  private last_customer_name_handled: string | null = null;
   
   constructor(
     private rawMaterialsService: RawMaterialsService, 
@@ -120,10 +171,12 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     router: Router,
     toastService: ToastService,
     stateService: StateService,
-    private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService) { 
+    private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService,
+    private customersService: CustomersService) { 
       super(toastService, stateService, router, activatedRoute);
       this.rawMaterialsService.getRawMaterialBasicDetails().subscribe({
         next: (names)=> {
+          this.console.log(names);
           this.raw_material_names = names;
         }
       });
@@ -132,28 +185,13 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
           this.quantity_units = quantity_units;
         }
       });
-  }
 
-  @HostListener('document:mousemove', ['$event']) 
-  onMouseMove(event : any) {
-    if(this.show_tooltip){
-      this.tooltip.nativeElement.style.top = (event.pageY + 19) + "px";
-      this.tooltip.nativeElement.style.left = (event.pageX + 12) + "px";
-      this.tooltip.nativeElement.style.display = "block";
-    }
-    else {
-      this.tooltip.nativeElement.style.display = "none";
-      this.tooltip.nativeElement.style.top = "0px";
-      this.tooltip.nativeElement.style.left = "0px";
-    }
-  }
-
-  showTooltip(content: string){
-    this.tooltip.nativeElement.innerHTML = content;
-    this.show_tooltip = true;
-  }
-  hideTooltip (){
-    this.show_tooltip = false;
+      this.customersService.getCustomers({ } as any).subscribe({
+        next: (customers: Customers) => {
+        this.customer_names = customers.data.map((c) => { return { id: c.id, name: c.name } });
+          //this.customers = customers.data;
+        }
+      });
   }
 
   hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
@@ -228,8 +266,8 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
         }
         else {
           this.rawMaterialItem = rawMaterial;
-          this.initial_quantity = rawMaterial.purchase_quantity;
-          this.initial_remaining = rawMaterial.remaining_quantity;
+          //this.initial_quantity = rawMaterial.purchase_quantity;
+          //this.initial_remaining = rawMaterial.remaining_quantity;
           this.initial_in_banks = rawMaterial.customer_banks.reduce((n, {quantity}) => n + quantity, 0);
           this.initial_totals_per_bank = rawMaterial.customer_banks.map(b => ({ 
             bank_id: b.id, 
@@ -248,10 +286,13 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   }
 
   save(navigate_after_save: boolean = true){
+    
     this.raw_material_form.form.markAllAsTouched();
     if((this.raw_material_form.form.valid) && (!this.insufficient_quantity_for_banks))
     {
+
       this.raw_material_form.form.markAsPristine();
+      /*
       this.rawMaterialItem.purchased_at =  new Date(this.purchase_date.nativeElement.value);
       
       let added_to_banks_since_last_load = 0;
@@ -329,7 +370,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
       let current_bank_ids = this.rawMaterialItem.customer_banks.filter(bank => bank.id > 0).map(bank => bank.id);
       let deleted_banks = this.initial_totals_per_bank.filter(bank => current_bank_ids.indexOf(bank.bank_id) < 0);
       let total_quantity_in_deleted_banks = deleted_banks.reduce((n, {bank_quantity}) => n + bank_quantity, 0);
-      let cur_raw_material_quantity = this.rawMaterialItem.remaining_quantity - total_quantity_in_deleted_banks;
+      //let cur_raw_material_quantity = this.rawMaterialItem.remaining_quantity - total_quantity_in_deleted_banks;
       //console.log("quantity before banks were deleted: " + cur_raw_material_quantity);
       if(!this.rawMaterialItem.deleted_bank_records) {
         this.rawMaterialItem.deleted_bank_records = [];
@@ -337,7 +378,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
       deleted_banks.forEach(bank => {
         let date = new Date();
         date.setSeconds(date.getSeconds() + artificial_secs);
-        cur_raw_material_quantity += bank.bank_quantity;
+        //cur_raw_material_quantity += bank.bank_quantity;
         //console.log("Deleted costomer bank " + bank.bank_name + ", quantity " + bank.bank_quantity + " remaining "+ cur_raw_material_quantity);
         this.rawMaterialItem.deleted_bank_records.push({
           id: 0,
@@ -355,7 +396,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
         });
         artificial_secs++;
       });
-
+      */
       this.btn_save.nativeElement.classList.add("disabled");
 
       this.rawMaterialsService.save(this.rawMaterialItem).subscribe(
@@ -463,6 +504,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     //End hack
     //---------------------------------------------------------------
 
+    /*
     if(this.currency.itemsList) {
       let curr = this.currency.itemsList.findByLabel(this.rawMaterialItem.currency);
       this.currency.select(curr);
@@ -476,6 +518,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
       }
       this.raw_material_form.form.markAsDirty();
     });
+    */
     this.raw_material_form.form.markAsPristine();
   }
 
@@ -484,6 +527,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   }
 
   recalculateRemaining() {
+    /*
     //console.log("recalculateRemaining");
     this.curr_total_in_banks = (this.rawMaterialItem.quantity_units == "kg")? 
       this.rawMaterialItem.customer_banks.reduce((n, { quantity_in_kg }) => n + quantity_in_kg, 0) :
@@ -492,25 +536,519 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     this.rawMaterialItem.remaining_quantity = this.rawMaterialItem.purchase_quantity - this.curr_total_in_banks;
     this.lock_quantity_control = this.curr_total_in_banks > 0;
     this.insufficient_quantity_for_banks = this.rawMaterialItem.remaining_quantity < 0;
+    */
   }
 
-  openQuantityDialog(){
-    //this.quantityDialogContent.remaining_quantity = this.rawMaterialItem.remaining_quantity;
-    this.quantityDialog.editedObject = {
-      top_up_quantity: 0,
-      current_quantity: this.rawMaterialItem.purchase_quantity,
-      remaining_quantity: this.rawMaterialItem.remaining_quantity,
-      quantity_units: this.rawMaterialItem.quantity_units,
-      current_quantity_kg: 0, // this is just for banks
-      max_topping: 0
-    };
-    this.quantityDialog.dialogWrapper.modalTitle = "+ Top up quantity";
-    this.quantityDialog.rawMaterialQuantityUnits = this.rawMaterialItem.quantity_units;
-    this.quantityDialog.show_units_to_kg_adjustment = false;
-    this.quantityDialog.open();
+  // True while the top-up dialog is open on top of the purchase editor. The purchase editor
+  // listens to Enter/Esc on the document too, and must ignore them meanwhile.
+  top_up_dialog_open = false;
+
+  // The top-up button of the purchase editor: the purchase can be topped up by any quantity
+  async openQuantityDialog() {
+    const top_up = await this.ask_top_up_quantity({
+      title: "+ Top up purchase",
+      quantity_units: this.editedPurchase.quantity_units,
+      current_quantity: this.editedPurchase.purchase_quantity,
+      remaining_quantity: this.editedPurchase.remaining_quantity
+    });
+    if(top_up === null) {
+      return;
+    }
+    this.editedPurchase.purchase_quantity += top_up;
+    this.editedPurchase.remaining_quantity += top_up;
+    this.edited_purchase_last_quantity = this.editedPurchase.purchase_quantity;
+
+    // A bank being edited can now take the added material
+    if(this.edited_bank.id != 0) {
+      this.edited_purchase_initial_remaining_quantity += top_up;
+      this.meter.totalCapacity += top_up;
+      this.max_bank_quantity = this.meter.totalCapacity;
+      this.meter.recalculate();
+      this.checkIfBankIsSaveable();
+    }
+    this.raw_material_form?.form.markAsDirty();
+  }
+
+  // The top-up button of a bank in the customer tables: the bank can be topped up by the remaining quantity of its purchase
+  async top_up_bank(table_bank: RawMaterialCustomerBank) {
+    const bank = this.rawMaterialItem.customer_banks.find(b => b.id == table_bank.id) ?? table_bank;
+    const purchase = (bank.raw_material_purchase_id == this.editedPurchase.id)?
+      this.editedPurchase :
+      this.rawMaterialItem.purchases.find(p => p.id == bank.raw_material_purchase_id);
+    if(!purchase) {
+      return;
+    }
+
+    if(purchase.remaining_quantity <= 0) {
+      await this.confirm_action.open_with_message({
+        modalTitle: "Not enough material!",
+        modalText: "Not enough remaining material in the purchase to top up.<br/>Please increase the purchase quantity.",
+        btnYesText: "I see...",
+        btnYesClass: "btn btn-warning m-auto",
+        btnNoClass: "d-none",
+        dialogIcon: faTriangleExclamation,
+      });
+      return;
+    }
+
+    const top_up = await this.ask_top_up_quantity({
+      title: "+ Top up customer bank",
+      quantity_units: bank.quantity_units,
+      current_quantity: bank.quantity,
+      remaining_quantity: bank.remaining_quantity,
+      max_topping: purchase.remaining_quantity
+    });
+    if(top_up === null) {
+      return;
+    }
+    bank.quantity += top_up;
+    bank.remaining_quantity += top_up;
+    if(bank.quantity_units == "kg") {
+      bank.quantity_in_kg += top_up;
+    }
+    else if(purchase.units_per_kg > 0) {
+      bank.quantity_in_kg += top_up / purchase.units_per_kg;
+    }
+    purchase.remaining_quantity -= top_up;
+    this.raw_material_form?.form.markAsDirty();
+  }
+
+  // Opens the top-up dialog, and resolves with the quantity to top up by (null if cancelled)
+  private async ask_top_up_quantity(options: Parameters<RawMaterialQuantityDialogComponent['open']>[0]): Promise<number | null> {
+    this.top_up_dialog_open = true;
+    try {
+      return await this.quantityDialog.open(options);
+    }
+    finally {
+      this.top_up_dialog_open = false;
+    }
   }
 
   openHistoryDialog() {
     this.history_dialog.open(this.rawMaterialItem);
+  }
+
+  // focus_customer: also scroll to the customer autocomplete, focus it, and drop its list down
+  // bank_id: once the editor is open, also start editing that bank
+  open_purchase_editor(purchase_id = 0, focus_customer = false, bank_id = 0) {
+    this.purchase_editor.modalTitle = (purchase_id)? 'Edit purchase':'Add purchase';
+    this.purchase_editor.btnSaveClass= "btn-success";
+    this.purchase_editor.btnSaveIcon = faCartShopping;
+    this.purchase_editor.btnSaveText = (purchase_id)? 'Save changes':'Add purchase';
+    this.purchase_editor.btnCancelText = "Cancel";
+    if(purchase_id!=0){
+      this.editedPurchase = this.rawMaterialItem.purchases.find(p => p.id == purchase_id) ?? this.editedPurchase;
+    }
+    else {
+      this.editedPurchase = {
+        id: this.new_purchase_counter--,
+        raw_material_id: 0,
+        purchased_at: new Date(),
+        purchase_quantity: 0,
+        remaining_quantity: 0,
+        quantity_units: 'units',
+        units_per_kg: 0,
+        vendor_name: '',
+        origin_country: 'US',
+        price: 0,
+        currency: 'USD',
+        notes: ''
+      };
+    }
+    this.edited_purchase_last_quantity = this.editedPurchase.purchase_quantity;
+    this.lock_quantity_control = this.rawMaterialItem.customer_banks.filter(b => b.raw_material_purchase_id == purchase_id).length > 0;
+    this.purchase_editor.open();
+
+    // However the modal gets closed (save, cancel, X, Esc), the next time it opens it must be blank
+    const opened_modal = this.purchase_editor.modalReference;
+    opened_modal.hidden.pipe(take(1)).subscribe(() => {
+      // (if the modal was already re-opened before this one finished hiding, leave the new session alone)
+      if(this.purchase_editor.modalReference === opened_modal){
+        this.clear_bank();
+      }
+    });
+
+    if(bank_id != 0){
+      // `shown` emits once the modal is fully open
+      this.purchase_editor.modalReference.shown.pipe(take(1)).subscribe(async () => {
+        await this.edit_bank(bank_id);
+        this.scroll_to_customer_autocomplete(false);
+      });
+    }
+
+    if(focus_customer){
+      // Wait for the modal to finish opening, so the autocomplete is in the DOM and visible
+      setTimeout(() => this.scroll_to_customer_autocomplete(true), 350);
+    }
+  }
+
+  // The quantity of the purchase that customer banks already hold: the purchase can't go below it
+  get min_purchase_quantity(): number {
+    return this.rawMaterialItem.customer_banks
+      .filter(b => b.raw_material_purchase_id == this.editedPurchase.id)
+      .reduce((sum, b) => sum + b.quantity, 0);
+  }
+
+  get is_purchase_quantity_too_low(): boolean {
+    return (Number(this.editedPurchase.purchase_quantity) || 0) < this.min_purchase_quantity;
+  }
+
+  // An arrow function, because the modal calls it without this component as `this`
+  can_save_purchase = (): boolean => !this.is_purchase_quantity_too_low && !this.top_up_dialog_open;
+
+  // The purchase quantity as of the last adjustment of the remaining quantity
+  private edited_purchase_last_quantity = 0;
+
+  // The remaining quantity follows the purchase quantity by the same difference: a new purchase
+  // starts with all of its quantity remaining, and adding 100 to an existing one adds 100 to what remains
+  purchaseQuantityChanged(new_quantity: number | string | null) {
+    const quantity = Number(new_quantity) || 0;
+    this.editedPurchase.remaining_quantity += (quantity - this.edited_purchase_last_quantity);
+    this.edited_purchase_last_quantity = quantity;
+  }
+
+  // The purchase editor modal was confirmed: add the purchase, or update it if it's already in the list
+  save_purchase() {
+    const purchase: RawMaterialPurchase = JSON.parse(JSON.stringify(this.editedPurchase));
+    purchase.raw_material_id = this.rawMaterialItem.id;
+
+    const purchaseIndex = this.rawMaterialItem.purchases.findIndex(p => p.id == purchase.id);
+    if(purchaseIndex >= 0) {
+      this.rawMaterialItem.purchases[purchaseIndex] = purchase;
+    }
+    else {
+      this.rawMaterialItem.purchases.push(purchase);
+    }
+    // so the "save changes" button shows up
+    this.raw_material_form?.form.markAsDirty();
+  }
+
+  // The purchase editor modal was cancelled: a purchase that was never saved takes its new banks with it
+  discard_unsaved_purchase() {
+    const is_saved_in_list = this.rawMaterialItem.purchases.some(p => p.id == this.editedPurchase.id);
+    if(!is_saved_in_list) {
+      this.rawMaterialItem.customer_banks = this.rawMaterialItem.customer_banks
+        .filter(b => b.raw_material_purchase_id != this.editedPurchase.id);
+    }
+  }
+
+  // Scrolls the customer autocomplete into view. open_list: also focus it and drop its list down
+  scroll_to_customer_autocomplete(open_list: boolean) {
+    const input: HTMLInputElement | undefined = this.customerAutocomplete?.searchInput?.nativeElement;
+    if(!input){
+      return;
+    }
+    if(open_list){
+      this.customerAutocomplete.open();
+      // Focusing scrolls instantly (which would cancel a smooth scroll), so focus without scrolling first
+      input.focus({ preventScroll: true });
+    }
+    // Scroll afterwards, once the dropdown list (if any) has been rendered below the input
+    setTimeout(() => input.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+  }
+
+  private closing_check_pending = false;
+  private closing_confirmed = false;
+
+  // Called by the purchase editor modal (through the [modalContent] directive) before it closes.
+  // The confirmation is async, so when there are unsaved bank changes we block this close,
+  // ask the user, and if they confirm, close the modal again with the check skipped.
+  beforeClose(reason: DialogClosingReason): Boolean {
+    if(this.top_up_dialog_open){
+      return false;
+    }
+    if(this.closing_check_pending){
+      // Waiting for the user's answer: ignore Enter/Escape/clicks meanwhile
+      return false;
+    }
+    if(reason != DialogClosingReason.cancel || this.closing_confirmed){
+      this.closing_confirmed = false;
+      return true;
+    }
+    this.checkIfBankIsSaveable();
+    if(!this.is_bank_saveable){
+      return true;
+    }
+    this.closing_check_pending = true;
+    this.verify_cancellation_of_unsaved_changes().then(discard => {
+      this.closing_check_pending = false;
+      if(discard){
+        this.closing_confirmed = true;
+        this.purchase_editor.onCancel();
+      }
+    });
+    return false;
+  }
+
+  // Returns false if the user declined to discard the changes of the bank currently being edited
+  async edit_bank(bank_id:number): Promise<boolean> {
+    if(this.is_bank_saveable){
+      if(!await this.verify_cancellation_of_unsaved_changes()){
+        return false;
+      }
+    }
+    let bank = this.rawMaterialItem.customer_banks.find(b => b.id == bank_id);
+    if(bank) {
+      this.edited_bank = JSON.parse(JSON.stringify(bank));
+      this.console.log(this.edited_bank);
+    }
+    else {
+      this.edited_bank = {
+        id: this.new_bank_counter,
+        name: '',
+        business_name: '',
+        raw_material_purchase_id: 0,
+        customer_id: 0,
+        quantity: 0,
+        remaining_quantity: 0,
+        quantity_units: '',
+        quantity_in_kg: 0,
+        transaction_record: null,
+        bank_in_use: false
+      };
+    }
+    this.last_customer_name_handled = null;
+    this.edited_bank_initial_quantity = this.edited_bank.quantity;
+    this.edited_purchase_initial_remaining_quantity = this.editedPurchase.remaining_quantity;
+    this.meter.bankQuantity = this.edited_bank.quantity;
+    this.meter.materialInUse = this.edited_bank.quantity - this.edited_bank.remaining_quantity;
+    this.meter.totalCapacity = this.edited_bank.quantity + this.editedPurchase.remaining_quantity;
+    this.max_bank_quantity = this.meter.totalCapacity;
+    this.min_bank_quantity = this.meter.materialInUse;
+    //console.log("min/man " + this.meter.totalCapacity + " - " + this.meter.materialInUse);
+    this.meter.recalculate();
+    this.checkIfBankIsSaveable();
+    return true;
+  }
+
+  // Called by the customer tables, which only receive a (possibly filtered) copy of customer_banks
+  delete_bank(bank: RawMaterialCustomerBank){
+    const bankIndex = this.rawMaterialItem.customer_banks.findIndex(b => b.id == bank.id);
+    if(bankIndex >= 0){
+      this.rawMaterialItem.customer_banks.splice(bankIndex, 1);
+      // The deleted bank's material goes back to the purchase
+      if(bank.raw_material_purchase_id == this.editedPurchase.id){
+        this.editedPurchase.remaining_quantity += bank.quantity;
+      }
+    }
+  }
+
+  // A purchase can't be deleted if any of its banks is used in customer orders
+  is_purchase_in_use(purchase_id: number): boolean {
+    return this.rawMaterialItem.customer_banks.some(b => b.raw_material_purchase_id == purchase_id && b.bank_in_use);
+  }
+
+  // Deletes the purchase, and all of its banks, after the user confirms
+  async delete_purchase(purchase_id: number) {
+    const purchase = this.rawMaterialItem.purchases.find(p => p.id == purchase_id);
+    if(!purchase || this.is_purchase_in_use(purchase_id)) {
+      return;
+    }
+    const banks_count = this.rawMaterialItem.customer_banks.filter(b => b.raw_material_purchase_id == purchase_id).length;
+    const confirmed = await this.confirm_action.open_with_message({
+      modalTitle: "Delete confirmation",
+      modalText: `Are you sure you want to delete this purchase` +
+        (banks_count > 0 ? ` and its ${banks_count} customer ${banks_count == 1 ? 'bank' : 'banks'}?` : `?`),
+      btnYesIcon: this.faTrashAlt,
+      btnYesText: "Delete",
+      btnYesClass: "btn-danger"
+    });
+    if(confirmed) {
+      this.rawMaterialItem.purchases = this.rawMaterialItem.purchases.filter(p => p.id != purchase_id);
+      this.rawMaterialItem.customer_banks = this.rawMaterialItem.customer_banks.filter(b => b.raw_material_purchase_id != purchase_id);
+      // so the "save changes" button shows up
+      this.raw_material_form?.form.markAsDirty();
+    }
+  }
+
+  customerBankQuantityChanged(quantity:number){
+    this.edited_bank.quantity = quantity;
+    this.editedPurchase.remaining_quantity = this.edited_purchase_initial_remaining_quantity - (quantity - this.edited_bank_initial_quantity);
+    this.edited_bank.remaining_quantity = quantity - this.meter.materialInUse;
+
+    this.meter.bankQuantity = this.edited_bank.quantity;
+    this.meter.materialInUse = this.edited_bank.quantity - this.edited_bank.remaining_quantity;
+    this.meter.totalCapacity = this.edited_bank.quantity + this.editedPurchase.remaining_quantity;
+    this.meter.recalculate();
+    this.checkIfBankIsSaveable();
+    this.is_bank_cancellable = true;
+  }
+
+  //Checks if the currently edited bank can and needs to be saved.
+  //Set the is_bank_savable for reference, and for the UI buttons behavior
+  checkIfBankIsSaveable(){
+
+    //if no active bank, nothing needs to be saved
+    if(this.edited_bank.id == 0) {
+      this.is_bank_saveable = false;
+      return;
+    }
+
+    let quantity_is_within_boundaries = (this.edited_bank.quantity >= this.min_bank_quantity) && (this.edited_bank.quantity <= this.max_bank_quantity);
+    let is_new_bank = (this.edited_bank.customer_id <= 0);
+    let quantity_changed = false;
+    if(!is_new_bank){
+      let unedited_bank = this.rawMaterialItem.customer_banks.find(b => b.id == this.edited_bank.id);
+      quantity_changed = unedited_bank?.quantity != this.edited_bank.quantity;
+    }
+
+    this.is_bank_saveable = 
+      ((quantity_is_within_boundaries) && 
+       ((is_new_bank) || (!is_new_bank && quantity_changed))); 
+  }
+
+  async verify_cancellation_of_unsaved_changes(){
+    let cancel = true;
+    this.checkIfBankIsSaveable();
+    if(this.is_bank_saveable){
+      if(await this.confirm_action.open_with_message({
+        modalText: "Are you sure you want to cancel the changes you made to this bank?",
+        modalTitle: "Cancel changes",
+        btnYesText: "Cancel changes",
+        btnYesClass: "btn-danger"
+      })) {
+        this.clear_bank();
+        cancel = true;
+      }
+      else {
+        cancel = false;
+      }
+    }
+    else {
+      this.clear_bank();
+    }
+    return cancel;
+  }
+
+  // keep_in_collection: pass true after saving, so a newly added (unsaved, negative id) bank is not discarded
+  clear_bank(keep_in_collection: boolean = false){
+    let edited_bank_quantity = this.edited_bank.quantity;
+    let unedited_bank_quantity = 0;
+    let unedited_bank = this.rawMaterialItem.customer_banks.find(b => b.id == this.edited_bank.id);
+    unedited_bank_quantity = unedited_bank?.quantity ?? 0;
+
+
+    this.editedPurchase.remaining_quantity += (edited_bank_quantity - unedited_bank_quantity);
+    this.meter.bankQuantity = 0;
+    this.meter.totalCapacity = 0;
+    this.meter.materialInUse = 0;
+    this.meter.recalculate();
+    this.min_bank_quantity = 0;
+    this.max_bank_quantity = Infinity;
+
+
+    // Cancelling a newly added bank removes it from the collection. Existing banks are never touched.
+    if(!keep_in_collection && this.edited_bank.id < 0){
+      const bankIndex = this.rawMaterialItem.customer_banks.findIndex(b => b.id == this.edited_bank.id);
+      if(bankIndex >= 0) {
+        this.rawMaterialItem.customer_banks.splice(bankIndex, 1);
+      }
+    }
+
+    this.edited_bank = {
+      id: 0,
+      name: '',
+      business_name: '',
+      raw_material_purchase_id: 0,
+      customer_id: 0,
+      quantity: 0,
+      remaining_quantity: 0,
+      quantity_units: '',
+      quantity_in_kg: 0,
+      transaction_record: null,
+      bank_in_use: false
+    }    
+
+    this.is_bank_saveable = false;
+    this.is_bank_cancellable = false;
+    this.purchase_edited_customer_id = 0;
+    this.last_customer_name_handled = null;
+  }
+
+  // Triggered when the user types in the input box (string) or selects an item from the dropdown (object)
+  async onCustomerChanged(val: string | { id: number; name: string } | null) {
+    // The autocomplete's ngModel update (which overwrites edited_bank.name) runs after this synchronous part
+    const previous_name = this.edited_bank.name;
+    // The autocomplete can report the same value more than once (typing + selecting), so ignore repeats
+    const name = ((val && typeof val === 'object') ? val.name : (val ?? '')).toLowerCase();
+    if (name === this.last_customer_name_handled) {
+      return;
+    }
+    this.last_customer_name_handled = name;
+    console.log("customer changed ", val);
+    if (val && typeof val === 'object') {
+      this.purchase_edited_customer_id = val.id;
+      // Typing: look for an exact match in the list. Otherwise, reset to 0.
+      const match = this.customer_names.find(c => c.name.toLowerCase() === name);
+      this.purchase_edited_customer_id = match ? match.id : 0;
+
+      if(this.purchase_edited_customer_id){
+        let existing_bank = this.rawMaterialItem.customer_banks.find(b => b.customer_id == this.purchase_edited_customer_id && b.raw_material_purchase_id == this.editedPurchase.id);
+        if(existing_bank){
+          if(!await this.edit_bank(existing_bank.id)){
+            // User kept editing the current bank: put its name back
+            this.edited_bank.name = previous_name;
+            this.last_customer_name_handled = null;
+          }
+        }
+        else {
+          let bank: RawMaterialCustomerBank = {
+            id: this.new_bank_counter--,
+            name: val.name,
+            business_name: '',
+            raw_material_purchase_id: this.editedPurchase.id,
+            customer_id: val.id,
+            quantity: 0,
+            remaining_quantity: 0,
+            quantity_units: 'units',
+            quantity_in_kg: 0,
+            transaction_record: null,
+            bank_in_use: false
+          };
+          this.rawMaterialItem.customer_banks.push(bank);
+          if(!await this.edit_bank(bank.id)){
+            // User kept editing the current bank: drop the bank we just added and put the name back
+            const bankIndex = this.rawMaterialItem.customer_banks.findIndex(b => b.id == bank.id);
+            if(bankIndex >= 0) {
+              this.rawMaterialItem.customer_banks.splice(bankIndex, 1);
+            }
+            this.edited_bank.name = previous_name;
+            this.last_customer_name_handled = null;
+          }
+        }
+      }
+    }
+  }
+
+  // The autocomplete's model is the selected item object when picking from the list, but a string when typing
+  onCustomerModelChange(value: string | { id: number; name: string } | null) {
+    this.edited_bank.name = (value && typeof value === 'object') ? value.name : (value ?? '');
+  }
+
+  // Triggered when the user clears the input completely
+  async onCustomerCleared() {
+    if(!await this.verify_cancellation_of_unsaved_changes()){        
+      //revert the customer's name the user clared
+      let unedited_bank = this.rawMaterialItem.customer_banks.find(b => b.id == this.edited_bank.id);
+      if(unedited_bank){
+        this.edited_bank.name = unedited_bank.name;
+      }
+      return;
+    }
+    this.clear_bank();
+    // Wait for the modal to finish closing and the autocomplete to re-render, then focus it
+    setTimeout(() => this.customerAutocomplete?.focus(), 300);
+  }
+
+  save_bank_changes(){
+    if(this.is_bank_saveable){
+      const bankIndex = this.rawMaterialItem.customer_banks.findIndex(b => b.id == this.edited_bank.id);
+      if(bankIndex >= 0) {
+        // Replace the item in the collection (reassigning a local variable would not update the array)
+        this.rawMaterialItem.customer_banks[bankIndex] = JSON.parse(JSON.stringify(this.edited_bank));
+      }
+    }
+    // The bank now lives in the collection, so only reset the editor
+    this.clear_bank(true);
   }
 }

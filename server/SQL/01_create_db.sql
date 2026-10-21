@@ -333,16 +333,6 @@ CREATE TABLE  IF NOT EXISTS `raw_materials`
 (
   `id`            	INT NOT NULL auto_increment,
   `name`          	VARCHAR(255) NOT NULL ,
-  `purchased_at` 	DATE NOT NULL DEFAULT(CURRENT_DATE),
-  `purchase_quantity`   	    DECIMAL(15,2) not null ,  -- quantities are floats because they are measured in decimal kgs, or whole units
-  `remaining_quantity`   	    DECIMAL(15,2) not null,
-  `quantity_units`	ENUM('kg', 'units') DEFAULT 'units',
-  `units_per_kg`	float NULL,
-  `vendor_name`		varchar(255) NULL,
-  `origin_country`	VARCHAR(2) NULL,
-  `price`			float NULL,
-  `currency`		varchar(3) NULL,
-  `notes`			varchar(255) NULL,
   `color`			varchar(128) null,
   `is_usable_for_h_material` bool default true,
   `created_at`    	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -351,12 +341,31 @@ CREATE TABLE  IF NOT EXISTS `raw_materials`
   `updated_by`	 	int null,
   `allow_shortening_babies_in_pairs` boolean default false,
   PRIMARY KEY (`id`),
-  CONSTRAINT fk_raw_material_country
-  FOREIGN KEY (`origin_country`) REFERENCES countries(`code`),
-  CONSTRAINT fk_raw_material_currency
-  FOREIGN KEY (`currency`) REFERENCES currencies(`code`),
   CONSTRAINT fk_raw_material_color
   FOREIGN KEY (`color`) REFERENCES material_colors(`color`) ON DELETE CASCADE
+);
+
+CREATE TABLE `raw_material_purchases` (
+  `id`                  INT NOT NULL AUTO_INCREMENT,
+  `raw_material_id`     INT NOT NULL,
+  `purchased_at`        DATE NOT NULL DEFAULT (CURRENT_DATE),
+  `purchase_quantity`   DECIMAL(15,2) NOT NULL,
+  `remaining_quantity`  DECIMAL(15,2) NOT NULL,
+  `quantity_units`      ENUM('kg', 'units') DEFAULT 'units',
+  `units_per_kg`        FLOAT NULL,
+  `vendor_name`         VARCHAR(255) NULL,
+  `origin_country`      VARCHAR(2) NULL,
+  `price`               FLOAT NULL,
+  `currency`            VARCHAR(3) NULL,
+  `notes`               VARCHAR(255) NULL,
+  `updated_by`	 		int null,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_raw_material_purchases_material`
+    FOREIGN KEY (`raw_material_id`) REFERENCES `raw_materials`(`id`) ON DELETE cascade,
+  CONSTRAINT fk_raw_material_country
+  	FOREIGN KEY (`origin_country`) REFERENCES countries(`code`),
+  CONSTRAINT fk_raw_material_currency
+  	FOREIGN KEY (`currency`) REFERENCES currencies(`code`)
 );
 
 CREATE TABLE  IF NOT EXISTS `customers` (
@@ -389,17 +398,29 @@ CREATE TABLE  IF NOT EXISTS `customer_knives` (
 CREATE TABLE  IF NOT EXISTS `customer_banks` (
 	`id`            			INT NOT NULL auto_increment,
 	`customer_id`            	INT NOT NULL,
-    `raw_material_id`            INT NOT NULL,
+    `raw_material_purchase_id`  INT NOT NULL,
 	`quantity`   	    		DECIMAL(15,2) NOT NULL,
     `remaining_quantity`   	    DECIMAL(15,2) NOT NULL,
     `quantity_units`			ENUM('kg', 'units') DEFAULT 'units',
     `quantity_in_kg`			DECIMAL(15,2) not null default 0,
 	PRIMARY KEY (`id`),
   CONSTRAINT fk_raw_material_customer
-  FOREIGN KEY (`customer_id`) REFERENCES customers(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`customer_id`) REFERENCES customers(`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_customer_bank_raw_material_purchase`
+    FOREIGN KEY (`raw_material_purchase_id`) REFERENCES `raw_material_purchases`(`id`) ON DELETE CASCADE;  
+);
+
+/*
+
   CONSTRAINT fk_customer_raw_material
   FOREIGN KEY (`raw_material_id`) REFERENCES raw_materials(`id`)  ON DELETE CASCADE
-);
+ 
+ customer_banks:
+ - drop constraint fk_customer_raw_material
+ - rename column customer_banks.raw_material_id -> raw_material_purchases_id
+ - add foreign key fk_customer_raw_material_purchanse
+  	FOREIGN KEY (`raw_material_purchases_id`) REFERENCES raw_material_purchases(`id`)  ON DELETE CASCADE
+*/
 
 # Withdrawn for work
 CREATE TABLE  IF NOT EXISTS `customer_banks_allocations` (

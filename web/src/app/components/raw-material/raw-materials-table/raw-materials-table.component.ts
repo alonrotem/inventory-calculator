@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { RawMaterialsService } from '../../../services/raw-materials.service';
-import { RawMaterial, RawMaterials } from '../../../../types';
+import { RawMaterial, RawMaterialListItem, RawMaterials } from '../../../../types';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { PaginatorComponent } from "../../common/paginator/paginator.component";
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
@@ -46,7 +46,7 @@ export class RawMaterialsTableComponent extends NavigatedMessageComponent implem
   }
   current_page = 1;
   rowsPerPage:number = 5;
-  rawMaterials: RawMaterial[] = [];
+  rawMaterials: RawMaterialListItem[] = [];
   @ViewChild("paginator") paginator!: PaginatorComponent;
   faArrowsRotate: IconDefinition = faArrowsRotate;
   loading: boolean = true;

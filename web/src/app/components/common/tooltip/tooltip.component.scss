@@ -1,0 +1,22 @@
+.tooltip-box {
+    position: fixed;
+    display: none;
+    pointer-events: none;
+    // Size to the content, but wrap long text instead of stretching across the screen
+    width: max-content;
+    max-width: 250px;
+    background-color: lightyellow;
+    border: 1px solid black;
+    // Must stay above bootstrap modals and the app's own dialogs (99999), which are added to the DOM later
+    z-index: 1000000;
+    color: black;
+    font-size: 12px;
+    padding: 10px 20px;
+    text-align: center;
+    border-radius: 7px;
+    opacity: 1;
+}
+
+.tooltip-box.visible {
+    display: block;
+}

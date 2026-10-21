@@ -1,4 +1,5 @@
-import { Component, ContentChild, EventEmitter, Input, ViewChild } from '@angular/core';
+import { Component, ContentChild, ElementRef, EventEmitter, Input, ViewChild } from '@angular/core';
+import { take } from 'rxjs';
 import { ModalDialog, RawMaterial } from '../../../../types';
 import { FormsModule, NgForm } from '@angular/forms';
 import { DecimalPipe, NgClass, NgIf } from '@angular/common';
@@ -25,6 +26,7 @@ export class RawMaterialQuantityDialogComponent implements ModalContentDirective
   @Input() rawMaterialQuantityUnits: string = 'units';
 
   @ViewChild("quantityForm") quantityForm!: NgForm;
+  @ViewChild("topUpInput") topUpInput!: ElementRef<HTMLInputElement>;
   @ViewChild("quantityDialog") dialogWrapper! :ModalDialogComponent;
   
   close: EventEmitter<number> = new EventEmitter<number>();
@@ -46,12 +48,45 @@ export class RawMaterialQuantityDialogComponent implements ModalContentDirective
   }
   
 
-  open(){
-    if(this.editedObject.quantity_units == "units" && this.rawMaterial_quantity_units == "kg"){
-      this.editedObject.max_topping *= this.rawMaterialUnitsPerKg;
-    }
+  // Opens the dialog and resolves with the quantity to top up by, or null if the user cancelled.
+  // max_topping: the most the user may top up by (0 or omitted = no limit)
+  open(options: { title?: string, quantity_units: string, current_quantity: number, remaining_quantity: number, max_topping?: number }): Promise<number | null> {
+    this.dialogWrapper.modalTitle = options.title ?? "+ Top up quantity";
+    this.rawMaterialQuantityUnits = options.quantity_units;
+    this.rawMaterial_quantity_units = options.quantity_units;
+    this.show_units_to_kg_adjustment = false;
+    this.editedObject = {
+      top_up_quantity: 0,
+      current_quantity: options.current_quantity,
+      current_quantity_kg: 0,
+      remaining_quantity: options.remaining_quantity,
+      quantity_units: options.quantity_units,
+      max_topping: options.max_topping ?? 0
+    };
     this.dialogWrapper.open();
     this.onOpen();
+
+    // Once the modal is fully open, the user can type right away (replacing any existing text)
+    this.dialogWrapper.modalReference.shown.pipe(take(1)).subscribe(() => {
+      this.topUpInput?.nativeElement.focus();
+      this.topUpInput?.nativeElement.select();
+    });
+
+    return new Promise<number | null>((resolve) => {
+      const modal = this.dialogWrapper.modalReference;
+      const confirmSub = this.dialogWrapper.confirm.subscribe(() => {
+        finish(this.entered_quantity > 0 ? this.entered_quantity : null);
+      });
+      const cancelSub = this.dialogWrapper.cancel.subscribe(() => finish(null));
+      // The modal can also be dismissed by itself (backdrop click), without a confirm/cancel event
+      const hiddenSub = modal.hidden.subscribe(() => finish(null));
+      const finish = (value: number | null) => {
+        confirmSub.unsubscribe();
+        cancelSub.unsubscribe();
+        hiddenSub.unsubscribe();
+        resolve(value);
+      };
+    });
   }
 
   onOpen() {
@@ -60,6 +95,13 @@ export class RawMaterialQuantityDialogComponent implements ModalContentDirective
     this.quantityForm.form.markAsPristine();
     this.quantityForm.form.markAsUntouched();
     this.attemptedClose = false;
+  }
+
+  // The quantity as displayed in the textbox, which is what the user sees (0 if empty or invalid)
+  get entered_quantity(): number {
+    const text = this.topUpInput?.nativeElement.value ?? '';
+    const quantity = Number(text.replace(/,/g, ''));
+    return isNaN(quantity) ? 0 : quantity;
   }
 
   quantityChanged(){
@@ -78,8 +120,9 @@ export class RawMaterialQuantityDialogComponent implements ModalContentDirective
 
     this.attemptedClose = true;
     this.quantityForm.form.markAllAsTouched();
-    let okToClose = (this.editedObject.max_topping > 0)? this.quantityForm.form.controls["topUpQuantity"].value <= this.editedObject.max_topping : true;
-    if(this.quantityForm.valid && okToClose){
+    const quantity = this.entered_quantity;
+    const okToClose = quantity > 0 && (this.editedObject.max_topping <= 0 || quantity <= this.editedObject.max_topping);
+    if(okToClose){
       return true;
     }
     setTimeout(() => {
