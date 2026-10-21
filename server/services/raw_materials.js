@@ -151,6 +151,139 @@ async function getQuantityUnitTypes() {
   return (data);
 }
 
+// Syncs the purchases of a raw material, and their customer banks, with the database:
+// * purchases (and their banks) which are no longer in rawMaterial.purchases are deleted
+// * banks which are no longer in rawMaterial.customer_banks are deleted
+// * purchases and banks with an id > 0 are updated, ones with an id <= 0 are inserted
+// Must run inside a transaction (active_connection).
+async function sync_raw_material_purchases(rawMaterial, raw_material_id, currentUserId, active_connection){
+  const purchases = rawMaterial.purchases ?? [];
+  const banks = rawMaterial.customer_banks ?? [];
+  const purchase_ids_to_keep = purchases.filter(p => p.id > 0).map(p => p.id);
+  const bank_ids_to_keep = banks.filter(b => b.id > 0).map(b => b.id);
+
+  // 1. banks which are no longer in the collection
+  const banks_deletion = await db.transaction_query(
+    `DELETE cb FROM customer_banks cb
+      JOIN raw_material_purchases rmp ON rmp.id = cb.raw_material_purchase_id
+      WHERE rmp.raw_material_id = (?)` + ((bank_ids_to_keep.length > 0)? ` AND cb.id NOT IN (?)` : ``),
+    (bank_ids_to_keep.length > 0)? [raw_material_id, bank_ids_to_keep] : [raw_material_id],
+    active_connection
+  );
+
+  // 2. purchases which are no longer in the collection (their remaining banks go with them)
+  const orphan_banks_deletion = await db.transaction_query(
+    `DELETE cb FROM customer_banks cb
+      JOIN raw_material_purchases rmp ON rmp.id = cb.raw_material_purchase_id
+      WHERE rmp.raw_material_id = (?)` + ((purchase_ids_to_keep.length > 0)? ` AND rmp.id NOT IN (?)` : ``),
+    (purchase_ids_to_keep.length > 0)? [raw_material_id, purchase_ids_to_keep] : [raw_material_id],
+    active_connection
+  );
+  const purchases_deletion = await db.transaction_query(
+    `DELETE FROM raw_material_purchases WHERE raw_material_id = (?)` + ((purchase_ids_to_keep.length > 0)? ` AND id NOT IN (?)` : ``),
+    (purchase_ids_to_keep.length > 0)? [raw_material_id, purchase_ids_to_keep] : [raw_material_id],
+    active_connection
+  );
+
+  // 3. add/update the purchases, each followed by its banks
+  let purchases_saved = 0;
+  let banks_saved = 0;
+  let customers_created = 0;
+  for(const purchase of purchases){
+    const is_new_purchase = purchase.id <= 0;
+    const purchase_result = await db.transaction_query(
+      `INSERT INTO raw_material_purchases
+        (id, raw_material_id, purchased_at, purchase_quantity, remaining_quantity, quantity_units,
+         units_per_kg, vendor_name, origin_country, price, currency, notes, updated_by)
+      VALUES
+        ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?))
+      as new_purchase
+      ON DUPLICATE KEY UPDATE
+        raw_material_id = new_purchase.raw_material_id,
+        purchased_at = new_purchase.purchased_at,
+        purchase_quantity = new_purchase.purchase_quantity,
+        remaining_quantity = new_purchase.remaining_quantity,
+        quantity_units = new_purchase.quantity_units,
+        units_per_kg = new_purchase.units_per_kg,
+        vendor_name = new_purchase.vendor_name,
+        origin_country = new_purchase.origin_country,
+        price = new_purchase.price,
+        currency = new_purchase.currency,
+        notes = new_purchase.notes,
+        updated_by = new_purchase.updated_by`,
+      [
+        (is_new_purchase)? null : purchase.id,  // null: the database assigns a new id
+        raw_material_id,
+        helper.formatDate(purchase.purchased_at),
+        purchase.purchase_quantity,
+        purchase.remaining_quantity,
+        purchase.quantity_units,
+        purchase.units_per_kg || null,
+        purchase.vendor_name || null,
+        purchase.origin_country || null,  // foreign keys: an empty string would be rejected
+        purchase.price || null,
+        purchase.currency || null,
+        purchase.notes || null,
+        currentUserId
+      ],
+      active_connection
+    );
+    purchases_saved++;
+    const purchase_db_id = (is_new_purchase)? purchase_result.insertId : purchase.id;
+
+    // banks are linked to the purchase by the id it had on the client (negative/0 for a new purchase)
+    const purchase_banks = banks.filter(b => b.raw_material_purchase_id == purchase.id);
+    for(const bank of purchase_banks){
+      let customer_id = bank.customer_id;
+      if(!customer_id || customer_id <= 0){
+        // a customer that doesn't exist yet, entered by name
+        const new_customer = await db.transaction_query(
+          `INSERT INTO customers (name) VALUES ((?))`,
+          [bank.name],
+          active_connection
+        );
+        customer_id = new_customer.insertId;
+        customers_created += new_customer.affectedRows;
+      }
+      await db.transaction_query(
+        `INSERT INTO customer_banks
+          (id, customer_id, raw_material_purchase_id, quantity, remaining_quantity, quantity_units, quantity_in_kg)
+        VALUES
+          ((?), (?), (?), (?), (?), (?), (?))
+        as new_customer_bank
+        ON DUPLICATE KEY UPDATE
+          customer_id = new_customer_bank.customer_id,
+          raw_material_purchase_id = new_customer_bank.raw_material_purchase_id,
+          quantity = new_customer_bank.quantity,
+          remaining_quantity = new_customer_bank.remaining_quantity,
+          quantity_units = new_customer_bank.quantity_units,
+          quantity_in_kg = new_customer_bank.quantity_in_kg`,
+        [
+          (bank.id > 0)? bank.id : null,
+          customer_id,
+          purchase_db_id,
+          bank.quantity,
+          bank.remaining_quantity,
+          bank.quantity_units || 'units',
+          bank.quantity_in_kg || 0
+        ],
+        active_connection
+      );
+      banks_saved++;
+    }
+  }
+
+  // TODO: track records of who changed what (purchases/banks), once the history meta-functions exist
+
+  const deleted_purchases = purchases_deletion.affectedRows;
+  const deleted_banks = banks_deletion.affectedRows + orphan_banks_deletion.affectedRows;
+  let message = `, ${purchases_saved} purchase(s) and ${banks_saved} bank(s) saved`;
+  if(deleted_purchases > 0) message += `, ${deleted_purchases} purchase(s) removed`;
+  if(deleted_banks > 0) message += `, ${deleted_banks} bank(s) removed`;
+  if(customers_created > 0) message += `, ${customers_created} customer(s) created`;
+  return { message };
+}
+
 //create or update
 async function save_material(rawMaterial, currentUserId, active_connection=null){
   //check if there is an active connection called from another function, or this call is a standalone
@@ -222,20 +355,18 @@ async function save_material(rawMaterial, currentUserId, active_connection=null)
   }
   */
 
-    //let message = 'Error creating raw material';
+    let message = '';
     //console.log("New material ID: " + result.insertId + " ("+ rawMaterial.name +")");
     let action_taken = (isNew)? "created" : "updated";
     if (result.affectedRows) {
       message = 'Raw material \'' + rawMaterial.name + '\' ' + action_taken + ' successfully';
     }
 
+    // purchases and their customer banks (replaces customers.sync_banks_for_raw_material, which still
+    // used the old customer_banks.raw_material_id column)
     if(rawMaterial.purchases){
-    }
-
-    if(rawMaterial.customer_banks) {
-      
-      let additional_message = await customers.sync_banks_for_raw_material(rawMaterial.customer_banks, raw_material_recordid, active_connection);
-      message += additional_message.message;
+      const sync_result = await sync_raw_material_purchases(rawMaterial, raw_material_recordid, currentUserId, active_connection);
+      message += sync_result.message;
     }
     if(self_executing) {
       await db.transaction_commit(active_connection);
@@ -297,6 +428,7 @@ module.exports = {
     getSingle,
     getMultiple,
     save_material,
+    sync_raw_material_purchases,
     remove,
     getNames,
     getColors,
