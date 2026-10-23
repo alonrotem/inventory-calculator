@@ -976,6 +976,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       this.customerHat.wing.babies = [...no_crown, ...newBabies];
       this.check_for_wing_changes();
       this.aggregateHatBabiesAndMatchingAllocations();
+      this.order_amount = Math.min(this.total_num_of_possible_hats, 10);
       this.update_table_instructions();
     }
   }
