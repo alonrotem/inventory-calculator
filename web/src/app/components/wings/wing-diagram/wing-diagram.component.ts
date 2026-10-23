@@ -548,7 +548,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
       crown_path.rect(this.rights_bottom.x, this.rights_bottom.y + ((this.crown.length - (c+1)) * crown_segment_height), this.crown[c] * this.cm_px,  crown_segment_height);
       let info_point = (this.adjustBoundariesToSize(new Point(
         this.rights_bottom.x + (max_crown * this.cm_px) + this.text_margin + 5, 
-        this.rights_bottom.y + ((c+1) * crown_segment_height)  ))//this.rights_bottom.y + (crown_segment_height * this.crown.length)/2))
+        this.rights_bottom.y + ((this.crown.length - c) * crown_segment_height)  ))//this.rights_bottom.y + (crown_segment_height * this.crown.length)/2))
       );
 
       this.path_items.push({
