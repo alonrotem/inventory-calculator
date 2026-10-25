@@ -297,4 +297,8 @@ update raw_materials rm set rm.created_by=1, rm.updated_by=1 where rm.created_by
 CALL add_column_if_not_exists('raw_material_purchases', 'updated_by','int null');
 update raw_material_purchases set updated_by=1 where updated_by is null;
 
+CALL add_column_if_not_exists('customers', 'default_mayler_width', 'FLOAT null');
+CALL add_column_if_not_exists('customers', 'default_num_of_wings_per_hat', 'INT null');
+CALL add_column_if_not_exists('customers', 'is_disabled', 'BOOL not null default false');
+
 select "Migrations done", CURRENT_TIMESTAMP;

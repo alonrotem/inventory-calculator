@@ -35,7 +35,7 @@ export class BabiesLengthPickerComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.lengths = 
       ((this.show_only_custom_lengths)?
-        this.custom_lengths.map(l => {return { length: length, count: l.count } }) :
+        this.custom_lengths.map(l => {return { length: l.length, count: l.count } }) :
         Array.from({ length: (((this.max_length - this.min_length)*(1/this.length_step))+1) }, (v, k) => (this.min_length + this.length_step + ((k-1)*this.length_step))).map(item => { return { length: item, count: 0 } }))
       .sort((a, b) => { return (a.length < b.length)?-1:1; });
   }

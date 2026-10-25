@@ -291,6 +291,10 @@ export class Point {
     allow_calculation_advisor?: boolean;
     is_demo_customer: boolean;
 
+    default_mayler_width: number | null;
+    default_num_of_wings_per_hat: number | null;
+    is_disabled: boolean;
+
     banks: Customer_Bank[];
     banks_baby_allocations: Customer_Bank_Baby_Allocation[];
     babies: Allocation_Baby[];
@@ -311,6 +315,7 @@ export interface CustomerListItem {
     bank_count: number;
     allocation_count: number;
     is_demo_customer: boolean;
+    is_disabled: boolean;
 }
 
 export interface Customer_Bank {

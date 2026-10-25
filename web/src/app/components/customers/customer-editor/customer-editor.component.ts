@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, OnInit,QueryList,ViewChild, ViewChildren } from '@angular/core';
-import { AsyncPipe, NgFor, NgIf } from '@angular/common';
+import { AsyncPipe, DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { Customer, Allocation_Baby, TransactionType, nameIdPair, RawMaterialBasicDetails } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
@@ -34,7 +34,7 @@ import { WingsTableComponent } from "../../wings/wings-table/wings-table.compone
   imports: [RouterModule, FormsModule, NgSelectModule, DateStrPipe,
     FaIconComponent, NgIf, NgFor, ConfirmationDialogComponent, AutocompleteLibModule,
     CustomerBanksTableComponent, HatsCalculatorDialogComponent,
-    UnsavedChangesDialogComponent, HasPermissionPipe, AsyncPipe, BabiesLengthPickerComponent, SaveChangesButtonComponent, NumericInputDirective, WingsTableComponent],
+    UnsavedChangesDialogComponent, HasPermissionPipe, AsyncPipe, BabiesLengthPickerComponent, SaveChangesButtonComponent, NumericInputDirective, WingsTableComponent, DecimalPipe],
   templateUrl: './customer-editor.component.html',
   styleUrl: './customer-editor.component.scss'
 })
@@ -58,7 +58,10 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     order_seq_number: 0,
     allow_calculation_advisor: undefined,
     is_demo_customer: false,
-    knives: []
+    knives: [],
+    default_mayler_width: null,
+    default_num_of_wings_per_hat: null,
+    is_disabled: false
   }
 
   title: string = "Create Customer";
@@ -77,6 +80,12 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
   raw_materials_info: RawMaterialBasicDetails[] = [];
   selected_raw_material_id: number | null = null;
   is_current_user_demo_customer: boolean = false;
+  purchase_counter = -1;
+  new_banks_added = false;
+
+  mayler_thickness_options: number[] = [0.15, 0.17, 0.20];
+  default_mayler_thickness = 0.17;
+  default_num_of_wings_per_hat = 45;
 
   // for opening the unsave changes dialog
   private confirmResult: boolean | null = null;
@@ -158,7 +167,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
   hasUnsavedChanges(): Observable<boolean> | Promise<boolean> | boolean {
     return this.unsavedNavigationConfirmationService.handle({
       hasChanges: () =>
-        !this.customer_form.pristine || this.hasUnsavedBankChanges,
+        !this.customer_form.pristine || this.customerBanksHaveUnsavedChanges,
 
       saveFn: () => this.customersService.saveCustomer(this.customerItem),
 
@@ -166,7 +175,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     });
   }
 
-  get hasUnsavedBankChanges(): boolean {
+  get customerBanksHaveUnsavedChanges(): boolean {
     return this.customer_banks_tables && this.customer_banks_tables.some(t => t.unsaved_changes);
   }
 
@@ -222,6 +231,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
       raw_material_purchase_id: 0,
       transaction_history: []
     });
+    this.new_banks_added = true;
   }
 
   getCustomer(id: number){
@@ -240,6 +250,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
         this.customerItem = customer;
         this.cacheCustomerBanksInitialData();
         this.recalculateBanks();
+        this.new_banks_added = false;
         //console.log(customer);
       },
       error: (error) => {
@@ -351,6 +362,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
           }
           Object.assign(this.customerItem, data["customer"]);
         }
+        this.new_banks_added = false;
       },//this.getRawMaterials(this.current_page); },
       error:(error) => { 
         //console.log("ERRRR:"); console.dir(error.error.message);
@@ -368,7 +380,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
 
   gotoCustomersList(textInfo: string = '', isError: boolean = false) {
     console.dir(this.customerItem);
-    if(this.customerItem.is_demo_customer){
+    if(this.is_current_user_demo_customer){
       this.navigateWithToastMessage("", textInfo, isError);
     }
     else {
@@ -444,5 +456,31 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     this.hats_calculator.babies = this.customerItem.babies;
     this.hats_calculator.open();
     */
+  }
+
+  toggleDefaultMayler(checked: boolean) {
+    this.customerItem.default_mayler_width = checked ? this.default_mayler_thickness : null;
+  }
+
+  toggleDefaultWingsPerHat(checked: boolean) {
+    this.customerItem.default_num_of_wings_per_hat = checked ? this.default_num_of_wings_per_hat : null;
+  }
+
+  async verify_customer_cancellation() {
+    if(!this.customerItem.is_disabled) {
+      return;
+    }
+    const confirmed = await this.delete_confirmation.open_with_message({
+      modalText: `Are you sure you want to disable this customer, ${this.customerItem.name}?<br/>Users will not be able to access it`,
+      modalTitle: "Disable confirmation",
+      btnYesIcon: this.faTimesCircle,
+      btnYesText: "Disable",
+      btnNoText: "Don't disable",
+      btnYesClass: "btn-danger",
+      dialogIcon: this.faTriangleExclamation
+    });
+    if(!confirmed) {
+      this.customerItem.is_disabled = false;
+    }
   }
 }

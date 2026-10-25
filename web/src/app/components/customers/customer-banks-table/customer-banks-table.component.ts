@@ -41,7 +41,10 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     created_at: new Date(), updated_at: new Date(), created_by: 0, updated_by: 0,
     banks: [], banks_baby_allocations: [], babies: [],
     customer_code: '', order_seq_number: 0, is_demo_customer: false,
-    knives: []
+    knives: [],
+    default_mayler_width: null,
+    default_num_of_wings_per_hat: null,
+    is_disabled: false
   };    
   @Input() bank: Customer_Bank = {
     raw_material_name: '',
@@ -498,6 +501,7 @@ recalculateBank(){
       this.bank_deleted.emit(this.customer.banks[bankIndex].raw_material_id);
       this.customer.banks.splice(bankIndex, 1);
     }
+    this.unsaved_changes = true;
   }
 
   delete_baby(baby_id: number) {

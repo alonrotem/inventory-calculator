@@ -13,18 +13,28 @@ async function getSingle(id, currentUserId){
     throw err;
   }
 
+  const can_user_access_advanced_customer_fields = await canUserAccessAdvancedCustomerFeatures(currentUserId, "R");
   const advanced_fields = 
-    (canUserAccessAdvancedCustomerFeatures(currentUserId, "R"))? 
+    (can_user_access_advanced_customer_fields)? 
       ', c.allow_calculation_advisor': 
       '';
 
   const rows = await db.query(
     `select 
       c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.notes, c.customer_code, c.order_seq_number,
-        c.created_at, c.updated_at, c.created_by, c.updated_by, c.is_demo_customer ${advanced_fields}
+        c.created_at, c.updated_at, c.created_by, c.updated_by, c.is_demo_customer,
+        c.default_mayler_width, default_num_of_wings_per_hat, is_disabled        
+        ${advanced_fields}
      from customers c where c.id=(?);`, [id]);
-
+  
+  
   const customer = helper.emptyOrSingle(rows);
+  if(!can_user_access_advanced_customer_fields && customer.is_disabled){
+    let err = new Error("User has no permissions to access this customer");
+    err.status = 403;
+    throw err;  
+  }
+
   if(!helper.isEmptyObj(customer)) {
     const customer_banks_recs =  await db.query(
       `select 
@@ -60,7 +70,7 @@ async function getSingle(id, currentUserId){
       where cbb.customer_bank_id in (select cb.id from customer_banks cb where cb.customer_id=(?)));`,[id]));
 
     customer.knives = helper.emptyOrRows(await db.query(
-      `select knife from customer_knives where customer_id=(?);`, [id]))
+      `select distinct knife from customer_knives where customer_id=(?);`, [id]))
       .map(k => k.knife);
   }      
   return customer;
@@ -92,7 +102,7 @@ async function getDemoCustomerForUserId(user_id, active_connection=null){
         from 
           user_customers uc 
           inner join customers c on uc.customer_id = c.id
-        where uc.user_id=(?) and c.is_demo_customer=1
+        where uc.user_id=(?) and c.is_demo_customer=1 and c.is_disabled=0
         limit 1`, 
       [user_id]));
     if(!demo_customer_rec || helper.isEmptyObj(demo_customer_rec)){
@@ -146,7 +156,7 @@ async function getMultiple(page = 1, perPage=0, currentUserId){
                   (SELECT customer_bank_id,  COUNT(*) AS allocation_count FROM customer_banks_allocations
                   GROUP BY customer_bank_id) work_allocations 
               ON cb.id = work_allocations.customer_bank_id
-        where uc.user_id = (?) and c.is_demo_customer
+        where uc.user_id = (?) and c.is_demo_customer and c.is_disabled=0
         group by c.id 
         limit 1`, 
       [currentUserId]));
@@ -184,6 +194,7 @@ async function getMultiple(page = 1, perPage=0, currentUserId){
     WHERE u.id = (?)
   )
   SELECT DISTINCT c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.created_at, c.updated_at, c.created_by, c.updated_by, c.is_demo_customer,
+  c.is_disabled,
   COUNT(cb.customer_id) AS bank_count,
           COALESCE(SUM(work_allocations.allocation_count), 0) AS allocation_count
   FROM customers c
@@ -217,7 +228,17 @@ async function getMultiple(page = 1, perPage=0, currentUserId){
         )
         AND uc.user_id IS NOT NULL
       )
-    )     GROUP BY c.id ${subset};`,
+    )
+    -- Disabled customers are visible only to users with 'R' on 'customers_advanced_features'
+    AND (
+      c.is_disabled = 0
+      OR EXISTS (
+        SELECT 1 FROM user_permissions
+        WHERE area = 'customers_advanced_features'
+          AND permissions LIKE '%R%'
+      )
+    )
+    GROUP BY c.id ${subset};`,
     [currentUserId, currentUserId]);
 
   //New query: count only the customers assigned to the current user, by their role(s)
@@ -258,6 +279,15 @@ async function getMultiple(page = 1, perPage=0, currentUserId){
           )
           AND uc.user_id IS NOT NULL
         )
+      )
+      -- Disabled customers are visible only to users with 'R' on 'customers_advanced_features'
+      AND (
+        c.is_disabled = 0
+        OR EXISTS (
+          SELECT 1 FROM user_permissions
+          WHERE area = 'customers_advanced_features'
+            AND permissions LIKE '%R%'
+        )
       );`,
     [currentUserId, currentUserId]
   );
@@ -275,7 +305,7 @@ async function getMultiple(page = 1, perPage=0, currentUserId){
 
 async function getNames(){
   const result = await db.query(`
-    select distinct name from customers
+    select distinct name from customers where is_disabled=0
     order by name;`);
   const data = helper.emptyOrRows(result).map(material => material.name);
   return (data);
@@ -296,9 +326,9 @@ async function canUserAccessThisCustomer(customerId, userId, required_permission
     if(user.is_demo_customer){
       if(customerId > 0) {
         const linked_customer_rec = helper.emptyOrSingle(await db.query(
-        `select c.is_demo_customer  from customers c inner join user_customers uc on c.id = uc.customer_id
+        `select c.is_demo_customer, c.is_disabled  from customers c inner join user_customers uc on c.id = uc.customer_id
             where uc.user_id=(?) and uc.customer_id=(?);`, [userId, customerId]));
-        if(helper.isEmptyObj(linked_customer_rec) || !linked_customer_rec.is_demo_customer){
+        if(helper.isEmptyObj(linked_customer_rec) || !linked_customer_rec.is_demo_customer || linked_customer_rec.is_disabled){
           return false;
         }
         else {
@@ -319,29 +349,42 @@ async function canUserAccessThisCustomer(customerId, userId, required_permission
         inner join user_roles ur on u.id=ur.user_id
         inner join role_permissions rp on rp.role_id=ur.role_id 
       where 
-        u.id=? and rp.area in ('customers', 'customer_resources_by_customer_id')`,
+        u.id=? and rp.area in ('customers', 'customer_resources_by_customer_id', 'customers_advanced_features')`,
       [userId]));
 
     if(user_customer_permissions.length > 0){
-        const permissions_for_all_customers = user_customer_permissions.find(p => p["area"] == 'customers');
-        const permissions_for_assigned_customers = user_customer_permissions.find(p => p["area"] == 'customer_resources_by_customer_id');
+      const permissions_for_all_customers = user_customer_permissions.find(p => p["area"] == 'customers');
+      const permissions_for_assigned_customers = user_customer_permissions.find(p => p["area"] == 'customer_resources_by_customer_id');
 
-        //user has no permissions for all orders
-        if(!permissions_for_all_customers || permissions_for_all_customers["permissions"].indexOf(required_permission_level) < 0) {
-            const assigned_user_customers = helper.emptyOrRows(await db.query(
-                `select customer_id from user_customers where user_id=(?);`, 
-                [userId]));
-            
-            const user_has_permissions_for_specific_customer = assigned_user_customers.find(assigned_customer => assigned_customer["customer_id"] == customerId);
-
-            //check permissions to create specific customer's orders
-            if(!permissions_for_assigned_customers || 
-                permissions_for_assigned_customers["permissions"].indexOf(required_permission_level) < 0 || 
-                !user_has_permissions_for_specific_customer) {
-                return false;
-            }
+      //check if the customer is disabled
+      const customer_disabled_rec = helper.emptyOrSingle(await db.query(`select is_disabled from customers where id=(?)`, [customerId]));
+      //if customer exists, check if it's disabled, and the user cannot access disabled customers
+      if(!helper.isEmptyObj(customer_disabled_rec)){
+        if(!await canUserAccessAdvancedCustomerFeatures(userId, 'R') && customer_disabled_rec.is_disabled==1){
+          return false;
         }
-        return true;
+      }
+      //no customer found
+      else {
+        return false;
+      }
+
+      //user has no permissions for all orders
+      if(!permissions_for_all_customers || permissions_for_all_customers["permissions"].indexOf(required_permission_level) < 0) {
+          const assigned_user_customers = helper.emptyOrRows(await db.query(
+              `select customer_id from user_customers where user_id=(?);`, 
+              [userId]));
+          
+          const user_has_permissions_for_specific_customer = assigned_user_customers.find(assigned_customer => assigned_customer["customer_id"] == customerId);
+
+          //check permissions to create specific customer's orders
+          if(!permissions_for_assigned_customers || 
+              permissions_for_assigned_customers["permissions"].indexOf(required_permission_level) < 0 || 
+              !user_has_permissions_for_specific_customer) {
+              return false;
+          }
+      }
+      return true;
     }
     else {
         return false;
@@ -350,7 +393,7 @@ async function canUserAccessThisCustomer(customerId, userId, required_permission
 
 async function canUserAccessAdvancedCustomerFeatures(currentUserId, required_permission_level){
   const user = helper.emptyOrSingle(await db.query(`select is_demo_customer from users where id=(?);`, [currentUserId]));
-  if(user && !helper.isEmptyObj(user) && user["is_demo_customer"]!=1){
+  if(user && !helper.isEmptyObj(user) && user["is_demo_customer"]==1){
     return false;
   }
 
@@ -402,6 +445,15 @@ async function save(customer, currentUserId, active_connection=null){
   if(await canUserAccessAdvancedCustomerFeatures(currentUserId, 'U') && (customer.allow_calculation_advisor != null) && (customer.allow_calculation_advisor != undefined)){
     columns.push("allow_calculation_advisor");
     values.push(customer.allow_calculation_advisor);
+
+    columns.push("default_num_of_wings_per_hat");
+    values.push(customer.default_num_of_wings_per_hat ?? null);
+
+    columns.push("default_mayler_width");
+    values.push(customer.default_mayler_width ?? null);
+
+    columns.push("is_disabled");
+    values.push(helper.var_to_bool(customer.is_disabled));
   }
 
   const result = await db.transaction_query(`
@@ -582,17 +634,17 @@ async function save_customer_bank (customer, bank_id, active_connection){
     }
     //console.dir(bank);
     const bank_result = await db.transaction_query(`
-      INSERT INTO customer_banks (id, customer_id, raw_material_id, quantity, remaining_quantity)
+      INSERT INTO customer_banks (id, customer_id, raw_material_purchase_id, quantity, remaining_quantity)
       VALUES 
       ((?),(?),(?),(?),(?))
       as new_customer_banks
       ON DUPLICATE KEY UPDATE
-      customer_id=new_customer_banks.customer_id, raw_material_id=new_customer_banks.raw_material_id, 
+      customer_id=new_customer_banks.customer_id, raw_material_purchase_id=new_customer_banks.raw_material_purchase_id, 
       quantity=new_customer_banks.quantity, remaining_quantity=new_customer_banks.remaining_quantity`,
       [
         bank.id, 
         bank.customer_id, 
-        bank.raw_material_id, 
+        bank.raw_material_purchase_id, 
         bank.quantity, 
         bank.remaining_quantity
       ], 
@@ -798,6 +850,37 @@ async function sync_customer_banks(customer, active_connection){
       }
     }
     for(bank of customer.banks){
+      if(customer.is_demo_customer && bank.raw_material_purchase_id <= 0){
+        //creating new banks for demo customers should create dummy purchases
+        const purchase = await db.transaction_query(
+        `INSERT INTO raw_material_purchases
+          (id, raw_material_id, purchased_at, purchase_quantity, remaining_quantity,
+          quantity_units, units_per_kg, vendor_name, origin_country, price, currency, notes, updated_by)
+          VALUES
+          ((?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?))
+          as new_purchase
+            ON DUPLICATE KEY UPDATE
+              id = new_purchase.id,
+              raw_material_id = new_purchase.raw_material_id,
+              purchased_at = new_purchase.purchased_at,
+              purchase_quantity = new_purchase.purchase_quantity,
+              remaining_quantity = new_purchase.remaining_quantity,
+              quantity_units = new_purchase.quantity_units,
+              units_per_kg = new_purchase.units_per_kg,
+              vendor_name = new_purchase.vendor_name,
+              origin_country = new_purchase.origin_country,
+              price = new_purchase.price,
+              currency = new_purchase.currency,
+              notes = new_purchase.notes,
+              updated_by = new_purchase.updated_by`,
+          [
+            0, bank.raw_material_id, helper.nowDateStr(), 1000000, 1000000, 
+            'units', 1, 'Demo vendor', 'bg', 0, 'EUR', 
+            'Demo purchase for demo customer bank', 1
+          ], 
+          active_connection);
+          bank.raw_material_purchase_id = purchase.insertId;
+      }
       let ids_info = await save_customer_bank(customer, bank.id, active_connection);
       if(ids_info) {
         if(ids_info.bank_ids){

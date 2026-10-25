@@ -117,3 +117,10 @@ h3 {
 .advanced-row div {
     color: var(--bs-body-color);
 }
+
+.advanced-row .form-select:disabled,
+.advanced-row .form-control:disabled {
+    background-color: var(--bs-secondary-bg);
+    color: var(--bs-secondary-color);
+    opacity: 0.65;
+}

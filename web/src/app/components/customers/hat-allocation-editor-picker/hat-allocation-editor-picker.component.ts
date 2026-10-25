@@ -33,7 +33,10 @@ export class HatAllocationEditorPickerComponent implements ModalContentDirective
     created_at: new Date(), updated_at: new Date(), created_by: 0, updated_by: 0,
     banks: [], banks_baby_allocations: [], babies: [],
     customer_code: '', order_seq_number: 0, is_demo_customer: false,
-    knives: []
+    knives: [],
+    default_mayler_width: null,
+    default_num_of_wings_per_hat: null,
+    is_disabled: false
   };
   @Input() wing_id: number = 0;
   @Input() banks: Customer_Bank[] = [];

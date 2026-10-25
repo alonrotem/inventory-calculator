@@ -1,6 +1,17 @@
 
-<div class="home-wrapper">
+<div class="text-warning flex-grow-1 d-flex flex-column align-items-center justify-content-center text-center">
+    <div>
+        <fa-icon [icon]="faPersonDigging" style="font-size: 50px;"></fa-icon>
+    </div>
+    <h2>
+        Home dashboard is under reconstruction
+    </h2>
+</div>
 
+<!--
+
+
+<div class="home-wrapper">
     <app-summary-card />
 
     <app-raw-material-chart *ngIf="(user$ | async) | hasPermission: [{area: 'raw_materials', permission: 'R'}]"
@@ -12,5 +23,5 @@
         [raw_material_quantity_units]="'units'"
         [color]="'#11A8CD'"
     />
-
 </div>
+-->
