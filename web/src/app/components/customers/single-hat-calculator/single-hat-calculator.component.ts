@@ -446,6 +446,11 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         this.customer = customer;
         this.knives_lengths = customer.knives.map(knife => { return { length: knife, count: 0 } });
         this.customerHat.customer_id = this.customer.id;
+        if(this.customer.default_mayler_width)
+          this.customerHat.mayler_width = this.customer.default_mayler_width;
+
+        if(this.customer.default_num_of_wings_per_hat)
+          this.customerHat.wing_quantity = this.customer.default_num_of_wings_per_hat;
 
         this.rawMaterialsService.getRawMaterialBasicDetails(id).subscribe({
           next: (names)=> {

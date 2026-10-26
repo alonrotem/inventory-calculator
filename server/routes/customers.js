@@ -43,7 +43,7 @@ router.get('/single/:id',
     try {
       logger.info(`get /customers/single/${req.params.id}`);
 
-      let response = await customers.getSingle(req.params.id);
+      let response = await customers.getSingle(req.params.id, req["auth_token"].id);
       logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
       res.json(response);
     } catch (err) {
@@ -155,7 +155,7 @@ router.delete('/:id',
   async function(req, res, next) {
     try {
       logger.info(`delete /customers/${req.params.id}`);
-      let response = await customers.remove(req.params.id);
+      let response = await customers.remove(req.params.id, req["auth_token"].id);
       logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
       res.json(response);
     } catch (err) {

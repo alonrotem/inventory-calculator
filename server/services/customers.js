@@ -480,7 +480,7 @@ async function save(customer, currentUserId, active_connection=null){
       await db.transaction_commit(active_connection);
     }
 
-    let saved_customer = await getSingle(customer.id);
+    let saved_customer = await getSingle(customer.id, currentUserId);
     //if this is a part of a different transaction (e.g. assigning a new customer to a user),
     //the saved_customer will be empty. Just temporarily manually populate it.
     if(helper.isEmptyObj(saved_customer)){
