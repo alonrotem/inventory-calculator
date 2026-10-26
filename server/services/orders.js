@@ -528,7 +528,7 @@ async function get_orders_list(page = 1, perPage, customer_id, currentUserId){
             left join raw_materials rm_crown on ch.crown_material_id=rm_crown.id
             left join raw_materials rm_tails_r on ch.tails_material_id_r=rm_tails_r.id
             left join raw_materials rm_tails_l on ch.tails_material_id_l=rm_tails_l.id
-        where os.date = (select MAX(os2.date) FROM orders_status os2 where os.id = os2.id)
+        where c.is_disabled=0 and os.date = (select MAX(os2.date) FROM orders_status os2 where os.id = os2.id)
     ${(customer_filter=='')? ('') : (' and ' + customer_filter)}
     order by c.customer_code, o.customer_order_seq_number desc, date desc
     ${subset}`);
