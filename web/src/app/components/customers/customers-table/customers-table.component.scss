@@ -50,3 +50,15 @@ h1 {
 .demo_indicator {
     padding: 6px;
 }
+
+.customer-disabled {
+    /*color: var(--bs-body-color) !important;*/
+    background-color: var(--bs-danger) !important;
+    color: var(--bs-light) !important;
+    padding: 3px 6px;
+    display: inline-flex;
+    align-items: center;
+    font-size: 10px;
+    border-radius: 6px;
+    margin-left: 2px;    
+}

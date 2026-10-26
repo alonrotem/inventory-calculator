@@ -27,7 +27,7 @@
       <tr 
         *ngFor="let customer of this.customers" 
         role="button">
-        <td routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }">{{ customer.name }} <span *ngIf="customer.is_disabled">Disabled</span></td>
+        <td routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }">{{ customer.name }} <span class="customer-disabled" *ngIf="customer.is_disabled">Disabled</span></td>
         <td routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }">{{ customer.business_name }}</td>
         <td routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }" class="text-center">{{ customer.bank_count }}</td>
         <td routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }" class="text-center">{{ customer.allocation_count }}</td>
