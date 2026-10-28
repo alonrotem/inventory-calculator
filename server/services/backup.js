@@ -18,7 +18,9 @@ function escapeForScript(value) {
   }
   
   if (typeof value === 'string') {
-    var escaped = "'" + (value.replace(/'/g, "''").replace(/\"/g,'""')) + "'";
+    // the statement is a string literal inside a double-quoted literal (see wrap_statement_if_table_exists),
+    // so a backslash is unescaped twice
+    var escaped = "'" + (value.replace(/\\/g, '\\\\\\\\').replace(/'/g, "''").replace(/\"/g,'""')) + "'";
     return escaped;
   }
   
@@ -29,8 +31,13 @@ function escapeForScript(value) {
   if (Buffer.isBuffer(value)) {
     return "X'" + value.toString('hex') + "'";
   }
-  
-  return escapeForScript(value);//mysql.escape(value);
+
+  // JSON columns arrive parsed (objects / arrays)
+  if (typeof value === 'object') {
+    return escapeForScript(JSON.stringify(value));
+  }
+
+  return escapeForScript(String(value));//mysql.escape(value);
 }
 
 async function get_all_table_names(){
@@ -106,8 +113,12 @@ function construct_queries(table_name, table_info, records, keep_existing_record
                             case 'date':
                                 values += "'" + helper.dateStr(current_rec_value) + "'";
                                 break;
-                            case 'tinyint(1)': //boolean
-
+                            case 'json':
+                                values += escapeForScript(typeof current_rec_value === 'string'? current_rec_value : JSON.stringify(current_rec_value));
+                                break;
+                            default:
+                                // any other type: never leave the value empty, which breaks the whole script
+                                values += escapeForScript(current_rec_value);
                         }
                     }
                 }
