@@ -1,27 +1,54 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { GlobalsService } from '../../../services/globals.service';
-import { Point } from '../../../../types';
-import { find_intersection_point, find_point_on_line, line_at_angle_from_point, line_length, divide_line } from './graphics-helper';
+import { KnivesService } from '../../../services/knives.service';
+import { Knife } from '../../../../types';
+import { KnifeRegion, KnifeShape, Vec, add, dist, isStraight, lerp, measureSpan, mul, norm, outlineSamples, segment, sub } from '../knife-editor/knife-shape';
+import { PreviewBaby, buildWingBabies, regionAnchor } from '../knife-editor/baby-preview';
+import { DEFAULT_KNIFE } from './default-knife';
+import { WingBabyEdit } from './wing-baby-edit';
 
+type AddSide = 'L' | 'R' | 'TOP' | 'C';
+interface AddButton { side: AddSide; x: number; y: number; title: string; }
+
+const BASE_PX_PER_CM = 15;           // scale 1
+const MIN_PX_PER_CM_FIT = 0.5;       // auto fit limits
+const MAX_PX_PER_CM = 24;
+const AUTO_FIT_RATIO = 0.8;          // of the container's width, unless max_width is given (e.g. a small preview)
+const ADD_BUTTON_SIZE = 24;          // px, as in the scss
+const HIGHLIGHT_COLOR = '#ffc107';
+const HIGHLIGHT_TEXT_COLOR = '#212529';
+const DELETE_COLOR = '#dc3545';
+const DELETE_RADIUS = 8;             // px
+const WHEEL_STEP_DELTA = 50;         // wheel delta (px) per length step, so a touchpad doesn't race
+const FONT = '11px Arial';
+const WIDTH_DIMENSION_ROOM = 34;     // px under the knife for its width
+
+/**
+ * Draws a wing: its knife, with the babies laid out around it.
+ * The knife is loaded by id; without one, the default (original) wing shape is drawn.
+ * Hovering a baby highlights it and shows a tooltip; clicking it emits babyClicked.
+ * When editable, babies can also be added (+ buttons), removed (x) and resized (mouse wheel);
+ * those edits are emitted through babyEdited and are shown once the host updates the inputs (see applyBabyEdit).
+ */
 @Component({
   selector: 'app-wing-diagram',
   standalone: true,
-  imports: [ ],
+  imports: [],
   templateUrl: './wing-diagram.component.html',
   styleUrl: './wing-diagram.component.scss'
 })
-
 export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   //inputs
-  @Input() rights = [6, 8 , 10];//[5.5, 7, 8, 8.5,10];
-  @Input() top_length = [0];
-  @Input() lefts = [5];//, 7, 8, 8.5, 10];
+  @Input() lefts: number[] = [];          // lengths in cm, L1 -> Ln
+  @Input() rights: number[] = [];         // lengths in cm, R1 -> Rn
+  @Input() top_length: number[] = [];     // [length], or empty when there is no top baby
+  @Input() crown: number[] = [];          // lengths in cm, C1 -> Cn (the split crown)
   @Input() split_l1 = 1;
-  @Input() crown = [10];
-  //@Input() crown_length = 2;//4;
-  @Input() knife = 10;
-  @Input() scale = 1;
+  @Input() knife_id: number | null = null;
+  @Input() auto_fit = true;               // fit the container's width; otherwise drawn by `scale`
+  @Input() scale = 1;                     // 1 = 15px per cm, when not auto fitting
   @Input() show_tooltips = true;
   @Input() highlight_mouseover_baby = true;
   @Input() show_texts = true;
@@ -29,594 +56,575 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
   @Input() min_width: number | null = null;
   @Input() max_width: number | null = null;
   @Input() min_height: number | null = null;
-  @Input() max_height: number | null = null;  
-  @Output() babyClicked = new EventEmitter<string>();
+  @Input() max_height: number | null = null;
+  @Input() editable = false;
+  @Input() min_baby_length = 5;
+  @Input() max_baby_length = 16;
+  @Input() baby_length_step = 0.5;
+  @Output() babyClicked = new EventEmitter<string>();       // the baby's position, e.g. 'L1', 'TOP', 'C2'
+  @Output() babyEdited = new EventEmitter<WingBabyEdit>();
 
-  @ViewChild("diagram_canvas", { read: ElementRef }) diagram_canvas!: ElementRef;
-  @ViewChild("tooltip", { read: ElementRef }) tooltip!: ElementRef;
+  @ViewChild('diagram_container') containerRef!: ElementRef<HTMLElement>;
+  @ViewChild('diagram_canvas') canvasRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('tooltip') tooltipRef!: ElementRef<HTMLElement>;
 
-  private resizeObserver!: ResizeObserver;
+  addButtons: AddButton[] = [];
 
-  // The diagram's pixel width at scale=1.0 (measured from the base shape coordinates)
-  // crown_bottom.x (510) - leftmost x (221) = 289 base units * 15px = ~435px.
-  // We measure dynamically instead, so this is just a fallback.
-  private readonly BASE_SCALE = 1.0;
-
-  //defaults
-  text_margin: number = 0;
-  top_angles: number = 0;
-  pan:Point = new Point(0, 0);
-  thickness: number = 0;
-  cm_px: number = 0;
-  top_left_bondaries: Point = new Point(2000, 2000);
-  bottom_right_bondaries: Point = new Point(-2000, -2000);
-
-  ctx: any;
   color: string = "";
   backcolor: string = "";
-  cursor: Point = new Point(0, 0);
-  onBaby: string = "";
 
-  // LEFTS
-  lefts_top:Point = new Point(0,0);
-  lefts_bottom:Point = new Point(0,0);
-  lefts_start:Point = new Point(0,0);
-  lefts_start_angle:number = 0;
-  lefts_end_angle: number = 0;
-  
-  //RIGHT
-  rights_top:Point = new Point(0,0);
-  rights_bottom:Point = new Point(0,0);
-  rights_start_angle:number = 0
-  rights_end_angle:number = 0;
+  // null while the knife is loading
+  private knife: KnifeShape | null = DEFAULT_KNIFE;
+  private knifeWidth: number | null = null;
+  private knifeRequest = 0;
+  private babies: PreviewBaby[] = [];
+  private screenBabies: Vec[][] = [];
+  private pxPerCm = BASE_PX_PER_CM;
+  private offset: Vec = { x: 0, y: 0 };
+  private cssWidth = 0;
+  private cssHeight = 0;
+  private inputsKey = '';
+  private containerWidth = -1;
 
-  crown_bottom:Point = new Point(0,0);
-  central_circle_point:Point = new Point(0,0);
-  base_shape_bottom: number = 0;
-  wing_base_shape:Point[] = [];
-  height_of_base_shape:number = 0;
-  width_of_base_shape:number = 0;
-  wing_width_caption_point:Point = new Point(0,0);
-  
-  path_items:any = [];
-  
-  constructor (private globalService: GlobalsService, private ngZone: NgZone){
+  private hovered = -1;
+  private onDelete = false;
+  private mouse: { offset: Vec; client: Vec } | null = null;
+  private wheelDelta = 0;
+  private drawQueued = false;
+
+  private resizeObserver?: ResizeObserver;
+  private themeSubscription: Subscription;
+  private removeListeners: (() => void)[] = [];
+
+  constructor(private globalService: GlobalsService, private knivesService: KnivesService, private ngZone: NgZone) {
     this.setColors(this.globalService.currentTheme());
-    this.globalService.themeChanged.subscribe({
-      next: (theme: string)=> {
-        this.setColors(theme);
-      }
+    this.themeSubscription = this.globalService.themeChanged.subscribe({
+      next: (theme: string) => this.setColors(theme)
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['preset_theme']) {
+      this.setColors(this.globalService.currentTheme());
+    }
+    if (changes['knife_id']) {
+      this.loadKnife();
+    }
+    // the hosts pass the babies through impure pipes, so new arrays arrive on every change detection
+    const key = JSON.stringify([
+      this.lefts, this.rights, this.top_length, this.crown, this.split_l1, this.auto_fit, this.scale, this.show_texts,
+      this.editable, this.min_width, this.max_width, this.min_height, this.max_height
+    ]);
+    if (key != this.inputsKey) {
+      this.inputsKey = key;
+      this.Rebuild();
+    }
   }
 
   ngAfterViewInit(): void {
-    this.rebuildBaseShape();
-    this.wing_width_caption_point = new Point(0, 0);
-    this.Rebuild();
-
-    // Set up ResizeObserver to respond to container size changes
+    const canvas = this.canvasRef.nativeElement;
     this.ngZone.runOutsideAngular(() => {
+      const listen = (type: string, handler: (e: any) => void, options?: AddEventListenerOptions) => {
+        canvas.addEventListener(type, handler, options);
+        this.removeListeners.push(() => canvas.removeEventListener(type, handler, options));
+      };
+      listen('mousemove', (e: MouseEvent) => this.mouseMove(e));
+      listen('mouseleave', () => this.mouseLeave());
+      listen('click', () => this.click());
+      listen('wheel', (e: WheelEvent) => this.wheel(e), { passive: false });
+
       this.resizeObserver = new ResizeObserver(() => {
-        this.ngZone.run(() => this.fitToContainer());
+        // the canvas' own size changes the container's height, only a new width needs a new layout
+        const width = this.containerRef.nativeElement.clientWidth;
+        if (width != this.containerWidth) {
+          this.ngZone.run(() => this.layout());
+        }
       });
-      this.resizeObserver.observe(
-        this.diagram_canvas.nativeElement.parentElement
-      );
+      this.resizeObserver.observe(this.containerRef.nativeElement);
     });
-
-    requestAnimationFrame(() => { this.drawDiagram(); });
-  }
-
-  fitToContainer(): void {
-    if(!this.diagram_canvas){
-      return;
-    }
-    const container: HTMLElement = this.diagram_canvas.nativeElement.parentElement;
-    let availableWidth = container.clientWidth;
-    let availableHeight = container.clientHeight;
-    if (!availableWidth) return;
-
-    // Apply constraints
-    if (this.max_width !== null)  availableWidth  = Math.min(availableWidth,  this.max_width);
-    if (this.min_width !== null)  availableWidth  = Math.max(availableWidth,  this.min_width);
-    if (this.max_height !== null) availableHeight = Math.min(availableHeight, this.max_height);
-    if (this.min_height !== null) availableHeight = Math.max(availableHeight, this.min_height);
-
-    // Dry run at scale=1 to find natural dimensions
-    const savedScale = this.scale;
-    this.scale = 1.0;
-    this.rebuildBaseShape();
-    this.buildLefts();
-    this.buildTop();
-    this.buildRights();
-    this.buildCrown();
-    const naturalWidth  = (this.bottom_right_bondaries.x - this.top_left_bondaries.x) + 30;
-    const naturalHeight = (this.bottom_right_bondaries.y - this.top_left_bondaries.y) + 30;
-    this.scale = savedScale;
-
-    // Compute scale for each axis, then take the more restrictive one
-    // so the diagram always fits within both bounds without distortion
-    const scaleByWidth  = availableWidth  / naturalWidth;
-    const scaleByHeight = (availableHeight > 0) ? availableHeight / naturalHeight : scaleByWidth;
-    const computedScale = Math.min(scaleByWidth, scaleByHeight);
-
-    const MIN_SCALE = 0.3;
-    const MAX_SCALE = 2.0;
-    this.scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, computedScale));
-
-    this.Rebuild();
+    // after this change detection, as the layout updates the add buttons
+    Promise.resolve().then(() => this.Rebuild());
   }
 
   ngOnDestroy(): void {
     this.resizeObserver?.disconnect();
+    this.removeListeners.forEach(remove => remove());
+    this.themeSubscription.unsubscribe();
   }
 
-  rebuildBaseShape(){
-    //console.log("oninit scale: " + this.scale);
-    //defaults
-    this.text_margin = 10;
-    this.top_angles = 10;
-    this.pan = new Point(0,0);
-    this.thickness = 1;
-    this.cm_px = 15 * this.scale;
-    this.top_left_bondaries = new Point(2000, 2000);
-    this.bottom_right_bondaries = new Point(-2000, -2000);
-
-    this.color = "white";
-    this.backcolor = "white";
-    this.cursor = new Point(0, 0);
-    this.onBaby = "";
-
-    // LEFTS
-    this.lefts_top = new Point(354 * this.scale + this.pan.x, 231.5 * this.scale + this.pan.y);
-    this.lefts_bottom = new Point(234 * this.scale + this.pan.x, 301.5 * this.scale + this.pan.y);
-    this.lefts_start = new Point (234 * this.scale + this.pan.x, 315 * this.scale + this.pan.y);
-    this.lefts_start_angle = 180;
-    this.lefts_end_angle = (270 - this.top_angles);
-
-    //RIGHT
-    this.rights_top = new Point(385 * this.scale + this.pan.x, 231.5 * this.scale + this.pan.y);
-    this.rights_bottom = new Point(510 * this.scale + this.pan.x, 290 * this.scale + this.pan.y);
-    this.rights_start_angle = 270 + this.top_angles;
-    this.rights_end_angle = 360;
-
-    this.crown_bottom = new Point (510 * this.scale + this.pan.x , 326 * this.scale + this.pan.y);
-    this.central_circle_point = new Point(this.lefts_top.x + ((this.rights_top.x - this.lefts_top.x)/2), this.lefts_bottom.y);
-    this.base_shape_bottom = 531.5 * this.scale + this.pan.y;
-    
-    this.path_items = [];
-
-        /*    top
-            9____8
-            /    \ rights
-      lefts/      \7
-          /10      | crown
-  1/12 __|    5 ___|6
-      |  11   /
-      |     4/
-      |    |
-      2|____|3
-      */
-    this.wing_base_shape = [
-      this.adjustBoundariesToSize(new Point(221 * this.scale + this.pan.x, 315 * this.scale + this.pan.y)),       //1
-      this.adjustBoundariesToSize(new Point(221 * this.scale + this.pan.x , this.base_shape_bottom)),             //2
-      this.adjustBoundariesToSize(new Point(358.5 * this.scale + this.pan.x , this.base_shape_bottom)),           //3
-      this.adjustBoundariesToSize(new Point(358.5 * this.scale + this.pan.x , 495 * this.scale + this.pan.y)),    //4
-      this.adjustBoundariesToSize(new Point(475 * this.scale + this.pan.x , 326 * this.scale + this.pan.y)),      //5
-      this.adjustBoundariesToSize(new Point(this.crown_bottom.x, this.crown_bottom.y)),                           //6 //bottom of crown
-      this.adjustBoundariesToSize(new Point(this.rights_bottom.x, this.rights_bottom.y)),                         //7 bottom of rights
-      this.adjustBoundariesToSize(new Point(this.rights_top.x ,this.rights_top.y)),                               //8 top of righs
-      this.adjustBoundariesToSize(new Point(this.lefts_top.x , this.lefts_top.y)),                                //9 top of lefts
-      this.adjustBoundariesToSize(new Point(this.lefts_bottom.x, this.lefts_bottom.y)),                           //10 bottom of lefts line
-      this.adjustBoundariesToSize(new Point(234 * this.scale + this.pan.x , 315 * this.scale + this.pan.y)),      //11
-      this.adjustBoundariesToSize(new Point(221 * this.scale + this.pan.x , 315 * this.scale + this.pan.y))       //12
-    ];
-    this.height_of_base_shape = this.rights_top.y - this.base_shape_bottom;
-    this.width_of_base_shape = this.crown_bottom.x - 221 * this.scale + this.pan.x;
+  setColors(theme: string) {
+    const theme_to_set = (this.preset_theme != "") ? this.preset_theme : theme;
+    this.color = (theme_to_set == "dark") ? "#f8f9fa" : "#212529";
+    this.backcolor = (theme_to_set == "dark") ? "#212529" : "#f8f9fa";
+    this.scheduleDraw();
   }
 
-  adjustBoundariesToSize(p: Point){
-    let adjusted:boolean = false;
-    let adjust_point:string ="";
-    if (p.x < this.top_left_bondaries.x){
-      let reason = " (because p.x " + p.x + " < this.top_left_bondaries.x " + this.top_left_bondaries.x + ")";
-      this.top_left_bondaries.x = p.x;
-      adjusted = true;
-      adjust_point += ((adjust_point=="")? "": ", ") + "1" + reason;
-    }
-    if(p.y < this.top_left_bondaries.y){
-      let reason = " (because p.y " + p.y + " < this.top_left_bondaries.y " + this.top_left_bondaries.y + ")";
-      this.top_left_bondaries.y = p.y;
-      adjusted = true;
-      adjust_point += ((adjust_point=="")? "": ", ") + "2" + reason;
-    }
-    if(p.x > this.bottom_right_bondaries.x){
-      let reason = " (because p.x " + p.x + " > this.bottom_right_bondaries.x " + this.bottom_right_bondaries.x + ")";
-      this.bottom_right_bondaries.x = p.x;
-      adjusted = true;
-      adjust_point += ((adjust_point=="")? "": ", ") + "3" + reason;
-    }
-    if(p.y > this.bottom_right_bondaries.y){
-      let reason = " (because p.y " + p.y + " > this.bottom_right_bondaries.y " + this.bottom_right_bondaries.y + ")";
-      this.bottom_right_bondaries.y = p.y;
-      adjusted = true;
-      adjust_point += ((adjust_point=="")? "": ", ") + "4" + reason;
-    }
-    return p;
-  }
-
-  mouseMove(e: any){
-    this.cursor.x = e.offsetX;
-    this.cursor.y = e.offsetY;
-    this.tooltip.nativeElement.style.left = `${e.pageX + 10}px`;
-    this.tooltip.nativeElement.style.top = `${e.pageY + 15}px`;
-    this.hideTooltip();
-    this.onBaby = "";
-  }
-
-  mouseUp(e: any){
-    if(this.onBaby){
-      this.babyClicked.emit(this.onBaby);
-    }
-  }
-
-  showTooltip(text: string){
-    if(this.show_tooltips){
-      this.tooltip.nativeElement.style.display = "block";
-      this.tooltip.nativeElement.innerHTML = text;
-    }
-  }
-
-  hideTooltip(){
-    this.tooltip.nativeElement.style.display = "none";
-  }
-  
-  checkArrEquality(a:[], b:[]) {
-    return JSON.stringify(a) === JSON.stringify(b);
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    let rebuild = false;
-    if(!this.checkArrEquality(changes["lefts"]["currentValue"], changes["lefts"]["previousValue"])) rebuild = true;
-    if(!this.checkArrEquality(changes["rights"]["currentValue"], changes["rights"]["previousValue"])) rebuild = true;
-    if(!this.checkArrEquality(changes["top_length"]["currentValue"], changes["top_length"]["previousValue"])) rebuild = true;
-    if(!this.checkArrEquality(changes["crown"]["currentValue"], changes["crown"]["previousValue"])) rebuild = true;
-    if((changes["split_l1"]) && (changes["split_l1"]["currentValue"] != changes["split_l1"]["previousValue"])) rebuild = true;
-    if((changes["knife"]) && (changes["knife"]["currentValue"] != changes["knife"]["previousValue"])) rebuild = true;
-    if((changes["scale"]) && (changes["scale"]["currentValue"] != changes["scale"]["previousValue"])) rebuild = true;
-    //if(changes["crown"]["currentValue"] != changes["crown"]["previousValue"])  rebuild = true;
-    //if(changes["crown_length"]["currentValue"] != changes["crown_length"]["previousValue"])  rebuild = true;
-
-    if (rebuild) {
-      this.fitToContainer(); // replaces direct Rebuild() call so constraints are respected
-    }
-  }
-
-  setColors(theme:string){
-    let theme_to_Set = (this.preset_theme!="")? this.preset_theme : theme;
-    this.color = (theme_to_Set == "dark")? "#f8f9fa": "#212529";
-    this.backcolor = (theme_to_Set == "dark")? "#212529" : "#f8f9fa";
-  }
-
-  public Rebuild(){
-    if(! this.diagram_canvas || !this.diagram_canvas.nativeElement)
+  private loadKnife() {
+    const request = ++this.knifeRequest;
+    if (!this.knife_id) {
+      this.setKnife(null);
       return;
-
-    this.path_items = [];
-    this.rebuildBaseShape();
-    this.buildLefts();
-    this.buildTop();
-    this.buildRights();
-    this.buildCrown();
-
-    this.ctx = this.diagram_canvas.nativeElement.getContext('2d');
-  
-    let new_height = (this.bottom_right_bondaries.y - this.top_left_bondaries.y);
-    let new_width = (this.bottom_right_bondaries.x - this.top_left_bondaries.x);
-
-    this.diagram_canvas.nativeElement.width = new_width + 30;
-    this.diagram_canvas.nativeElement.height = new_height + 30;
-
-    this.pan.y = (new_height - this.height_of_base_shape) - (810 * this.scale);
-    this.pan.x = (new_width -  this.bottom_right_bondaries.x) + (15 * this.scale);
-  }
-
-  drawPoint(point: Point, color: string, size: number){
-    if(!color){
-      color = 'yellow';
     }
-    if(!size) {
-      size = 2;
-    }
-    this.ctx.beginPath();
-    this.ctx.strokeStyle = color;
-    this.ctx.arc(point.x, point.y, size, 0, 2 * Math.PI);
-    this.ctx.stroke();
-  }
-
-  draw_main_wing(){
-    //main sape wing
-    let wing_path = new Path2D();
-    for(let p=0; p < this.wing_base_shape.length; p++) {
-      if(p==0){
-        wing_path.moveTo(this.wing_base_shape[p].x + this.pan.x, this.wing_base_shape[p].y + this.pan.y);
-      }
-      else  {
-        wing_path.lineTo(this.wing_base_shape[p].x + this.pan.x, this.wing_base_shape[p].y + this.pan.y);
-      }
-    }
-    wing_path.closePath();
-    this.ctx.strokeStyle = this.color;
-    this.ctx.lineWidth = this.thickness;
-    this.ctx.stroke(wing_path);
-
-    this.buildExtras();
-    if(this.show_texts && this.knife > 0) {
-      this.ctx.beginPath();
-      this.ctx.textAlign = "center";
-      this.ctx.textBaseline = "middle";
-      this.ctx.fillStyle = this.color;
-      this.ctx.font = "normal " + (12 * this.scale) + "px Arial";
-      this.ctx.fillText(this.knife.toFixed(1) + " cm", this.wing_width_caption_point.x + this.pan.x, this.wing_width_caption_point.y + this.pan.y);
-    }
-  }
-
-  buildExtras(){
-    this.wing_width_caption_point = new Point(
-      ((234 * this.scale) + (((475 * this.scale) - (234 * this.scale))/2)), 
-      (315 * this.scale));
-  }
-
-  buildLefts(){
-    // divide the left line to equal segments and find coordinate starting wach
-    //total line length
-    let lefts_line_lengh = line_length(this.lefts_bottom, this.lefts_top);
-    //the first baby has a special place on the most left. divide the line by one less part, find segment length
-    let left_line_segment = lefts_line_lengh / (this.lefts.length - 1);
-    //calculate by how much we need to increment the angle on each segment
-    let left_angle_segment = (this.lefts_end_angle - this.lefts_start_angle) / this.lefts.length; //increment the angle by this, every time
-
-    //initial points - mark the start points of each baby on the left line, equally spaced
-    let segment_points_left_line = [this.lefts_start, this.lefts_bottom];
-    let remaining_points = this.lefts.length;
-
-    //prevent the left babies take all the width, make them be as thin as if they were 5
-    if(this.lefts.length < 4){
-      left_angle_segment = (this.lefts_end_angle - this.lefts_start_angle)/5;
-      left_line_segment = lefts_line_lengh / 5;
-      remaining_points = 4;
-    }
-
-    for(let i=1; i < remaining_points; i++) {
-      let next_point = find_point_on_line(this.lefts_bottom, this.lefts_top, left_line_segment * i);
-      segment_points_left_line.push(next_point);
-    }
-    //console.log(segment_points_left_line);
-
-    let curr_angle = this.lefts_start_angle;
-    
-    //build the path shapes
-    for(let i=0; i < this.lefts.length; i++) {
-
-      let path = new Path2D();
-      //start with the marked point
-      let p1 = this.adjustBoundariesToSize(new Point(segment_points_left_line[i].x, segment_points_left_line[i].y));
-      //find the point going up straight form the point (p1->p2), at the current angle
-      let p2 = this.adjustBoundariesToSize(line_at_angle_from_point(segment_points_left_line[i], this.lefts[i]*this.cm_px , curr_angle));
-      //find the next point (p3) by caltuating its angle from the next segment point
-      let p3 = this.adjustBoundariesToSize(line_at_angle_from_point(segment_points_left_line[i+1], this.lefts[i]*this.cm_px , curr_angle + left_angle_segment));
-      //p4 is just the next point on the segments
-      let p4 = this.adjustBoundariesToSize(new Point(segment_points_left_line[i+1].x, segment_points_left_line[i+1].y));
-
-      path.moveTo(p1.x, p1.y);  //lower left
-      path.lineTo(p2.x, p2.y);  //upper left
-      path.lineTo(p3.x, p3.y);  //upper right
-      path.lineTo(p4.x, p4.y);  //lower right
-      path.closePath();
-
-      if(i==0 && this.split_l1 > 1) {
-        let bottom_points = divide_line(p1, p4, this.split_l1);
-        let top_points = divide_line(p2, p3, this.split_l1);
-        for(let divider=0; divider < bottom_points.length; divider++){
-          path.moveTo(bottom_points[divider].x, bottom_points[divider].y);
-          path.lineTo(top_points[divider].x, top_points[divider].y);
+    this.knife = null;
+    this.Rebuild();
+    this.knivesService.getKnife(this.knife_id).subscribe({
+      next: (knife: Knife) => {
+        if (request == this.knifeRequest) {
+          this.setKnife(knife?.data?.nodes?.length >= 3 ? knife : null);
+        }
+      },
+      error: () => {
+        if (request == this.knifeRequest) {
+          this.setKnife(null);
         }
       }
-      
-      curr_angle += left_angle_segment;
-
-      //find the center point of this baby
-      //first the point in the middle of the segment
-      let mid_segment_point = (i>0)?
-        find_point_on_line(segment_points_left_line[i], segment_points_left_line[i+1], left_line_segment/2)
-      :
-        new Point(this.lefts_start.x, this.lefts_start.y + ((this.lefts_bottom.y - this.lefts_start.y)/2));
-      
-      let mid_shape_point = this.adjustBoundariesToSize(line_at_angle_from_point(mid_segment_point, (this.lefts[i] * this.cm_px)/2, (curr_angle -  (left_angle_segment/2))));
-      let length_text_point = this.adjustBoundariesToSize(line_at_angle_from_point(mid_segment_point, (this.lefts[i] * this.cm_px) + this.text_margin, (curr_angle -  (left_angle_segment/2))));
-      
-      this.path_items.push({
-        path: path,
-        title: "L" + (i+1),
-        length: this.lefts[i],
-        tooltip:  `<strong><span class='icon-feather-wing'></span> L${(i+1)}</strong>${ (i == 0 && this.split_l1 > 1)? (' x' + this.split_l1):'' }<br/>${this.lefts[i]} cm`,
-        mid_point: mid_shape_point,
-        length_info_point: length_text_point,
-        show_tooltip: true,
-        show_length: true,
-        show_text: true
-      });
-    }
-  }
-
-  buildTop()
-  {
-    if(this.top_length[0] <= 0)
-      return;
-    // TOP
-    // ==========
-    let top_p1 = this.adjustBoundariesToSize(this.lefts_top);
-    let top_p2 = this.adjustBoundariesToSize(line_at_angle_from_point(this.lefts_top, this.top_length[0] * this.cm_px, this.lefts_end_angle));
-    let top_p3 = this.adjustBoundariesToSize(line_at_angle_from_point(this.rights_top, this.top_length[0] * this.cm_px, this.rights_start_angle));
-    let top_p4 = this.adjustBoundariesToSize(this.rights_top);
-    let top_path = new Path2D();
-    top_path.moveTo(top_p1.x, top_p1.y);
-    top_path.lineTo(top_p2.x, top_p2.y);
-    top_path.lineTo(top_p3.x, top_p3.y);
-    top_path.lineTo(top_p4.x, top_p4.y);
-    top_path.closePath();
-    //let top_center_point = line_at_angle_from_point(new Point(top_p1.x + ((top_p4.x-top_p1.x)/2), top_p1.y), ((this.top_length * this.cm_px)/2) , 270);
-    let top_center_point = line_at_angle_from_point(new Point(this.lefts_top.x + ((this.rights_top.x-this.lefts_top.x)/2), this.lefts_top.y), ((this.top_length[0] * this.cm_px)/2) , 270);
-    let top_measure_point = line_at_angle_from_point(new Point(this.lefts_top.x + ((this.rights_top.x-this.lefts_top.x)/2), this.lefts_top.y), (this.top_length[0] * this.cm_px) + this.text_margin , 270);
-  
-    this.path_items.push({
-      path: top_path,
-      title: "Top",
-      length: this.top_length[0],
-      mid_point: this.adjustBoundariesToSize(top_center_point),
-      length_info_point: this.adjustBoundariesToSize(top_measure_point),
-      tooltip:  "<strong><span class='icon-top'></span> Top</strong><br/>" + this.top_length[0] + " cm",
-      show_tooltip: true,
-      show_length: true,
-      show_text: true
     });
   }
 
-  buildRights() {
-    // RIGHTS
-    // ==========
-    let rights_line_length = line_length(this.rights_top, this.rights_bottom);
-    let rights_segment_length = rights_line_length / this.rights.length;
-    let rights_angle_segment = (this.rights_end_angle - this.rights_start_angle) / this.rights.length;
-    let cur_right_point = this.rights_bottom;
-    let cur_right_angle = this.rights_end_angle;
+  /** null: the default knife */
+  private setKnife(knife: Knife | null) {
+    this.knife = knife ? (knife.data as unknown as KnifeShape) : DEFAULT_KNIFE;
+    this.knifeWidth = knife ? knife.width_cm : null;
+    this.Rebuild();
+  }
 
-    if(this.rights.length < 4){
-      rights_angle_segment = (this.rights_end_angle - this.rights_start_angle) / 5;
-      rights_segment_length = rights_line_length / 5;
+  /** Lays out the babies again and redraws. */
+  public Rebuild() {
+    this.babies = this.knife ? buildWingBabies(this.knife.nodes, this.knife.regions, 1, {
+      lefts: this.lefts ?? [],
+      rights: this.rights ?? [],
+      top: this.top_length?.[0] || null,
+      crown: this.crown ?? []
+    }) : [];
+    this.layout();
+  }
+
+  // ---------- layout & drawing ----------
+
+  private toScreen = (p: Vec): Vec => ({ x: this.offset.x + p.x * this.pxPerCm, y: this.offset.y + p.y * this.pxPerCm });
+
+  private layout() {
+    const canvas = this.canvasRef?.nativeElement;
+    if (!canvas) {
+      return;
+    }
+    const container = this.containerRef.nativeElement;
+    this.containerWidth = container.clientWidth;
+    if (!this.knife) {
+      this.addButtons = [];
+      this.draw();
+      return;
     }
 
-    for(let i=0; i < this.rights.length  ; i++) {
-      let path = new Path2D();
+    // bounds of the drawing, in cm
+    const pts = [...outlineSamples(this.knife.nodes), ...this.babies.flatMap(b => b.corners)];
+    const minX = Math.min(...pts.map(p => p.x)), maxX = Math.max(...pts.map(p => p.x));
+    const minY = Math.min(...pts.map(p => p.y)), maxY = Math.max(...pts.map(p => p.y));
+    const width = (maxX - minX) || 1, height = (maxY - minY) || 1;
+    // room for the lengths and the add buttons, and under the knife for its width
+    const margin = (this.show_texts ? 24 : 4) + (this.editable ? 28 : 0);
+    const widthRoom = this.showsWidth() ? WIDTH_DIMENSION_ROOM : 0;
 
-      let p1 = this.adjustBoundariesToSize(new Point(cur_right_point.x, cur_right_point.y));
+    let available = this.containerWidth;
+    if (this.max_width !== null) available = Math.min(available, this.max_width);
+    else available *= AUTO_FIT_RATIO;
+    if (this.min_width !== null) available = Math.max(available, this.min_width);
+    if (this.auto_fit && available > 0) {
+      let fit = (available - 2 * margin) / width;
+      if (this.max_height !== null) {
+        fit = Math.min(fit, (this.max_height - 2 * margin - widthRoom) / height);
+      }
+      // no lower limit, so a small preview (max_width) still fits
+      this.pxPerCm = Math.min(MAX_PX_PER_CM, Math.max(MIN_PX_PER_CM_FIT, fit));
+    }
+    else {
+      this.pxPerCm = BASE_PX_PER_CM * this.scale;
+    }
 
-      let next_right_point = find_point_on_line(cur_right_point, this.rights_top, rights_segment_length);
-      let right_mid_point = find_point_on_line(cur_right_point, this.rights_top, rights_segment_length/2);
+    this.cssWidth = Math.ceil(width * this.pxPerCm + 2 * margin);
+    this.cssHeight = Math.ceil(Math.max(height * this.pxPerCm + 2 * margin + widthRoom, this.min_height ?? 0));
+    this.offset = {
+      x: margin - minX * this.pxPerCm,
+      y: (this.cssHeight - widthRoom - height * this.pxPerCm) / 2 - minY * this.pxPerCm
+    };
+    const dpr = window.devicePixelRatio || 1;
+    canvas.style.width = this.cssWidth + 'px';
+    canvas.style.height = this.cssHeight + 'px';
+    canvas.width = Math.round(this.cssWidth * dpr);
+    canvas.height = Math.round(this.cssHeight * dpr);
 
-      let p2 = this.adjustBoundariesToSize(line_at_angle_from_point(cur_right_point, this.rights[i] * this.cm_px, cur_right_angle));
-      let p3 = this.adjustBoundariesToSize(line_at_angle_from_point(next_right_point, this.rights[i] * this.cm_px, cur_right_angle - rights_angle_segment));
-      let p4 = this.adjustBoundariesToSize(new Point(next_right_point.x, next_right_point.y));
+    this.screenBabies = this.babies.map(b => b.corners.map(this.toScreen));
+    this.addButtons = this.editable ? this.buildAddButtons() : [];
 
-      let center_point = line_at_angle_from_point(right_mid_point, ( this.rights[i] * this.cm_px)/2, cur_right_angle - (rights_angle_segment/2));
-      let length_text_point = line_at_angle_from_point(right_mid_point, ( this.rights[i] * this.cm_px) + this.text_margin, cur_right_angle - (rights_angle_segment/2));
+    // the babies moved under the cursor
+    if (this.mouse) {
+      this.updateHover();
+    }
+    this.draw();
+  }
 
-      path.moveTo(p1.x, p1.y);
-      path.lineTo(p2.x, p2.y);
-      path.lineTo(p3.x, p3.y);
-      path.lineTo(p4.x, p4.y);
-
-      cur_right_point = next_right_point;
-      cur_right_angle -= rights_angle_segment;
-
-      this.path_items.push({
-        path: path,
-        title: "R" + (i+1),
-        length: this.rights[i],
-        mid_point: this.adjustBoundariesToSize(center_point),
-        length_info_point: this.adjustBoundariesToSize(length_text_point),
-        tooltip:  "<strong><span class='icon-feather-wing-r'></span> R" + (i+1) + "</strong><br/>" + this.rights[i] + " cm",
-        show_tooltip: true,
-        show_length: true,
-        show_text: true
+  /**
+   * A + button for the Lefts, the Rights and the Crown: past the tip of the side's last baby,
+   * or outside the middle of the region while it has none; and on the Top while there is no top baby.
+   * Kept inside the canvas.
+   */
+  private buildAddButtons(): AddButton[] {
+    const buttons: AddButton[] = [];
+    const regions = this.knife!.regions;
+    const sides: { side: AddSide; region: KnifeRegion | undefined; title: string }[] = [
+      { side: 'L', region: regions.lefts, title: `Add L${(this.lefts?.length ?? 0) + 1}` },
+      { side: 'R', region: regions.rights, title: `Add R${(this.rights?.length ?? 0) + 1}` },
+      { side: 'C', region: regions.crown, title: 'Add a crown baby' },
+    ];
+    if (!this.top_length?.[0]) {
+      sides.push({ side: 'TOP', region: regions.top, title: 'Add a top' });
+    }
+    const half = ADD_BUTTON_SIZE / 2 + 2;
+    for (const { side, region, title } of sides) {
+      const anchor = regionAnchor(this.knife!.nodes, region);
+      if (!anchor) {
+        continue;
+      }
+      // the babies are laid out in order, so the last one drawn on this side is the last baby
+      const lastIndex = this.babies.map(b => b.position.startsWith(side)).lastIndexOf(true);
+      let at: Vec;
+      if (lastIndex >= 0) {
+        const c = this.screenBabies[lastIndex];
+        const baseMid = lerp(c[0], c[3], 0.5), outerMid = lerp(c[1], c[2], 0.5);
+        at = add(outerMid, mul(norm(sub(outerMid, baseMid)), 30));   // beyond its length label
+      }
+      else {
+        at = add(this.toScreen(anchor.p), mul(anchor.normal, 22));
+      }
+      buttons.push({
+        side,
+        x: Math.min(this.cssWidth - half, Math.max(half, at.x)),
+        y: Math.min(this.cssHeight - half, Math.max(half, at.y)),
+        title
       });
     }
+    return buttons;
   }
 
-  buildCrown(){
-    // CROWN
-    // ========
-    //console.log(this.crown);
-    let crown_height = this.crown_bottom.y - this.rights_bottom.y;
-    let crown_segment_height = crown_height / this.crown.length;
-    let crown_part = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
-    let max_crown = Math.max(...this.crown);
-    //console.log("rebuilding crown");
-    //console.dir(this.crown);
-    for(let c=0; c < this.crown.length; c++) {
-      let crown_path = new Path2D();
-      crown_path.rect(this.rights_bottom.x, this.rights_bottom.y + ((this.crown.length - (c+1)) * crown_segment_height), this.crown[c] * this.cm_px,  crown_segment_height);
-      let info_point = (this.adjustBoundariesToSize(new Point(
-        this.rights_bottom.x + (max_crown * this.cm_px) + this.text_margin + 5, 
-        this.rights_bottom.y + ((this.crown.length - c) * crown_segment_height)  ))//this.rights_bottom.y + (crown_segment_height * this.crown.length)/2))
-      );
+  /** The knife's width is shown for a real knife, not the default one. */
+  private showsWidth(): boolean {
+    return this.show_texts && !!this.knifeWidth;
+  }
 
-      this.path_items.push({
-        title: "C" + [c+1],
-        path: crown_path,
-        tooltip: "<strong><span class='icon-crown'></span> Crown " + "(" + crown_part[c] + ") </strong><br/>" + (c+1) + " x " + this.crown[c] + " cm",
-        length: this.crown[c],
-        mid_point: new Point(this.rights_bottom.x, this.rights_bottom.y + ((this.crown.length - (c+1)) * crown_segment_height)),
-        length_info_point: info_point,
-        show_tooltip: true,
-        show_length: true,
-        show_text: false
-      });    
+  private scheduleDraw() {
+    if (this.drawQueued) {
+      return;
+    }
+    this.drawQueued = true;
+    requestAnimationFrame(() => {
+      this.drawQueued = false;
+      this.draw();
+    });
+  }
+
+  private draw() {
+    const canvas = this.canvasRef?.nativeElement;
+    const ctx = canvas?.getContext('2d');
+    if (!ctx) {
+      return;
+    }
+    const dpr = window.devicePixelRatio || 1;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, this.cssWidth, this.cssHeight);
+    if (!this.knife) {
+      return;
+    }
+    this.drawKnife(ctx);
+    this.drawBabies(ctx);
+  }
+
+  private drawKnife(ctx: CanvasRenderingContext2D) {
+    const nodes = this.knife!.nodes;
+    const path = new Path2D();
+    const start = this.toScreen(nodes[0].p);
+    path.moveTo(start.x, start.y);
+    nodes.forEach((_, i) => {
+      const b = segment(nodes, i).map(this.toScreen);
+      if (isStraight(nodes, i)) {
+        path.lineTo(b[3].x, b[3].y);
+      }
+      else {
+        path.bezierCurveTo(b[1].x, b[1].y, b[2].x, b[2].y, b[3].x, b[3].y);
+      }
+    });
+    path.closePath();
+    ctx.fillStyle = 'rgba(13, 110, 253, 0.08)';
+    ctx.fill(path);
+    ctx.strokeStyle = this.color;
+    ctx.lineWidth = 1;
+    ctx.stroke(path);
+
+    // the knife's width: a dimension line under the knife, from L1 to the Crown
+    const span = measureSpan(nodes, this.knife!.regions, p => p);
+    if (this.showsWidth() && span) {
+      const bottom = Math.max(...outlineSamples(nodes).map(p => this.toScreen(p).y));
+      const y = bottom + 14;
+      const x1 = this.toScreen({ x: span.left, y: 0 }).x, x2 = this.toScreen({ x: span.right, y: 0 }).x;
+      ctx.beginPath();
+      ctx.moveTo(x1, y);
+      ctx.lineTo(x2, y);
+      for (const x of [x1, x2]) {
+        ctx.moveTo(x, y - 5);
+        ctx.lineTo(x, y + 5);
+      }
+      ctx.strokeStyle = this.color;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.font = FONT;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = this.color;
+      ctx.fillText('Knife width: ' + this.knifeWidth!.toFixed(2) + ' cm', (x1 + x2) / 2, y + 6);
     }
   }
 
-  drawBabies(){
-    this.ctx.save();
-    this.ctx.translate(this.pan.x, this.pan.y);
+  private drawBabies(ctx: CanvasRenderingContext2D) {
+    ctx.font = FONT;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineWidth = 1;
 
-    for (let baby_i=0; baby_i < this.path_items.length; baby_i++) {
-      this.ctx.strokeStyle=this.color;
-      this.ctx.lineWidth=this.thickness;
-      this.ctx.stroke(this.path_items[baby_i].path);
+    this.babies.forEach((baby, i) => {
+      const c = this.screenBabies[i];
+      const hovered = (i == this.hovered);
+      ctx.beginPath();
+      ctx.moveTo(c[0].x, c[0].y);
+      c.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
+      ctx.closePath();
+      if (hovered) {
+        ctx.fillStyle = HIGHLIGHT_COLOR;
+        ctx.fill();
+      }
+      ctx.strokeStyle = this.color;
+      ctx.stroke();
 
-      if(this.show_texts) {
-        this.ctx.beginPath();
-        this.ctx.textAlign = "center";
-        this.ctx.textBaseline = "middle";
-        this.ctx.fillStyle = this.color;
-        this.ctx.font = "normal " + (12 * this.scale) + "px Arial";
-        
-        this.ctx.fillText(this.path_items[baby_i].length, this.path_items[baby_i].length_info_point.x, this.path_items[baby_i].length_info_point.y);
+      // L1 split into strips
+      if (baby.position == 'L1' && this.split_l1 > 1) {
+        ctx.beginPath();
+        for (let k = 1; k < this.split_l1; k++) {
+          const a = lerp(c[0], c[3], k / this.split_l1), b = lerp(c[1], c[2], k / this.split_l1);
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+        }
+        ctx.stroke();
       }
 
-      if(this.highlight_mouseover_baby && this.ctx.isPointInPath(this.path_items[baby_i].path, this.cursor.x, this.cursor.y))
-      {
-        this.ctx.fillStyle = '#ffc107'; 
-        this.ctx.fill(this.path_items[baby_i].path);
-        if(this.path_items[baby_i].show_tooltip)
-          this.showTooltip(this.path_items[baby_i].tooltip);
+      if (this.show_texts) {
+        const baseMid = lerp(c[0], c[3], 0.5), outerMid = lerp(c[1], c[2], 0.5);
+        // the crown strips are too thin for a label
+        if (!baby.position.startsWith('C')) {
+          const center = mul(c.reduce((a, b) => add(a, b), { x: 0, y: 0 }), 1 / 4);
+          ctx.fillStyle = hovered ? HIGHLIGHT_TEXT_COLOR : this.color;
+          ctx.fillText(baby.label, center.x, center.y);
+        }
+        if (!baby.position.startsWith('C') || !this.crownUniform()) {
+          const lengthPos = add(outerMid, mul(norm(sub(outerMid, baseMid)), 10));
+          ctx.fillStyle = this.color;
+          ctx.fillText(String(baby.length), lengthPos.x, lengthPos.y);
+        }
+      }
+    });
 
-        this.ctx.fillStyle = this.backcolor;
-        //console.log("on " + this.path_items[baby_i].title);
-        this.onBaby = this.path_items[baby_i].title;
-      }
-      else
-      {
-        this.ctx.fillStyle = this.color;
-        //this.onBaby = "";
-      }
-      if(this.show_texts && this.path_items[baby_i].show_text)
-      {
-        this.ctx.fillText(this.path_items[baby_i].title, this.path_items[baby_i].mid_point.x, this.path_items[baby_i].mid_point.y);
+    // one length for a crown of equal strips
+    const crownIdx = this.babies.map((b, i) => b.position.startsWith('C') ? i : -1).filter(i => i >= 0);
+    if (this.show_texts && crownIdx.length && this.crownUniform()) {
+      const first = this.screenBabies[crownIdx[0]], last = this.screenBabies[crownIdx[crownIdx.length - 1]];
+      const outerMid = lerp(first[1], last[2], 0.5), baseMid = lerp(first[0], last[3], 0.5);
+      const pos = add(outerMid, mul(norm(sub(outerMid, baseMid)), 10));
+      ctx.fillStyle = this.color;
+      ctx.textAlign = 'left';
+      ctx.fillText((crownIdx.length > 1 ? crownIdx.length + ' × ' : '') + this.babies[crownIdx[0]].length, pos.x - 4, pos.y);
+      ctx.textAlign = 'center';
+    }
+
+    // the remove button of the hovered baby
+    if (this.hovered >= 0 && this.canDelete(this.hovered)) {
+      const p = this.deletePosition(this.hovered);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, DELETE_RADIUS, 0, 2 * Math.PI);
+      ctx.fillStyle = DELETE_COLOR;
+      ctx.globalAlpha = this.onDelete ? 1 : 0.75;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      const d = DELETE_RADIUS * 0.4;
+      ctx.beginPath();
+      ctx.moveTo(p.x - d, p.y - d);
+      ctx.lineTo(p.x + d, p.y + d);
+      ctx.moveTo(p.x + d, p.y - d);
+      ctx.lineTo(p.x - d, p.y + d);
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.lineWidth = 1;
+    }
+  }
+
+  private crownUniform(): boolean {
+    return (this.crown ?? []).every(length => length == this.crown[0]);
+  }
+
+  // ---------- editing ----------
+
+  /** Lefts and rights can be removed, as long as one remains on that side. */
+  private canDelete(i: number): boolean {
+    const position = this.babies[i]?.position ?? '';
+    if (!this.editable || !(position.startsWith('L') || position.startsWith('R'))) {
+      return false;
+    }
+    return ((position.startsWith('L') ? this.lefts : this.rights) ?? []).length > 1;
+  }
+
+  /** Near the outer end of the baby. */
+  private deletePosition(i: number): Vec {
+    const c = this.screenBabies[i];
+    return lerp(lerp(c[0], c[3], 0.5), lerp(c[1], c[2], 0.5), 0.8);
+  }
+
+  /** Adds a baby at the end of its side, as long as the last one there (or 10cm). */
+  addBaby(side: AddSide) {
+    if (side == 'TOP') {
+      this.babyEdited.emit({ action: 'add', position: 'TOP', length: this.clampLength(10) });
+      return;
+    }
+    const lengths = ((side == 'L') ? this.lefts : (side == 'R') ? this.rights : this.crown) ?? [];
+    const length = this.clampLength(lengths.length ? lengths[lengths.length - 1] : 10);
+    this.babyEdited.emit({ action: 'add', position: side + (lengths.length + 1), length });
+  }
+
+  private clampLength(length: number): number {
+    const stepped = Math.round(length / this.baby_length_step) * this.baby_length_step;
+    return Math.min(this.max_baby_length, Math.max(this.min_baby_length, stepped));
+  }
+
+  // ---------- mouse (outside the Angular zone) ----------
+
+  private mouseMove(e: MouseEvent) {
+    this.mouse = { offset: { x: e.offsetX, y: e.offsetY }, client: { x: e.clientX, y: e.clientY } };
+    this.updateHover();
+  }
+
+  private mouseLeave() {
+    this.mouse = null;
+    this.wheelDelta = 0;
+    this.updateHover();
+  }
+
+  private updateHover() {
+    const previous = [this.hovered, this.onDelete];
+    this.hovered = (this.mouse && this.highlight_mouseover_baby) ? this.babyAt(this.mouse.offset) : -1;
+    this.onDelete = this.hovered >= 0 && this.canDelete(this.hovered) &&
+      dist(this.deletePosition(this.hovered), this.mouse!.offset) <= DELETE_RADIUS;
+    this.canvasRef.nativeElement.style.cursor = this.hovered >= 0 ? 'pointer' : '';
+    this.updateTooltip();
+    if (previous[0] != this.hovered || previous[1] != this.onDelete) {
+      this.scheduleDraw();
+    }
+  }
+
+  private babyAt(p: Vec): number {
+    for (let i = this.screenBabies.length - 1; i >= 0; i--) {
+      if (pointInPolygon(p, this.screenBabies[i])) {
+        return i;
       }
     }
-    this.ctx.restore();    
+    return -1;
   }
 
-  drawShapes (){
-    
-    this.draw_main_wing();
-    this.drawBabies();
+  private click() {
+    if (this.hovered < 0) {
+      return;
+    }
+    const position = this.babies[this.hovered].position;
+    this.ngZone.run(() => {
+      if (this.onDelete) {
+        this.babyEdited.emit({ action: 'remove', position });
+      }
+      else {
+        this.babyClicked.emit(position);
+      }
+    });
   }
 
-  drawDiagram() {
-    this.ctx.clearRect(0,0, this.ctx.canvas.width, this.ctx.canvas.height);
-    this.drawShapes();
-    requestAnimationFrame(() => this.drawDiagram());
+  private wheel(e: WheelEvent) {
+    if (!this.editable || this.hovered < 0) {
+      return;
+    }
+    // resize the hovered baby instead of scrolling the page
+    e.preventDefault();
+    this.wheelDelta += (e.deltaMode == WheelEvent.DOM_DELTA_LINE) ? e.deltaY * 33 : e.deltaY;
+    if (Math.abs(this.wheelDelta) < WHEEL_STEP_DELTA) {
+      return;
+    }
+    const direction = this.wheelDelta < 0 ? 1 : -1;
+    this.wheelDelta = 0;
+    const baby = this.babies[this.hovered];
+    const length = this.clampLength(baby.length + direction * this.baby_length_step);
+    if (length != baby.length) {
+      this.ngZone.run(() => this.babyEdited.emit({ action: 'length', position: baby.position, length }));
+    }
   }
+
+  // ---------- tooltip (an element over the page, so it isn't clipped by the canvas) ----------
+
+  private updateTooltip() {
+    const tooltip = this.tooltipRef?.nativeElement;
+    if (!tooltip) {
+      return;
+    }
+    if (!this.show_tooltips || this.hovered < 0 || !this.mouse) {
+      tooltip.style.display = 'none';
+      return;
+    }
+    tooltip.innerHTML = this.tooltipHtml(this.babies[this.hovered]);
+    tooltip.style.display = 'block';
+    const gap = 14;
+    const { x, y } = this.mouse.client;
+    let left = x + gap, top = y + gap;
+    if (left + tooltip.offsetWidth > window.innerWidth - 4) {
+      left = x - gap - tooltip.offsetWidth;
+    }
+    if (top + tooltip.offsetHeight > window.innerHeight - 4) {
+      top = y - gap - tooltip.offsetHeight;
+    }
+    tooltip.style.left = Math.max(4, left) + 'px';
+    tooltip.style.top = Math.max(4, top) + 'px';
+  }
+
+  private tooltipHtml(baby: PreviewBaby): string {
+    let title: string;
+    if (baby.position == 'TOP') {
+      title = "<span class='icon-top'></span> Top";
+    }
+    else if (baby.position.startsWith('C')) {
+      title = `<span class='icon-crown'></span> Crown (${baby.label.substring(1)})`;
+    }
+    else if (baby.position.startsWith('L')) {
+      title = `<span class='icon-feather-wing'></span> ${baby.position}`;
+    }
+    else {
+      title = `<span class='icon-feather-wing-r'></span> ${baby.position}`;
+    }
+    const split = (baby.position == 'L1' && this.split_l1 > 1) ? ' x' + this.split_l1 : '';
+    let html = `<strong>${title}</strong>${split}<br/>${baby.length} cm`;
+    if (this.editable) {
+      html += `<div style="font-size: 10px; opacity: 0.7;">${this.onDelete ? 'Click to remove' : 'Scroll to resize, click to edit'}</div>`;
+    }
+    return html;
+  }
+}
+
+function pointInPolygon(p: Vec, poly: Vec[]): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i], b = poly[j];
+    if ((a.y > p.y) != (b.y > p.y) && p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y) + a.x) {
+      inside = !inside;
+    }
+  }
+  return inside;
 }

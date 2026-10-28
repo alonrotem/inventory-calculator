@@ -4,7 +4,7 @@ import { AsyncPipe, Location, NgClass, NgIf } from '@angular/common';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { HamburgerComponent } from '../hamburger/hamburger.component';
-import { faBasketShopping, faGears, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faBasketShopping, faGears, faPenRuler, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { UserMenuComponent } from '../../users/user-menu/user-menu.component';
 import { UsersService } from '../../../services/users.service';
@@ -22,6 +22,7 @@ export class NavbarComponent implements AfterViewInit {
   currentUrl: string = '';
   faBasketShopping:IconDefinition = faBasketShopping;
   faGears: IconDefinition = faGears;
+  faPenRuler: IconDefinition = faPenRuler;
   @ViewChild('navbarToggler') navbarToggler!: ElementRef;
   @ViewChild('hamburger') hamburger!: HamburgerComponent;
   //isLoggedIn$ = this.usersService.isLoggedIn$;

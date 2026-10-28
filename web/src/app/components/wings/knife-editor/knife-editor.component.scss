@@ -1,0 +1,104 @@
+.upper-button {
+    width: 60px;
+    height: 60px;
+    margin-left: 20px;
+}
+
+.knife_canvas_container {
+    position: relative;
+    height: 70vh;
+    min-height: 420px;
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    overflow: hidden;
+
+    canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+        cursor: grab;
+    }
+
+    &.crosshair canvas {
+        cursor: crosshair;
+    }
+}
+
+.knife_zoom {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+
+    .btn {
+        width: 32px;
+    }
+}
+
+.knife_drop,
+.knife_drop_hint {
+    position: absolute;
+    inset: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed var(--bs-border-color);
+    border-radius: var(--bs-border-radius-lg);
+    color: var(--bs-secondary-color);
+    pointer-events: none;
+}
+
+.knife_drop {
+    border-color: var(--bs-primary);
+    background: rgba(13, 110, 253, 0.08);
+    color: var(--bs-primary);
+    font-weight: 500;
+}
+
+.knife_busy {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.15);
+}
+
+// Side by side (lg and up): the editor fills the window between the navbar (85px, see .main-content)
+// and the footer (~33px); only the sidebar scrolls, the canvas takes the remaining height.
+@media (min-width: 992px) {
+    .knife_editor {
+        height: calc(100vh - 120px);
+        display: flex;
+        flex-direction: column;
+
+        > .row {
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+    }
+
+    .knife_sidebar {
+        height: 100%;
+        overflow-y: auto;
+    }
+
+    .knife_canvas_column {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .knife_canvas_container {
+        flex: 1 1 auto;
+        height: auto;
+        min-height: 0;
+    }
+}
+
+.region_swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}

@@ -122,17 +122,12 @@
                 </div>
 
                 <div class="advanced-row" *ngIf="!customerItem.is_demo_customer">
-                    <div>Allow the customer to pick the following knife lengths:</div>
-                    <app-babies-length-picker
-                        #knives_length_picker
-                        [selected_lengths]="customerItem.knives"
-                        (lengthChange)="customerItem.knives = $event; customer_form.form.markAsDirty()" 
-                        [multi_select]="true"
-                        [title]="''"
-                        [min_length]=4
-                        [max_length]=12.5                        
+                    <div>Allow the customer to pick the following knives:</div>
+                    <app-knife-picker
+                        [(pickedKnives)]="customerItem.knives"
+                        (Change)="customer_form.form.markAsDirty()"
+                        [disabled]="false"
                         />
-                    <div><a href="javascript:void(0)" (click)="selectUnselectAllKnives()">Select/unselect all</a></div>
                 </div>
                 <div class="advanced-row" *ngIf="customerItem.is_demo_customer">
                     <fa-icon class="me-2" [icon]="faTriangleExclamation" size="1x"></fa-icon> Demo customers can have any knife length they want!

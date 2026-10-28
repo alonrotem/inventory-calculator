@@ -32,6 +32,9 @@ import { SettingsUserDetailsComponent } from './components/settings/settings-use
 import { SettingsUserInvitesComponent } from './components/settings/settings-user-invites/settings-user-invites.component';
 import { SettingsUserInviteDetailsComponent } from './components/settings/settings-user-invite-details/settings-user-invite-details.component';
 import { SignoutComponent } from './components/users/signout/signout.component';
+import { KnifeEditorComponent } from './components/wings/knife-editor/knife-editor.component';
+import { KnivesTableComponent } from './components/wings/knives-table/knives-table.component';
+import { KnifeDetailsComponent } from './components/wings/knife-details/knife-details.component';
 
 export const routes: Routes = [
     {
@@ -64,6 +67,26 @@ export const routes: Routes = [
         canDeactivate: [UnsavedChangesGuard],
         canActivate: [ authGuard ],
         data: { permissions: [{ area: 'wings', permission: 'R' }, { area: 'wings_through_orders', permission: 'R' }] }
+    },
+    {
+        path: 'templates/knives/list',
+        component: KnivesTableComponent,
+        canActivate: [ authGuard ],
+        data: { permissions: [{ area: 'knives', permission: 'R' }] }
+    },
+    {
+        path: 'templates/knives/details',
+        component: KnifeDetailsComponent,
+        canActivate: [ authGuard ],
+        canDeactivate: [UnsavedChangesGuard],
+        data: { permissions: [{ area: 'knives', permission: 'R' }] }
+    },
+    {
+        path: 'templates/knives/editor',
+        component: KnifeEditorComponent,
+        canActivate: [ authGuard ],
+        canDeactivate: [UnsavedChangesGuard],
+        data: { permissions: [{ area: 'knives', permission: 'R' }] }
     },
     {
         path: 'inventory/customers',

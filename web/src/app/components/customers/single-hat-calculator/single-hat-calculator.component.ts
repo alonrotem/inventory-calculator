@@ -20,6 +20,7 @@ import { BabyLengthModalComponent } from '../../wings/baby-length-modal/baby-len
 import { HatAllocationEditorPickerComponent } from '../hat-allocation-editor-picker/hat-allocation-editor-picker.component';
 import { aggregated_babies, hats_calculated, HatsCalculatorService } from '../../../services/hats-calculator.service';
 import { CustomersService } from '../../../services/customers.service';
+import { KnivesService } from '../../../services/knives.service';
 import { ActivatedRoute, NavigationExtras, Router, RouterLink } from '@angular/router';
 import { OrdersService } from '../../../services/orders.service';
 import { ToastService } from '../../../services/toast.service';
@@ -176,7 +177,8 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   max_knife:number = 12.5;
   knife_steps: number = 0.5;
 
-  arr_knives: {cm: number, inches: number}[] = [];
+  // the knives the user can pick from: the customer's knives (name is empty for the demo customer's generated lengths)
+  arr_knives: {cm: number, inches: number, name?: string}[] = [];
   /*
   arr_knives: number[] = Array(
     (this.max_knife - this.min_knife)*2+1)
@@ -323,13 +325,12 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   is_hr_tentative: boolean = false;
   is_hl_tentative: boolean = false;
 
-  knives_lengths: { length: number, count: number }[] = [];
-
   loading: boolean = true;
 
   constructor(
     private customersService: CustomersService,
-    private wingsService:WingsService, 
+    private knivesService: KnivesService,
+    private wingsService:WingsService,
     private lightbox: Lightbox,
     private globalsService: GlobalsService,
     private rawMaterialsService: RawMaterialsService,
@@ -420,22 +421,28 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     {
       next: (customer: Customer) => {
 
-        this.arr_knives = (customer.is_demo_customer) ?
-          Array((this.max_knife - this.min_knife) * ( 1/this.knife_steps) + 1)
-            .fill(this.min_knife).map((_,i) => { 
-              return { 
+        if(customer.is_demo_customer) {
+          this.arr_knives = Array((this.max_knife - this.min_knife) * ( 1/this.knife_steps) + 1)
+            .fill(this.min_knife).map((_,i) => {
+              return {
                 cm: ((_ + i * this.knife_steps) ),
-                inches: ((_ + i * this.knife_steps) * this.cm_to_inch), 
+                inches: ((_ + i * this.knife_steps) * this.cm_to_inch),
               }
             }
-          ) : 
-        customer.knives.map(knife => { 
-            return { 
-              cm: knife,
-              inches: (knife * this.cm_to_inch), 
-            }
-          }
-        );
+          );
+        }
+        else {
+          // the customer holds only the id and name of its knives, the width comes from the knives list
+          this.knivesService.getKnives({ page: 0, perPage: 0 }).subscribe({
+            next: (knives) => {
+              this.arr_knives = customer.knives
+                .map(customer_knife => ({ name: customer_knife.name, cm: knives.data.find(k => k.id == customer_knife.id)?.width_cm }))
+                .filter((k): k is { name: string, cm: number } => k.cm !== undefined)
+                .map(k => ({ ...k, inches: k.cm * this.cm_to_inch }));
+            },
+            error: () => { this.arr_knives = []; }
+          });
+        }
 
         //failed to fetch material with ID, returned an empty object
         if(Object.keys(customer).length == 0) {
@@ -444,7 +451,6 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         }
 
         this.customer = customer;
-        this.knives_lengths = customer.knives.map(knife => { return { length: knife, count: 0 } });
         this.customerHat.customer_id = this.customer.id;
         if(this.customer.default_mayler_width)
           this.customerHat.mayler_width = this.customer.default_mayler_width;

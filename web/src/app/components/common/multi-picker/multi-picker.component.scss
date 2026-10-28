@@ -2,7 +2,7 @@
     min-width: 300px;
 }
 
-.picked-customers-container {
+.picked-items-container {
     display: flex;
     flex-direction: row;
     align-content: center;
@@ -11,7 +11,7 @@
     align-items: center;
 }
 
-.customer {
+.picked-item {
     border: 1px solid;
     border-radius: var(--bs-border-radius);
     padding: 0px 7px;
@@ -20,16 +20,16 @@
     color: black;
 }
 
-.customer button {
+.picked-item button {
     padding: 6px;
     color: #C83019;
 }
 
-.customer:hover {
+.picked-item:hover {
     background-color: #F3E076;
 }
 
-.customer:hover button{
+.picked-item:hover button{
     color: #530000;
 }
 

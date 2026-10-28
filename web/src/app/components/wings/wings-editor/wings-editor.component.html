@@ -100,18 +100,19 @@
                 <div class="d-flex align-items-center">
                     <span class="icon-knife" style="font-size: 30px; margin-right: 10px;"></span> Select the knife for this wing:
                 </div>
-                <app-babies-length-picker
-                    #wing_width
-                    [show_invalid_message]="false"
-                    [title]="''"
-                    [selected_lengths]="[wing!.knife]"
-                    (lengthChange)="wing!.knife = $event[0]"
-                    [min_length]=4
-                    [max_length]=12.5
-                    [show_only_custom_lengths]="show_only_custom_knives"
-                    [custom_lengths]="custom_knife_lengths"
-                    (lengthChange)="babies_length_clicked()"
-                 />
+                <ng-select
+                    class="mt-2"
+                    [items]="knives"
+                    bindValue="id"
+                    [searchFn]="knifeSearch"
+                    name="knife_selector"
+                    placeholder="Pick a knife"
+                    [ngModel]="wing!.knife_id"
+                    (change)="knifeChanged($event)"
+                    [clearable]="false">
+                    <ng-template ng-label-tmp let-item="item">{{ item.name }} - {{ item.width_cm | number : '1.2-2' }} cm</ng-template>
+                    <ng-template ng-option-tmp let-item="item">{{ item.name }} - {{ item.width_cm | number : '1.2-2' }} cm</ng-template>
+                </ng-select>
                  <div class="d-flex align-items-center" style="margin-top:15px;">
                     <span class="icon-wing-size" style="font-size: 40px; margin-right: 15px;"></span>Total wing height: {{ total_wing_height | number : '1.1-1' }} cm
                  </div>
@@ -138,9 +139,10 @@
                         [top_length]="this.wing!.babies | sortbabies | prefix: 'TOP' : true"
                         [split_l1]="this.wing!.split_l1"
                         [crown]="this.wing!.babies | sortbabies | prefix: 'C' : true"
-                        [knife]="wing!.knife"
+                        [knife_id]="wing!.knife_id ?? null"
+                        [editable]="true"
                         (babyClicked)="this.diagram_babyClicked($event)"
-                        [scale]="1"
+                        (babyEdited)="this.diagram_babyEdited($event)"
                  />
                  <div #wing_preview class="wing_preview hidden_preview" (click)="scrollToFullDiagram()" title="Click to see the wing">
                     <div style="text-align: center; color:white;"><fa-icon [icon]="faArrowUp"></fa-icon></div>
@@ -152,7 +154,7 @@
                             [top_length]="this.wing!.babies | sortbabies | prefix: 'TOP' : true"
                             [crown]="this.wing!.babies | sortbabies | prefix: 'C' : true"
                             [split_l1]="this.wing!.split_l1"
-                            [knife]="wing!.knife"
+                            [knife_id]="wing!.knife_id ?? null"
                             [max_width]="100"
                             [show_tooltips]="false"
                             [highlight_mouseover_baby]="false"

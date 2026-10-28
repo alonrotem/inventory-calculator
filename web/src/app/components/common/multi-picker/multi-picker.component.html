@@ -1,0 +1,29 @@
+
+<div class="picked-items-container">
+    @for (item of pickedItems; track item.id) {
+        <div class="picked-item" [attr.disabled]="disabled">
+            {{ pickedLabel(item) }}
+            <button class="btn" (click)="removeItem(item.id)" [disabled]="disabled"><fa-icon [icon]="faX"></fa-icon><br/></button>
+        </div>
+    }
+    <div class="{{ (!multi && pickedItems.length >= 1)?'d-none':'' }}">
+        <button class="btn btn-primary {{ picking? 'd-none':'' }}" (click)="pick()" [disabled]="disabled">{{ addButtonText }}</button>
+
+        <div class="{{ disabled || !picking? 'd-none':'' }}">
+            <ng-select
+                #item_select
+                [items]="availableItems"
+                name="multi_picker_select"
+                [multiple]="false"
+                bindLabel="name"
+                bindValue="id"
+                (change)="itemPicked($event)"
+                [placeholder]="placeholder">
+                <ng-template ng-option-tmp let-item="item">{{ itemLabel(item) }}</ng-template>
+                <ng-template ng-label-tmp let-item="item">{{ itemLabel(item) }}</ng-template>
+            </ng-select>
+
+            <div class="text-danger">{{ user_message }}</div>
+        </div>
+    </div>
+</div>

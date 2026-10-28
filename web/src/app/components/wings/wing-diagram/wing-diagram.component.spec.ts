@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
+import { of } from 'rxjs';
 import { WingDiagramComponent } from './wing-diagram.component';
+import { KnivesService } from '../../../services/knives.service';
 
 describe('WingDiagramComponent', () => {
   let component: WingDiagramComponent;
@@ -8,7 +10,8 @@ describe('WingDiagramComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [WingDiagramComponent]
+      imports: [WingDiagramComponent],
+      providers: [{ provide: KnivesService, useValue: { getKnife: () => of(null) } }]
     })
     .compileComponents();
 

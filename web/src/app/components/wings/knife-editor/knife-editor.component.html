@@ -1,0 +1,297 @@
+<app-confirmation-dialog #confirm_action />
+
+<app-save-changes-button
+    [show]="hasChanges && nodes.length >= 3 && !busy"
+    (save)="saveToDatabase()"
+    />
+
+<app-unsaved-changes-dialog #unsaved_changes_dialog></app-unsaved-changes-dialog>
+
+<div class="knife_editor container-fluid py-3" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+
+    <div class="row gx-3">
+        <div class="col-lg-3 knife_sidebar">
+
+            <!-- Knife -->
+            <div class="card mb-3">
+                <div class="card-header">Knife Editor{{ knifeId && name.trim() ? ': ' + name.trim() : '' }}</div>
+                <div class="card-body">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Name</span>
+                        <input type="text" class="form-control" maxlength="100" [(ngModel)]="name" (ngModelChange)="markDirty()" [class.is-invalid]="nodes.length && !name.trim()">
+                    </div>
+                    <div class="small text-body-secondary mt-1">
+                        {{ knifeId ? 'Saved knife #' + knifeId : 'Not saved to the database yet' }}
+                    </div>
+                    <div class="d-flex gap-2 mt-2">
+                        <button class="btn btn-sm btn-outline-primary flex-grow-1" [class.active]="showDbList" [disabled]="busy" (click)="toggleDbList()">
+                            <fa-icon [icon]="faFolderOpen"></fa-icon> Open from the database…
+                        </button>
+                    </div>
+                    @if (showDbList) {
+                        <div class="mt-2">
+                            @if (loadingList) {
+                                <div class="small text-body-secondary">Loading saved knives…</div>
+                            } @else if (!savedKnives.length) {
+                                <div class="small text-body-secondary">No knives saved yet.</div>
+                            } @else {
+                                <div class="input-group input-group-sm">
+                                    <select class="form-select" [(ngModel)]="dbSelection">
+                                        @for (k of savedKnives; track k.id) {
+                                            <option [ngValue]="k.id">{{ k.name }}</option>
+                                        }
+                                    </select>
+                                    <button class="btn btn-primary" [disabled]="busy || !dbSelection" (click)="openFromDatabase()">Open</button>
+                                </div>
+                            }
+                        </div>
+                    }
+                    <div class="d-flex gap-2 mt-2">
+                        <label class="btn btn-sm btn-outline-secondary flex-grow-1 mb-0" [class.disabled]="busy">
+                            Open JSON
+                            <input type="file" accept=".json,application/json" hidden [disabled]="busy" (change)="onShapeFileSelected($event)">
+                        </label>
+                        <button class="btn btn-sm btn-outline-secondary flex-grow-1" [disabled]="nodes.length < 3" (click)="exportShape()">Export JSON</button>
+                    </div>
+                    <div class="d-flex gap-2 mt-2">
+                        <button class="btn btn-sm btn-outline-secondary flex-grow-1" [disabled]="busy || !canRevert" (click)="revertChanges()"
+                            title="Undo all changes since the knife was imported">
+                            <fa-icon [icon]="faRotateLeft"></fa-icon> Revert changes
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger flex-grow-1" [disabled]="busy" (click)="reset()" title="Clear everything and start over">
+                            <fa-icon [icon]="faEraser"></fa-icon> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Source -->
+            <div class="card mb-3">
+                <div class="card-header">1. Scan</div>
+                <div class="card-body">
+                    <input type="file" class="form-control form-control-sm" [disabled]="busy"
+                        accept=".png,.jpg,.jpeg,.pdf,image/png,image/jpeg,application/pdf"
+                        (change)="onSourceSelected($event)">
+                    @if (sourceName) {
+                        <div class="small text-body-secondary mt-1">
+                            {{ sourceName }}@if (fileDpi) { · {{ fileDpi }} DPI }
+                        </div>
+                    }
+                    @if (pdfPageCount > 1) {
+                        <div class="input-group input-group-sm mt-2">
+                            <span class="input-group-text">Page</span>
+                            <input type="number" class="form-control" min="1" [max]="pdfPageCount" [disabled]="busy"
+                                [(ngModel)]="pdfPage" (change)="onPdfPageChanged()">
+                            <span class="input-group-text">of {{ pdfPageCount }}</span>
+                        </div>
+                    }
+                    @if (source) {
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label class="form-label small mb-0">Threshold</label>
+                            @if (usedAlpha) {
+                                <span class="small text-body-secondary">transparent background</span>
+                            } @else {
+                                <div class="form-check form-check-inline small mb-0 me-0">
+                                    <input class="form-check-input" type="checkbox" id="knife_auto_threshold"
+                                        [(ngModel)]="autoThreshold" (change)="traceFromSource()">
+                                    <label class="form-check-label" for="knife_auto_threshold">auto</label>
+                                </div>
+                            }
+                        </div>
+                        <input type="range" class="form-range" min="1" max="254" [disabled]="autoThreshold || usedAlpha"
+                            [(ngModel)]="threshold" (change)="traceFromSource()">
+
+                        <label class="form-label small mb-0">Curve tolerance: {{ tolerance }} px</label>
+                        <input type="range" class="form-range" min="0.5" max="15" step="0.5"
+                            [(ngModel)]="tolerance" (change)="refit()">
+
+                        <label class="form-label small mb-0">Corner angle: {{ cornerAngle }}°</label>
+                        <input type="range" class="form-range" min="15" max="90" step="1"
+                            [(ngModel)]="cornerAngle" (change)="refit()">
+
+                        <button class="btn btn-sm btn-outline-secondary w-100 mb-2" (click)="traceFromSource()">Trace again</button>
+
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="form-check small mb-0">
+                                <input class="form-check-input" type="checkbox" id="knife_show_image"
+                                    [(ngModel)]="showImage" (change)="requestDraw()">
+                                <label class="form-check-label" for="knife_show_image">Image</label>
+                            </div>
+                            <input type="range" class="form-range" min="0.05" max="1" step="0.05" [disabled]="!showImage"
+                                [(ngModel)]="imageOpacity" (input)="requestDraw()">
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Orientation -->
+            <div class="card mb-3">
+                <div class="card-header">2. Orientation</div>
+                <div class="card-body">
+                    <div class="input-group input-group-sm mb-2">
+                        <span class="input-group-text">Rotate</span>
+                        <input type="number" class="form-control" step="0.5" [ngModel]="rotation" (ngModelChange)="setRotation($event)">
+                        <span class="input-group-text">°</span>
+                    </div>
+                    <input type="range" class="form-range" min="-180" max="180" step="0.1" [ngModel]="rotation" (ngModelChange)="setRotation($event)">
+                    <div class="btn-group btn-group-sm w-100 mb-2">
+                        <button class="btn btn-outline-secondary" (click)="rotateBy(-90)" title="Rotate left">⟲ 90°</button>
+                        <button class="btn btn-outline-secondary" (click)="rotateBy(90)" title="Rotate right">⟳ 90°</button>
+                        <button class="btn btn-outline-secondary" [class.active]="flipped" (click)="flip()" title="Mirror horizontally">⇋ Flip</button>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary w-100" [class.active]="tool === 'straighten'" [disabled]="!nodes.length && !source"
+                        (click)="startStraighten()">Straighten by base line</button>
+                </div>
+            </div>
+
+            <!-- Outline -->
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>3. Outline</span>
+                    <button class="btn btn-sm btn-outline-secondary py-0" [disabled]="!canUndo" (click)="undo()" title="Ctrl+Z">Undo</button>
+                </div>
+                <div class="card-body">
+                    <div class="form-check small mb-2">
+                        <input class="form-check-input" type="checkbox" id="knife_show_points"
+                            [(ngModel)]="showPoints" (ngModelChange)="togglePoints()">
+                        <label class="form-check-label" for="knife_show_points">Show points</label>
+                    </div>
+                    @if (selectedNode; as node) {
+                        <div class="small mb-1">Selected point: {{ node.smooth ? 'smooth' : 'corner' }}</div>
+                        <div class="btn-group btn-group-sm w-100 mb-1">
+                            <button class="btn btn-outline-secondary" [class.active]="node.smooth" (click)="setSmooth()">Smooth</button>
+                            <button class="btn btn-outline-secondary" [class.active]="!node.smooth" (click)="setCorner()">Corner</button>
+                        </div>
+                        <div class="btn-group btn-group-sm w-100 mb-2">
+                            <button class="btn btn-outline-secondary" (click)="makeStraight()">Straight edges</button>
+                            <button class="btn btn-outline-secondary" (click)="makeCurved()">Curved edges</button>
+                            <button class="btn btn-outline-danger" (click)="deleteSelected()">Delete</button>
+                        </div>
+                    }
+                    <ul class="small text-body-secondary ps-3 mb-0">
+                        <li>Drag points and handles to adjust</li>
+                        <li>Double-click the outline to add a point</li>
+                        <li>Del removes the selected point</li>
+                        <li>Drag the background to pan, wheel to zoom</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Regions -->
+            <div class="card mb-3">
+                <div class="card-header">4. Regions</div>
+                <ul class="list-group list-group-flush">
+                    @for (key of regionKeys; track key) {
+                        <li class="list-group-item d-flex align-items-center gap-2 py-1"
+                            [class.list-group-item-primary]="tool === 'mark' && markKey === key">
+                            <span class="region_swatch" [style.background]="regionInfo[key].color"></span>
+                            <span class="flex-grow-1">{{ regionInfo[key].label }}</span>
+                            @if (regions[key]) {
+                                <span class="small text-success">✓</span>
+                                <button class="btn btn-sm btn-link text-danger p-0" (click)="clearRegion(key)" title="Clear">✕</button>
+                            }
+                            <button class="btn btn-sm btn-outline-primary py-0" [disabled]="nodes.length < 3"
+                                (click)="startMark(key)">{{ regions[key] ? 'Re-mark' : 'Mark' }}</button>
+                        </li>
+                    }
+                </ul>
+                <div class="card-body pt-2 small text-body-secondary">
+                    Click where the region starts on the outline, then where it ends.
+                    For L1, mark the step: from the outer end of its ledge to the top of its riser.
+                    Lefts and Rights are filled in automatically once L1, Top and Crown are marked.
+                </div>
+            </div>
+
+            <!-- Size -->
+            <div class="card mb-3">
+                <div class="card-header">5. Size</div>
+                <div class="card-body">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Width (L1 → Crown)</span>
+                        <input type="number" class="form-control" min="0" step="0.1" [(ngModel)]="widthCm" (ngModelChange)="markDirty(); requestDraw()">
+                        <span class="input-group-text">cm</span>
+                    </div>
+                    @if (widthFromDpi(); as dpiWidth) {
+                        <div class="small text-body-secondary mt-1">
+                            By scan resolution: {{ dpiWidth }} cm
+                            <button class="btn btn-sm btn-link p-0 align-baseline" (click)="widthCm = dpiWidth; markDirty(); requestDraw()">use</button>
+                        </div>
+                    } @else if (measuredWidth() === null) {
+                        <div class="small text-body-secondary mt-1">Mark L1 and Crown to measure the width.</div>
+                    }
+                </div>
+            </div>
+
+            <!-- Babies preview -->
+            <div class="card mb-3">
+                <div class="card-header">6. Preview babies</div>
+                <div class="card-body">
+                    <div class="input-group input-group-sm mb-2">
+                        <span class="input-group-text">Lefts</span>
+                        <input type="number" class="form-control" min="1" max="20" title="Including L1" [(ngModel)]="previewLefts" (ngModelChange)="requestDraw()">
+                        <span class="input-group-text">Rights</span>
+                        <input type="number" class="form-control" min="1" max="20" [(ngModel)]="previewRights" (ngModelChange)="requestDraw()">
+                    </div>
+                    <div class="input-group input-group-sm mb-2">
+                        <span class="input-group-text">Crown split</span>
+                        <input type="number" class="form-control" min="1" max="8" [(ngModel)]="previewCrownSplit" (ngModelChange)="requestDraw()">
+                    </div>
+                    <button class="btn btn-sm w-100" [class.btn-warning]="showBabies" [class.btn-outline-warning]="!showBabies"
+                        [disabled]="!showBabies && !!babiesBlockedReason" (click)="toggleBabies()">{{ showBabies ? 'Hide babies' : 'Show babies' }}</button>
+                    @if (babiesBlockedReason; as reason) {
+                        <div class="small text-warning-emphasis mt-1">{{ reason }}</div>
+                    }
+                    <div class="small text-body-secondary mt-1">Sample lengths only: L 6→9.5, R 5.5→9, Top and Crown 10 cm.</div>
+                </div>
+            </div>
+
+
+            <div class="d-flex flex-row justify-content-between align-items-center mb-3">
+                <div class="d-flex flex-row justify-items-end">
+                    <button class="btn btn-warning upper-button" (click)="goBack()" title="Back">
+                        <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>
+                    </button>
+                    <button class="btn btn-success upper-button" [disabled]="busy || nodes.length < 3" (click)="saveToDatabase()" title="Save to the database">
+                        <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
+                    </button>
+                    <button class="btn btn-danger upper-button" [disabled]="busy || !knifeId" (click)="deleteFromDatabase()" title="Delete from the database">
+                        <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>
+                    </button>
+                </div>
+            </div>            
+        </div>
+
+        <div class="col-lg-9 knife_canvas_column">
+            <div class="knife_canvas_container" [class.crosshair]="tool !== 'edit'">
+                <canvas #editor_canvas
+                    (pointerdown)="onPointerDown($event)"
+                    (pointermove)="onPointerMove($event)"
+                    (pointerup)="onPointerUp()"
+                    (pointerleave)="onPointerLeave()"
+                    (dblclick)="onDoubleClick($event)"
+                    (wheel)="onWheel($event)"
+                    (contextmenu)="$event.preventDefault()"></canvas>
+                <div class="knife_zoom btn-group-vertical btn-group-sm">
+                    <button class="btn btn-light border" (click)="zoomBy(1.25)" title="Zoom in">+</button>
+                    <button class="btn btn-light border" (click)="zoomBy(0.8)" title="Zoom out">−</button>
+                    <button class="btn btn-light border" (click)="fitView()" title="Reset zoom (fit to view)">⤢</button>
+                </div>
+                @if (busy) {
+                    <div class="knife_busy"><div class="spinner-border" role="status"></div></div>
+                }
+                @if (dragOver) {
+                    <div class="knife_drop">Drop a scan (PNG, JPG, PDF) or a knife JSON file</div>
+                } @else if (!nodes.length && !source && !busy) {
+                    <div class="knife_drop_hint">Drop or paste (Ctrl+V) a scan here, or choose one in the Scan panel</div>
+                }
+            </div>
+            <div class="small mt-1 d-flex justify-content-between">
+                <span>{{ status }}</span>
+                @if (tool !== 'edit') {
+                    <button class="btn btn-sm btn-link p-0" (click)="cancelTool()">Cancel (Esc)</button>
+                }
+            </div>
+        </div>
+    </div>
+</div>

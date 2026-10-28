@@ -154,7 +154,6 @@
         [stretch_width]="true"
         [show_titles_buttons]="false"
         [show_only_custom_knives]="!customer.is_demo_customer"
-        [custom_knife_lengths]="knives_lengths"
     />
 </app-modal-dialog>
 
@@ -549,8 +548,8 @@
           [rights]="(this.customerHat.wing)? (this.customerHat.wing.babies | sortbabies | prefix: 'R' : true) : []"
           [top_length]="(this.customerHat.wing)? (this.customerHat.wing.babies | sortbabies | prefix: 'TOP' : true) : []"
           [crown]="(this.customerHat.wing)? (this.customerHat.wing.babies | sortbabies | prefix: 'C' : true) : []"
-          [knife]="(this.customerHat.wing)? (this.customerHat.wing.knife) : 0"
           [split_l1]="(this.customerHat.wing)? (this.customerHat.wing.split_l1) : 1"
+          [knife_id]="(this.customerHat.wing)? (this.customerHat.wing.knife_id ?? null) : null"
           (babyClicked)="diagram_baby_clicked($event)"
       />
       </div>
@@ -657,7 +656,7 @@
             *ngFor="let item of arr_knives"
             [value]="item.cm">
             <div class="option-table option-2-col">
-              <div class="cell">{{ item.cm | number:'1.2-2' }} cm</div>
+              <div class="cell">{{ item.name ? item.name + ' - ' : '' }}{{ item.cm | number:'1.2-2' }} cm</div>
               <div class="cell">{{ (item.cm * cm_to_inch) | number:'1.2-2' }}"</div>
             </div>
           </ng-option>

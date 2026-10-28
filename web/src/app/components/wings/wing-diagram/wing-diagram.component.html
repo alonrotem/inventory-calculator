@@ -1,4 +1,13 @@
-<div class="diagram_container">
-    <canvas #diagram_canvas (mousemove)="mouseMove($event)" (mouseup)="mouseUp($event)" class="diagram_canvas"></canvas>
+<div #diagram_container class="diagram_container">
+    <div class="diagram_stage">
+        <canvas #diagram_canvas class="diagram_canvas"></canvas>
+        @if (editable) {
+            @for (button of addButtons; track button.side) {
+                <button type="button" class="btn btn-primary diagram_add_button"
+                    [style.left.px]="button.x" [style.top.px]="button.y"
+                    [title]="button.title" (click)="addBaby(button.side)">+</button>
+            }
+        }
+    </div>
 </div>
-<span #tooltip class="canvas_tooltip">tooltip<br/>10cm</span>
+<div #tooltip class="canvas_tooltip"></div>

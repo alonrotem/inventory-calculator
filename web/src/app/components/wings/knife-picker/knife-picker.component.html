@@ -1,0 +1,11 @@
+<app-multi-picker
+    [items]="knives"
+    [itemLabel]="knifeLabel"
+    [pickedItems]="pickedKnives"
+    (pickedItemsChange)="pickedKnivesChange.emit($event)"
+    (Change)="Change.emit()"
+    [disabled]="disabled"
+    [multi]="multi"
+    addButtonText="+ Add knife"
+    placeholder="Pick a knife"
+    />

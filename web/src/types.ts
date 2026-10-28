@@ -161,7 +161,8 @@ export interface WingsList {
 export interface Wing {
     id: number;
     name: string;
-    knife: number;
+    knife: number;              // the knife's width in cm
+    knife_id?: number | null;   // the picked knife (knives table)
     allow_shortening_babies_in_pairs: boolean;
     crown_width: number;
     split_l1: number;
@@ -275,6 +276,65 @@ export class Point {
     }
   }
 
+  export interface Knife {
+    id: number;
+    name: string;
+    width_cm: number;       // from L1 to the Crown
+    data: {
+        size_cm: {
+            width: number;
+            height: number;
+        }
+        nodes: {
+            id: number;
+            p: Point;
+            hIn: Point | null;
+            hOut: Point | null;
+            smooth: boolean;
+        } [];
+        regions: {
+            l1: {
+                from: number;
+                to: number;
+            };
+
+            lefts: {
+                from: number;
+                to: number;
+            };
+
+            top: {
+                from: number;
+                to: number;
+            };
+
+            rights: {
+                from: number;
+                to: number;
+            };
+            crown: {
+                from: number;
+                to: number;
+            };
+        }
+    }
+  }
+
+  export interface KnifeListItem {
+    id: number;
+    name: string;
+    width_cm: number;
+  }
+
+  export interface KnivesList {
+    data: KnifeListItem[];
+    meta: { 
+        page: number;
+        total_records: number;
+        total_pages: number;
+    };
+}
+
   export interface Customer {
     id: number;
     name: string;
@@ -298,7 +358,7 @@ export class Point {
     banks: Customer_Bank[];
     banks_baby_allocations: Customer_Bank_Baby_Allocation[];
     babies: Allocation_Baby[];
-    knives: number[];
+    knives: nameIdPair[];
 }
 
 export interface CustomerListItem {

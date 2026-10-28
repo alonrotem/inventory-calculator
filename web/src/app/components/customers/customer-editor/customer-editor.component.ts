@@ -23,7 +23,7 @@ import { UsersService } from '../../../services/users.service';
 import { HasPermissionPipe } from '../../../utils/pipes/has-permission.pipe';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { RawMaterialsService } from '../../../services/raw-materials.service';
-import { BabiesLengthPickerComponent } from "../../babies/babies-length-picker/babies-length-picker.component";
+import { KnifePickerComponent } from "../../wings/knife-picker/knife-picker.component";
 import { SaveChangesButtonComponent } from "../../common/save-changes-button/save-changes-button.component";
 import { NumericInputDirective } from "../../../utils/directives/auto-numeric.directive";
 import { WingsTableComponent } from "../../wings/wings-table/wings-table.component";
@@ -34,7 +34,7 @@ import { WingsTableComponent } from "../../wings/wings-table/wings-table.compone
   imports: [RouterModule, FormsModule, NgSelectModule, DateStrPipe,
     FaIconComponent, NgIf, NgFor, ConfirmationDialogComponent, AutocompleteLibModule,
     CustomerBanksTableComponent, HatsCalculatorDialogComponent,
-    UnsavedChangesDialogComponent, HasPermissionPipe, AsyncPipe, BabiesLengthPickerComponent, SaveChangesButtonComponent, NumericInputDirective, WingsTableComponent, DecimalPipe],
+    UnsavedChangesDialogComponent, HasPermissionPipe, AsyncPipe, KnifePickerComponent, SaveChangesButtonComponent, NumericInputDirective, WingsTableComponent, DecimalPipe],
   templateUrl: './customer-editor.component.html',
   styleUrl: './customer-editor.component.scss'
 })
@@ -107,7 +107,6 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
   @ViewChild('hats_calculator') hats_calculator!: HatsCalculatorDialogComponent;
   @ViewChild("btn_save", { read: ElementRef }) btn_save!: ElementRef;
   @ViewChild("raw_material_select") raw_material_select!: NgSelectComponent;
-  @ViewChild("knives_length_picker") knives_length_picker!: BabiesLengthPickerComponent;
   @ViewChildren('customer_banks_tables') customer_banks_tables!: QueryList<CustomerBanksTableComponent>;
  
   constructor(
@@ -371,10 +370,6 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
         //this.gotoCustomersList(error, true); 
       }
     });
-  }
-
-  selectUnselectAllKnives(){
-    this.knives_length_picker.toggleAll();
   }
 
 

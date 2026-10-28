@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, viewChild, ViewChild } from '@angular/core';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 import { faArrowLeft, faArrowUp, faEraser, faL, faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
-import { Wing, WingBaby, WingsListItem } from '../../../../types';
+import { KnifeListItem, Wing, WingBaby, WingsListItem } from '../../../../types';
 import { FormsModule, NgForm } from '@angular/forms';
 import { WingsService } from '../../../services/wings.service';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -9,6 +9,7 @@ import { DecimalPipe, NgFor, NgIf, PlatformLocation, NgClass, AsyncPipe } from '
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { WingsBabiesTableComponent } from '../wings-babies-table/wings-babies-table.component';
 import { WingDiagramComponent } from '../wing-diagram/wing-diagram.component';
+import { WingBabyEdit, applyBabyEdit } from '../wing-diagram/wing-baby-edit';
 import { PrefixPipe } from "../../../utils/pipes/prefix-pipe";
 import { BabiesLengthPickerComponent } from "../../babies/babies-length-picker/babies-length-picker.component";
 import { BabyLengthModalComponent } from '../baby-length-modal/baby-length-modal.component';
@@ -27,6 +28,9 @@ import { SaveChangesButtonComponent } from "../../common/save-changes-button/sav
 import { UsersService } from '../../../services/users.service';
 import { FilterPipe } from "../../../utils/pipes/filter-pipe";
 import { LengthPipe } from '../../../utils/pipes/length-pipe';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { KnivesService } from '../../../services/knives.service';
+import { CustomersService } from '../../../services/customers.service';
 
 @Component({
   selector: 'app-wings-editor',
@@ -34,7 +38,7 @@ import { LengthPipe } from '../../../utils/pipes/length-pipe';
   imports: [ConfirmationDialogComponent, FormsModule, NgIf, NgFor, FaIconComponent, WingsBabiesTableComponent,
     WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent, BabyLengthModalComponent, CustomerPickerComponent,
     UnsavedChangesDialogComponent, DecimalPipe, SortBabiesPipe, CrownEditorComponent, ModalDialogComponent,
-    NgClass, SaveChangesButtonComponent, AsyncPipe, FilterPipe, LengthPipe ],
+    NgClass, SaveChangesButtonComponent, AsyncPipe, FilterPipe, LengthPipe, NgSelectModule ],
   templateUrl: './wings-editor.component.html',
   styleUrl: './wings-editor.component.scss',/*
   changeDetection: ChangeDetectionStrategy.OnPush*/
@@ -87,6 +91,9 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   @Input() custom_knife_lengths: { length: number, count: number }[] = [];
   wing_id: number = 0;
   wings: WingsListItem[] = [];
+  knives: KnifeListItem[] = [];         // the knife selector's options
+  private allKnives: KnifeListItem[] = [];
+  private customerKnifeIds: Set<number> | null = null;   // set when editing a customer's wing (c_id)
   customer_id: number= 0;
 
   crown_babies_options = Array(5).fill(0).map((_, i)=> i+1);
@@ -105,7 +112,9 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
     router: Router, 
     stateService: StateService,
     toastService: ToastService,
-    private usersService: UsersService
+    private usersService: UsersService,
+    private knivesService: KnivesService,
+    private customersService: CustomersService
   ){
       super(toastService, stateService, router, activatedRoute);
   }
@@ -123,6 +132,23 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
 
   ngOnInit(): void {
     this.customer_id = Number(this.activatedRoute.snapshot.queryParamMap.get('c_id'));
+    this.knivesService.getKnives({ page: 0, perPage: 0 }).subscribe({
+      next: (knives) => {
+        this.allKnives = knives.data;
+        this.updateKnifeOptions();
+      },
+      error: () => {}
+    });
+    // a customer's wing can use only the knives assigned to that customer
+    if(this.customer_id && this.customer_id > 0){
+      this.customersService.getCustomer(this.customer_id).subscribe({
+        next: (customer) => {
+          this.customerKnifeIds = new Set((customer?.knives ?? []).map(k => k.id));
+          this.updateKnifeOptions();
+        },
+        error: () => {}
+      });
+    }
     //alert(this.customer_id);
     this.wingsService.getWings({ page: 0, perPage: 0 }).subscribe(wingsListInfo => {
       this.wings = wingsListInfo.data.sort((w1:WingsListItem, w2:WingsListItem) => {
@@ -247,6 +273,16 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
     this.crown_units = crownBabies.length;
     this.crown_length = (crownBabies.length > 0)? crownBabies[0].length: 0;
     this.calculate_total_wing_height();
+    this.updateKnifeOptions();
+  }
+
+  // the knives to pick from: all of them, or the customer's (c_id) knives.
+  // The wing's current knife is kept, so it still shows even if it's not one of the customer's knives
+  updateKnifeOptions(){
+    const current = this.wing?.knife_id;
+    this.knives = this.customerKnifeIds
+      ? this.allKnives.filter(k => this.customerKnifeIds!.has(k.id) || k.id == current)
+      : this.allKnives;
   }
 
   calculate_total_wing_height(){
@@ -478,6 +514,32 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
       }
     }
   }
+
+  // a baby was added, removed or resized on the diagram
+  diagram_babyEdited(edit: WingBabyEdit){
+    if(this.wing){
+      this.wing.babies = applyBabyEdit(this.wing.babies, edit, this.wing_id);
+      // keep the crown size control in sync
+      this.crown_units = this.wing.babies.filter(b => b.position.startsWith("C")).length;
+      if(this.crown_size){
+        this.crown_size.nativeElement.value = this.crown_units;
+      }
+      this.calculate_total_wing_height();
+      this.wingForm.form.markAsDirty();
+    }
+  }
+
+  // the wing's knife: its id for the diagram, its width for the measurements
+  knifeChanged(knife: KnifeListItem){
+    if(this.wing && knife){
+      this.wing.knife_id = knife.id;
+      this.wing.knife = knife.width_cm;
+      this.babies_length_clicked();
+    }
+  }
+
+  knifeSearch = (term: string, knife: KnifeListItem): boolean =>
+    `${knife.name} ${knife.width_cm.toFixed(2)}`.toLowerCase().includes(term.toLowerCase());
 
   openLengthModal(obj: WingBaby){
     if(this.wing){

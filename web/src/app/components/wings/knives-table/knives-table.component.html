@@ -1,0 +1,42 @@
+<div class="row justify-content-center"><div class="col-12 col-md-9">
+<h1><span class="icon-knife"></span> Knives</h1>
+
+<app-page-loading
+  [loading_message]="'Loading knives...'"
+  [icon_size]="'3x'"
+  [hidden]="!loading"
+  [stretch_height]="true" />
+
+<div [hidden]="loading">
+  <a id="btnNewKnife" class="btn btn-primary" routerLink="/templates/knives/editor">+ New knife</a>
+
+  <div class="infotitle" [hidden]="loading || this.knives.length <= 0">Total: {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'knife':'knives' }}</div>
+
+  <div [hidden]="loading || this.knives.length == 0">
+  <table class="table table-responsive table-striped table-hover">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Width</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        *ngFor="let knife of this.knives"
+        routerLink="/templates/knives/details"
+        [queryParams]="{ id: knife.id }" role="button">
+        <td>{{ knife.name }}</td>
+        <td>{{ knife.width_cm | number: '1.0-2' }} cm</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <app-paginator #paginator [pages]=4  (onPageChange)="pageChange($event)" />
+  </div>
+
+  <div [hidden]="loading || this.knives.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
+    No knives added.<br/>
+    Please add some by clicking the + button above.
+  </div>
+</div>
+</div></div>
