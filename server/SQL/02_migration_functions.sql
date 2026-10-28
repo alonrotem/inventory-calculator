@@ -118,7 +118,7 @@ DELIMITER $$
 CREATE PROCEDURE convert_column_type(
     IN p_table_name VARCHAR(64),
     IN p_column_name VARCHAR(64),
-    IN p_new_column_type VARCHAR(256)
+    IN p_new_column_type TEXT
 )
 BEGIN
     DECLARE col_exists INT DEFAULT 0;

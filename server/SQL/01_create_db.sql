@@ -398,6 +398,19 @@ CREATE TABLE  IF NOT EXISTS `customer_knives` (
   FOREIGN KEY (`customer_id`) REFERENCES customers(`id`) ON DELETE cascade
 );
 
+CREATE TABLE  IF NOT EXISTS `knives` (
+	`id`            	INT NOT NULL auto_increment,
+	`name`          	VARCHAR(255) NOT NULL,
+	`width_cm`      	FLOAT NOT NULL,		-- from L1 to the Crown
+	`data`          	JSON NOT NULL,		-- knife editor drawing: outline (cm) and regions; name and width have their own columns
+	`created_at`    	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`updated_at`    	DATETIME on UPDATE CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`created_by`	 	int null,
+	`updated_by`	 	int null,
+	PRIMARY KEY (`id`),
+	Unique(`name`)
+);
+
 CREATE TABLE  IF NOT EXISTS `customer_banks` (
 	`id`            			INT NOT NULL auto_increment,
 	`customer_id`            	INT NOT NULL,
@@ -518,7 +531,10 @@ CREATE TABLE  IF NOT EXISTS wings (
     `split_l1` int not null default 1,
     `allow_shortening_babies_in_pairs` boolean default false,
     `angled_crown`	boolean default false,
-    PRIMARY KEY (`id`)
+    `knife_id`	INT NULL,		# the knife drawing (knives table); `knife` keeps its width
+    PRIMARY KEY (`id`),
+    CONSTRAINT fk_wings_knife
+      FOREIGN KEY (`knife_id`) REFERENCES knives(`id`)
 );
 
 CREATE TABLE  IF NOT EXISTS wings_babies (
@@ -788,11 +804,16 @@ CREATE TABLE IF NOT EXISTS `roles` (
 	PRIMARY KEY (`id`)
 );
 
-insert into `roles` (`name`) values
-	('administrator'),	# Allowed everything
-	('customer'),		# Allowed access to specific customer ids data and orders
-	('employee'),		# Allowed access to orders and readonly customer info
-	('guest');			# Allowed view permissions to data
+-- Adds only the roles that don't exist yet, so the table doesn't grow on every run
+insert into `roles` (`name`)
+select r.`name`
+from (values
+	ROW('administrator'),	# Allowed everything
+	ROW('customer'),		# Allowed access to specific customer ids data and orders
+	ROW('employee'),		# Allowed access to orders and readonly customer info
+	ROW('guest')			# Allowed view permissions to data
+) as r (`name`)
+where not exists (select 1 from `roles` existing where existing.`name` = r.`name`);
 
 CREATE TABLE IF NOT EXISTS `user_roles` (
 	`user_id`					INT NOT NULL,
@@ -823,8 +844,9 @@ CREATE TABLE IF NOT EXISTS `role_permissions` (
 					'bank_baby_management', # allowed to manage the customer's bank and add/remove babies in allocation
 					'customers', 
 					'customers_advanced_features', # for switching adviror on/off per customer, and other features. Available to admins
-					'orders', 
-					'wings', 
+					'orders',
+					'knives',
+					'wings',
 					'wings_through_orders', # allowing access to wings through the customer(s) orders
 					'system_settings', 
 					'backup', 
@@ -837,69 +859,7 @@ CREATE TABLE IF NOT EXISTS `role_permissions` (
 	PRIMARY KEY (`id`)
 );
 
-Insert into `role_permissions` (`role_id`, `area`, `permissions`)
-values
-((select id from roles where name='administrator' limit 1), 'dashboard', 'CRUD'),
-((select id from roles where name='administrator' limit 1), 'raw_materials', 'CRUD'),
-((select id from roles where name='administrator' limit 1), 'bank_baby_management', 'CRUD'),
-((select id from roles where name='administrator' limit 1), 'customers', 'CRUD'),
-((select id from roles where name='administrator' limit 1), 'customers_advanced_features', 'RU'),
-((select id from roles where name='administrator' limit 1), 'orders', 'CRUD'),
-((select id from roles where name='administrator' limit 1), 'wings', 'CRUD'),
-((select id from roles where name='administrator' limit 1), 'wings_through_orders', ''),
-((select id from roles where name='administrator' limit 1), 'system_settings', 'CRUD'),
-((select id from roles where name='administrator' limit 1), 'backup', 'CRUD'),
-((select id from roles where name='administrator' limit 1), 'system_logs', 'CRUD'),
-((select id from roles where name='administrator' limit 1), 'user_management', 'CRUD'),
-((select id from roles where name='administrator' limit 1), 'customer_resources_by_customer_id', ''),
-((select id from roles where name='administrator' limit 1), 'orders_resources_by_customer_id', ''),
-
-((select id from roles where name='customer' limit 1), 'dashboard', 'R'),		# Readonly
-((select id from roles where name='customer' limit 1), 'raw_materials', ''), 	# No access
-((select id from roles where name='customer' limit 1), 'bank_baby_management', ''),
-((select id from roles where name='customer' limit 1), 'customers', ''),	 	# Limited by customer id
-((select id from roles where name='customer' limit 1), 'customers_advanced_features', ''),
-((select id from roles where name='customer' limit 1), 'orders', ''),		 	# Limited by customer id
-((select id from roles where name='customer' limit 1), 'wings', ''),		 	# No access
-((select id from roles where name='customer' limit 1), 'wings_through_orders', 'CRUD'),
-((select id from roles where name='customer' limit 1), 'system_settings', ''),	# No access 
-((select id from roles where name='customer' limit 1), 'backup', ''),			# No access
-((select id from roles where name='customer' limit 1), 'system_logs', ''),		# No access
-((select id from roles where name='customer' limit 1), 'user_management', ''),
-((select id from roles where name='customer' limit 1), 'customer_resources_by_customer_id', 'RU'), # Limited by customer id
-((select id from roles where name='customer' limit 1), 'orders_resources_by_customer_id', 'CRUD'), # Limited by customer id
-
-((select id from roles where name='employee' limit 1), 'dashboard', 'R'),		# Readonly
-((select id from roles where name='employee' limit 1), 'raw_materials', 'R'),	# Readonly
-((select id from roles where name='employee' limit 1), 'bank_baby_management', 'CRUD'),
-((select id from roles where name='employee' limit 1), 'customers', 'R'),		# Readonly
-((select id from roles where name='customer' limit 1), 'customers_advanced_features', ''),
-((select id from roles where name='employee' limit 1), 'orders', 'RUD'),		# Accessible
-((select id from roles where name='employee' limit 1), 'wings', 'R'),			# Readonly
-((select id from roles where name='employee' limit 1), 'wings_through_orders', ''),
-((select id from roles where name='employee' limit 1), 'system_settings', ''),	# No access
-((select id from roles where name='employee' limit 1), 'backup', ''),			# No access
-((select id from roles where name='employee' limit 1), 'user_management', ''),
-((select id from roles where name='employee' limit 1), 'system_logs', ''),		# No access
-((select id from roles where name='employee' limit 1), 'customer_resources_by_customer_id', ''), # No access
-((select id from roles where name='employee' limit 1), 'orders_resources_by_customer_id', ''), # Limited by customer id
-
-((select id from roles where name='guest' limit 1), 'dashboard', 'R'),			# Readonly
-((select id from roles where name='guest' limit 1), 'raw_materials', ''),		# No access
-((select id from roles where name='guest' limit 1), 'bank_baby_management', ''),
-((select id from roles where name='guest' limit 1), 'customers', ''),			# No access
-((select id from roles where name='guest' limit 1), 'customers_advanced_features', ''),
-((select id from roles where name='guest' limit 1), 'orders', ''),				# No access
-((select id from roles where name='guest' limit 1), 'wings', ''),				# No access
-((select id from roles where name='guest' limit 1), 'wings_through_orders', ''),
-((select id from roles where name='guest' limit 1), 'system_settings', ''),		# No access
-((select id from roles where name='guest' limit 1), 'user_management', ''),
-((select id from roles where name='guest' limit 1), 'backup', ''),				# No access
-((select id from roles where name='guest' limit 1), 'system_logs', ''),			# No access
-((select id from roles where name='guest' limit 1), 'customer_resources_by_customer_id', ''),
-((select id from roles where name='guest' limit 1), 'orders_resources_by_customer_id', '') # No access
-as updated_permissions on duplicate key update
-`role_id`=updated_permissions.`role_id`, `area`=updated_permissions.`area`, `permissions`=updated_permissions.`permissions`;
+-- role_permissions rows are inserted by 03_migrations.sql, after the area ENUM is migrated
 
 /* Raw material totals */
 -- Alert when raw material total kg quantity below ___ kg

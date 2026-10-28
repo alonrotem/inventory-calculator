@@ -56,6 +56,7 @@ app.use("/currencies", require("./routes/currencies"));
 app.use("/countries", require("./routes/countries"));
 app.use("/info", require("./routes/info"));
 app.use("/wings", require("./routes/wings"));
+app.use("/knives", require("./routes/knives"));
 app.use("/orders", require("./routes/orders"));
 app.use("/customers", require("./routes/customers"));
 app.use("/transaction_history", require("./routes/transaction_history"));

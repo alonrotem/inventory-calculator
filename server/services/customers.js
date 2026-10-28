@@ -70,8 +70,15 @@ async function getSingle(id, currentUserId){
       where cbb.customer_bank_id in (select cb.id from customer_banks cb where cb.customer_id=(?)));`,[id]));
 
     customer.knives = helper.emptyOrRows(await db.query(
-      `select distinct knife from customer_knives where customer_id=(?);`, [id]))
-      .map(k => k.knife);
+      `select 
+        k.id, 
+        CONCAT(k.name, ' - ', k.width_cm) name 
+      from 
+        customers c
+        inner join customer_knives ck on c.id = ck.customer_id
+        inner join knives k on k.id=ck.knife 
+      where c.id=(?);`, [id]))
+      .map(k => { return { id: k.id, name: k.name } });
   }      
   return customer;
 }
@@ -472,7 +479,7 @@ async function save(customer, currentUserId, active_connection=null){
 
     await db.transaction_query(`delete from customer_knives where customer_id=(?);`, [customer.id], active_connection);
     if(customer.knives && customer.knives.length > 0){
-      const knife_values = customer.knives.map(knife => [customer.id, knife]);
+      const knife_values = customer.knives.map(knife => [customer.id, knife.id]);
       await db.transaction_query(`insert into customer_knives (customer_id, knife) values ?`, [knife_values], active_connection);
     }
 

@@ -301,4 +301,84 @@ CALL add_column_if_not_exists('customers', 'default_mayler_width', 'FLOAT null')
 CALL add_column_if_not_exists('customers', 'default_num_of_wings_per_hat', 'INT null');
 CALL add_column_if_not_exists('customers', 'is_disabled', 'BOOL not null default false');
 
+-- Role permissions: widen the area ENUM first (existing DBs), then add missing permissions
+CALL convert_column_type('role_permissions', 'area', "ENUM('dashboard', 'raw_materials', 'bank_baby_management', 'customers', 'customers_advanced_features', 'orders', 'knives', 'wings', 'wings_through_orders', 'system_settings', 'backup', 'system_logs', 'user_management', 'customer_resources_by_customer_id', 'orders_resources_by_customer_id') NOT NULL");
+-- Adds only the permissions a role does not have yet, so permissions changed by an admin are kept.
+-- Roles are matched by name to their first row (lowest id), as `roles` may hold repeated names.
+Insert into `role_permissions` (`role_id`, `area`, `permissions`)
+select r.`role_id`, p.`area`, p.`permissions`
+from (values
+	ROW('administrator', 'dashboard', 'CRUD'),
+	ROW('administrator', 'raw_materials', 'CRUD'),
+	ROW('administrator', 'bank_baby_management', 'CRUD'),
+	ROW('administrator', 'customers', 'CRUD'),
+	ROW('administrator', 'customers_advanced_features', 'RU'),
+	ROW('administrator', 'orders', 'CRUD'),
+	ROW('administrator', 'knives', 'CRUD'),
+	ROW('administrator', 'wings', 'CRUD'),
+	ROW('administrator', 'wings_through_orders', ''),
+	ROW('administrator', 'system_settings', 'CRUD'),
+	ROW('administrator', 'backup', 'CRUD'),
+	ROW('administrator', 'system_logs', 'CRUD'),
+	ROW('administrator', 'user_management', 'CRUD'),
+	ROW('administrator', 'customer_resources_by_customer_id', ''),
+	ROW('administrator', 'orders_resources_by_customer_id', ''),
+
+	ROW('customer', 'dashboard', 'R'),		# Readonly
+	ROW('customer', 'raw_materials', ''), 	# No access
+	ROW('customer', 'bank_baby_management', ''),
+	ROW('customer', 'customers', ''),	 	# Limited by customer id
+	ROW('customer', 'customers_advanced_features', ''),
+	ROW('customer', 'orders', ''),		 	# Limited by customer id
+	ROW('customer', 'knives', 'R'),
+	ROW('customer', 'wings', ''),		 	# No access
+	ROW('customer', 'wings_through_orders', 'CRUD'),
+	ROW('customer', 'system_settings', ''),	# No access 
+	ROW('customer', 'backup', ''),			# No access
+	ROW('customer', 'system_logs', ''),		# No access
+	ROW('customer', 'user_management', ''),
+	ROW('customer', 'customer_resources_by_customer_id', 'RU'), # Limited by customer id
+	ROW('customer', 'orders_resources_by_customer_id', 'CRUD'), # Limited by customer id
+
+	ROW('employee', 'dashboard', 'R'),		# Readonly
+	ROW('employee', 'raw_materials', 'R'),	# Readonly
+	ROW('employee', 'bank_baby_management', 'CRUD'),
+	ROW('employee', 'customers', 'R'),		# Readonly
+	ROW('employee', 'customers_advanced_features', ''),
+	ROW('employee', 'orders', 'RUD'),		# Accessible
+	ROW('employee', 'knives', 'CRU'),
+	ROW('employee', 'wings', 'R'),			# Readonly
+	ROW('employee', 'wings_through_orders', ''),
+	ROW('employee', 'system_settings', ''),	# No access
+	ROW('employee', 'backup', ''),			# No access
+	ROW('employee', 'user_management', ''),
+	ROW('employee', 'system_logs', ''),		# No access
+	ROW('employee', 'customer_resources_by_customer_id', ''), # No access
+	ROW('employee', 'orders_resources_by_customer_id', ''), # Limited by customer id
+
+	ROW('guest', 'dashboard', 'R'),			# Readonly
+	ROW('guest', 'raw_materials', ''),		# No access
+	ROW('guest', 'bank_baby_management', ''),
+	ROW('guest', 'customers', ''),			# No access
+	ROW('guest', 'customers_advanced_features', ''),
+	ROW('guest', 'orders', ''),				# No access
+	ROW('guest', 'knives', ''),
+	ROW('guest', 'wings', ''),				# No access
+	ROW('guest', 'wings_through_orders', ''),
+	ROW('guest', 'system_settings', ''),		# No access
+	ROW('guest', 'user_management', ''),
+	ROW('guest', 'backup', ''),				# No access
+	ROW('guest', 'system_logs', ''),			# No access
+	ROW('guest', 'customer_resources_by_customer_id', ''),
+	ROW('guest', 'orders_resources_by_customer_id', '') # No access
+) as p (`role_name`, `area`, `permissions`)
+join (select `name`, min(`id`) as `role_id` from `roles` group by `name`) r on r.`name` = p.`role_name`
+where not exists (
+	select 1 from `role_permissions` rp where rp.`role_id` = r.`role_id` and rp.`area` = p.`area`
+);
+
+# The wing's knife drawing (knives table); `knife` keeps its width
+CALL add_column_if_not_exists('wings', 'knife_id', 'INT NULL');
+call add_fk('wings', 'fk_wings_knife', 'knife_id', 'knives', 'id', false);
+
 select "Migrations done", CURRENT_TIMESTAMP;

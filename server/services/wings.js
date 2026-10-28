@@ -6,7 +6,7 @@ const { logger } = require('../logger')
 
 async function getSingle(id){
     const rows = await db.query(
-      `select id, name, knife, split_l1, crown_width, allow_shortening_babies_in_pairs from wings where id=${id}` //width 5 - 11
+      `select id, name, knife, knife_id, split_l1, crown_width, allow_shortening_babies_in_pairs from wings where id=${id}` //width 5 - 11
     );
     const wing = helper.emptyOrSingle(rows);
     if(!helper.isEmptyObj(wing)) {
@@ -36,7 +36,7 @@ from wings_babies
 
 async function getSingleWingByName(name){
   const rows = await db.query(
-    `select id, name, knife, split_l1, crown_width, allow_shortening_babies_in_pairs from wings where name=(?)`, [name]
+    `select id, name, knife, knife_id, split_l1, crown_width, allow_shortening_babies_in_pairs from wings where name=(?)`, [name]
   );
   const data = helper.emptyOrSingle(rows);
   //console.log(helper.isEmptyObj(data));
@@ -167,12 +167,12 @@ async function save(wing, active_connection=null){
       wing.babies.forEach(b => b.id = 0);
     }
     const result = await db.transaction_query(
-      `INSERT INTO wings (id, name, knife, allow_shortening_babies_in_pairs, split_l1, crown_width) 
-        VALUES ((?), (?), (?), (?), (?), (?)) as new_wing
+      `INSERT INTO wings (id, name, knife, knife_id, allow_shortening_babies_in_pairs, split_l1, crown_width)
+        VALUES ((?), (?), (?), (?), (?), (?), (?)) as new_wing
         ON DUPLICATE KEY UPDATE
-        name=new_wing.name, knife=new_wing.knife, allow_shortening_babies_in_pairs=new_wing.allow_shortening_babies_in_pairs, 
+        name=new_wing.name, knife=new_wing.knife, knife_id=new_wing.knife_id, allow_shortening_babies_in_pairs=new_wing.allow_shortening_babies_in_pairs,
         split_l1=new_wing.split_l1, crown_width=new_wing.crown_width`,
-        [ wing.id, wing.name, wing.knife, wing.allow_shortening_babies_in_pairs, wing.split_l1, wing.crown_width ],
+        [ wing.id, wing.name, wing.knife, wing.knife_id || null, wing.allow_shortening_babies_in_pairs, wing.split_l1, wing.crown_width ],
         active_connection
     );
 
