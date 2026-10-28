@@ -16,6 +16,29 @@ export interface KnifeRenderOptions {
 
 export const DEFAULT_PREVIEW_BABIES: BabyPreviewOptions = { lefts: 8, rights: 8, crownSplit: 4 };
 
+/** The knife's outline as an SVG path (in cm) with a fitting viewBox, e.g. for thumbnails. */
+export function knifeSvgOutline(knife: { data?: Knife['data'] }, padding = 0.3): { d: string; viewBox: string } | null {
+  const nodes = (knife?.data?.nodes ?? []) as KnifeNode[];
+  if (nodes.length < 3) {
+    return null;
+  }
+  const f = (v: number) => Math.round(v * 1000) / 1000;
+  let d = `M${f(nodes[0].p.x)} ${f(nodes[0].p.y)}`;
+  nodes.forEach((_, i) => {
+    const b = segment(nodes, i);
+    d += isStraight(nodes, i)
+      ? ` L${f(b[3].x)} ${f(b[3].y)}`
+      : ` C${f(b[1].x)} ${f(b[1].y)} ${f(b[2].x)} ${f(b[2].y)} ${f(b[3].x)} ${f(b[3].y)}`;
+  });
+  const pts = outlineSamples(nodes);
+  const minX = Math.min(...pts.map(p => p.x)), maxX = Math.max(...pts.map(p => p.x));
+  const minY = Math.min(...pts.map(p => p.y)), maxY = Math.max(...pts.map(p => p.y));
+  return {
+    d: d + ' Z',
+    viewBox: `${f(minX - padding)} ${f(minY - padding)} ${f(maxX - minX + 2 * padding)} ${f(maxY - minY + 2 * padding)}`
+  };
+}
+
 /**
  * Clears the canvas and draws the knife fitted into it.
  * `width` / `height` are the canvas' CSS size; the context must already be scaled for the device pixel ratio.

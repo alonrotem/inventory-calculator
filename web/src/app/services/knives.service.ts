@@ -17,9 +17,10 @@ export class KnivesService {
     });
   };
 
-  getKnives = (params: PaginationParams): Observable<KnivesList> => {
+  // with_shape: include each knife's drawing (data), e.g. for thumbnails
+  getKnives = (params: PaginationParams, with_shape: boolean = false): Observable<KnivesList> => {
     return this.apiService.get(`${environment.serverUrl}/knives/`, {
-      params,
+      params: with_shape ? { ...params, with_shape: true } : params,
       responseType: 'json'
     });
   };

@@ -324,6 +324,7 @@ export class Point {
     id: number;
     name: string;
     width_cm: number;
+    data?: Knife['data'];     // only when requested (with_shape)
   }
 
   export interface KnivesList {

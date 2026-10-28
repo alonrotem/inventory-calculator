@@ -20,8 +20,8 @@ async function getSingle(id){
   return helper.emptyOrSingle(rows);
 }
 
-// for lists: without the drawing data
-async function getMultiple(page = 1, perPage){
+// for lists: without the drawing data, unless with_shape (e.g. for thumbnails)
+async function getMultiple(page = 1, perPage, with_shape = false){
   let subset = '';
   if(page && perPage && page > 0 && perPage > 0)
   {
@@ -29,7 +29,7 @@ async function getMultiple(page = 1, perPage){
     subset = `LIMIT ${offset},${perPage}`
   }
   const rows = await db.query(
-    `SELECT id, name, width_cm FROM knives ORDER BY name ${subset}`
+    `SELECT id, name, width_cm${with_shape? ', data' : ''} FROM knives ORDER BY name ${subset}`
   );
   const total = await db.query(
     `SELECT count(*) as count FROM knives`

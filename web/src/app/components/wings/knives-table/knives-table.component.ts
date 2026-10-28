@@ -9,6 +9,7 @@ import { StateService } from '../../../services/state.service';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { SettingsService } from '../../../services/settings.service';
 import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
+import { knifeSvgOutline } from '../knife-editor/knife-render';
 
 @Component({
   selector: 'app-knives-table',
@@ -32,17 +33,19 @@ export class KnivesTableComponent extends NavigatedMessageComponent implements O
   current_page = 1;
   rowsPerPage: number = 5;
   knives: KnifeListItem[] = [];
+  thumbnails: Record<number, { d: string; viewBox: string } | null> = {};
   @ViewChild("paginator") paginator!: PaginatorComponent;
   loading: boolean = true;
   totalRecords: number = 0;
 
   getKnives(page: number){
-    this.knivesService.getKnives({ page: page, perPage: this.rowsPerPage }).subscribe(
+    this.knivesService.getKnives({ page: page, perPage: this.rowsPerPage }, true).subscribe(
     {
       next: (knives: KnivesList) => {
         this.loading = false;
         this.current_page = page;
         this.knives = knives.data;
+        this.thumbnails = Object.fromEntries(knives.data.map(k => [k.id, knifeSvgOutline(k)]));
         this.paginator.pages = knives.meta.total_pages;
         this.paginator.current_page = knives.meta.page;
         this.totalRecords = knives.meta.total_records;

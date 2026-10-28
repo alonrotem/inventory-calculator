@@ -16,6 +16,7 @@
   <table class="table table-responsive table-striped table-hover">
     <thead>
       <tr>
+        <th scope="col" class="knife_thumbnail_col"></th>
         <th scope="col">Name</th>
         <th scope="col">Width</th>
       </tr>
@@ -25,6 +26,13 @@
         *ngFor="let knife of this.knives"
         routerLink="/templates/knives/details"
         [queryParams]="{ id: knife.id }" role="button">
+        <td class="knife_thumbnail_col">
+          @if (thumbnails[knife.id]; as thumbnail) {
+            <svg class="knife_thumbnail" [attr.viewBox]="thumbnail.viewBox" preserveAspectRatio="xMidYMid meet">
+              <path [attr.d]="thumbnail.d" />
+            </svg>
+          }
+        </td>
         <td>{{ knife.name }}</td>
         <td>{{ knife.width_cm | number: '1.0-2' }} cm</td>
       </tr>

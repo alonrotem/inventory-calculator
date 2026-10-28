@@ -14,3 +14,21 @@ h1 {
 .infotitle {
     margin: 1px 0px 6px 0px;
 }
+
+.knife_thumbnail_col {
+    width: 72px;
+    vertical-align: middle;
+}
+
+.knife_thumbnail {
+    display: block;
+    width: 56px;
+    height: 40px;
+
+    path {
+        fill: rgba(13, 110, 253, 0.12);
+        stroke: currentColor;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;   // 1px whatever the knife's size in cm
+    }
+}

@@ -9,11 +9,12 @@ const auth_request = require('../middleware/auth_request');
     -H 'Accept: application/json' \
     -H 'Content-type: application/json' \
         http://localhost:3000/knives/?page=1&perPage=20
+    with_shape=true adds each knife's drawing (data), e.g. for thumbnails
 */
 router.get('/', auth_request([{ requiredArea: 'knives', requiredPermission: 'R' }]), async function(req, res, next) {
-  logger.info(`get /knives/ page=${req.query.page}, perPage=${req.query.perPage}`);
+  logger.info(`get /knives/ page=${req.query.page}, perPage=${req.query.perPage}, with_shape=${req.query.with_shape}`);
   try {
-    const response = await knives.getMultiple(req.query.page, req.query.perPage);
+    const response = await knives.getMultiple(req.query.page, req.query.perPage, req.query.with_shape === 'true');
     logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
     res.json(response);
   }
