@@ -193,8 +193,8 @@ export function outlineSamples(nodes: KnifeNode[]): Vec[] {
 }
 
 /**
- * Horizontal span from the leftmost point of L1 to the rightmost point of the Crown,
- * measured after `orient` (rotation / flip) is applied.
+ * Horizontal span from L1's mount to the rightmost point of the Crown, measured after `orient` (rotation / flip) is applied.
+ * L1 sits in a mirrored-L corner on the left: the width starts at the L's rightmost (vertical) part, not at the ledge's outer end.
  */
 export function measureSpan(nodes: KnifeNode[], regions: KnifeRegions, orient: (p: Vec) => Vec): { left: number; right: number } | null {
   if (!regions.l1 || !regions.crown) {
@@ -206,7 +206,7 @@ export function measureSpan(nodes: KnifeNode[], regions: KnifeRegions, orient: (
     return null;
   }
   return {
-    left: Math.min(...l1.map(p => p.x)),
+    left: Math.max(...l1.map(p => p.x)),
     right: Math.max(...crown.map(p => p.x))
   };
 }
