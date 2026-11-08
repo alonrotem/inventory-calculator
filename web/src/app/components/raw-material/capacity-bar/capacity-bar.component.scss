@@ -86,12 +86,13 @@
     flex-direction: row;
     align-items: center;
     flex-grow: 1;
+    direction: ltr;
   }
 
-  .capacity-bar-horizontal .bar-container {
-    margin-right: 10px;
+  .capacity-bar-horizontal {
+    gap: 10px;
   }
 
-  .capacity-bar-horizontal .legend-row div {
-    margin-left: 10px;
+  .capacity-bar-horizontal .legend-row {
+    gap: 10px;
   }

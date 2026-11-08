@@ -1,4 +1,4 @@
-import { Component, ViewChild, HostListener, ElementRef, Output, Input, OnInit, OnChanges, SimpleChanges, EventEmitter } from '@angular/core';
+import { Component, ViewChild, HostListener, ElementRef, Output, Input, OnInit, OnChanges, SimpleChanges, EventEmitter, inject } from '@angular/core';
 import { SafeUrl, DomSanitizer } from '@angular/platform-browser';
 import { ImageCroppedEvent, ImageCropperComponent, LoadedImage, ImageTransform } from 'ngx-image-cropper';
 import { CommonModule } from '@angular/common';
@@ -11,15 +11,19 @@ import { faBan, faCrop, faMagnifyingGlassMinus, faMagnifyingGlassPlus } from '@f
 import { ModalDialogComponent } from '../modal-dialog/modal-dialog.component';
 
 //import { ImageUploadService } from '../../../services/image-upload.service';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-image-crop',
   standalone: true,
-  imports: [ CommonModule, FormsModule, ImageCropperComponent, FaIconComponent, ModalDialogComponent ],
+  imports: [TranslatePipe,  CommonModule, FormsModule, ImageCropperComponent, FaIconComponent, ModalDialogComponent ],
   templateUrl: './image-crop.component.html',
   styleUrl: './image-crop.component.scss'
 })
 export class ImageCropComponent implements OnChanges {
+  private translation = inject(TranslationService);
+
     imageChangedEvent: any = null;
     croppedImage: SafeUrl = '';
     @Input() image_url = '';
@@ -85,7 +89,7 @@ export class ImageCropComponent implements OnChanges {
     
     loadImageFailed(event: any) {
       console.dir(event);
-        this.toastService.showError("Failed to load image");
+        this.toastService.showError(this.translation.t('common:image.load_failed'));
     }
 
     clearImage() {
@@ -134,7 +138,7 @@ export class ImageCropComponent implements OnChanges {
         
         // Check if it's an image
         if (!file.type.startsWith('image/')) {
-          this.toastService.showError('Please drop an image file');
+          this.toastService.showError(this.translation.t('common:image.drop_image'));
           return;
         }
         

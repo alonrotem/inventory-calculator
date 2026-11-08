@@ -18,13 +18,14 @@ import { NavigatedMessageComponent } from '../../common/navigated-message/naviga
 import { SettingsService } from '../../../services/settings.service';
 import { firstValueFrom } from 'rxjs';
 import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
+import { TranslatePipe, TranslateQuantityPipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
 
 @Component({
     selector: 'app-raw-materials-table',
     standalone: true,
     templateUrl: './raw-materials-table.component.html',
     styleUrl: './raw-materials-table.component.scss',
-    imports: [
+    imports: [TranslatePipe, TranslateEnumPipe, TranslateQuantityPipe, 
     NgFor, PaginatorComponent, ModalDialogComponent,
     RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule,
     FormsModule, DateStrPipe, ToastComponent, DecimalPipe,

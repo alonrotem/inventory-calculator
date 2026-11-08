@@ -1,0 +1,60 @@
+{
+  "main": {
+    "title": "System settings",
+    "tab_alerts": "Alerts",
+    "tab_notifications": "Notifications",
+    "tab_ui": "User interface",
+    "tab_backup": "Backup",
+    "tab_logs": "System logs",
+    "saved": "Saved successfully!",
+    "save_failed": "Server error saving settings"
+  },
+  "ui": {
+    "title": "User interface tweaks",
+    "grid": "Grid behavior",
+    "paging_before": "Show item tables in pages,",
+    "paging_after": "items per page"
+  },
+  "alerts": {
+    "under_construction": "Alerts section is under construction",
+    "title": "Raw material alerts",
+    "totals": "Raw material totals",
+    "total_below": "Alert when raw material total quantity below",
+    "single": "Raw material single item",
+    "single_below": "Alert when raw material item remaining quantity goes below",
+    "single_yellow": "Mark material item YELLOW if remaining quantity goes below",
+    "single_red": "Mark material item RED if remaining quantity goes below",
+    "banks": "Raw material in customer banks",
+    "bank_below": "Alert when customer bank remaining quantity goes below",
+    "bank_yellow": "Mark customer bank YELLOW if remaining quantity goes below",
+    "bank_red": "Mark customer bank RED if remaining quantity goes below"
+  },
+  "notifications": {
+    "under_construction": "Notifications section is under construction"
+  },
+  "tabs": {
+    "requests": "Account requests",
+    "invites": "User invites"
+  },
+  "logs": {
+    "title": "System log files",
+    "preview_default": "Log preview",
+    "file_size": "File size:",
+    "loading": "* Loading...",
+    "empty_file": "Log file is empty",
+    "loading_files": "Loading log files...",
+    "fetch_all": "Fetch all logs",
+    "clear": "Clear logs",
+    "col_file": "File",
+    "col_size": "Size",
+    "col_modified": "Last modified",
+    "none": "No log files found on the server.",
+    "load_failed": "Failed to load log files",
+    "clear_file_title": "Clear log file",
+    "clear_file_text": "Are you sure you want to clear this log file, '{{name}}'?",
+    "clear_file_yes": "Clear it!",
+    "clear_all_title": "Clear system logs",
+    "clear_all_text": "Are you sure you want to delete all the system logs?",
+    "clear_all_yes": "Clear them!"
+  }
+}

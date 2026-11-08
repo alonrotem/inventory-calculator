@@ -7,13 +7,13 @@
         <span class="num4">4</span>
         -->
     </div>
-    <h2>The fox is hiding!</h2>
-    <h4>Could not find this page</h4>
-    <div>(Maybe it has not been added yet)</div>
+    <h2>{{ 'common:pages.not_found_title' | t }}</h2>
+    <h4>{{ 'common:pages.not_found_text' | t }}</h4>
+    <div>{{ 'common:pages.not_found_hint' | t }}</div>
     <div class="gohome">
         <a routerLink="/">
             <img src="/assets/images/{{ logo_img }}" />
-            <span>Go back home!</span>
+            <span>{{ 'common:pages.go_home' | t }}</span>
         </a>
     </div>
 </div>

@@ -15,11 +15,12 @@ import { UsersService } from '../../../services/users.service';
 import { AccountInviteList, AccountInviteListItem } from '../../../../types';
 import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
+import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-settings-user-invites',
   standalone: true,
-  imports: [UserTabsComponent, PageLoadingComponent, FaIconComponent, DateStrPipe, PaginatorComponent, NgIf, NgFor, RouterLink, DecimalPipe, SettingsUserInviteFormComponent],
+  imports: [TranslatePipe, TranslateEnumPipe, UserTabsComponent, PageLoadingComponent, FaIconComponent, DateStrPipe, PaginatorComponent, NgIf, NgFor, RouterLink, DecimalPipe, SettingsUserInviteFormComponent],
   templateUrl: './settings-user-invites.component.html',
   styleUrl: './settings-user-invites.component.scss'
 })

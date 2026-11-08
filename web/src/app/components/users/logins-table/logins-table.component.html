@@ -10,27 +10,27 @@
         <table class="table table-responsive table-striped table-hover">
         <thead>
         <tr>
-            <th scope="col">Runtime</th>
-            <th scope="col">Logged in at</th>
-            <th scope="col">Location</th>
-            <th scope="col">Map</th>
+            <th scope="col">{{ 'users:logins.col_runtime' | t }}</th>
+            <th scope="col">{{ 'users:logins.col_logged_in' | t }}</th>
+            <th scope="col">{{ 'users:logins.col_location' | t }}</th>
+            <th scope="col">{{ 'users:logins.col_map' | t }}</th>
         </tr>
         </thead>
         <tbody>
         <tr 
             *ngFor="let login of user_logins" >
             <td>            
-                {{ ((login.origin_browser)? login.origin_browser :'Unknown browser') }}
-                {{ ((login.origin_os)? (login.origin_browser? 'on ':'') + login.origin_os :'Unknown OS') }}
-                <div *ngIf="login.is_current_login" class="text-success">This login</div>
-                <div *ngIf="!login.is_current_login"><a class="text-danger" href="javascript:void(0)" (click)="clear_login(login.id)">Log this out</a></div>
+                {{ ((login.origin_browser)? login.origin_browser :('users:logins.unknown_browser' | t)) }}
+                {{ ((login.origin_os)? ('users:logins.on_os' | t: { os: login.origin_os }) :('users:logins.unknown_os' | t)) }}
+                <div *ngIf="login.is_current_login" class="text-success">{{ 'users:logins.this_login' | t }}</div>
+                <div *ngIf="!login.is_current_login"><a class="text-danger" href="javascript:void(0)" (click)="clear_login(login.id)">{{ 'users:logins.log_out_this' | t }}</a></div>
             </td>
             <td>
                 {{ login.logged_in_at | dateStr }} 
             </td>
             <td>
                 {{ login.origin_city ? login.origin_city : "" }}{{ 
-                    login.origin_country ? ((login.origin_city)? ', ':'' ) + login.origin_country : 'Unknown country' 
+                    login.origin_country ? ((login.origin_city)? ', ':'' ) + login.origin_country : ('users:logins.unknown_country' | t) 
                 }}
                 <div>{{ login.origin_ip_address }}</div>
             <td>
@@ -44,7 +44,7 @@
                     [src]="'https://maps.google.com/maps?q=' + login.origin_geolocation + '&hl=en&z=16&output=embed' | safe"
                     >
                     </iframe>
-                <span *ngIf="!login.origin_geolocation">Unknown location</span>
+                <span *ngIf="!login.origin_geolocation">{{ 'users:logins.unknown_location' | t }}</span>
             </td>
         </tr>
         </tbody>
@@ -54,13 +54,13 @@
         <button class="btn btn-danger clear-button" (click)="clearAllLogins()" [disabled]="((clearning) || (number_of_external_logins <= 0))">
             <span *ngIf="!clearning">
                 <fa-icon [icon]="faBan" ></fa-icon>
-                <span style="margin-left: 10px;">Log out from all {{ logged_into_this_device? 'other devices':'devices' }}</span>
+                <span style="margin-inline-start: 10px;">{{ (logged_into_this_device ? 'users:logins.log_out_others' : 'users:logins.log_out_all') | t }}</span>
             </span>
             <fa-icon [icon]="faArrowsRotate" [animation]="'spin'" class="action-icon" *ngIf="clearning"></fa-icon>
         </button>
     </div>
   </div>
   <div *ngIf="user_logins.length == 0">
-    User is not logged in anywhere
+    {{ 'users:logins.none' | t }}
   </div>
 </div>

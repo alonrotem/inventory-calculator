@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { FaIconComponent, IconDefinition } from '@fortawesome/angular-fontawesome';
 import { faAddressCard, faSave } from '@fortawesome/free-regular-svg-icons';
@@ -18,11 +18,13 @@ import { UnsavedNavigationConfirmationService } from '../../../services/unsaved-
 import { Observable, of } from 'rxjs';
 import { LoginsTableComponent } from "../logins-table/logins-table.component";
 import { CustomersTableComponent } from "../../customers/customers-table/customers-table.component";
+import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [
+  imports: [TranslatePipe, TranslateEnumPipe, 
     FaIconComponent, FormsModule, ImageCropComponent, DateStrPipe, FormsModule,
     PageLoadingComponent, NgIf, ModalDialogComponent, UnsavedChangesDialogComponent, LoginsTableComponent,
     NgFor, TitleCasePipe,
@@ -32,6 +34,8 @@ import { CustomersTableComponent } from "../../customers/customers-table/custome
   styleUrl: './profile.component.scss'
 })
 export class ProfileComponent implements OnInit {
+  private translation = inject(TranslationService);
+
 
   faAddressCard: IconDefinition = faAddressCard;
   faSave: IconDefinition = faSave;
@@ -128,7 +132,7 @@ export class ProfileComponent implements OnInit {
         console.log("Loaded. Pristine: " + this.profile_form.pristine);
       },
       error: (err) => {
-        this.toastService.showError("Error loading profile data");
+        this.toastService.showError(this.translation.t('users:profile.load_failed'));
         console.log(err);
         this.loading = false;
       }
@@ -144,25 +148,25 @@ export class ProfileComponent implements OnInit {
     if(this.password_change.new_password){
       //...without filling the current password
       if(!this.password_change.current_password){
-        this.password_change_errors.current_password = 'Current pass is required';
+        this.password_change_errors.current_password = this.translation.t('users:profile.current_required');
         error = true;
       }
       //...without filling the new password confirmation
       if(!this.password_change.repeat_new_password) {
-        this.password_change_errors.repeat_new_password = 'Password confirmation required';
+        this.password_change_errors.repeat_new_password = this.translation.t('users:reset.confirm_required');
         error = true;
       }
       else {
         //...but filled the new password confirmation wrong
         if(this.password_change.new_password != this.password_change.repeat_new_password){
-          this.password_change_errors.repeat_new_password = 'Passwords do not match';
+          this.password_change_errors.repeat_new_password = this.translation.t('users:validation.mismatch');
           error = true;
         }
       }
     }
     //The user filled the password confirmation without filling the new password
     if(this.password_change.repeat_new_password && !this.password_change.new_password){
-      this.password_change_errors.new_password = 'New password is required';
+      this.password_change_errors.new_password = this.translation.t('users:reset.new_required');
     }
     return !error;
   }
@@ -200,11 +204,11 @@ export class ProfileComponent implements OnInit {
     this.usersService.sendChangedEmailConfirmationCode(this.current_email).subscribe({
       next: (something) => {
         console.dir(something);
-        this.toastService.showSuccess("Verification email sent");
+        this.toastService.showSuccess(this.translation.t('users:details.verification_sent'));
       },
       error: (error) => {
         console.dir(error);
-        this.toastService.showError("Error sending verification");
+        this.toastService.showError(this.translation.t('users:details.verification_failed'));
       }
     });
     this.mail_verification_notice.onCancel();
@@ -227,7 +231,7 @@ export class ProfileComponent implements OnInit {
       };
       this.usersService.saveProfile(updatedInfo, this.profile_photo.croppedImageBlob).subscribe({
         next: (profileInfo: UserProfile)=>{
-          this.toastService.showSuccess("Profile saved successfully!");
+          this.toastService.showSuccess(this.translation.t('users:profile.saved'));
           this.saving = false;
           console.log("email: " + profileInfo.email);
           console.log("pending: " + profileInfo.pending_new_email);

@@ -22,11 +22,13 @@ import { SettingsService } from '../../../services/settings.service';
 import { HasPermissionPipe } from '../../../utils/pipes/has-permission.pipe';
 import { UsersService } from '../../../services/users.service';
 import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
+import { TranslatePipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-customers-table',
   standalone: true,
-  imports: [NgFor, PaginatorComponent, PaginatorComponent, HasPermissionPipe, AsyncPipe, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe, ToastComponent, DecimalPipe, SingleHatCalculatorComponent, PageLoadingComponent],
+  imports: [NgFor, PaginatorComponent, PaginatorComponent, HasPermissionPipe, AsyncPipe, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe, ToastComponent, DecimalPipe, SingleHatCalculatorComponent, PageLoadingComponent, TranslatePipe],
   templateUrl: './customers-table.component.html',
   styleUrl: './customers-table.component.scss'
 })
@@ -43,6 +45,8 @@ export class CustomersTableComponent extends NavigatedMessageComponent implement
     activatedRoute: ActivatedRoute) {
       super(toastService, stateService, router, activatedRoute);
   }
+
+  private translation = inject(TranslationService);
 
   current_page = 1;
   rowsPerPage:number = 5;
@@ -107,7 +111,7 @@ export class CustomersTableComponent extends NavigatedMessageComponent implement
         info: {
           customer_name: customer_name,
           back_to_link: '/inventory/customers',
-          back_to_text: 'Back to customers list'
+          back_to_text: this.translation.t('customers:list.back_to_list')
         }
       },
     });

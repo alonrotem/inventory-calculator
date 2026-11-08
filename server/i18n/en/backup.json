@@ -1,0 +1,19 @@
+{
+  "create": "Create backup",
+  "create_hint": "Click the button to download a backup of the current system state",
+  "include_deletion": "Include deletion of existing system data",
+  "download": "Download backup!",
+  "restore": "Restore backup",
+  "choose_file": "Click here to choose a backup file to upload",
+  "drag": "Or drag and drop a backup file here",
+  "overwrite": "Overwrite system data",
+  "upload": "Upload and restore backup",
+  "processing": "Processing...",
+  "no_file": "No file selected",
+  "bad_type": "File type must be .zip or .sql",
+  "confirm_text": "Are you sure you want to upload and restore the system?",
+  "confirm_warning": "This will override your system!",
+  "confirm_title": "Confirm restore",
+  "uploaded": "File uploaded successfully!",
+  "failed": "Failed to process backup"
+}

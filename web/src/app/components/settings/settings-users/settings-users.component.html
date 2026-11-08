@@ -9,29 +9,29 @@
         />
 
         <div class="settings-title">
-            <h3 class="mt-4 mb-4"><span class="icon-address-book"></span> Users</h3>
+            <h3 class="mt-4 mb-4"><span class="icon-address-book"></span> {{ 'common:nav.users' | t }}</h3>
         </div>
         <app-page-loading 
-            [loading_message]="'Loading users...'" 
+            [loading_message]="'users:list.loading' | t" 
             [icon_size]="'3x'" 
             [hidden]="!loading" 
             [stretch_height]="true" />
 
 <div [hidden]="loading">
-  <a id="btnNewRaw" class="btn btn-warning" (click)="open_invite_form()"><fa-icon [icon]="faEnvelope"></fa-icon> Invite a user</a>
+  <a id="btnNewRaw" class="btn btn-warning" (click)="open_invite_form()"><fa-icon [icon]="faEnvelope"></fa-icon> {{ 'users:list.invite_user' | t }}</a>
 
-  <div class="infotitle mt-4" [hidden]="loading || this.users.length <= 0">Total: {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'user':'users' }}</div>
+  <div class="infotitle mt-4" [hidden]="loading || this.users.length <= 0">{{ 'users:list.total' | t: { count: totalRecords } }}</div>
 
   <div [hidden]="loading || this.users.length == 0">
     <table class="table table-responsive table-striped table-hover">
         <thead>
         <tr>
             <th scope="col"></th>
-            <th scope="col">Name</th>
-            <th scope="col">Email</th>
-            <th scope="col">Role</th>
-            <th scope="col">Status</th>
-            <th scope="col">Registered at</th>
+            <th scope="col">{{ 'users:fields.name' | t }}</th>
+            <th scope="col">{{ 'users:fields.email' | t }}</th>
+            <th scope="col">{{ 'users:list.col_role' | t }}</th>
+            <th scope="col">{{ 'users:list.col_status' | t }}</th>
+            <th scope="col">{{ 'users:list.col_registered' | t }}</th>
         </tr>
         </thead>
         <tbody>
@@ -49,10 +49,10 @@
             <td>{{ user.firstname }} {{ user.lastname }}</td>
             <td>{{ user.email }}</td>
             <td class="capitalize">
-                <span *ngIf="user.is_demo_customer" class="text-warning"><fa-icon [icon]="faFlask"></fa-icon> Demo customer</span>
-                <span *ngIf="!user.is_demo_customer">{{ user.role }}</span>
+                <span *ngIf="user.is_demo_customer" class="text-warning"><fa-icon [icon]="faFlask"></fa-icon> {{ 'users:hints.demo_customer' | t }}</span>
+                <span *ngIf="!user.is_demo_customer">{{ user.role | tenum: 'users:roles.' }}</span>
             </td>
-            <td [attr.class]="'capitalize status-' + user.status">{{ user.status }}</td>
+            <td [attr.class]="'capitalize status-' + user.status">{{ user.status | tenum: 'users:status.' }}</td>
             <td>{{ user.registered_at | dateStr }}</td>
         </tr>
         </tbody>
@@ -62,8 +62,8 @@
     </div>
 
     <div [hidden]="loading || this.users.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
-        No users found.<br/>
-        Send an invite, or ask the user to send a request.
+        {{ 'users:list.empty' | t }}<br/>
+{{ 'users:list.empty_hint' | t }}
     </div>
     </div>
     </div>

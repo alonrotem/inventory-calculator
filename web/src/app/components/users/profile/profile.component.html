@@ -1,15 +1,15 @@
 <app-modal-dialog 
     #mail_verification_notice
-    [modalTitle]="'Unverified email'"
+    [modalTitle]="'users:details.unverified_title' | t"
     [btnSaveClass]="'d-none'"
     [btnCancelClass]="'btn-warning'"
-    [btnCancelText]="'Close'"
+    [btnCancelText]="'common:actions.close' | t"
     >
     <div>
-        Your email address, <strong>{{ pending_email }}</strong> is not verified yet.<br/><br/>
-        If you have not received a verification code by mail, <a href="javascript:void(0)" (click)="send_verification_mail()">click here</a> to send it again.
+        {{ 'users:profile.unverified_text' | t }} <strong>{{ pending_email }}</strong><br/><br/>
+{{ 'users:profile.no_code' | t }} <a href="javascript:void(0)" (click)="send_verification_mail()">{{ 'users:profile.send_again' | t }}</a>
         <br/><br/>
-        <span class="text-warning">To revert to the original email, <strong>{{ original_email }}</strong>, <a href="javascript:void(0)" (click)="revert_email()">click here</a></span>.
+        <span class="text-warning">{{ 'users:details.revert_email' | t }} <strong>{{ original_email }}</strong> <a href="javascript:void(0)" (click)="revert_email()">{{ 'users:details.click_here' | t }}</a></span>
     </div>
 </app-modal-dialog>
 
@@ -18,10 +18,10 @@
 <div class="row justify-content-center">
     <div class="col-12 col-lg-8 col-xl-10">
 
-        <h3><fa-icon [icon]="faAddressCard"></fa-icon> My profile: {{ user.username }}</h3>
+        <h3><fa-icon [icon]="faAddressCard"></fa-icon> {{ 'users:profile.title' | t: { name: user.username } }}</h3>
 
         <app-page-loading 
-            [loading_message]="'Loading profile'" 
+            [loading_message]="'users:profile.loading' | t" 
             [hidden]="!loading" />
 
         <form novalidate #profile_form="ngForm" [id]="'profile_form'">
@@ -31,17 +31,17 @@
 
             <div class="col-12 mb-3">
                 <span class="text-warning">
-                    <strong>Your role<span *ngIf="user.roles.length != 1">s</span>: </strong>
+                    <strong>{{ 'users:profile.your_role' | t: { count: user.roles.length } }} </strong>
                     <span *ngFor="let item of user.roles; index as i">
-                        {{ item.name | titlecase }}<span *ngIf="i < user.roles.length-1">, </span>
+                        {{ item.name | tenum: 'users:roles.' }}<span *ngIf="i < user.roles.length-1">, </span>
                     </span>   
                 </span>
-                <strong style="margin-left: 10px;">Registered on </strong> {{(user.registered_on | dateStr)}}
+                <strong style="margin-inline-start: 10px;">{{ 'users:details.registered_on' | t }} </strong> {{(user.registered_on | dateStr)}}
             </div>
 
             <div class="col-12"><!--col-12 col-md-12 col-lg-8 order-2 order-lg-1-->
                 <div class="profile-section">
-                    <div>Personal details</div>
+                    <div>{{ 'users:details.personal' | t }}</div>
 
                         <div class="row section-row">
                             <div class="col-12 col-xl-7 order-2 order-xl-1">
@@ -50,12 +50,12 @@
                                 <div class="form-floating">
                                     <input type="text" 
                                         id="user_firstname" class="form-control" placeholder="0" [(ngModel)]="user.firstname" name="user_firstname" #user_firstname="ngModel" [required]="true" [pattern]="'^[a-zA-Z][a-zA-Z\\-_\\s]*$'">
-                                    <label for="user_firstname">First name<span class="text-danger">*</span></label>
+                                    <label for="user_firstname">{{ 'users:fields.first_name' | t }}<span class="text-danger">*</span></label>
                                 </div>
                             </div>
                             <div class="text-danger" *ngIf="user_firstname.invalid && (user_firstname.touched || user_firstname.dirty)" > 
-                                <span *ngIf="user_firstname.errors?.['required']">First name is required</span>
-                                <span *ngIf="user_firstname.errors?.['pattern']">Use only letters, space or -</span>
+                                <span *ngIf="user_firstname.errors?.['required']">{{ 'users:validation.first_name_required' | t }}</span>
+                                <span *ngIf="user_firstname.errors?.['pattern']">{{ 'users:validation.letters_only' | t }}</span>
                             </div>
                             </div>             
 
@@ -64,12 +64,12 @@
                                 <div class="form-floating">
                                     <input type="text" 
                                         id="user_lastname" class="form-control" placeholder="0" [(ngModel)]="user.lastname" name="user_lastname" #user_lastname="ngModel"  [required]="true" [pattern]="'^[a-zA-Z][a-zA-Z\\-_]*$'">
-                                    <label for="user_lastname">Last name<span class="text-danger">*</span></label>
+                                    <label for="user_lastname">{{ 'users:fields.last_name' | t }}<span class="text-danger">*</span></label>
                                 </div>
                             </div>
                             <div class="text-danger" *ngIf="user_lastname.invalid && (user_lastname.touched || user_lastname.dirty)" > 
-                                <span *ngIf="user_lastname.errors?.['required']">Last name is required</span>
-                                <span *ngIf="user_lastname.errors?.['pattern']">Use only letters, space or -</span>
+                                <span *ngIf="user_lastname.errors?.['required']">{{ 'users:validation.last_name_required' | t }}</span>
+                                <span *ngIf="user_lastname.errors?.['pattern']">{{ 'users:validation.letters_only' | t }}</span>
                             </div>
                             </div>
                             
@@ -78,15 +78,15 @@
                                 <div class="form-floating">
                                     <input type="text" 
                                         id="user_email" class="form-control" placeholder="0" [(ngModel)]="current_email" name="user_email" #user_email="ngModel" [required]="true" [email]="true" (change)="email_changed()">
-                                    <label for="user_email">Email address<span class="text-danger">*</span></label>
+                                    <label for="user_email">{{ 'users:fields.email_address' | t }}<span class="text-danger">*</span></label>
                                 </div>
                             </div>                
-                            <div class="text-warning" *ngIf="pending_email">Not verified. <a href="javascript:void(0)" (click)="open_mail_verification_dialog()">Click here</a></div>
+                            <div class="text-warning" *ngIf="pending_email">{{ 'users:details.not_verified_short' | t }} <a href="javascript:void(0)" (click)="open_mail_verification_dialog()">{{ 'users:details.click_here' | t }}</a></div>
                             <div class="text-danger" *ngIf="user_email.invalid && (user_email.touched || user_email.dirty)" > 
-                                <span *ngIf="user_email.errors?.['required']">Email is required</span>
+                                <span *ngIf="user_email.errors?.['required']">{{ 'users:validation.email_required' | t }}</span>
                             </div>  
                             <div class="text-danger" *ngIf="user_email.errors?.['email'] && (user_email.touched || user_email.dirty)" > 
-                                <span *ngIf="user_email.errors?.['email']">Invalid email</span>
+                                <span *ngIf="user_email.errors?.['email']">{{ 'users:validation.email_invalid' | t }}</span>
                             </div>
                             </div>            
 
@@ -95,7 +95,7 @@
                                 <div class="form-floating">
                                     <input type="tel" 
                                         id="user_phone" class="form-control" placeholder="0" [(ngModel)]="user.phone" name="user_phone" #user_phone="ngModel">
-                                    <label for="user_phone">Phone number</label>
+                                    <label for="user_phone">{{ 'users:fields.phone' | t }}</label>
                                 </div>
                             </div>
                             </div>
@@ -113,7 +113,7 @@
                 <div class="profile-section">
                     <div class="row">
                         <div class="col col-12 col-md-6  mt-3 mt-md-0 mb-3 mb-md-0">
-                        Change your password
+                        {{ 'users:profile.change_password' | t }}
                         </div>
                         <div class="col col-12 col-md-6  mt-3 mt-md-0 mb-3 mb-md-0">
                         <div class="input-group">
@@ -121,7 +121,7 @@
                                 <input type="password" 
                                     autocomplete="new-password"
                                     id="user_current_pass" class="form-control" placeholder="0" [(ngModel)]="password_change.current_password" name="user_current_pass" #user_current_pass="ngModel" (change)="checkPasswords()">
-                                <label for="user_current_pass">Current password</label>
+                                <label for="user_current_pass">{{ 'users:profile.current_password' | t }}</label>
                             </div>
                         </div>
                         <div class="text-danger" *ngIf="password_change_errors.current_password" > 
@@ -132,7 +132,7 @@
                             <div class="form-floating">
                                 <input type="password" 
                                     id="user_new_pass" class="form-control" placeholder="0" [(ngModel)]="password_change.new_password" name="user_new_pass" #user_new_pass="ngModel" (change)="checkPasswords()">
-                                <label for="user_new_pass">New password</label>
+                                <label for="user_new_pass">{{ 'users:reset.new_password' | t }}</label>
                             </div>
                         </div>
                         <div class="text-danger" *ngIf="password_change_errors.new_password" > 
@@ -143,7 +143,7 @@
                             <div class="form-floating">
                                 <input type="password" 
                                     id="user_new_pass2" class="form-control" placeholder="0" [(ngModel)]="password_change.repeat_new_password" name="user_new_pass2" #user_new_pass2="ngModel" (change)="checkPasswords()">
-                                <label for="user_new_pass2">Repeat new password</label>
+                                <label for="user_new_pass2">{{ 'users:reset.repeat' | t }}</label>
                             </div>
                         </div>                                
                         <div class="text-danger" *ngIf="password_change_errors.repeat_new_password" > 
@@ -156,7 +156,7 @@
             <div class="profile-section">
                 <div class="row">
                     <div class="col col-12 col-md-6  mt-3 mt-md-0 mb-3 mb-md-0">
-                        Current logins
+                        {{ 'users:profile.current_logins' | t }}
                     </div>
                     <app-logins-table
                         [user_id]="user.id" />
@@ -169,8 +169,8 @@
                     <div class="row">
                     <div class="col col-12  mt-3 mt-md-0 mb-3 mb-md-0" *ngIf="user.customers && user.customers.length > 0">
                         
-                        <span *ngIf="!user.is_demo_customer">Your profile is a customer profile, which is linked to the following customers:</span>
-                        <span *ngIf="user.is_demo_customer" class="text-warning">You are a demo customer, linked to the following</span>
+                        <span *ngIf="!user.is_demo_customer">{{ 'users:profile.customer_profile' | t }}</span>
+                        <span *ngIf="user.is_demo_customer" class="text-warning">{{ 'users:profile.demo_linked' | t }}</span>
                     
                     <app-customers-table
                         [stretchWidth]="true"
@@ -179,7 +179,7 @@
                         ></app-customers-table>
                     </div>
                     <div class="col col-12" *ngIf="!user.customers || user.customers.length <= 0">
-                        <fa-icon [icon]="faTriangleExclamation" class="text-warning"></fa-icon> Your profile is not specifically linked to any customers.
+                        <fa-icon [icon]="faTriangleExclamation" class="text-warning"></fa-icon> {{ 'users:profile.no_customers' | t }}
                     </div>
                 </div>
             </div>
@@ -196,7 +196,7 @@
         <button class="btn btn-success save-button" (click)="save()" [disabled]="saving">
             <span *ngIf="!saving">
                 <fa-icon [icon]="faSave" ></fa-icon>
-                <span style="margin-left: 10px;">Save changes</span>
+                <span style="margin-inline-start: 10px;">{{ 'users:details.save' | t }}</span>
             </span>
             <fa-icon [icon]="faArrowsRotate" [animation]="'spin'" class="action-icon" *ngIf="saving"></fa-icon>
         </button>

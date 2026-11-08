@@ -6,11 +6,12 @@ import { HasPermissionPipe } from '../../utils/pipes/has-permission.pipe';
 import { AsyncPipe, NgIf } from '@angular/common';
 import { FaIconComponent, IconDefinition } from '@fortawesome/angular-fontawesome';
 import { faPersonDigging } from '@fortawesome/free-solid-svg-icons';
+import { TranslatePipe } from '../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [ 
+  imports: [TranslatePipe,  
     SummaryCardComponent, RawMaterialChartComponent, 
     HasPermissionPipe, AsyncPipe, NgIf, FaIconComponent ],
   templateUrl: './home.component.html',

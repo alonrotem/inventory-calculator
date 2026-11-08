@@ -10,7 +10,7 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent" #navbarToggler>
         <ul [ngClass]="'ms-auto navbar-nav mb-2 mb-lg-0' + (user?'' :' d-none')">
           <li class="nav-item" *ngIf="user | hasPermission: [{area: 'raw_materials', permission: 'R'}]">
-            <a class="nav-link" aria-current="page" routerLink="inventory/raw"  [ngClass]="(currentUrl.indexOf('/inventory/raw') >= 0) ? 'active': ''"><span class="icon-home"></span> Raw materials</a>
+            <a class="nav-link" aria-current="page" routerLink="inventory/raw"  [ngClass]="(currentUrl.indexOf('/inventory/raw') >= 0) ? 'active': ''"><span class="icon-home"></span> {{ 'common:nav.raw_materials' | t }}</a>
           </li>
           <!--
           <li class="nav-item">
@@ -29,14 +29,14 @@
           </li>
           -->
           <li class="nav-item" *ngIf="user.is_demo_customer">
-            <a class="nav-link" aria-current="page" [routerLink]="['inventory/customer/editor']" [queryParams]="{ id: user.demo_customer_id }" [queryParamsHandling]="'merge'"  [ngClass]="(currentUrl.indexOf('/inventory/customer/editor') >= 0) ? 'active': ''">Demo customer</a>
+            <a class="nav-link" aria-current="page" [routerLink]="['inventory/customer/editor']" [queryParams]="{ id: user.demo_customer_id }" [queryParamsHandling]="'merge'"  [ngClass]="(currentUrl.indexOf('/inventory/customer/editor') >= 0) ? 'active': ''">{{ 'common:nav.demo_customer' | t }}</a>
           </li>
 
           <li class="nav-item" *ngIf="((!user.is_demo_customer) && (user | hasPermission: [{area: 'customers', permission: 'R'}, {area: 'customer_resources_by_customer_id', permission: 'R'}]))">
-            <a class="nav-link" aria-current="page" routerLink="inventory/customers"  [ngClass]="(currentUrl.indexOf('/inventory/customers') >= 0) ? 'active': ''">Customers</a>
+            <a class="nav-link" aria-current="page" routerLink="inventory/customers"  [ngClass]="(currentUrl.indexOf('/inventory/customers') >= 0) ? 'active': ''">{{ 'common:nav.customers' | t }}</a>
           </li>
           <li class="nav-item" *ngIf="((!user.is_demo_customer) && (user | hasPermission: [{area: 'customers', permission: 'R'}, {area: 'customer_resources_by_customer_id', permission: 'R'}]))">
-            <a class="nav-link" aria-current="page" routerLink="/inventory/customer/orders"  [ngClass]="(currentUrl.indexOf('/inventory/customer/orders') >= 0) ? 'active': ''">Orders</a>
+            <a class="nav-link" aria-current="page" routerLink="/inventory/customer/orders"  [ngClass]="(currentUrl.indexOf('/inventory/customer/orders') >= 0) ? 'active': ''">{{ 'common:nav.orders' | t }}</a>
           </li>                    
 
           <!--
@@ -47,22 +47,22 @@
           
           <li class="nav-item dropdown" *ngIf="user | hasPermission: [{area: 'wings', permission: 'R'}, {area: 'knives', permission: 'C'}]">
             <a class="nav-link dropdown-toggle" hrkef="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" [ngClass]="(currentUrl.indexOf('/templates/') >= 0) ? 'active': ''">
-              Design
+              {{ 'common:nav.design' | t }}
             </a>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item" [routerLink]="'templates/wings'" [ngClass]="(currentUrl.indexOf('/templates/wings') >= 0) ? 'active': ''" *ngIf="(user$ | async) | hasPermission: [{area: 'wings', permission: 'R'}]"><span class="icon-feather-wing"></span> Wings</a></li>
-              <li><a class="dropdown-item" [routerLink]="'/templates/knives/list'" [ngClass]="(currentUrl.indexOf('/templates/knives/list') >= 0) ? 'active': ''" *ngIf="(user$ | async) | hasPermission: [{area: 'knives', permission: 'C'}]"><span class="icon-knife"></span> Knives</a></li>
-              <li><a class="dropdown-item" [routerLink]="'templates/knives/editor'" [ngClass]="(currentUrl.indexOf('/templates/knives/editor') >= 0) ? 'active': ''" *ngIf="(user$ | async) | hasPermission: [{area: 'knives', permission: 'C'}]"><fa-icon [icon]="faPenRuler"></fa-icon> Knife editor</a></li>
+              <li><a class="dropdown-item" [routerLink]="'templates/wings'" [ngClass]="(currentUrl.indexOf('/templates/wings') >= 0) ? 'active': ''" *ngIf="(user$ | async) | hasPermission: [{area: 'wings', permission: 'R'}]"><span class="icon-feather-wing"></span> {{ 'common:nav.wings' | t }}</a></li>
+              <li><a class="dropdown-item" [routerLink]="'/templates/knives/list'" [ngClass]="(currentUrl.indexOf('/templates/knives/list') >= 0) ? 'active': ''" *ngIf="(user$ | async) | hasPermission: [{area: 'knives', permission: 'C'}]"><span class="icon-knife"></span> {{ 'common:nav.knives' | t }}</a></li>
+              <li><a class="dropdown-item" [routerLink]="'templates/knives/editor'" [ngClass]="(currentUrl.indexOf('/templates/knives/editor') >= 0) ? 'active': ''" *ngIf="(user$ | async) | hasPermission: [{area: 'knives', permission: 'C'}]"><fa-icon [icon]="faPenRuler"></fa-icon> {{ 'common:nav.knife_editor' | t }}</a></li>
             </ul>
           </li>   
 
           <li class="nav-item dropdown" *ngIf="user | hasPermission: [{area: 'system_settings', permission: 'R'}]">
             <a class="nav-link dropdown-toggle" hrkef="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" [ngClass]="(currentUrl.indexOf('/settings/') >= 0) ? 'active': ''">
-              System
+              {{ 'common:nav.system' | t }}
             </a>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item" routerLink="/settings/system" [ngClass]="(currentUrl.indexOf('/settings/system') >= 0) ? 'active': ''"><fa-icon [icon]="faGears"></fa-icon> Settings</a></li>
-              <li><a class="dropdown-item" [routerLink]="'/settings/users'" [ngClass]="(currentUrl.indexOf('/settings/users') >= 0) ? 'active': ''" *ngIf="(user$ | async) | hasPermission: [{area: 'user_management', permission: 'R'}]"><span class="icon-address-book"></span> Users</a></li>
+              <li><a class="dropdown-item" routerLink="/settings/system" [ngClass]="(currentUrl.indexOf('/settings/system') >= 0) ? 'active': ''"><fa-icon [icon]="faGears"></fa-icon> {{ 'common:nav.settings' | t }}</a></li>
+              <li><a class="dropdown-item" [routerLink]="'/settings/users'" [ngClass]="(currentUrl.indexOf('/settings/users') >= 0) ? 'active': ''" *ngIf="(user$ | async) | hasPermission: [{area: 'user_management', permission: 'R'}]"><span class="icon-address-book"></span> {{ 'common:nav.users' | t }}</a></li>
             </ul>
           </li>          
           
@@ -76,14 +76,17 @@
           <li>
             <app-theme-selector />
           </li>
+          <li class="nav-item dropdown">
+            <app-language-selector />
+          </li>
           
           <!-- USER 
           <app-user-menu />
           /USER-->
         </ul>
         <form class="d-flex d-none" role="search">
-          <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-          <button class="btn btn-outline-success" type="submit">Search</button>
+          <input class="form-control me-2" type="search" [placeholder]="'common:actions.search' | t" [attr.aria-label]="'common:actions.search' | t">
+          <button class="btn btn-outline-success" type="submit">{{ 'common:actions.search' | t }}</button>
         </form>
       </div>
     </div>

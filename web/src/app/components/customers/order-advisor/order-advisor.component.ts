@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild, inject } from '@angular/core';
 import { WingsService } from '../../../services/wings.service';
 import { aggregated_babies, HatsCalculatorService } from '../../../services/hats-calculator.service';
 import { Allocation_Baby, Customer_Bank_Baby_Allocation, Wing, WingBaby, ShortWingsInfo, OrderAdvisorWingOverall, OrderAdvisorHatsSuggestionAlternative, Customer_Bank, OrderAdvisorHatsSuggestion } from '../../../../types';
@@ -12,15 +12,24 @@ import { FormsModule } from '@angular/forms';
 import { UsersService } from '../../../services/users.service';
 import { HasPermissionPipe } from '../../../utils/pipes/has-permission.pipe';
 import { SettingsService } from '../../../services/settings.service';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-order-advisor',
   standalone: true,
-  imports: [NgIf, NgFor, FaIconComponent, ModalDialogComponent, NgSelectModule, FormsModule, DecimalPipe, AsyncPipe, HasPermissionPipe ],
+  imports: [TranslatePipe, NgIf, NgFor, FaIconComponent, ModalDialogComponent, NgSelectModule, FormsModule, DecimalPipe, AsyncPipe, HasPermissionPipe ],
   templateUrl: './order-advisor.component.html',
   styleUrl: './order-advisor.component.scss'
 })
 export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
+  private translation = inject(TranslationService);
+
+
+  /** more than one allocation is involved (the no-capacity message says "these allocations") */
+  get many_allocations(): boolean {
+    return !!((this.wall_allocation && this.crown_allocation && this.tails_allocation_l && this.tails_allocation_r) || (this.wall_allocation?.id == this.crown_allocation?.id));
+  }
   
   @Input() wall_bank: Customer_Bank | null = null;
   @Input() crown_bank: Customer_Bank | null = null;
@@ -351,7 +360,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
       wingsPerHat: number
     ){
       if(wing.babies.length == 0){
-        this.exceed_number_of_hats_message = "This wing has no babies, so it cannot be used to make hats";
+        this.exceed_number_of_hats_message = this.translation.t('customers:advisor.exceed_wing_no_babies');
         return;
       }
 
@@ -414,10 +423,13 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
           let current_wing_alternatives = this.suggestions.wing_suggestions.find(s => s.wing_id == this.wing_id);
           if(current_wing_alternatives) {
             let highest_alternative = current_wing_alternatives.alternatives.find(a => a.max_num_of_hats == this.suggestions.max_num_of_hats);
-            this.exceed_number_of_hats_message = `Get ${highest_alternative?.max_num_of_hats} ${ (highest_alternative?.max_num_of_hats == 1)? 'hat':'hats' }, if you ` + 
-            ((highest_alternative?.shorten_top && highest_alternative?.shorten_top > 0)? `reduce the top by ${ highest_alternative?.shorten_top.toFixed(1) }cm` : `set the top to 0`) + 
-            `, and ` + 
-            ((highest_alternative?.shorten_crown && highest_alternative?.shorten_crown > 0)? `reduce the crown by ${ highest_alternative?.shorten_crown.toFixed(1) }cm` : `set the crown to 0`);
+            const shorten_top = highest_alternative?.shorten_top ?? 0;
+            const shorten_crown = highest_alternative?.shorten_crown ?? 0;
+            this.exceed_number_of_hats_message = this.translation.t('customers:advisor.exceed_get', {
+              count: highest_alternative?.max_num_of_hats,
+              top: shorten_top > 0 ? this.translation.t('customers:advisor.exceed_reduce_top', { length: this.translation.t('common:units.cm_1', { value: shorten_top }) }) : this.translation.t('customers:advisor.exceed_zero_top'),
+              crown: shorten_crown > 0 ? this.translation.t('customers:advisor.exceed_reduce_crown', { length: this.translation.t('common:units.cm_1', { value: shorten_crown }) }) : this.translation.t('customers:advisor.exceed_zero_crown')
+            });
 
             this.exceed_number_shorten_top = highest_alternative?.shorten_top ?? -1;
             this.exceed_number_shorten_crown = highest_alternative?.shorten_crown ?? -1;
@@ -426,7 +438,7 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
           this.already_at_max_num_of_hats = false;
         }
         else {
-          this.exceed_number_of_hats_message = "You are already at the max number of hats for this allocation";
+          this.exceed_number_of_hats_message = this.translation.t('customers:advisor.exceed_at_max');
 
           this.already_at_max_num_of_hats = true;
           this.exceed_number_shorten_top = -1;
@@ -437,16 +449,16 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
 
     generateDescriptiveString(shorten_top: number, shorten_crown: number, num_of_hats: number){
       if(shorten_crown == 0 && shorten_top == 0){
-        return `Original wing form, order up to ${ num_of_hats } ${ (num_of_hats==1)?'hat':'hats' }`;
+        return this.translation.t('customers:advisor.descr_original', { count: num_of_hats });
       }
       if(shorten_crown > 0 && shorten_top == 0){
-        return `Shorten the crown by ${ shorten_crown.toFixed(1) }cm, for up to ${ num_of_hats } ${ (num_of_hats==1)?'hat':'hats' }`;
+        return this.translation.t('customers:advisor.descr_crown', { count: num_of_hats, crown: this.translation.t('common:units.cm_1', { value: shorten_crown }) });
       }
       if(shorten_crown == 0 && shorten_top > 0){
-        return `Shorten the top by ${ shorten_top.toFixed(1) }cm, for up to ${ num_of_hats } ${ (num_of_hats==1)?'hat':'hats' }`;
+        return this.translation.t('customers:advisor.descr_top', { count: num_of_hats, top: this.translation.t('common:units.cm_1', { value: shorten_top }) });
       }
       if(shorten_crown > 0 && shorten_top > 0){
-        return `Shorten the crown by ${ shorten_crown.toFixed(1) }cm and the top by ${ shorten_top.toFixed(1) }cm, for up to ${ num_of_hats } ${ (num_of_hats==1)?'hat':'hats' }`;
+        return this.translation.t('customers:advisor.descr_both', { count: num_of_hats, crown: this.translation.t('common:units.cm_1', { value: shorten_crown }), top: this.translation.t('common:units.cm_1', { value: shorten_top }) });
       }
       return "";
     }

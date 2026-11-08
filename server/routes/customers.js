@@ -1,3 +1,4 @@
+const i18n = require('../services/i18n');
 const express = require('express');
 const router = express.Router();
 const customers = require('../services/customers');
@@ -22,7 +23,7 @@ router.get('/',
   catch (err) {
     logger.error(`Error getting all customers: ${err.message}`);
     if(err.status){
-      res.status(err.status).json({message: err.message});
+      res.status(err.status).json(i18n.error_body(req, err));
     }
     else {
       next(err);
@@ -49,7 +50,7 @@ router.get('/single/:id',
     } catch (err) {
       logger.error(`Error getting customer with ID ${ req.params.id }`, err.message);
       if(err.status){
-        res.status(err.status).json({message: err.message});
+        res.status(err.status).json(i18n.error_body(req, err));
       }
       else {
         next(err);
@@ -68,7 +69,7 @@ router.get('/single/:id',
     } catch (err) {
       logger.error(`Error getting demo customer for user with ID ${ req.params.user_id }`, err.message);
       if(err.status){
-        res.status(err.status).json({message: err.message});
+        res.status(err.status).json(i18n.error_body(req, err));
       }
       else {
         next(err);
@@ -88,7 +89,7 @@ router.get('/single/:id',
       logger.error(`Error getting customers names: ${err.message}`);
       next(err);
       if(err.status){
-        res.status(err.status).json({message: err.message});
+        res.status(err.status).json(i18n.error_body(req, err));
       }
       else {
         next(err);
@@ -135,7 +136,7 @@ router.post('/', async function(req, res, next) {
     } catch (err) {
       logger.error(`Error updating customer ${ err.message }`);
       if(err.status){
-        res.status(err.status).json({message: err.message});
+        res.status(err.status).json(i18n.error_body(req, err));
       }
       else {
         next(err);
@@ -161,7 +162,7 @@ router.delete('/:id',
     } catch (err) {
       logger.error(`Error deleting customer ${err.message}`);
       if(err.status){
-        res.status(err.status).json({message: err.message});
+        res.status(err.status).json(i18n.error_body(req, err));
       }
       else {
         next(err);

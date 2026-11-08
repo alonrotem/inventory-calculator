@@ -72,13 +72,13 @@ router.post('/', auth_request([{requiredArea:'backup', requiredPermission:'C'}])
     const confirm_delete_records = parsedData.conf_del_all;  
 
     if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
+      return res.status(400).json({ message: req.t('server:backup.no_file') });
     }
     // Check if the uploaded file is a ZIP file
     const fileType = req.file.mimetype; // Get the MIME type of the uploaded file
     if (fileType !== 'application/zip' && fileType !== 'application/x-zip-compressed') {
       logger.error("No zip backup file sent");
-      return res.status(400).json({ message: 'Expecting a backup zip file' });
+      return res.status(400).json({ message: req.t('server:backup.expecting_zip') });
     }
     //--------------
     try {
@@ -115,18 +115,18 @@ router.post('/', auth_request([{requiredArea:'backup', requiredPermission:'C'}])
       }
   
       res.json({
-        message: "Backup restored succesfully!",
+        message: req.t('server:backup.restored'),
         textContent: textFileContent, // Send text content in response if needed
       });
     } 
     catch (error) {
       logger.error(`Error restoring backup: ${error}`);
-      res.status(500).json({ message: "Error restoring backup!" });
+      res.status(500).json({ message: req.t('server:backup.restore_failed') });
     }
   } 
   catch (error) {
     logger.error(`Error processing file: ${error}`);
-    res.status(500).json({ message: 'Error processing file' });
+    res.status(500).json({ message: req.t('server:backup.process_failed') });
   }
 });
 

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { StateService } from '../../../services/state.service';
@@ -6,6 +6,7 @@ import { ToastService } from '../../../services/toast.service';
 import { UsersService } from '../../../services/users.service';
 import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
 import { filter } from 'rxjs';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-signout',
@@ -15,6 +16,8 @@ import { filter } from 'rxjs';
   styleUrl: './signout.component.scss'
 })
 export class SignoutComponent extends NavigatedMessageComponent {
+  private translation = inject(TranslationService);
+
   constructor(toastService: ToastService, stateService: StateService, router: Router, activatedRoute: ActivatedRoute, private usersService: UsersService) {
     super(toastService, stateService, router, activatedRoute, true);
 
@@ -23,7 +26,7 @@ export class SignoutComponent extends NavigatedMessageComponent {
     this.usersService.logout().subscribe({
       next: (response: {message: string}) => {
         this.navigateWithToastMessage(
-          'users/signin', pendingNavigationMessage && pendingNavigationMessage.textInfo ? pendingNavigationMessage.textInfo : 'Logged out successfully', 
+          'users/signin', pendingNavigationMessage && pendingNavigationMessage.textInfo ? pendingNavigationMessage.textInfo : this.translation.t('users:auth.logged_out'), 
           pendingNavigationMessage ? pendingNavigationMessage.isError : false
         );
       },

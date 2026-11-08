@@ -9,11 +9,12 @@ import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor
 import { DialogClosingReason, ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { CapacityBarComponent } from '../capacity-bar/capacity-bar.component';
 import { NumericInputDirective } from '../../../utils/directives/auto-numeric.directive';
+import { TranslatePipe, TranslateQuantityPipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-raw-material-customer-dialog',
   standalone: true,
-  imports: [ 
+  imports: [TranslatePipe, TranslateEnumPipe, TranslateQuantityPipe,  
     AutocompleteLibModule, FormsModule, NgIf, NgClass, ModalDialogComponent, ModalContentDirective, 
     ModalContentDirective, CapacityBarComponent, DecimalPipe, NumericInputDirective
   ],

@@ -1,4 +1,6 @@
-import { Component, ContentChild, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
+import { Component, ContentChild, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, inject } from '@angular/core';
+import { TranslationService } from '../../../i18n/translation.service';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { NgClass, NgIf } from '@angular/common';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -14,11 +16,12 @@ export enum DialogClosingReason {
 @Component({
   selector: 'app-modal-dialog',
   standalone: true,
-  imports: [ NgIf, NgClass, FaIconComponent ],
+  imports: [ NgIf, NgClass, FaIconComponent, TranslatePipe ],
   templateUrl: './modal-dialog.component.html',
   styleUrl: './modal-dialog.component.scss'
 })
 export class ModalDialogComponent implements ModalDialog {
+  private translation = inject(TranslationService);
   modalReference!: NgbModalRef;
   
   @ViewChild("content") content!: any;
@@ -27,8 +30,8 @@ export class ModalDialogComponent implements ModalDialog {
   @Input() showOpenButton: boolean = false;
   @Input() hide_buttons: boolean = false;
   @Input() modalTitle: string = "Modal";
-  @Input() btnSaveText: string = "Save changes";
-  @Input() btnCancelText: string = "Close";
+  @Input() btnSaveText: string = this.translation.t('common:dialogs.save_changes');
+  @Input() btnCancelText: string = this.translation.t('common:actions.close');
   @Input() btnSaveIcon: IconDefinition = faBorderNone;
   @Input() btnSaveIcoMoonIcon: string | undefined = undefined;
   @Input() btnSaveSpin: boolean = false;

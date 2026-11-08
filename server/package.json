@@ -4,7 +4,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "server": "node index.js"
+    "server": "node index.js",
+    "i18n:check": "node scripts/i18n-check.js",
+    "i18n:types": "node scripts/i18n-check.js --types"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +19,7 @@
     "deep-email-validator": "^0.1.21",
     "dotenv": "^17.2.3",
     "express": "^4.19.2",
+    "i18next": "^26.5.12",
     "jsonwebtoken": "^9.0.2",
     "jszip": "^3.10.1",
     "multer": "^1.4.5-lts.1",

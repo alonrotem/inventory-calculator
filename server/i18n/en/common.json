@@ -1,0 +1,124 @@
+{
+  "language": {
+    "label": "Language",
+    "switch_to": "Switch the language to {{language}}"
+  },
+  "nav": {
+    "raw_materials": "Raw materials",
+    "customers": "Customers",
+    "orders": "Orders",
+    "demo_customer": "Demo customer",
+    "design": "Design",
+    "wings": "Wings",
+    "knives": "Knives",
+    "knife_editor": "Knife editor",
+    "system": "System",
+    "settings": "Settings",
+    "users": "Users"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "back": "Back",
+    "close": "Close",
+    "search": "Search",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "dialogs": {
+    "confirm_title": "Confirm",
+    "confirm_text": "Are you absolutely sure?",
+    "save_changes": "Save changes",
+    "unsaved_title": "Leaving so quickly?",
+    "unsaved_text": "Your unsaved changes will be lost if you don't save them now.",
+    "save_and_continue": "Save & continue",
+    "discard_changes": "Discard changes"
+  },
+  "save_bar": {
+    "message": "Save changes quickly?"
+  },
+  "paginator": {
+    "label": "Page navigation",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "picker": {
+    "add": "+ Add",
+    "placeholder": "Pick an item",
+    "already_picked": "{{name}} is already picked"
+  },
+  "unsaved": {
+    "saved": "Saved successfully.",
+    "save_error": "Error during save",
+    "discarded": "Changes discarded",
+    "leave_confirm": "You have unsaved changes. Are you sure you want to leave?"
+  },
+  "status": {
+    "loading": "Loading...",
+    "saved": "Saved successfully",
+    "no_results": "Nothing found",
+    "loading_text": "Loading"
+  },
+  "units": {
+    "cm": "{{value, number(minimumFractionDigits: 0; maximumFractionDigits: 2)}} cm",
+    "cm_fixed": "{{value, number(minimumFractionDigits: 2; maximumFractionDigits: 2)}} cm",
+    "cm_symbol": "cm",
+    "cm_1": "{{value, number(minimumFractionDigits: 1; maximumFractionDigits: 1)}} cm"
+  },
+  "list": {
+    "total_one": "Total: {{count, number}} item",
+    "total_other": "Total: {{count, number}} items"
+  },
+  "errors": {
+    "unexpected": "Something went wrong, please try again",
+    "not_found": "The requested item was not found"
+  },
+  "quantity": {
+    "kg": "{{value, number(minimumFractionDigits: 2; maximumFractionDigits: 2)}} kg",
+    "units": "{{value, number(maximumFractionDigits: 0)}} units"
+  },
+  "quantity_units": {
+    "kg": "kg",
+    "units": "units"
+  },
+  "colors": {
+    "dark_brown": "Dark Brown",
+    "brown": "Brown",
+    "light_brown": "Light Brown",
+    "black": "Black",
+    "natural": "Natural"
+  },
+  "hamburger": {
+    "toggle": "Toggle navigation"
+  },
+  "image": {
+    "title": "Adjust image",
+    "drag": "Drag a picture or click below",
+    "no_picture": "No picture",
+    "drag_file": "Drag a file here",
+    "click_choose": "or click to choose a file",
+    "browse": "Browse",
+    "clear": "Clear",
+    "load_failed": "Failed to load image",
+    "drop_image": "Please drop an image file"
+  },
+  "pages": {
+    "not_found_title": "The fox is hiding!",
+    "not_found_text": "Could not find this page",
+    "not_found_hint": "(Maybe it has not been added yet)",
+    "forbidden": "You are not allowed to access this page.",
+    "go_home": "Go back home!",
+    "home_reconstruction": "Home dashboard is under reconstruction"
+  },
+  "footer": {
+    "copyright": "Copyright"
+  },
+  "capacity": {
+    "allocated": "Allocated",
+    "unallocated": "Unallocated",
+    "available": "Available"
+  }
+}

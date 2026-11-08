@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
 import { SystemLogsService } from '../../../services/system-logs.service';
 import { LogfileListItem } from '../../../../types';
 import { ToastService } from '../../../services/toast.service';
@@ -11,21 +11,25 @@ import { ConfirmationDialogComponent } from "../../common/confirmation-dialog/co
 import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.component";
 import { FileSizePipe } from '../../../utils/pipes/file-size-pipe';
 import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
+import { TranslatePipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-system-logs',
   standalone: true,
-  imports: [FaIconComponent, NgFor, NgIf, DateStrPipe, ConfirmationDialogComponent, ModalDialogComponent, FileSizePipe, PageLoadingComponent],
+  imports: [TranslatePipe, FaIconComponent, NgFor, NgIf, DateStrPipe, ConfirmationDialogComponent, ModalDialogComponent, FileSizePipe, PageLoadingComponent],
   templateUrl: './system-logs.component.html',
   styleUrl: './system-logs.component.scss'
 })
 export class SystemLogsComponent implements OnInit, AfterViewInit {
+  private translation = inject(TranslationService);
+
   logFiles: LogfileListItem[] = [];
   loading: boolean = true;
   faArrowsRotate: IconDefinition = faArrowsRotate;
   faTrash: IconDefinition = faTrash;
   faTriangleExclamation: IconDefinition = faTriangleExclamation;
-  preview_filename: string = "Log preview";
+  preview_filename: string = this.translation.t('settings:logs.preview_default');
   preview_filesize: number = 0;
   preview_loading: boolean = false;
   previewing: boolean = false;
@@ -54,7 +58,7 @@ export class SystemLogsComponent implements OnInit, AfterViewInit {
         this.loading = false;
       },
       error: (err: any) => {
-        this.toastService.showError("Failed to load log files");
+        this.toastService.showError(this.translation.t('settings:logs.load_failed'));
         console.log(err);
         this.logFiles = [];
         this.loading = false;
@@ -127,10 +131,10 @@ export class SystemLogsComponent implements OnInit, AfterViewInit {
 
   async clearLogFile(logfilename: string){
     const confirmed = await this.confirm_delete_logs.open_with_message({
-      modalTitle: "Clear log file",
-      modalText: `Are you sure you want to clear this log file, '${logfilename}'?`,
-      btnYesText: "Clear that MF!",
-      btnNoText: "Cancel",
+      modalTitle: this.translation.t('settings:logs.clear_file_title'),
+      modalText: this.translation.t('settings:logs.clear_file_text', { name: logfilename }),
+      btnYesText: this.translation.t('settings:logs.clear_file_yes'),
+      btnNoText: this.translation.t('common:actions.cancel'),
       btnYesIcon: this.faTrash,
       btnYesClass: "btn-danger"
     });
@@ -146,7 +150,7 @@ export class SystemLogsComponent implements OnInit, AfterViewInit {
             }
           },
           error: (err: any) => {
-            this.toastService.showError("Failed to load log files");
+            this.toastService.showError(this.translation.t('settings:logs.load_failed'));
             console.log(err);
             this.logFiles = [];
             this.loading = false;
@@ -158,12 +162,12 @@ export class SystemLogsComponent implements OnInit, AfterViewInit {
 
   async deleteAllLogs(){  
     const confirmed = await this.confirm_delete_logs.open_with_message({
-      modalTitle: "Clear system logs",
-      modalText: "Are you sure you want to delete all the system logs?",
+      modalTitle: this.translation.t('settings:logs.clear_all_title'),
+      modalText: this.translation.t('settings:logs.clear_all_text'),
       btnYesIcon: this.faTrash,
-      btnYesText: "Clear 'em!",
+      btnYesText: this.translation.t('settings:logs.clear_all_yes'),
       btnYesClass: "btn-danger",
-      btnNoText: "Cancel"
+      btnNoText: this.translation.t('common:actions.cancel')
     });
     if(confirmed) {
       this.loading = true;
@@ -173,7 +177,7 @@ export class SystemLogsComponent implements OnInit, AfterViewInit {
           this.loading = false;
         },
         error: (err: any) => {
-          this.toastService.showError("Failed to load log files");
+          this.toastService.showError(this.translation.t('settings:logs.load_failed'));
           console.log(err);
           this.logFiles = [];
           this.loading = false;

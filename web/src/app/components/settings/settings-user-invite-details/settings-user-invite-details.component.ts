@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
 import { IconDefinition } from '@fortawesome/fontawesome-common-types';
 import { faArrowLeft, faArrowsRotate, faBasketShopping, faCheck, faEnvelopeCircleCheck, faFlask, faTrash, faTriangleExclamation, faUserPlus, faX } from '@fortawesome/free-solid-svg-icons';
@@ -17,15 +17,19 @@ import { UserTagComponent } from "../../users/user-tag/user-tag.component";
 import { ConfirmationDialogComponent } from "../../common/confirmation-dialog/confirmation-dialog.component";
 import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
 import { SaveChangesButtonComponent } from "../../common/save-changes-button/save-changes-button.component";
+import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-settings-user-invite-details',
   standalone: true,
-  imports: [FaIconComponent, DateStrPipe, NgSelectModule, CustomerPickerComponent, NgIf, FormsModule, UserTagComponent, RouterModule, NgFor, ConfirmationDialogComponent, PageLoadingComponent, SaveChangesButtonComponent],
+  imports: [TranslatePipe, TranslateEnumPipe, FaIconComponent, DateStrPipe, NgSelectModule, CustomerPickerComponent, NgIf, FormsModule, UserTagComponent, RouterModule, NgFor, ConfirmationDialogComponent, PageLoadingComponent, SaveChangesButtonComponent],
   templateUrl: './settings-user-invite-details.component.html',
   styleUrl: './settings-user-invite-details.component.scss'
 })
 export class SettingsUserInviteDetailsComponent extends NavigatedMessageComponent implements OnInit {
+  private translation = inject(TranslationService);
+
   @ViewChild('confirm_action') confirm_action_dialog!: ConfirmationDialogComponent;
   //@ViewChild('confirm_delete_dialog') confirm_delete_dialog!: ConfirmationDialogComponent;
   //@ViewChild('confirm_cancel_dialog') confirm_cancel_dialog!: ConfirmationDialogComponent;
@@ -130,12 +134,12 @@ export class SettingsUserInviteDetailsComponent extends NavigatedMessageComponen
     this.approval_instructions = "";
     this.approve_btn_disabled = false;
     if(!this.invitation || !this.invitation.role || this.invitation.role.id <= 0){
-      this.approval_instructions = "To approve this request, please select the role of this user.";
+      this.approval_instructions = this.translation.t('users:invite.approval_role');
       this.approve_btn_disabled = true;
     }
     else {
       if(this.invitation.role.name.toLowerCase() == 'customer' && this.invitation.customers && this.invitation.customers.length == 0 && this.chkCreateNewCustoemr && this.chkCreateNewCustoemr.nativeElement && !this.chkCreateNewCustoemr.nativeElement.checked) {
-        this.approval_instructions = "To approve this request as a customer, please select which customers to connect this user to, or check the option to create a new customer for them.";
+        this.approval_instructions = this.translation.t('users:invite.approval_customer');
         this.approve_btn_disabled = true;
       }
     }
@@ -150,12 +154,12 @@ export class SettingsUserInviteDetailsComponent extends NavigatedMessageComponen
     this.sending = true;
     this.usersService.resendInvitation(this.invitation.id).subscribe({
       next: (response: any) => {
-        this.toastService.showSuccess("Invitation resent successfully!");
+        this.toastService.showSuccess(this.translation.t('users:invite.resent'));
         this.sending = false;
       }, 
       error: (error: any) => {
         console.log("Error resending invitation: " + error.error?.message);
-        this.toastService.showError("Failed to resend invitation. Please try again.");
+        this.toastService.showError(this.translation.t('users:invite.resend_failed'));
         this.sending = false;
       }
     });
@@ -163,22 +167,22 @@ export class SettingsUserInviteDetailsComponent extends NavigatedMessageComponen
 
   async delete_invitation(){
     const confirmed = await this.confirm_action_dialog.open_with_message({
-      modalTitle: 'Delete invitation?',
-      modalText: 'Are you sure you want to delete this invitation?',
+      modalTitle: this.translation.t('users:invite.delete_title'),
+      modalText: this.translation.t('users:invite.delete_text'),
       btnYesClass: 'btn-danger',
-      btnYesText: 'Delete!',
+      btnYesText: this.translation.t('users:invite.delete_yes'),
       btnYesIcon: this.faTrash,
-      btnNoText: 'Cancel'
+      btnNoText: this.translation.t('common:actions.cancel')
     });
     if(confirmed){
       this.usersService.deleteInvitation(this.invitation.id).subscribe({
         next: (response: any) => {
-          this.navigateWithToastMessage('/settings/user_invites', "Invitation deleted successfully!");
+          this.navigateWithToastMessage('/settings/user_invites', this.translation.t('users:invite.deleted'));
           //this.router.navigate(['/settings/user_invites']);
         },
         error: (error: any) => {
           console.log("Error deleting invitation: " + error.error?.message);
-          this.toastService.showError("Failed to delete invitation. Please try again.");
+          this.toastService.showError(this.translation.t('users:invite.delete_failed'));
         }
       });
     }
@@ -198,23 +202,23 @@ export class SettingsUserInviteDetailsComponent extends NavigatedMessageComponen
   />
 */    
     const confirmed = await this.confirm_action_dialog.open_with_message({
-      modalTitle: 'Cancel invitation?',
-      modalText: 'Are you sure you want to cancel this invitation?',
+      modalTitle: this.translation.t('users:invite.cancel_title'),
+      modalText: this.translation.t('users:invite.cancel_text'),
       btnYesClass: 'btn-warning',
-      btnYesText: 'Cancel Invitation!',
+      btnYesText: this.translation.t('users:invite.cancel_yes'),
       btnYesIcon: this.faX,
-      btnNoText: 'Keep Invitation'
+      btnNoText: this.translation.t('users:invite.cancel_no')
     });
     if(confirmed){
       this.usersService.cancelInvitation(this.invitation.id).subscribe({
         next: (response: any) => {
-          //this.navigateWithToastMessage('/settings/user_invites', "Invitation cancelled successfully!");
-          this.reloadTheSamePageWithToastMessage("Invitation cancelled successfully!");
+          //this.navigateWithToastMessage('/settings/user_invites', this.translation.t('users:invite.cancelled'));
+          this.reloadTheSamePageWithToastMessage(this.translation.t('users:invite.cancelled'));
           this.getInvitaionDetails(this.invitation.id);
         },
         error: (error: any) => {
           console.log("Error cancelling invitation: " + error.error?.message);
-          this.toastService.showError("Failed to cancel invitation. Please try again.");
+          this.toastService.showError(this.translation.t('users:invite.cancel_failed'));
         }
       });
     }
@@ -224,9 +228,9 @@ export class SettingsUserInviteDetailsComponent extends NavigatedMessageComponen
     this.saving = true;
     this.usersService.updateInvitation(this.invitation).subscribe({
       next: (response: any) => {
-        //this.toastService.showSuccess("Invitation updated successfully!");
+        //this.toastService.showSuccess(this.translation.t('users:invite.updated'));
         if(navigate_after_save){
-          this.navigateWithToastMessage('/settings/user_invites', "Invitation updated successfully!");
+          this.navigateWithToastMessage('/settings/user_invites', this.translation.t('users:invite.updated'));
         }
         else {
           this.reloadTheSamePageWithToastMessage("Saved successfully", false);
@@ -235,7 +239,7 @@ export class SettingsUserInviteDetailsComponent extends NavigatedMessageComponen
       },
       error: (error: any) => {
         console.log("Error updating invitation: " + error.error?.message);
-        this.toastService.showError("Failed to update invitation. Please try again.");
+        this.toastService.showError(this.translation.t('users:invite.update_failed'));
         this.saving = false;
       }
     });

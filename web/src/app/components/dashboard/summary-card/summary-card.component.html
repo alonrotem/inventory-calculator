@@ -1,29 +1,29 @@
 <div class="card">
-    <div class="loading" [ngClass]="{'no_visibility': !loading }"><fa-icon [icon]="faArrowsRotate" [animation]="'spin'" size="2x"></fa-icon><br/>Loading info...</div>
+    <div class="loading" [ngClass]="{'no_visibility': !loading }"><fa-icon [icon]="faArrowsRotate" [animation]="'spin'" size="2x"></fa-icon><br/>{{ 'dashboard:card.loading' | t }}</div>
     <div class="card-body" [ngClass]="{'no_visibility': loading }">
       <div class="stats-container">
-        <h5>Invetory</h5>
-        <p class="card-text"><span class="icon-leaf"></span> Raw material: </p>
+        <h5>{{ 'dashboard:card.inventory' | t }}</h5>
+        <p class="card-text"><span class="icon-leaf"></span> {{ 'dashboard:card.raw_material' | t }}</p>
         <div>
-          Raw material records: {{ raw_material_records | number: '1.0-0' }}<br/>
-          Total {{ raw_material_kg | number: '1.0-0' }} kg ({{ raw_material_remaining_kg  | number: '1.0-0' }} remaining)<br/>
-          Total {{ raw_material_units | number: '1.0-0' }} units ({{ raw_material_remaining_units  | number: '1.0-0' }} remaining)
+          {{ 'dashboard:card.records' | t: { count: raw_material_records } }}<br/>
+          {{ 'dashboard:card.total_kg' | t: { total: raw_material_kg, remaining: raw_material_remaining_kg } }}<br/>
+          {{ 'dashboard:card.total_units' | t: { total: raw_material_units, remaining: raw_material_remaining_units } }}
         </div>
         <!--<p class="card-text"><span class="icon-baby"></span> Babies: {{ total_babies | number: '1.0-0' }} in {{ total_baby_records | number: '1.0-0' }} {{ (total_baby_records == 1)? 'records' : 'records' }}</p>-->
         
-        <h5>Templates</h5>
-        <p class="card-text"><span class="icon-feather-wing"></span> Wings: {{ total_wings | number: '1.0-0' }}</p>
+        <h5>{{ 'dashboard:card.templates' | t }}</h5>
+        <p class="card-text"><span class="icon-feather-wing"></span> {{ 'dashboard:card.wings' | t: { count: total_wings } }}</p>
 
         
-        <h5>Currrent sales</h5>
-        <p class="card-text"><fa-icon [icon]="faBasketShopping"></fa-icon> New orders: {{ num_of_orders | number: '1.0-0' }}</p>
-        <p class="card-text"><span class="icon-hat"></span> Ordered hats: {{ total_hats | number: '1.0-0' }}</p>
+        <h5>{{ 'dashboard:card.sales' | t }}</h5>
+        <p class="card-text"><fa-icon [icon]="faBasketShopping"></fa-icon> {{ 'dashboard:card.new_orders' | t: { count: num_of_orders } }}</p>
+        <p class="card-text"><span class="icon-hat"></span> {{ 'dashboard:card.ordered_hats' | t: { count: total_hats } }}</p>
       </div>
       <div class="shortcuts">
-        <a href="/inventory/raw" *ngIf="(user$ | async) | hasPermission: [{area: 'raw_materials', permission: 'R'}]" class="card-link" title="Go to raw materials management"><span class="icon-leaf"></span></a>
+        <a href="/inventory/raw" *ngIf="(user$ | async) | hasPermission: [{area: 'raw_materials', permission: 'R'}]" class="card-link" [attr.title]="'dashboard:card.go_raw' | t"><span class="icon-leaf"></span></a>
         <!--<a href="/inventory/babies" class="card-link" title="Go to babies list"><span class="icon-baby"></span></a>-->
-        <a href="/templates/wings" *ngIf="(user$ | async) | hasPermission: [{area: 'wings', permission: 'R'}]" class="card-link" title="Go to wings management"><span class="icon-feather-wing"></span></a>
-        <a href="/inventory/customer/orders" class="card-link" *ngIf="(user$ | async) | hasPermission: [{area: 'orders', permission: 'R'}, {area: 'orders_resources_by_customer_id', permission: 'R'}]" title="Go to orders"><fa-icon [icon]="faBasketShopping"></fa-icon></a>
+        <a href="/templates/wings" *ngIf="(user$ | async) | hasPermission: [{area: 'wings', permission: 'R'}]" class="card-link" [attr.title]="'dashboard:card.go_wings' | t"><span class="icon-feather-wing"></span></a>
+        <a href="/inventory/customer/orders" class="card-link" *ngIf="(user$ | async) | hasPermission: [{area: 'orders', permission: 'R'}, {area: 'orders_resources_by_customer_id', permission: 'R'}]" [attr.title]="'dashboard:card.go_orders' | t"><fa-icon [icon]="faBasketShopping"></fa-icon></a>
         <!--<a href="/templates/hats" class="card-link" title="Go to hats management"><span class="icon-hat"></span></a>-->
       </div>
     </div>

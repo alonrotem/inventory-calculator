@@ -1,4 +1,4 @@
-import { Component, ContentChild, ElementRef, EventEmitter, Input, ViewChild } from '@angular/core';
+import { Component, ContentChild, ElementRef, EventEmitter, Input, ViewChild, inject } from '@angular/core';
 import { take } from 'rxjs';
 import { ModalDialog, RawMaterial } from '../../../../types';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -7,11 +7,13 @@ import { DialogClosingReason, ModalDialogComponent } from '../../common/modal-di
 import { ModalContentDirective } from '../../common/directives/modal-content.directive';
 import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
 import { NumericInputDirective } from '../../../utils/directives/auto-numeric.directive';
+import { TranslatePipe, TranslateQuantityPipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-raw-material-quantity-dialog',
   standalone: true,
-  imports: [ FormsModule, NgIf, NgClass, ModalDialogComponent, ModalContentDirective, DecimalPipe, NumericInputDirective ],
+  imports: [TranslatePipe, TranslateEnumPipe, TranslateQuantityPipe,  FormsModule, NgIf, NgClass, ModalDialogComponent, ModalContentDirective, DecimalPipe, NumericInputDirective ],
   templateUrl: './raw-material-quantity-dialog.component.html',
   styleUrl: './raw-material-quantity-dialog.component.scss',
   providers: [{
@@ -20,6 +22,8 @@ import { NumericInputDirective } from '../../../utils/directives/auto-numeric.di
     }]
 })
 export class RawMaterialQuantityDialogComponent implements ModalContentDirective, ModalDialog {
+  private translation = inject(TranslationService);
+
   top_up_quantity : number = 0;
   attemptedClose: boolean = false;
 
@@ -51,7 +55,7 @@ export class RawMaterialQuantityDialogComponent implements ModalContentDirective
   // Opens the dialog and resolves with the quantity to top up by, or null if the user cancelled.
   // max_topping: the most the user may top up by (0 or omitted = no limit)
   open(options: { title?: string, quantity_units: string, current_quantity: number, remaining_quantity: number, max_topping?: number }): Promise<number | null> {
-    this.dialogWrapper.modalTitle = options.title ?? "+ Top up quantity";
+    this.dialogWrapper.modalTitle = options.title ?? this.translation.t('raw_materials:quantity_dialog.default_title');
     this.rawMaterialQuantityUnits = options.quantity_units;
     this.rawMaterial_quantity_units = options.quantity_units;
     this.show_units_to_kg_adjustment = false;

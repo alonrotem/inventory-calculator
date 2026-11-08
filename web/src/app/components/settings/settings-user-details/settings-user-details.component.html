@@ -2,16 +2,16 @@
 
 <app-modal-dialog 
     #mail_verification_notice
-    [modalTitle]="'Unverified email'"
+    [modalTitle]="'users:details.unverified_title' | t"
     [btnSaveClass]="'d-none'"
     [btnCancelClass]="'btn-warning'"
-    [btnCancelText]="'Close'"
+    [btnCancelText]="'common:actions.close' | t"
     >
     <div>
-        The user's email address, <strong>{{ pending_email }}</strong> is not verified yet.<br/><br/>
-        They should receive a code by mail, <a href="javascript:void(0)" (click)="send_change_email_verificationl()">click here</a> to send it again, if needed.
+        {{ 'users:details.unverified_text' | t }} <strong>{{ pending_email }}</strong><br/><br/>
+{{ 'users:details.unverified_code' | t }} <a href="javascript:void(0)" (click)="send_change_email_verificationl()">{{ 'users:details.send_again' | t }}</a>
         <br/><br/>
-        <span class="text-warning">To revert to the original email, <strong>{{ original_email }}</strong>, <a href="javascript:void(0)" (click)="revert_email()">click here</a></span>.
+        <span class="text-warning">{{ 'users:details.revert_email' | t }} <strong>{{ original_email }}</strong> <a href="javascript:void(0)" (click)="revert_email()">{{ 'users:details.click_here' | t }}</a></span>
     </div>
 </app-modal-dialog>
 
@@ -32,24 +32,24 @@
         />
         
         <div class="header-container">
-            <h3><fa-icon [icon]="faAddressCard"></fa-icon> User details: {{ user.username }}</h3>
-            <div *ngIf="isThisYou" class="ms-2">(This is you! You can also <a href="/profile">manage your profile</a>)</div>
+            <h3><fa-icon [icon]="faAddressCard"></fa-icon> {{ 'users:details.title' | t: { name: user.username } }}</h3>
+            <div *ngIf="isThisYou" class="ms-2">{{ 'users:details.this_is_you' | t }} <a href="/profile">{{ 'users:details.manage_profile' | t }}</a></div>
         </div>
         <app-page-loading 
-            [loading_message]="'Loading user'" 
+            [loading_message]="'users:details.loading' | t" 
             [hidden]="!loading"
             [stretch_height]="true" />
 
         <div class="row" *ngIf="!user.is_verified"><div class="col">
             <fa-icon [icon]="faArrowsRotate" [animation]="'spin'" class="action-icon text-warning me-2" *ngIf="sending_account_verification"></fa-icon>
             <fa-icon [icon]="faTriangleExclamation" class="text-warning me-2"  *ngIf="!sending_account_verification"></fa-icon>
-            <strong class="text-warning">The user has not verified their account yet!</strong>
+            <strong class="text-warning">{{ 'users:details.not_verified' | t }}</strong>
             <br/>
-            <a href="javascript:void(0)" (click)="send_account_verification()">Click here to resend the account verification email</a>
+            <a href="javascript:void(0)" (click)="send_account_verification()">{{ 'users:details.resend_verification' | t }}</a>
         </div></div>
 
         <div class="row" *ngIf="user.is_disabled"><div class="col bg-danger text-center p-3">
-            <strong>This user account is disabled!</strong>
+            <strong>{{ 'users:details.disabled_banner' | t }}</strong>
         </div></div>
 
         <form novalidate #profile_form="ngForm" [id]="'profile_form'">
@@ -59,16 +59,16 @@
 
             <div class="col-12 mb-3 d-flex flex-row align-items-center justify-content-between">
                 <button class="btn btn-warning upper-button" (click)="navigateWithToastMessage('settings/users', '', false)">
-                    <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon><span class="ms-2">To users list</span></div>
+                    <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon><span class="ms-2">{{ 'users:details.to_list' | t }}</span></div>
                 </button>
                 <div>
-                    <strong style="margin-left: 10px;">Registered on </strong> {{(user.registered_on | dateStr)}}
+                    <strong style="margin-inline-start: 10px;">{{ 'users:details.registered_on' | t }} </strong> {{(user.registered_on | dateStr)}}
                 </div>
             </div>
 
             <div class="col-12"><!--col-12 col-md-12 col-lg-8 order-2 order-lg-1-->
                 <div class="profile-section">
-                    <div><strong class="mb-4">Personal details</strong></div>
+                    <div><strong class="mb-4">{{ 'users:details.personal' | t }}</strong></div>
 
                         <div class="row section-row">
                             <div class="col-12 col-xl-7 order-2 order-xl-1">
@@ -77,12 +77,12 @@
                                 <div class="form-floating">
                                     <input type="text" 
                                         id="user_firstname" class="form-control" placeholder="0" [(ngModel)]="user.firstname" name="user_firstname" #user_firstname="ngModel" [required]="true" [pattern]="'^[a-zA-Z][a-zA-Z\\-_\\s]*$'">
-                                    <label for="user_firstname">First name<span class="text-danger">*</span></label>
+                                    <label for="user_firstname">{{ 'users:fields.first_name' | t }}<span class="text-danger">*</span></label>
                                 </div>
                             </div>
                             <div class="text-danger" *ngIf="user_firstname.invalid && (user_firstname.touched || user_firstname.dirty)" > 
-                                <span *ngIf="user_firstname.errors?.['required']">First name is required</span>
-                                <span *ngIf="user_firstname.errors?.['pattern']">Use only letters, space or -</span>
+                                <span *ngIf="user_firstname.errors?.['required']">{{ 'users:validation.first_name_required' | t }}</span>
+                                <span *ngIf="user_firstname.errors?.['pattern']">{{ 'users:validation.letters_only' | t }}</span>
                             </div>
                             </div>             
 
@@ -91,12 +91,12 @@
                                 <div class="form-floating">
                                     <input type="text" 
                                         id="user_lastname" class="form-control" placeholder="0" [(ngModel)]="user.lastname" name="user_lastname" #user_lastname="ngModel"  [required]="true" [pattern]="'^[a-zA-Z][a-zA-Z\\-_]*$'">
-                                    <label for="user_lastname">Last name<span class="text-danger">*</span></label>
+                                    <label for="user_lastname">{{ 'users:fields.last_name' | t }}<span class="text-danger">*</span></label>
                                 </div>
                             </div>
                             <div class="text-danger" *ngIf="user_lastname.invalid && (user_lastname.touched || user_lastname.dirty)" > 
-                                <span *ngIf="user_lastname.errors?.['required']">Last name is required</span>
-                                <span *ngIf="user_lastname.errors?.['pattern']">Use only letters, space or -</span>
+                                <span *ngIf="user_lastname.errors?.['required']">{{ 'users:validation.last_name_required' | t }}</span>
+                                <span *ngIf="user_lastname.errors?.['pattern']">{{ 'users:validation.letters_only' | t }}</span>
                             </div>
                             </div>
                             
@@ -105,15 +105,15 @@
                                 <div class="form-floating">
                                     <input type="text" 
                                         id="user_email" class="form-control" placeholder="0" [(ngModel)]="current_email" name="user_email" #user_email="ngModel" [required]="true" [email]="true" (change)="email_changed()">
-                                    <label for="user_email">Email address<span class="text-danger">*</span></label>
+                                    <label for="user_email">{{ 'users:fields.email_address' | t }}<span class="text-danger">*</span></label>
                                 </div>
                             </div>                
-                            <div class="text-warning" *ngIf="pending_email">Not verified. <a href="javascript:void(0)" (click)="open_mail_verification_dialog()">Click here</a></div>
+                            <div class="text-warning" *ngIf="pending_email">{{ 'users:details.not_verified_short' | t }} <a href="javascript:void(0)" (click)="open_mail_verification_dialog()">{{ 'users:details.click_here' | t }}</a></div>
                             <div class="text-danger" *ngIf="user_email.invalid && (user_email.touched || user_email.dirty)" > 
-                                <span *ngIf="user_email.errors?.['required']">Email is required</span>
+                                <span *ngIf="user_email.errors?.['required']">{{ 'users:validation.email_required' | t }}</span>
                             </div>  
                             <div class="text-danger" *ngIf="user_email.errors?.['email'] && (user_email.touched || user_email.dirty)" > 
-                                <span *ngIf="user_email.errors?.['email']">Invalid email</span>
+                                <span *ngIf="user_email.errors?.['email']">{{ 'users:validation.email_invalid' | t }}</span>
                             </div>
                             </div>            
 
@@ -122,7 +122,7 @@
                                 <div class="form-floating">
                                     <input type="tel" 
                                         id="user_phone" class="form-control" placeholder="0" [(ngModel)]="user.phone" name="user_phone" #user_phone="ngModel">
-                                    <label for="user_phone">Phone number</label>
+                                    <label for="user_phone">{{ 'users:fields.phone' | t }}</label>
                                 </div>
                             </div>
                             </div>
@@ -140,10 +140,10 @@
                 <div class="profile-section">
                     <div class="row">
                         <div class="col`">
-                        <strong class="mb-4">Password reset</strong>
+                        <strong class="mb-4">{{ 'users:details.password_reset' | t }}</strong>
                         </div>
                         <div>
-                            <a href="javascript:void(0)" (click)="send_password_reset()">Send password reset to user</a>
+                            <a href="javascript:void(0)" (click)="send_password_reset()">{{ 'users:details.send_password_reset' | t }}</a>
                         </div>
                     </div>
             </div>
@@ -151,7 +151,7 @@
             <div class="profile-section">
                 <div class="row">
                     <div class="col col-12 col-md-6  mt-3 mt-md-0 mb-3 mb-md-0">
-                        <strong class="mb-4">User's current logins</strong>
+                        <strong class="mb-4">{{ 'users:details.current_logins' | t }}</strong>
                     </div>
                     <app-logins-table
                         #logins_table
@@ -163,7 +163,7 @@
                 <div class="profile-section">
                     <div class="row">
                         <div class="col">
-                            <div class="mb-4"><strong>User's role</strong></div>
+                            <div class="mb-4"><strong>{{ 'users:details.role' | t }}</strong></div>
                             <div>
                                 <ng-select         
                                     #role_select 
@@ -172,19 +172,22 @@
                                     [multiple]="false" 
                                     bindLabel="name" 
                                     bindValue="id" 
-                                    [placeholder]="'Pick a role'"
+                                    [placeholder]="'users:hints.pick_role' | t"
                                     (change)="role_selected($event)"
                                     (clear)="role_selected($event)"
                                     class="roles-select"
                                     [(ngModel)]="selectedRoleId"
-                                    />
+                                    >
+<ng-template ng-label-tmp let-item="item">{{ item.name | tenum: 'users:roles.' }}</ng-template>
+<ng-template ng-option-tmp let-item="item">{{ item.name | tenum: 'users:roles.' }}</ng-template>
+</ng-select>
                             </div>
                         </div>
                     </div>
                     <div class="row">
                     <div class="text-danger" [hidden]="user.roles.length == 0 || user.roles[0].name != 'administrator'">
                         <fa-icon [icon]="faTriangleExclamation" class="text-warning me-2"></fa-icon>
-                        <strong><span class="text-warning">Careful!</span> An administrator has unlimited access!</strong>
+                        <strong><span class="text-warning">{{ 'users:hints.careful' | t }}</span> {{ 'users:hints.admin_unlimited' | t }}</strong>
                     </div>                    
                     <div class="col col-12" *ngIf="user.roles.length > 0 && user.roles[0].name == 'customer'">
 
@@ -193,7 +196,7 @@
                     <div class="d-flex flex-nowrap align-items-start mt-5">
                         <input class="form-check-input" type="radio" name="customer_options" id="customer_options_real" [(ngModel)]="user.is_demo_customer" [value]="false">
                         <label class="form-check-label" for="customer_options_real">
-                            Connect this user to real customers
+                            {{ 'users:details.connect_real' | t }}
                         </label>  
                     </div>
                     <div class="mt-2">                     
@@ -210,14 +213,14 @@
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="customer_options" id="customer_options_demo" [(ngModel)]="user.is_demo_customer" [value]="true">
                             <label class="form-check-label" for="customer_options_demo">
-                                This is a demo customer (not connected to real customers)
+                                {{ 'users:hints.demo_not_connected' | t }}
                             </label>
                         </div>
                     </div>
 
                     <div *ngIf="user.is_demo_customer" class="text-warning d-flex align-items-center flex-row" style="margin: 10px;">
                         <fa-icon [icon]="faTriangleExclamation" class="text-warning me-2"></fa-icon>
-                        <span>A demo customer can play with calculations but not affect the inventory, or send new orders.</span>
+                        <span>{{ 'users:hints.demo_can' | t }}</span>
                     </div>                      
 
                 </div>
@@ -227,20 +230,20 @@
             <div class="profile-section border-danger">
                 <div class="row">
                     <div class="col">
-                    <strong class="text-danger">Danger zone</strong>
+                    <strong class="text-danger">{{ 'users:details.danger_zone' | t }}</strong>
                     </div>
                     <div class="row"><div class="col">
                         <div class="switch-group form-check form-switch">
                             <input class="form-check-input" type="checkbox" #chk_disable="ngModel" name="chk_disable" [(ngModel)]="user.is_disabled">
                             <label class="form-check-label" for="chk_disable">
-                                Disable this user
+                                {{ 'users:details.disable' | t }}
                             </label>
                         </div>
-                        <div class="text-danger" *ngIf="user.is_disabled">A disabled account is not deleted, but cannot login or perform any actions</div>
+                        <div class="text-danger" *ngIf="user.is_disabled">{{ 'users:details.disable_note' | t }}</div>
                     </div></div>
 
                     <div class="row"><div class="col d-flex justify-content-center">
-                        <button class="btn btn-danger" (click)="confirm_deletion()"><fa-icon [icon]="faTrash" class="me-2"></fa-icon> Delete this user</button>
+                        <button class="btn btn-danger" (click)="confirm_deletion()"><fa-icon [icon]="faTrash" class="me-2"></fa-icon> {{ 'users:details.delete' | t }}</button>
                     </div></div>
                 </div>
             </div>            
@@ -257,7 +260,7 @@
         <button class="btn btn-success save-button" (click)="save()" [disabled]="saving">
             <span *ngIf="!saving">
                 <fa-icon [icon]="faSave" ></fa-icon>
-                <span style="margin-left: 10px;">Save changes</span>
+                <span style="margin-inline-start: 10px;">{{ 'users:details.save' | t }}</span>
             </span>
             <fa-icon [icon]="faArrowsRotate" [animation]="'spin'" class="action-icon" *ngIf="saving"></fa-icon>
         </button>

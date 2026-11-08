@@ -6,6 +6,6 @@
     (Change)="Change.emit()"
     [disabled]="disabled"
     [multi]="multi"
-    addButtonText="+ Add knife"
-    placeholder="Pick a knife"
+    [addButtonText]="'knives:picker.add' | t"
+    [placeholder]="'knives:picker.placeholder' | t"
     />

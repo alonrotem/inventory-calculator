@@ -1,7 +1,9 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { KnivesService } from '../../../services/knives.service';
 import { KnifeListItem, KnivesList } from '../../../../types';
-import { DecimalPipe, NgFor } from '@angular/common';
+import { NgFor } from '@angular/common';
+import { TranslationService } from '../../../i18n/translation.service';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { PaginatorComponent } from "../../common/paginator/paginator.component";
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ToastService } from '../../../services/toast.service';
@@ -16,13 +18,14 @@ import { knifeSvgOutline } from '../knife-editor/knife-render';
   standalone: true,
   templateUrl: './knives-table.component.html',
   styleUrl: './knives-table.component.scss',
-  imports: [NgFor, PaginatorComponent, RouterModule, DecimalPipe, PageLoadingComponent]
+  imports: [NgFor, PaginatorComponent, RouterModule, TranslatePipe, PageLoadingComponent]
 })
 export class KnivesTableComponent extends NavigatedMessageComponent implements OnInit {
 
   constructor(
     private knivesService: KnivesService,
     private settingsService: SettingsService,
+    private translation: TranslationService,
     router: Router,
     stateService: StateService,
     toastService: ToastService,
@@ -53,7 +56,7 @@ export class KnivesTableComponent extends NavigatedMessageComponent implements O
       error: (error) => {
         this.loading = false;
         console.log(error);
-        this.toastService.showError(error.error?.message ?? 'Could not load the knives');
+        this.toastService.showError(error.error?.message ?? this.translation.t('knives:list.load_failed'));
       }
     })
   }

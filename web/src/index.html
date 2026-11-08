@@ -5,6 +5,19 @@
   <title>InventoryCalculator</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!--
+    Bootstrap is loaded here (not in angular.json) as it has a separate stylesheet for right-to-left languages.
+    The direction of the last used language is saved by the app (TranslationService), so the right one loads before the first paint.
+    It has to come before the app's own styles, which Angular adds after this.
+  -->
+  <script>
+    (function () {
+      var rtl = false;
+      try { rtl = localStorage.getItem('language-dir') === 'rtl'; } catch (e) { }
+      document.documentElement.dir = rtl ? 'rtl' : 'ltr';
+      document.write('<link id="bootstrap-css" rel="stylesheet" href="assets/bootstrap/' + (rtl ? 'bootstrap.rtl.min.css' : 'bootstrap.min.css') + '">');
+    })();
+  </script>
   <!--  -->
   <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">

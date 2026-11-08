@@ -1,0 +1,8 @@
+{
+  "default": "en",
+  "languages": {
+    "en": { "name": "English", "nativeName": "English", "dir": "ltr" },
+    "he": { "name": "Hebrew", "nativeName": "עברית", "dir": "rtl" },
+    "yi": { "name": "Yiddish", "nativeName": "ייִדיש", "dir": "rtl" }
+  }
+}

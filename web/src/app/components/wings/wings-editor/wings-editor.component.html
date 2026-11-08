@@ -13,8 +13,8 @@
 
 <app-modal-dialog 
   #crown_editor_dialog
-  [modalTitle]="'Edit crown'"
-  [btnSaveText]="'Close'"
+  [modalTitle]="'customers:calc.dialogs.edit_crown' | t"
+  [btnSaveText]="'common:actions.close' | t"
   [btnCancelClass]="'d-none'"
   [modalSize]="'l'">
     <app-crown-editor 
@@ -36,25 +36,25 @@
             <div class="col-6">
                 <div class="form-floating">
                     <input type="text" class="form-control" id="wingName" #wingName="ngModel" [(ngModel)]="wing!.name" name="wingName" required (ngModelChange)="form_touched()">
-                    <label for="wingName">Wing name <span class="text-danger">*</span></label>
+                    <label for="wingName">{{ 'wings:editor.name' | t }} <span class="text-danger">*</span></label>
                 </div>
                 <div class="text-danger" *ngIf="wingName.invalid && (wingName.touched || wingName.dirty)" > 
-                    <span *ngIf="wingName.errors?.['required']">Please enter a name for the wing</span>
+                    <span *ngIf="wingName.errors?.['required']">{{ 'wings:editor.name_required' | t }}</span>
                     <!-- span *ngIf="firstName.errors?.['minlength']">Min 3 Charactors Needed</span --> 
                 </div>            
             </div>
             <div class="col-2">
-                <button class="btn btn-warning upper-button" (click)="gotoPreviousPage()" title="Cancel and go back">
+                <button class="btn btn-warning upper-button" (click)="gotoPreviousPage()" [attr.title]="'customers:editor.back_title' | t">
                     <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>
                 </button>
             </div>
             <div class="col-2">
-                <button #btn_save class="btn btn-success upper-button" type="submit" (click)="save(false, true)" title="Save">
+                <button #btn_save class="btn btn-success upper-button" type="submit" (click)="save(false, true)" [attr.title]="'common:actions.save' | t">
                     <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
                 </button>
             </div>
             <div class="col-2"  *ngIf="!this.is_new_wing">
-                <button class="btn btn-danger upper-button" (click)="confirm_delete()" title="Delete this wing">
+                <button class="btn btn-danger upper-button" (click)="confirm_delete()" [attr.title]="'wings:editor.delete_title' | t">
                     <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>
                 </button>
 
@@ -63,11 +63,11 @@
         <div class="row">
             <div class="col d-flex flex-row">
                 
-                <button class="btn btn-danger me-3" (click)="reset_wing()"><fa-icon [icon]="faEraser"></fa-icon> Reset</button>
+                <button class="btn btn-danger me-3" (click)="reset_wing()"><fa-icon [icon]="faEraser"></fa-icon> {{ 'customers:calc.reset' | t }}</button>
 
                 <div class="dropdown" *ngIf="show_titles_buttons">
                     <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="icon-feather-wing"></span> Copy design from...
+                        <span class="icon-feather-wing"></span> {{ 'wings:editor.copy_from' | t }}
                     </button>
                     <ul class="dropdown-menu">
                         <li *ngFor="let wing of wings"><a class="dropdown-item" (click)="copyFromWing(wing.id)">{{ wing.name }}</a></li>
@@ -81,7 +81,7 @@
                 <div class="d-flex flex-nowrap align-items-start">
                     <input #chk_connect_wing_to_customers class="form-check-input me-2" type="checkbox" name="customer_options" id="customer_options_real" [value]="false" [checked]="wing && wing.customers && wing.customers.length > 0">
                     <label class="form-check-label" for="customer_options_real">
-                        This wing is specifically assigned to the following customers:
+                        {{ 'wings:editor.assigned' | t }}
                     </label>  
                 </div>
                 <div class="mt-2">                     
@@ -98,7 +98,7 @@
         <div class="row" *ngIf="!show_only_custom_knives || custom_knife_lengths.length > 0">
             <div class="col">
                 <div class="d-flex align-items-center">
-                    <span class="icon-knife" style="font-size: 30px; margin-right: 10px;"></span> Select the knife for this wing:
+                    <span class="icon-knife" style="font-size: 30px; margin-inline-end: 10px;"></span> {{ 'wings:editor.select_knife' | t }}
                 </div>
                 <ng-select
                     class="mt-2"
@@ -106,15 +106,15 @@
                     bindValue="id"
                     [searchFn]="knifeSearch"
                     name="knife_selector"
-                    placeholder="Pick a knife"
+                    [placeholder]="'wings:editor.pick_knife' | t"
                     [ngModel]="wing!.knife_id"
                     (change)="knifeChanged($event)"
                     [clearable]="false">
-                    <ng-template ng-label-tmp let-item="item">{{ item.name }} - {{ item.width_cm | number : '1.2-2' }} cm</ng-template>
-                    <ng-template ng-option-tmp let-item="item">{{ item.name }} - {{ item.width_cm | number : '1.2-2' }} cm</ng-template>
+                    <ng-template ng-label-tmp let-item="item">{{ item.name }} - {{ 'common:units.cm_fixed' | t: { value: item.width_cm } }}</ng-template>
+                    <ng-template ng-option-tmp let-item="item">{{ item.name }} - {{ 'common:units.cm_fixed' | t: { value: item.width_cm } }}</ng-template>
                 </ng-select>
                  <div class="d-flex align-items-center" style="margin-top:15px;">
-                    <span class="icon-wing-size" style="font-size: 40px; margin-right: 15px;"></span>Total wing height: {{ total_wing_height | number : '1.1-1' }} cm
+                    <span class="icon-wing-size" style="font-size: 40px; margin-inline-end: 15px;"></span>{{ 'wings:editor.total_height' | t: { height: ('common:units.cm_1' | t: { value: total_wing_height }) } }}
                  </div>
             </div>
         </div>
@@ -124,7 +124,7 @@
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" [(ngModel)]="wing!.allow_shortening_babies_in_pairs" id="chkAllowShorteningInPairs" name="chkAllowShorteningInPairs" />
                 <label class="form-check-label" for="chkAllowShorteningInPairs">
-                    Allow shortening babies of this wing in pairs (for selected materials)
+                    {{ 'wings:editor.shorten_pairs' | t }}
                 </label>
             </div>
         </div>
@@ -144,7 +144,7 @@
                         (babyClicked)="this.diagram_babyClicked($event)"
                         (babyEdited)="this.diagram_babyEdited($event)"
                  />
-                 <div #wing_preview class="wing_preview hidden_preview" (click)="scrollToFullDiagram()" title="Click to see the wing">
+                 <div #wing_preview class="wing_preview hidden_preview" (click)="scrollToFullDiagram()" [attr.title]="'wings:editor.preview_title' | t">
                     <div style="text-align: center; color:white;"><fa-icon [icon]="faArrowUp"></fa-icon></div>
                     <div>
                         <app-wing-diagram
@@ -162,19 +162,19 @@
                             [preset_theme]="'dark'"
                         />
                     </div>
-                    <div style="text-align: center; color:white;">Wing preview</div>
+                    <div style="text-align: center; color:white;">{{ 'wings:editor.preview' | t }}</div>
                  </div>
             </div>
         </div>
         <div class="row wing-babies-container">
             <div class="col">
-                <h4><span class="icon-feather-wing"></span> Left Babies</h4>
+                <h4><span class="icon-feather-wing"></span> {{ 'wings:editor.left_babies' | t }}</h4>
                 <div class="d-flex flex-row flex-nowrap align-items-center justify-content-start">
-                    <div>Split L1 baby into</div>
+                    <div>{{ 'wings:editor.split_before' | t }}</div>
                     <select *ngIf="wing" class="form-select narrow-select" [(ngModel)]="wing.split_l1" name="wing_split_l1">
                         <option *ngFor="let l1_part of SplitL1_options" value="{{ l1_part }}">{{ l1_part }}</option>
                     </select>
-                    <div>parts</div>
+                    <div>{{ 'wings:editor.split_after' | t }}</div>
                 </div>
                 <app-wings-babies-table 
                     *ngIf="wing"
@@ -189,7 +189,7 @@
         
         <div class="row wing-babies-container">
             <div class="col">
-                <h4><span class="icon-feather-wing-r"></span> Right Babies</h4>
+                <h4><span class="icon-feather-wing-r"></span> {{ 'wings:editor.right_babies' | t }}</h4>
                 <app-wings-babies-table 
                     [(wingsbabies)]="this.wing!.babies" 
                     [wingPrefix]="'R'"
@@ -200,11 +200,11 @@
         </div>
         <div class="row wing-babies-container">
             <div class="col">
-                <h4><span class="icon-top"></span> Top</h4>
+                <h4><span class="icon-top"></span> {{ 'wings:editor.top' | t }}</h4>
                 <app-babies-length-picker
                     #top_picker
                     [show_invalid_message]="false"
-                    [title]="'Choose top length:'"
+                    [title]="'wings:editor.choose_top' | t"
                     [selected_lengths]="[get_top()]"
                     (lengthChange)="set_top()"
                     (lengthChange)="babies_length_clicked()"
@@ -213,7 +213,7 @@
         </div>
         <div class="row wing-babies-container">
             <div class="col">
-                <h4><span class="icon-crown"></span> Crown</h4>
+                <h4><span class="icon-crown"></span> {{ 'wings:editor.crown' | t }}</h4>
 
                 <app-crown-editor 
                     *ngIf="wing"
@@ -252,13 +252,13 @@
             <div class="col-12 d-flex justify-content-center {{ this.is_new_wing? 'col-md-4':'col-md-3' }}">
                 <button class="btn btn-warning" (click)="gotoPreviousPage()">
                     <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>
-                    <div>Cancel Chages</div>
+                    <div>{{ 'wings:editor.cancel_changes' | t }}</div>
                 </button>
             </div>            
                 <div class="col-12 d-flex justify-content-center {{ this.is_new_wing? 'col-md-4':'col-md-3' }}">
                     <button #btn_save class="btn btn-success" type="submit" (click)="save(false, true)">
                         <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
-                        <div>Save Wing</div>
+                        <div>{{ 'wings:editor.save' | t }}</div>
                     </button>
                 </div>
                 <!--
@@ -272,7 +272,7 @@
                 <div class="col-12 d-flex justify-content-center col-md-3" *ngIf="!this.is_new_wing">
                     <button class="btn btn-danger" (click)="confirm_delete()">
                         <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>
-                        <div>Delete Wing</div>
+                        <div>{{ 'wings:editor.delete' | t }}</div>
                     </button>
                 </div>
         </div>

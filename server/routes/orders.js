@@ -1,3 +1,4 @@
+const i18n = require('../services/i18n');
 const express = require('express');
 const router = express.Router();
 const orders = require('../services/orders');
@@ -35,7 +36,7 @@ const auth_request = require('../middleware/auth_request');
     catch (err) {
       logger.error(`Error getting orders: ${err.message}`);
       if(err.status){
-        res.status(err.status).json(err);
+        res.status(err.status).json(i18n.error_body(req, err));
       }
       else {
         next(err);
@@ -55,7 +56,7 @@ const auth_request = require('../middleware/auth_request');
       catch (err) {
         logger.error(`Error getting order details with ID ${ req.params.id }: ${err.message}`);
         if(err.status){
-          res.status(err.status).json({message: err.message});
+          res.status(err.status).json(i18n.error_body(req, err));
         }
         else {
           next(err);
@@ -76,7 +77,7 @@ const auth_request = require('../middleware/auth_request');
       catch (err) {
         logger.error(`Error updating order property (post): ${err.message}`);
         if(err.status){
-          res.status(err.status).json({message: err.message});
+          res.status(err.status).json(i18n.error_body(req, err));
         }
         else {
           next(err);

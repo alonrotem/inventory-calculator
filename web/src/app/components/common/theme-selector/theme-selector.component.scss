@@ -7,6 +7,7 @@
 }
 
 .toggle-btn-wrapper {
+    direction: ltr;   // a physical switch: the icon slides left / right, also in right-to-left languages
     display: inline-block;
     width: 40px;
     border-radius: 10px;

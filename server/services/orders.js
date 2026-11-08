@@ -1,3 +1,4 @@
+const i18n = require('./i18n');
 const db = require('./db');
 const helper = require('../helper');
 const config = require('../config');
@@ -49,9 +50,7 @@ async function can_user_access_customer_orders(user_id, customer_id, required_pe
 async function create(customerHat, currentUserId, active_connection=null){
 
     if(!await can_user_access_customer_orders(currentUserId, customerHat.customer_id, "C")){
-        let err = new Error("User has no permissions to create orders for this customer");
-        err.status = 403;
-        throw err;
+        throw i18n.translatable_error(403, 'server:orders.no_create');
     }
 
   //check if there is an active connection called from another function, or this call is a standalone
@@ -406,7 +405,7 @@ async function create(customerHat, currentUserId, active_connection=null){
         );
     }
 
-    message = 'Order placed successfully successfully.';
+    message = i18n.tr('server:orders.placed');
     if(self_executing) {
         await db.transaction_commit(active_connection);
     }        
@@ -465,9 +464,7 @@ async function get_orders_list(page = 1, perPage, customer_id, currentUserId){
                         customer_filter = `ch.customer_id=${customer_id}`;
                     }
                     else {
-                        let err = new Error("User is not allowed to access orders from this customer");
-                        err.status = 403;
-                        throw err;
+                        throw i18n.translatable_error(403, 'server:orders.not_allowed_access');
                     }
                 }
                 else {
@@ -478,9 +475,7 @@ async function get_orders_list(page = 1, perPage, customer_id, currentUserId){
         }
     }
     else {
-        let err = new Error("User has no permissions to access orders");
-        err.status = 403;
-        throw err;
+        throw i18n.translatable_error(403, 'server:orders.no_access');
     }
     
     if(page && perPage && page > 0 && perPage > 0) {
@@ -557,17 +552,13 @@ async function get_order_details(order_id, currentUserId){
         `select ch.customer_id from orders o inner join customer_hats ch on o.customer_hat_id=ch.id where o.id=(?);`,
         [order_id]));
     if(helper.isEmptyObj(order_rec)){
-        let err = new Error("Invalid order number");
-        err.status = 404;
-        throw err;
+        throw i18n.translatable_error(404, 'server:orders.invalid_order');
     }
     else {
         order_customer_id = order_rec["customer_id"];
     }
     if(!await can_user_access_customer_orders(currentUserId, order_customer_id, "R")){
-        let err = new Error("User is not allowed to access orders from this customer");
-        err.status = 403;
-        throw err;
+        throw i18n.translatable_error(403, 'server:orders.not_allowed_access');
     }
 
     const rows = await db.query(
@@ -660,17 +651,13 @@ async function update_order_property(propertyDetails, currentUserId, active_conn
         `select ch.customer_id from orders o inner join customer_hats ch on o.customer_hat_id=ch.id where o.id=(?);`,
         [propertyDetails["order_id"]]));
     if(helper.isEmptyObj(order_rec)){
-        let err = new Error("Invalid order number");
-        err.status = 404;
-        throw err;
+        throw i18n.translatable_error(404, 'server:orders.invalid_order');
     }
     else {
         order_customer_id = order_rec["customer_id"];
     }
     if(!await can_user_access_customer_orders(currentUserId, order_customer_id, "U")){
-        let err = new Error("User is not allowed to update orders from this customer");
-        err.status = 403;
-        throw err;
+        throw i18n.translatable_error(403, 'server:orders.not_allowed_update');
     }    
 
 

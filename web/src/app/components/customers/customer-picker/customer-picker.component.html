@@ -5,6 +5,6 @@
     (Change)="Change.emit()"
     [disabled]="disabled"
     [multi]="multi"
-    addButtonText="+ Add customer"
-    placeholder="Pick a customer"
+    [addButtonText]="'customers:picker.add' | t"
+    [placeholder]="'customers:picker.placeholder' | t"
     />

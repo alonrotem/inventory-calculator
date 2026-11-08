@@ -1,6 +1,5 @@
 import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
-import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Observable, Subscription, firstValueFrom } from 'rxjs';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -15,13 +14,15 @@ import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/co
 import { UnsavedChangesDialogComponent } from '../../common/unsaved-changes-dialog/unsaved-changes-dialog.component';
 import { SaveChangesButtonComponent } from '../../common/save-changes-button/save-changes-button.component';
 import { Knife } from '../../../../types';
+import { TranslationService } from '../../../i18n/translation.service';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { DEFAULT_PREVIEW_BABIES, drawKnife } from '../knife-editor/knife-render';
 
 @Component({
   selector: 'app-knife-details',
   standalone: true,
   imports: [
-    FormsModule, DecimalPipe, RouterModule, FaIconComponent, PageLoadingComponent,
+    FormsModule, TranslatePipe, RouterModule, FaIconComponent, PageLoadingComponent,
     ConfirmationDialogComponent, UnsavedChangesDialogComponent, SaveChangesButtonComponent
   ],
   templateUrl: './knife-details.component.html',
@@ -56,7 +57,8 @@ export class KnifeDetailsComponent implements OnInit, AfterViewInit, OnDestroy, 
     private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService,
     private activatedRoute: ActivatedRoute,
     private router: Router,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private translation: TranslationService
   ) {
     this.setColors(this.globalService.currentTheme());
     this.themeSubscription = this.globalService.themeChanged.subscribe({
@@ -78,20 +80,20 @@ export class KnifeDetailsComponent implements OnInit, AfterViewInit, OnDestroy, 
   async ngOnInit() {
     const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
     if (!id) {
-      this.gotoKnivesList('No knife was selected', true);
+      this.gotoKnivesList(this.translation.t('knives:details.no_knife_selected'), true);
       return;
     }
     try {
       const knife = await firstValueFrom(this.knivesService.getKnife(id));
       if (!knife?.id) {
-        this.gotoKnivesList('Could not find knife with ID ' + id, true);
+        this.gotoKnivesList(this.translation.t('knives:details.not_found', { id }), true);
         return;
       }
       this.knife = knife;
       this.name = knife.name;
     }
     catch (e: any) {
-      this.gotoKnivesList(e?.error?.message ?? 'Could not load the knife', true);
+      this.gotoKnivesList(e?.error?.message ?? this.translation.t('knives:details.load_failed'), true);
       return;
     }
     finally {
@@ -130,7 +132,7 @@ export class KnifeDetailsComponent implements OnInit, AfterViewInit, OnDestroy, 
     }
     this.knife_form.form.markAllAsTouched();
     if (!this.knife_form.form.valid || !this.name.trim()) {
-      this.toastService.showError("Please fill all the mandatory fields before saving!");
+      this.toastService.showError(this.translation.t('knives:details.fill_mandatory'));
       return;
     }
     this.saving = true;
@@ -149,7 +151,7 @@ export class KnifeDetailsComponent implements OnInit, AfterViewInit, OnDestroy, 
       },
       error: (error) => {
         this.saving = false;
-        this.toastService.showError(error.error?.['message'] ?? 'Could not save the knife');
+        this.toastService.showError(error.error?.['message'] ?? this.translation.t('knives:details.save_failed'));
       }
     });
   }
@@ -159,10 +161,10 @@ export class KnifeDetailsComponent implements OnInit, AfterViewInit, OnDestroy, 
       return;
     }
     const confirmed = await this.delete_confirmation.open_with_message({
-      modalText: `Are you sure you want to delete this knife, ${this.knife.name}?`,
-      modalTitle: "Delete confirmation",
+      modalText: this.translation.t('knives:details.delete_text', { name: this.knife.name }),
+      modalTitle: this.translation.t('knives:details.delete_title'),
       btnYesIcon: this.faTrashAlt,
-      btnYesText: "Delete",
+      btnYesText: this.translation.t('common:actions.delete'),
       btnYesClass: "btn-danger"
     });
     if (confirmed) {
@@ -172,7 +174,7 @@ export class KnifeDetailsComponent implements OnInit, AfterViewInit, OnDestroy, 
           this.gotoKnivesList(data['message'], false);
         },
         error: (error) => {
-          this.toastService.showError(error.error?.['message'] ?? 'Could not delete the knife');
+          this.toastService.showError(error.error?.['message'] ?? this.translation.t('knives:details.delete_failed'));
         }
       });
     }

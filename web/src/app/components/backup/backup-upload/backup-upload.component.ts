@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { BackupService } from '../../../services/backup.service';
 import { faArrowsRotate, faCloudUpload, faFileImport, faFolderOpen, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { AnimationProp, FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -6,17 +6,21 @@ import { ToastService } from '../../../services/toast.service';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 import { FormsModule, NgModel } from '@angular/forms';
 import { NgIf } from '@angular/common';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-backup-upload',
   standalone: true,
-  imports: [ FaIconComponent, ConfirmationDialogComponent, FormsModule, NgIf ],
+  imports: [TranslatePipe,  FaIconComponent, ConfirmationDialogComponent, FormsModule, NgIf ],
   templateUrl: './backup-upload.component.html',
   styleUrl: './backup-upload.component.scss'
 })
 export class BackupUploadComponent implements AfterViewInit {
+  private translation = inject(TranslationService);
+
   file: File | null = null;
-  no_file_selected_message: string = "No file selected";
+  no_file_selected_message: string = this.translation.t('backup:no_file');
   filename: string = this.no_file_selected_message;
   faCloudUpload: IconDefinition = faCloudUpload;
   faFolderOpen: IconDefinition = faFolderOpen;
@@ -54,7 +58,7 @@ export class BackupUploadComponent implements AfterViewInit {
     if (files && files.length > 0) {
       this.file = files[0];
       if((!this.file.name.toUpperCase().endsWith(".ZIP")) && (!this.file.name.toUpperCase().endsWith(".SQL"))){
-        this.toast.showError("File type must be .zip or .sql");
+        this.toast.showError(this.translation.t('backup:bad_type'));
       }
       else {
         this.filename  = this.file.name;
@@ -71,7 +75,7 @@ export class BackupUploadComponent implements AfterViewInit {
       if (input.files && input.files.length > 0) {
         this.file = input.files[0];
         if((!this.file.name.toUpperCase().endsWith(".ZIP")) && (!this.file.name.toUpperCase().endsWith(".SQL"))){
-          this.toast.showError("File type must be .zip or .sql");
+          this.toast.showError(this.translation.t('backup:bad_type'));
         }
         else {
           var fakePath = input.value.split('\\');
@@ -91,10 +95,10 @@ export class BackupUploadComponent implements AfterViewInit {
     }
 
     const confirm_reply = await this.restore_confirm.open_with_message({
-      modalText: "Are you sure you want to upload and restore the system?<div class='text-danger'><strong>This will override your system!</strong></div>",
-      modalTitle: "Confirm restore",
+      modalText: this.translation.t('backup:confirm_text') + "<div class='text-danger'><strong>" + this.translation.t('backup:confirm_warning') + "</strong></div>",
+      modalTitle: this.translation.t('backup:confirm_title'),
       btnYesIcon: faCloudUpload,
-      btnYesText: "Yes",
+      btnYesText: this.translation.t('common:actions.yes'),
       btnYesClass: "btn-danger"
     });
 
@@ -107,8 +111,8 @@ export class BackupUploadComponent implements AfterViewInit {
       formData.append('data', JSON.stringify({ conf_del_all: this.overwriterestore }));
       this.backupService.uploadBackup(formData).subscribe({
         next: (response) => {
-          //this.message = response.message || 'File uploaded successfully!';
-          this.toast.showSuccess(response.message || 'File uploaded successfully!');
+          //this.message = response.message || this.translation.t('backup:uploaded');
+          this.toast.showSuccess(response.message || this.translation.t('backup:uploaded'));
           this.file = null;
           this.filename = this.no_file_selected_message;
           formData.delete("file");
@@ -117,7 +121,7 @@ export class BackupUploadComponent implements AfterViewInit {
           this.isProcessing = false;
         },
         error: (error) => {
-          this.toast.showError("Failed to process backup");
+          this.toast.showError(this.translation.t('backup:failed'));
           //console.dir(error);
           this.file = null;
           this.filename = this.no_file_selected_message;        

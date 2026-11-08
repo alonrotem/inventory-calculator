@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
 import { UnsavedChangesDialogComponent } from "../../common/unsaved-changes-dialog/unsaved-changes-dialog.component";
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
 import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
@@ -27,11 +27,13 @@ import { ConfirmationDialogComponent } from "../../common/confirmation-dialog/co
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { StateService } from '../../../services/state.service';
 import { SaveChangesButtonComponent } from '../../common/save-changes-button/save-changes-button.component';
+import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-settings-user-details',
   standalone: true,
-  imports: [
+  imports: [TranslatePipe, TranslateEnumPipe, 
       UnsavedChangesDialogComponent, FaIconComponent, PageLoadingComponent, DateStrPipe, 
       TitleCasePipe, FormsModule, NgFor, NgIf, ImageCropComponent, LoginsTableComponent, 
       CustomersTableComponent, UserTabsComponent, ModalDialogComponent, NgSelectModule, CustomerPickerComponent, 
@@ -40,6 +42,8 @@ import { SaveChangesButtonComponent } from '../../common/save-changes-button/sav
   styleUrl: './settings-user-details.component.scss'
 })
 export class SettingsUserDetailsComponent extends NavigatedMessageComponent implements OnInit, AfterViewInit , HasUnsavedChanges  {
+  private translation = inject(TranslationService);
+
 
   @ViewChild('profile_form') profile_form!: NgForm;
   @ViewChild('profile_photo') profile_photo!: ImageCropComponent;
@@ -173,11 +177,11 @@ export class SettingsUserDetailsComponent extends NavigatedMessageComponent impl
     this.usersService.sendChangedEmailConfirmationCode(this.current_email).subscribe({
       next: (something) => {
         //console.dir(something);
-        this.toastService.showSuccess("Verification email sent");
+        this.toastService.showSuccess(this.translation.t('users:details.verification_sent'));
       },
       error: (error) => {
         //console.dir(error);
-        this.toastService.showError("Error sending verification");
+        this.toastService.showError(this.translation.t('users:details.verification_failed'));
       }
     });
     this.mail_verification_notice.onCancel();
@@ -188,7 +192,7 @@ export class SettingsUserDetailsComponent extends NavigatedMessageComponent impl
     this.usersService.sendUserAccountVerificationCode(this.current_email).subscribe({
       next: (something) => {
         console.dir(something);
-        this.toastService.showSuccess("Account verification email sent");
+        this.toastService.showSuccess(this.translation.t('users:details.account_verification_sent'));
         this.sending_account_verification = false;
       },
       error: (error) => {
@@ -217,10 +221,10 @@ export class SettingsUserDetailsComponent extends NavigatedMessageComponent impl
   send_password_reset(){
     this.usersService.userForgotPassword(this.user.email).subscribe({
       next: () => {
-        this.toastService.showSuccess("Password reset link sent");
+        this.toastService.showSuccess(this.translation.t('users:details.reset_sent'));
       },
       error: (error: any) => {
-        this.toastService.showError("Failed to send: " + error.error.message);
+        this.toastService.showError(this.translation.t('users:details.reset_failed', { reason: error.error.message }));
       }
     }
     );
@@ -228,25 +232,25 @@ export class SettingsUserDetailsComponent extends NavigatedMessageComponent impl
 
   async confirm_deletion(){
     const confirmed = await this.confirm_delete_dialog.open_with_message({
-      modalText: this.isThisYou? 
-        'Are you sure you want to delete <span class="text-danger"><strong>YOUR OWN ACCOUNT</strong></span>?' :
-        'Are you sure you want to delete this user?',
-      btnYesText: this.isThisYou? 
-        'Delete me!' :
-        'Delete user',
+      modalText: this.isThisYou?
+        '<span class="text-danger"><strong>' + this.translation.t('users:details.delete_self') + '</strong></span>' :
+        this.translation.t('users:details.delete_user'),
+      btnYesText: this.isThisYou?
+        this.translation.t('users:details.delete_self_yes') :
+        this.translation.t('users:details.delete_user_yes'),
       btnYesClass: 'btn-danger',
       btnYesIcon: this.faTrash,
-      btnNoText: 'Cancel'
+      btnNoText: this.translation.t('common:actions.cancel')
     });
     if(confirmed) {
       this.usersService.delete(this.user.id).subscribe({
         next: (value: any) => {
           this.unsaved_changes = false;
           this.profile_form.form.markAsPristine();
-          this.navigateWithToastMessage("settings/users", "User deleted", false);
+          this.navigateWithToastMessage("settings/users", this.translation.t('users:details.deleted'), false);
         },
         error: (error: any) => {
-          this.toastService.showError("Failed to delete: " + error.error.message);
+          this.toastService.showError(this.translation.t('users:details.delete_failed', { reason: error.error.message }));
         }
       });
     }
@@ -262,10 +266,10 @@ export class SettingsUserDetailsComponent extends NavigatedMessageComponent impl
         next: (value: any) => {
           this.unsaved_changes = false;
           if(navigate_after_save){
-            this.navigateWithToastMessage("settings/users", "Saved successfully", false);
+            this.navigateWithToastMessage("settings/users", this.translation.t('users:details.saved'), false);
           }
           else {
-            this.reloadTheSamePageWithToastMessage("Saved successfully", false);
+            this.reloadTheSamePageWithToastMessage(this.translation.t('users:details.saved'), false);
           }
           
           //this.toastService.showSuccess("succcc");

@@ -3,18 +3,18 @@
         <form novalidate #quantityForm="ngForm" [id]="'quantityForm'">
             <div class="row">
                 <div class="col-12">
-                    {{ (isNew)? "Create a work allocation" : "Edit work allocation" }} 
-                    <span *ngIf="!is_demo_customer">(Max: {{ MaxQuantity | number: ((QuantityUnits=='kg')? '1.2-2':'1.') }} {{ QuantityUnits }})</span>
-                    <span *ngIf="is_demo_customer" class="text-success">Demo customer. No quota</span>
+                    {{ (isNew ? 'customers:allocation_dialog.create' : 'customers:allocation_dialog.edit') | t }} 
+                    <span *ngIf="!is_demo_customer">{{ (QuantityUnits == 'kg' ? 'customers:allocation_dialog.max_weight' : 'customers:allocation_dialog.max_count') | t: { max: MaxQuantity, units: (QuantityUnits | tenum: 'common:quantity_units.') } }}</span>
+                    <span *ngIf="is_demo_customer" class="text-success">{{ 'customers:bank.demo_no_quota' | t }}</span>
                 </div>
             </div>
             <div class="row">
                 <div class="col-12 d-flex flex-row align-items-center">
-                    <span>Allocation type:</span>
-                    <div class="flex-grow-1" style="margin-left: 15px;">
+                    <span>{{ 'customers:allocation_dialog.type_label' | t }}</span>
+                    <div class="flex-grow-1" style="margin-inline-start: 15px;">
                 <ng-select
                   #allocation_type_selector
-                  placeholder="Allocation type"
+                  [placeholder]="'customers:allocation_dialog.type_placeholder' | t"
                   [items]="allocation_types"
                   bindLabel="caption"
                   bindValue="name"
@@ -24,10 +24,10 @@
                   [disabled]="LockAllocationType" 
                   >
                     <ng-template ng-label-tmp let-item="item">
-                        <span [className]="'icon-' + item.name"></span> <span class="text-capitalize" style="margin-left: 10px;">{{ allocation_type_cations[item.name] }}</span>
+                        <span [className]="'icon-' + item.name"></span> <span class="text-capitalize" style="margin-inline-start: 10px;">{{ allocation_type_cations[item.name] }}</span>
                     </ng-template>
                       <ng-template ng-option-tmp let-item="item" let-index="index">
-                        <span [className]="'icon-' + item.name"></span> <span class="text-capitalize" style="margin-left: 10px;">{{ allocation_type_cations[item.name] }}</span>
+                        <span [className]="'icon-' + item.name"></span> <span class="text-capitalize" style="margin-inline-start: 10px;">{{ allocation_type_cations[item.name] }}</span>
                       </ng-template>          
                 </ng-select>
             
@@ -38,7 +38,7 @@
                 <div class="col-12">
                     <div>
                     <span style="display: flex; flex-wrap: nowrap; justify-content: flex-start; align-items: center;">
-                        <div class="form-floating" style="width: 100%; margin-right: 20px;">
+                        <div class="form-floating" style="width: 100%; margin-inline-end: 20px;">
                         <input 
                             type="text" 
                             appNumericInput
@@ -53,13 +53,13 @@
                             [attr.max]="MaxQuantity" 
                             [ngClass]="{'form-control': true, 'invalid': (!is_demo_customer) && (quantityForm.touched && (CurrentQuantity <=0 || CurrentQuantity > MaxQuantity))}"
                             (input)="quantityChanged()">
-                            <label for="allocationQuantity">Allocation quantity</label>
+                            <label for="allocationQuantity">{{ 'customers:allocation_dialog.quantity' | t }}</label>
                         </div>
-                        <span>{{ QuantityUnits }}</span>                    
+                        <span>{{ QuantityUnits | tenum: 'common:quantity_units.' }}</span>                    
                     </span>
                     </div>
-                <div class="text-danger" *ngIf="attemptedClose && CurrentQuantity <= 0">Please enter a valid quantity for this bank</div>
-                <div class="text-danger" *ngIf="!is_demo_customer && CurrentQuantity > MaxQuantity">Not enough material in the bank (max for this allocation: {{ MaxQuantity | number: '1.0-0' }})</div>
+                <div class="text-danger" *ngIf="attemptedClose && CurrentQuantity <= 0">{{ 'customers:allocation_dialog.invalid_quantity' | t }}</div>
+                <div class="text-danger" *ngIf="!is_demo_customer && CurrentQuantity > MaxQuantity">{{ 'customers:allocation_dialog.not_enough' | t: { max: MaxQuantity } }}</div>
                 </div>
             </div>
             <div class="row">

@@ -2,11 +2,12 @@ import { Component, ViewChild } from '@angular/core';
 import { AccountRequestInfo } from '../../../../types';
 import { FormsModule, NgForm } from '@angular/forms';
 import { NgIf } from '@angular/common';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-request-account',
   standalone: true,
-  imports: [ FormsModule, NgIf ],
+  imports: [TranslatePipe,  FormsModule, NgIf ],
   templateUrl: './request-account.component.html',
   styleUrl: './request-account.component.scss'
 })

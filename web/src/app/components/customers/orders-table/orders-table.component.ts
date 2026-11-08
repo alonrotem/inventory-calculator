@@ -19,15 +19,19 @@ import { StateService } from '../../../services/state.service';
 import { SettingsService } from '../../../services/settings.service';
 import { WingsPerHatShorthandPipe } from "../../../utils/pipes/wings-per-hat-shorthand-pipe";
 import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
+import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-orders-table',
   standalone: true,
-  imports: [NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe, ToastComponent, DecimalPipe, SingleHatCalculatorComponent, WingsPerHatShorthandPipe, PageLoadingComponent],
+  imports: [TranslatePipe, TranslateEnumPipe, NgFor, PaginatorComponent, PaginatorComponent, ModalDialogComponent, RouterModule, FaIconComponent, FontAwesomeModule, NgIf, NgSelectModule, FormsModule, DateStrPipe, ToastComponent, DecimalPipe, SingleHatCalculatorComponent, WingsPerHatShorthandPipe, PageLoadingComponent],
   templateUrl: './orders-table.component.html',
   styleUrl: './orders-table.component.scss'
 })
 export class OrdersTableComponent extends NavigatedMessageComponent implements OnInit {
+  private translation = inject(TranslationService);
+
   current_page = 1;
   rowsPerPage:number = 5;
   orders: OrderListItem[] = [];
@@ -44,7 +48,7 @@ export class OrdersTableComponent extends NavigatedMessageComponent implements O
   customer_id:number = 0;
   customer_name: string = '';
   back_button_link: string = '/inventory/customer/hat-calculator';
-  back_button_text: string = 'Back to calculator';
+  back_button_text: string = this.translation.t('customers:orders.back_to_calculator');
   updating_urgent_status: boolean[] = [];
   updating_white_hair_status: boolean[] = [];
   updating_white_hair_notes_status: boolean[] = [];
@@ -130,12 +134,12 @@ export class OrdersTableComponent extends NavigatedMessageComponent implements O
     this.ordersService.updateOrderProperty(this.orders[i].order_id, property_name, (!curValue).toString()).subscribe({
       next: (newValue: any) => {
         //console.log(this.orders[i].order_id + " "+ property_name +" -> " + newValue["value"]);
-        this.toastService.showSuccess(property_name + " status updated: " + this.orders[i].hat_id_with_customer);
+        this.toastService.showSuccess(this.translation.t('customers:orders.toasts.updated', { field: this.translation.enumLabel('customers:orders.fields.', property_name), hat: this.orders[i].hat_id_with_customer }));
         (this.orders[i][prop_ref] as boolean) = !this.orders[i][prop_ref];
         busy_status_array[i] = false;
       },
       error: (error) => {
-        this.toastService.showError("Failed to update " + property_name + " status " + this.orders[i].hat_id_with_customer);
+        this.toastService.showError(this.translation.t('customers:orders.toasts.update_failed', { field: this.translation.enumLabel('customers:orders.fields.', property_name), hat: this.orders[i].hat_id_with_customer }));
         console.log(error);
         busy_status_array[i] = false;
       }
@@ -159,14 +163,14 @@ export class OrdersTableComponent extends NavigatedMessageComponent implements O
     this.ordersService.updateOrderProperty(this.orders[i].order_id, property_name, trimmed_value).subscribe({
       next: (newValue: any) => {
         //console.log(this.orders[i].order_id + " "+ property_name +" -> " + newValue["value"]);
-        this.toastService.showSuccess(property_name + " status updated: " + this.orders[i].hat_id_with_customer);
+        this.toastService.showSuccess(this.translation.t('customers:orders.toasts.updated', { field: this.translation.enumLabel('customers:orders.fields.', property_name), hat: this.orders[i].hat_id_with_customer }));
         (this.orders[i][prop_ref] as string) = trimmed_value;
         busy_status_array[i] = false;
         this.pending_update_notes_index = -1;
         this.pending_update_notes_property = "";
       },
       error: (error) => {
-        this.toastService.showError("Failed to update " + property_name + " status " + this.orders[i].hat_id_with_customer);
+        this.toastService.showError(this.translation.t('customers:orders.toasts.update_failed', { field: this.translation.enumLabel('customers:orders.fields.', property_name), hat: this.orders[i].hat_id_with_customer }));
         console.log(error);
         busy_status_array[i] = false;
         this.pending_update_notes_index = -1;
@@ -176,7 +180,7 @@ export class OrdersTableComponent extends NavigatedMessageComponent implements O
   }
 
   edit_white_hair_notes(index: number){
-    this.notes_editor_caption = "Edit white hair notes";
+    this.notes_editor_caption = this.translation.t('customers:orders.edit_white_hair_notes');
     this.pending_update_notes_index = index;
     this.pending_update_notes_property = "white_hair_notes";
     this.notes_editor_placeholder = this.orders[index].white_hair_notes;
@@ -185,7 +189,7 @@ export class OrdersTableComponent extends NavigatedMessageComponent implements O
   }
 
   edit_order_notes(index: number){
-    this.notes_editor_caption = "Edit order notes";
+    this.notes_editor_caption = this.translation.t('customers:orders.edit_order_notes');
     this.pending_update_notes_index = index;
     this.pending_update_notes_property = "order_notes";
     this.notes_editor_placeholder = this.orders[index].order_notes;

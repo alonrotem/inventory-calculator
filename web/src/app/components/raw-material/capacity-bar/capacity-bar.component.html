@@ -12,15 +12,15 @@
     </div>
     <div class="legend-row">
         <div class="fixed-capacity-legend">
-            <strong>Allocated</strong><br/>
+            <strong>{{ 'common:capacity.allocated' | t }}</strong><br/>
             {{ materialInUse  | number: '1.0-0' }}
         </div>
         <div class="dynamic-capacity-legend">
-            <strong>Unallocated</strong><br/>
+            <strong>{{ 'common:capacity.unallocated' | t }}</strong><br/>
             {{ ((notInUseCapacity >= 0) ? (notInUseCapacity) : 0) | number: '1.0-0' }}
         </div>
         <div class="capacity-legend" *ngIf="!no_limit">
-            <strong>Available</strong><br/>
+            <strong>{{ 'common:capacity.available' | t }}</strong><br/>
             {{ (totalCapacity -  (materialInUse + ((notInUseCapacity >= 0) ? (notInUseCapacity) : 0)))  | number: '1.0-0' }}
         </div>
     </div>

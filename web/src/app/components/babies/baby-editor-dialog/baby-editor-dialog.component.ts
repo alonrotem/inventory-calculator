@@ -11,11 +11,12 @@ import { ModalContentDirective } from '../../common/directives/modal-content.dir
 import { NumericInputDirective } from '../../../utils/directives/auto-numeric.directive';
 import { SettingsService } from '../../../services/settings.service';
 import { faSave, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-baby-editor-dialog',
   standalone: true,
-  imports: [ 
+  imports: [TranslatePipe,  
     FormsModule, NgIf, NgSelectModule, ReactiveFormsModule, NumericInputDirective,
     BabiesLengthPickerComponent, ModalDialogComponent, ModalContentDirective, DecimalPipe ],
   templateUrl: './baby-editor-dialog.component.html',

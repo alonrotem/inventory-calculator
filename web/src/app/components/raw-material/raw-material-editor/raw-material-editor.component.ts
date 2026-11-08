@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, forwardRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, forwardRef, OnInit, ViewChild, inject } from '@angular/core';
 import { DecimalPipe, Location, NgClass, NgFor, NgIf } from '@angular/common';
 import { Country, Currency, RawMaterial, RawMaterialCustomerBank, RawMaterialBasicDetails, TransactionType, RawMaterialPurchase, Customers, Customer_Bank } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
@@ -32,12 +32,13 @@ import { CustomersService } from '../../../services/customers.service';
 import { CapacityBarComponent } from '../capacity-bar/capacity-bar.component';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
 import { TooltipDirective } from '../../common/tooltip/tooltip.directive';
-
+import { TranslatePipe, TranslateQuantityPipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-raw-material-editor',
   standalone: true,
-  imports: [
+  imports: [TranslatePipe, TranslateEnumPipe, TranslateQuantityPipe, 
     RouterModule, FormsModule,
     DatePipe, NgSelectModule, DateStrPipe, DecimalPipe,
     FaIconComponent, NgIf, ConfirmationDialogComponent, AutocompleteLibModule,
@@ -57,6 +58,8 @@ import { TooltipDirective } from '../../common/tooltip/tooltip.directive';
   styleUrl: './raw-material-editor.component.scss'
 })
 export class RawMaterialEditorComponent extends NavigatedMessageComponent implements OnInit, AfterViewInit, HasUnsavedChanges {
+  private translation = inject(TranslationService);
+
 
   public rawMaterialItem : RawMaterial = {
     id: 0,
@@ -78,7 +81,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   countries: Country[] = [];
   currencies: Currency[] = [];
   quantity_units: string[] = [];
-  title: string = "Create Raw Material";
+  title: string = this.translation.t('raw_materials:editor.title_create');
   newMaterialMode: boolean = true;
   faSave: IconDefinition = faSave;
   faTrashAlt:IconDefinition = faTrashAlt;
@@ -209,7 +212,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     this.is_new_material = !this.activatedRoute.snapshot.queryParamMap.has('id');
     if(!this.is_new_material)
     {
-      this.title = "Edit Raw Material";
+      this.title = this.translation.t('raw_materials:editor.title_edit');
       this.newMaterialMode = false;
       const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
       this.getRawMaterial(id);
@@ -439,7 +442,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
         firstInvalidControl.classList.add("ng-invalid");
       }
 
-      this.toastService.showError("Please fill all the mandatory fields before saving!");
+      this.toastService.showError(this.translation.t('customers:editor.errors.fill_mandatory'));
 
     }
   }
@@ -457,10 +460,10 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
 
   async confirm_delete() {
     const confirmed = await this.delete_confirmation.open_with_message({
-      modalText: `Are you sure you want to delete this raw material, ${this.rawMaterialItem.name}?`,
-      modalTitle: "Delete confirmation",
+      modalText: this.translation.t('raw_materials:editor.dialogs.delete_text', { name: this.rawMaterialItem.name }),
+      modalTitle: this.translation.t('raw_materials:editor.dialogs.delete_title'),
       btnYesIcon: this.faTrashAlt,
-      btnYesText: "Delete",
+      btnYesText: this.translation.t('common:actions.delete'),
       btnYesClass: "btn-danger"
     });
     if(confirmed) {
@@ -546,7 +549,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   // The top-up button of the purchase editor: the purchase can be topped up by any quantity
   async openQuantityDialog() {
     const top_up = await this.ask_top_up_quantity({
-      title: "+ Top up purchase",
+      title: this.translation.t('raw_materials:editor.dialogs.top_up_purchase'),
       quantity_units: this.editedPurchase.quantity_units,
       current_quantity: this.editedPurchase.purchase_quantity,
       remaining_quantity: this.editedPurchase.remaining_quantity
@@ -581,9 +584,9 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
 
     if(purchase.remaining_quantity <= 0) {
       await this.confirm_action.open_with_message({
-        modalTitle: "Not enough material!",
-        modalText: "Not enough remaining material in the purchase to top up.<br/>Please increase the purchase quantity.",
-        btnYesText: "I see...",
+        modalTitle: this.translation.t('raw_materials:editor.dialogs.no_material_title'),
+        modalText: this.translation.t('raw_materials:editor.dialogs.no_material_text') + '<br/>' + this.translation.t('raw_materials:editor.dialogs.no_material_note'),
+        btnYesText: this.translation.t('customers:bank.dialogs.no_material_ok'),
         btnYesClass: "btn btn-warning m-auto",
         btnNoClass: "d-none",
         dialogIcon: faTriangleExclamation,
@@ -592,7 +595,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     }
 
     const top_up = await this.ask_top_up_quantity({
-      title: "+ Top up customer bank",
+      title: this.translation.t('raw_materials:editor.dialogs.top_up_bank'),
       quantity_units: bank.quantity_units,
       current_quantity: bank.quantity,
       remaining_quantity: bank.remaining_quantity,
@@ -631,11 +634,11 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   // focus_customer: also scroll to the customer autocomplete, focus it, and drop its list down
   // bank_id: once the editor is open, also start editing that bank
   open_purchase_editor(purchase_id = 0, focus_customer = false, bank_id = 0) {
-    this.purchase_editor.modalTitle = (purchase_id)? 'Edit purchase':'Add purchase';
+    this.purchase_editor.modalTitle = (purchase_id)? this.translation.t('raw_materials:editor.dialogs.edit_purchase') : this.translation.t('raw_materials:editor.add_purchase');
     this.purchase_editor.btnSaveClass= "btn-success";
     this.purchase_editor.btnSaveIcon = faCartShopping;
-    this.purchase_editor.btnSaveText = (purchase_id)? 'Save changes':'Add purchase';
-    this.purchase_editor.btnCancelText = "Cancel";
+    this.purchase_editor.btnSaveText = (purchase_id)? this.translation.t('common:dialogs.save_changes') : this.translation.t('raw_materials:editor.add_purchase');
+    this.purchase_editor.btnCancelText = this.translation.t('common:actions.cancel');
     if(purchase_id!=0){
       this.editedPurchase = this.rawMaterialItem.purchases.find(p => p.id == purchase_id) ?? this.editedPurchase;
     }
@@ -846,11 +849,10 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     }
     const banks_count = this.rawMaterialItem.customer_banks.filter(b => b.raw_material_purchase_id == purchase_id).length;
     const confirmed = await this.confirm_action.open_with_message({
-      modalTitle: "Delete confirmation",
-      modalText: `Are you sure you want to delete this purchase` +
-        (banks_count > 0 ? ` and its ${banks_count} customer ${banks_count == 1 ? 'bank' : 'banks'}?` : `?`),
+      modalTitle: this.translation.t('raw_materials:editor.dialogs.delete_title'),
+      modalText: banks_count > 0 ? this.translation.t('raw_materials:editor.dialogs.delete_purchase', { count: banks_count }) : this.translation.t('raw_materials:editor.dialogs.delete_purchase_plain'),
       btnYesIcon: this.faTrashAlt,
-      btnYesText: "Delete",
+      btnYesText: this.translation.t('common:actions.delete'),
       btnYesClass: "btn-danger"
     });
     if(confirmed) {
@@ -902,9 +904,9 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     this.checkIfBankIsSaveable();
     if(this.is_bank_saveable){
       if(await this.confirm_action.open_with_message({
-        modalText: "Are you sure you want to cancel the changes you made to this bank?",
-        modalTitle: "Cancel changes",
-        btnYesText: "Cancel changes",
+        modalText: this.translation.t('raw_materials:editor.dialogs.cancel_changes_text'),
+        modalTitle: this.translation.t('raw_materials:editor.dialogs.cancel_changes_title'),
+        btnYesText: this.translation.t('raw_materials:editor.dialogs.cancel_changes_title'),
         btnYesClass: "btn-danger"
       })) {
         this.clear_bank();

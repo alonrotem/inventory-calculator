@@ -1,5 +1,7 @@
 import { AfterViewInit, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { ThemeSelectorComponent } from '../theme-selector/theme-selector.component';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
+import { LanguageSelectorComponent } from '../language-selector/language-selector.component';
 import { AsyncPipe, Location, NgClass, NgIf } from '@angular/common';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { RouterLink, RouterOutlet } from '@angular/router';
@@ -14,7 +16,7 @@ import { HasPermissionPipe } from "../../../utils/pipes/has-permission.pipe";
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [ThemeSelectorComponent, NgClass, RouterLink, RouterOutlet, HamburgerComponent, FaIconComponent, UserMenuComponent, AsyncPipe, NgIf, HasPermissionPipe],
+  imports: [ThemeSelectorComponent, LanguageSelectorComponent, TranslatePipe, NgClass, RouterLink, RouterOutlet, HamburgerComponent, FaIconComponent, UserMenuComponent, AsyncPipe, NgIf, HasPermissionPipe],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss'
 })

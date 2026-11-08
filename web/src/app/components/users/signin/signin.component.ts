@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { UsersService } from '../../../services/users.service';
 import { FormsModule, NgForm } from '@angular/forms';
 import { NgClass, NgIf } from '@angular/common';
@@ -14,15 +14,19 @@ import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.com
 import { ModalContentDirective } from '../../common/directives/modal-content.directive';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { StateService } from '../../../services/state.service';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-signin',
   standalone: true,
-  imports: [FormsModule, NgIf, NgClass, FaIconComponent, PromptDialogComponent, RequestAccountComponent, ModalDialogComponent, ModalContentDirective],
+  imports: [TranslatePipe, FormsModule, NgIf, NgClass, FaIconComponent, PromptDialogComponent, RequestAccountComponent, ModalDialogComponent, ModalContentDirective],
   templateUrl: './signin.component.html',
   styleUrl: './signin.component.scss'
 })
 export class SignInComponent extends NavigatedMessageComponent implements OnInit {
+  private translation = inject(TranslationService);
+
 
   signInData: SignInData = {
     username_or_email: "",
@@ -82,7 +86,7 @@ export class SignInComponent extends NavigatedMessageComponent implements OnInit
     if(this.request_account_form.isValid()){
       this.usersService.sendRequestForNewAccount(this.request_account_form.request).subscribe({
         next: () => { 
-          this.toastService.showSuccess("Sent"); 
+          this.toastService.showSuccess(this.translation.t('users:auth.sent')); 
           this.request_sent.open();
         },
         error: (error: any) => { this.toastService.showError(error.error.message); }
@@ -121,7 +125,7 @@ export class SignInComponent extends NavigatedMessageComponent implements OnInit
       });
     }
     else {
-      this.toastService.showError("Invalid address given");
+      this.toastService.showError(this.translation.t('users:auth.invalid_address'));
     }
   }
 

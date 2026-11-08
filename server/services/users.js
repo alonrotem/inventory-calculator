@@ -1,3 +1,4 @@
+const i18n = require('./i18n');
 const db = require('./db');
 const helper = require('../helper');
 const fs = require('fs');
@@ -41,13 +42,13 @@ async function isUserTakenAnywhere(username, email_address, throw_exception_if_d
   const existing_user_rec = await findUser(username, email_address);
   if(!helper.isEmptyObj(existing_user_rec) && throw_exception_if_duplicate) {
     if(existing_user_rec['email'] && existing_user_rec['email'].toUpperCase() == email_address.toUpperCase()){
-      throw new Error(`A user with email address ${email_address} already exists.`);
+      throw i18n.fail('server:users.email_exists', { email: email_address });
     }
     if(existing_user_rec['username'] && existing_user_rec['username'].toUpperCase() == username.toUpperCase()){
-      throw new Error(`A user with username ${username} already exists.`);
+      throw i18n.fail('server:users.username_exists', { username });
     }
     if(existing_user_rec['reduced_gmail_address'] && existing_user_rec['reduced_gmail_address'].toUpperCase() == reduced_gmail_address.toUpperCase()){
-      throw new Error(`A user with an address equivalent to ${email_address} already exists.`);
+      throw i18n.fail('server:users.equivalent_exists', { email: email_address });
     }     
     return true;
   }
@@ -88,7 +89,7 @@ async function isUserTakenAnywhere(username, email_address, throw_exception_if_d
 
     if(!helper.isEmptyObj(existing_account_request)){
       if(throw_exception_if_duplicate) {
-        throw new Error(`An account request with an address equivalent to ${email_address} already exists.`);
+        throw i18n.fail('server:users.request_equivalent_exists', { email: email_address });
       }
       return true;
     }
@@ -106,7 +107,7 @@ async function isUserTakenAnywhere(username, email_address, throw_exception_if_d
 
     if(!helper.isEmptyObj(existing_account_invites)){
       if(throw_exception_if_duplicate) {
-        throw new Error(`An account invite with an address equivalent to ${email_address} already exists.`);
+        throw i18n.fail('server:users.invite_equivalent_exists', { email: email_address });
       }
       return true;
     }    
@@ -242,31 +243,31 @@ async function manual_add_user_temp(user_details, active_connection=null){
   }
   try {
     if(!user_details["password"]){
-      throw new Error("Password is required");
+      throw i18n.fail('server:users.password_required');
     }
     const hashed_pass = await hashPassword(user_details["password"]);
 
     if(!user_details["email_address"] || !user_details["username"]) {
-      throw new Error("Username and email are required");
+      throw i18n.fail('server:users.username_email_required');
     }
 
     let role_id=0;
     if(!user_details["role_name"] && !user_details["role_id"]) {
-      throw new Error("role_name or role_id is required");
+      throw i18n.fail('server:users.role_required');
     }
     
     if(!user_details["is_demo_customer"]) {
       if(user_details["role_id"]){
         const id_num = parseInt(user_details["role_id"]);
         if(isNaN(id_num)) {
-          throw new Error(`Role ID '${user_details["role_id"]}' is invalid`);
+          throw i18n.fail('server:users.role_id_invalid', { id: user_details["role_id"] });
         }
         role_id = id_num;
       }
       else if(user_details["role_name"]){
         const role_id_by_name = helper.emptyOrSingle(await db.query(`select id from roles where name=(?)`, [user_details["role_name"]]));
         if(helper.isEmptyObj(role_id_by_name)) {
-          throw new Error(`Role with name '${user_details["role_name"]}' not found`);
+          throw i18n.fail('server:users.role_not_found', { name: user_details["role_name"] });
         }
         else {
           role_id = parseInt(role_id_by_name["id"]);
@@ -278,13 +279,13 @@ async function manual_add_user_temp(user_details, active_connection=null){
     const existing_user_rec = await findUser(user_details["username"], user_details["email_address"])
     if(!helper.isEmptyObj(existing_user_rec)){
       if(existing_user_rec['email'] && existing_user_rec['email'].toUpperCase() == user_details["email_address"].toUpperCase()){
-        throw new Error(`A user with email address ${user_details["email_address"]} already exists.`);
+        throw i18n.fail('server:users.email_exists', { email: user_details["email_address"] });
       }
       if(existing_user_rec['username'] && existing_user_rec['username'].toUpperCase() == user_details["username"].toUpperCase()){
-        throw new Error(`A user with username ${user_details["username"]} already exists.`);
+        throw i18n.fail('server:users.username_exists', { username: user_details["username"] });
       }
       if(existing_user_rec['reduced_gmail_address'] && existing_user_rec['reduced_gmail_address'].toUpperCase() == reduced_gmail_address.toUpperCase()){
-        throw new Error(`A user with an address equivalent to ${user_details["email_address"]} already exists.`);
+        throw i18n.fail('server:users.equivalent_exists', { email: user_details["email_address"] });
       }      
     }
     const result = await db.transaction_query(
@@ -438,17 +439,17 @@ async function verifyUserSignupCode(user_verification_code, active_connection=nu
       const is_verified = existing_user_rec['is_verified'];
 
       if(existing_user_rec["is_disabled"] != 0){
-        throw new Error("This account is disabled");
+        throw i18n.fail('server:users.disabled');
       }
 
       if(is_verified){
-        throw new Error(`User already verified`);
+        throw i18n.fail('server:users.already_verified');
       }
       if(expiration_date){
         const now = new Date();
         const diff = helper.dates_diff(now, expiration_date);
         if(!diff.future){
-          throw new Error(`Code has expired`);
+          throw i18n.fail('server:users.code_expired');
         }
         //validate the user
         //update users set is_verified=1, pending_verfication_code=null, verification_code_expiration=null where pending_verfication_code='F2RHOR';
@@ -466,11 +467,11 @@ async function verifyUserSignupCode(user_verification_code, active_connection=nu
         );
       }
       else {
-        throw new Error(`Invalid code expiration data`);
+        throw i18n.fail('server:users.code_expiration_invalid');
       }
     }
     else {
-      throw new Error(`Invalid code`);
+      throw i18n.fail('server:users.invalid_code');
     }     
 
     if(self_executing) {
@@ -502,7 +503,7 @@ async function verifyNewUserEmailCode(email_verification_code, cancel_mail_chang
     const pending_user_rec = await db.query(`select * from users where pending_new_email_code=(?)`, [email_verification_code]);
     const pending_user = helper.emptyOrSingle(pending_user_rec);
     if(helper.isEmptyObj(pending_user)){
-      throw new Error("Invalid code");
+      throw i18n.fail('server:users.invalid_code');
     }
 
     let message = "";
@@ -512,7 +513,7 @@ async function verifyNewUserEmailCode(email_verification_code, cancel_mail_chang
         where pending_new_email_code=(?)`,
         [ email_verification_code],
         active_connection);
-      message = "Mail change cancelled successfully";
+      message = i18n.tr('server:users.mail_change_cancelled');
     }
     else {
       await db.transaction_query(
@@ -520,7 +521,7 @@ async function verifyNewUserEmailCode(email_verification_code, cancel_mail_chang
         where pending_new_email_code=(?)`,
         [ pending_user["pending_new_email"],  email_verification_code],
         active_connection);
-      message = "Email verified successfully";
+      message = i18n.tr('server:users.email_verified');
     }
 
     if(self_executing) {
@@ -551,20 +552,20 @@ async function reset_password(code, password, sign_out_from_all, active_connecti
   }
   try {  
     if(!code || !password){
-      throw new Error("A password and a valid security code are required!");
+      throw i18n.fail('server:users.password_and_code_required');
     }
 
     const user_rec = helper.emptyOrSingle(await db.query(`select * from users where pending_verfication_code=(?)`, [ /*helper.decBase64(*/code/*)*/ ]));
     if(helper.isEmptyObj(user_rec)){
-      throw new Error("Invalid code");
+      throw i18n.fail('server:users.invalid_code');
     }
 
     if(user_rec["is_disabled"] != 0){
-      throw new Error("This account is disabled");
+      throw i18n.fail('server:users.disabled');
     }
 
     if(user_rec['is_verified'] != 1){
-      throw new Error(`User account has not been verified`);
+      throw i18n.fail('server:users.not_verified');
     }
 
     //-------------------------------------
@@ -605,20 +606,20 @@ async function forgot_password(email_address, active_connection=null){
   }
   try {  
     if(!email_address){
-      throw new Error("An email address is required!");
+      throw i18n.fail('server:users.email_required');
     }
 
     const user_rec = helper.emptyOrSingle(await db.query(`select * from users where email=(?)`, [ email_address ]));
     if(helper.isEmptyObj(user_rec)){
-      throw new Error("Email address not found");
+      throw i18n.fail('server:users.email_not_found');
     }
 
     if(user_rec["is_disabled"] != 0){
-      throw new Error("This account is disabled");
+      throw i18n.fail('server:users.disabled');
     }
 
     if(user_rec['is_verified'] != 1){
-      throw new Error(`User account has not been verified`);
+      throw i18n.fail('server:users.not_verified');
     }
 
     //-------------------------------------
@@ -659,7 +660,7 @@ async function sendUserRegistrationVerificationCode(email_address, active_connec
   //==
     const existing_user_rec = await findUser(null, email_address);
     if(helper.isEmptyObj(existing_user_rec)){
-      throw new Error(`No user found by email address ${email_address}`);
+      throw i18n.fail('server:users.no_user_by_email', { email: email_address });
     }
     else {
       const user_id = existing_user_rec['id'];
@@ -669,11 +670,11 @@ async function sendUserRegistrationVerificationCode(email_address, active_connec
       const is_verified = existing_user_rec['is_verified'];
 
       if(existing_user_rec["is_disabled"] != 0){
-        throw new Error("This account is disabled");
+        throw i18n.fail('server:users.disabled');
       }
       
       if(is_verified){
-        throw new Error(`User already verified`);
+        throw i18n.fail('server:users.already_verified');
       }
       if(expiration_date){
         const now = new Date();
@@ -723,11 +724,11 @@ async function resendChangedEmailConfirmationCode(email_address){
   if(!helper.isEmptyObj(existing_user)){
 
     if(existing_user["is_disabled"] != 0){
-      throw new Error("This account is disabled");
+      throw i18n.fail('server:users.disabled');
     }
 
     if(existing_user['is_verified'] != 1){
-      throw new Error(`User account has not been verified`);
+      throw i18n.fail('server:users.not_verified');
     }  
 
     const firstname = existing_user["firstname"];
@@ -737,7 +738,7 @@ async function resendChangedEmailConfirmationCode(email_address){
     return "Verification code sent";
   }
   else {
-    throw new Error("No such address pending verification");
+    throw i18n.fail('server:users.no_pending_address');
   }
 }
 
@@ -764,12 +765,12 @@ async function getBaseUserInfo(userId){
     const user = helper.emptyOrSingle(rows);
 
     if(user["is_verified"] == 0){
-      throw new Error("Account not verified. Please check your email!");
+      throw i18n.fail('server:users.not_verified_check_mail');
     }
 
     //console.log("disabled " + user["is_disabled"]);
     if(user["is_disabled"] != 0){
-      throw new Error("This account is disabled");
+      throw i18n.fail('server:users.disabled');
     }
 
     const role_names = await db.query(
@@ -790,10 +791,10 @@ async function getUserPermissions(userId){
   
   const user = helper.emptyOrSingle(await db.query(`select * from users where id=(?)`, [userId]));
   if(helper.isEmptyObj(user)){
-    throw new Error("User not found");
+    throw i18n.fail('server:users.not_found');
   }
   if(user["is_disabled"] != 0){
-    throw new Error("This account is disabled");
+    throw i18n.fail('server:users.disabled');
   }
 
   return helper.emptyOrRows(await db.query(
@@ -815,12 +816,12 @@ async function getUserProfile(userId, active_connection=null){
   user["is_demo_customer"] = helper.var_to_bool(user["is_demo_customer"]);
 
   if(user["is_verified"] == 0){
-    throw new Error("Account not verified. Please check your email!");
+    throw i18n.fail('server:users.not_verified_check_mail');
   }
 
   //console.log("disabled " + user["is_disabled"]);
   if(user["is_disabled"] != 0){
-    throw new Error("This account is disabled");
+    throw i18n.fail('server:users.disabled');
   }
 
   const roles_query = `select r.name, r.id
@@ -872,7 +873,7 @@ async function finalize_accepted_invitation(invitation_info, invitation_code, ac
         inner join users u on ai.inviter_user_id = u.id
       where ai.account_creation_code=(?) and ai.id=(?) and ai.request_status='sent'`, [invitation_code, invitation_info["id"]]));
     if(helper.isEmptyObj(invitation_rec)){
-      throw new Error("Invalid invitation code");
+      throw i18n.fail('server:users.invalid_invitation_code');
     }
 
     //create the user
@@ -1009,17 +1010,17 @@ async function saveUserProfile(updateProfileInfo, photo_url, active_connection=n
 
     if(updateProfileInfo["profile_code"] && !user_found_on_invite) {
       if(updateProfileInfo["profile_code"] != existing_user["pending_verfication_code"]){
-        throw new Error("Invalid code");
+        throw i18n.fail('server:users.invalid_code');
       }
       if(!updateProfileInfo["username"]) {
-        throw new Error("Username is required");
+        throw i18n.fail('server:users.username_required');
       }
       update_fields.push('pending_verfication_code=(?)', 'username=(?)', 'is_verified=(?)');
       update_values.push(null, updateProfileInfo["username"], 1);
     }
     else {
       if(existing_user["is_verified"] == 0){
-        throw new Error("Account not verified. Please check your email!");
+        throw i18n.fail('server:users.not_verified_check_mail');
       }
     }
     
@@ -1029,7 +1030,7 @@ async function saveUserProfile(updateProfileInfo, photo_url, active_connection=n
     let reset_password_code = '';
     if(!helper.isEmptyObj(existing_user)) {
             if(existing_user["is_disabled"] != 0){
-        throw new Error("This account is disabled");
+        throw i18n.fail('server:users.disabled');
       }
 
       if(
@@ -1040,7 +1041,7 @@ async function saveUserProfile(updateProfileInfo, photo_url, active_connection=n
           //check that no other user alreadh has this email
           const existing_other_user_with_the_new_email = await findUser(null, updateProfileInfo["email"]);
           if(!helper.isEmptyObj(existing_other_user_with_the_new_email) && existing_other_user_with_the_new_email["id"] != updateProfileInfo["id"]) {
-            throw new Error(`A user with email ${updateProfileInfo["email"]} already exists`);
+            throw i18n.fail('server:users.email_taken', { email: updateProfileInfo["email"] });
           }
           new_email_code = helper.getRandomString(10);
           update_fields.push('pending_new_email=(?)', 'pending_new_email_code=(?)');
@@ -1066,7 +1067,7 @@ async function saveUserProfile(updateProfileInfo, photo_url, active_connection=n
         if(updateProfileInfo['password'] && updateProfileInfo['new_password']){
           const password_match = await bcrypt.compare(updateProfileInfo['password'], existing_user["password"]);
           if(!password_match){
-            throw new Error("Original password is wrong");
+            throw i18n.fail('server:users.wrong_password');
           }
           else {
             const hashed_pass = await hashPassword(updateProfileInfo['new_password']);
@@ -1113,7 +1114,7 @@ async function saveUserProfile(updateProfileInfo, photo_url, active_connection=n
       //return await getUserProfile(updateProfileInfo["id"]);
     }
     else {
-      throw new Error("User not found");
+      throw i18n.fail('server:users.not_found');
     }
 
     if(self_executing) {
@@ -1137,11 +1138,11 @@ async function saveUserProfile(updateProfileInfo, photo_url, active_connection=n
 async function fetch_user_info_for_account(user_rec, code){
   
   if(helper.isEmptyObj(user_rec)) {
-    throw new Error("User not found for the sent code");
+    throw i18n.fail('server:users.not_found_for_code');
   }
 
   if(user_rec["is_disabled"] != 0){
-    throw new Error("This account is disabled");
+    throw i18n.fail('server:users.disabled');
   }
 
   const roles_recs = helper.emptyOrRows(await db.query(
@@ -1192,7 +1193,7 @@ async function fetch_user_info_by_invitation_code(invitation_code){
     [ invitation_code ]));
 
   if(helper.isEmptyObj(invite_rec)) {
-    throw new Error("Invalid code, or invitation already activated");
+    throw i18n.fail('server:users.invitation_activated');
   }
   
   const roles_recs = helper.emptyOrRows(await db.query(
@@ -1314,7 +1315,7 @@ async function signin(
   }
   try {
     if(!username_or_email || !password) {
-      throw new Error("Missing credentials");
+      throw i18n.fail('server:users.missing_credentials');
     }
 
     //check the user
@@ -1323,22 +1324,22 @@ async function signin(
       await findUser(username_or_email, null);
 
     if(helper.isEmptyObj(user)){
-      throw new Error("User or email not found");
+      throw i18n.fail('server:users.user_or_email_not_found');
     }
 
     //check the password
     const password_match = await bcrypt.compare(password, user["password"]);
     if(!password_match){
-      throw new Error("Invalid credentials");
+      throw i18n.fail('server:users.invalid_credentials');
     }
 
     if(user["is_verified"] == 0){
-      throw new Error("Account not verified. Please check your email!");
+      throw i18n.fail('server:users.not_verified_check_mail');
     }
 
     //console.log("disabled " + user["is_disabled"]);
     if(user["is_disabled"] != 0){
-      throw new Error("This account is disabled");
+      throw i18n.fail('server:users.disabled');
     }
 
     // Check if there is a cookie with refresh token in the request
@@ -1583,7 +1584,7 @@ async function getAccountRequestDetails(id){
     return request;
   }
   else {
-    throw new Error(`Account request with ID ${id} not found`);
+    throw i18n.fail('server:users.request_not_found', { id });
   }
 }
 
@@ -1598,11 +1599,11 @@ async function approve_account_request(request, auth_token, active_connection=nu
     //check if the request is already approved (approved_account_user_id exists)
     const existing_request = helper.emptyOrSingle(await db.query(`select * from account_requests where id=(?)`, [request.id]));
     if(helper.isEmptyObj(existing_request)) {
-      throw new Error(`Request with id ${request.id} not found`);
+      throw i18n.fail('server:users.request_id_not_found', { id: request.id });
     }
 
     if(existing_request["request_status"] == "approved") {
-      throw new Error(`Request with id ${request.id} has already been approved`);
+      throw i18n.fail('server:users.request_approved', { id: request.id });
     }
 
     const tmp_id = await helper.getRandomString(10);
@@ -1740,10 +1741,10 @@ async function decline_account_request(request, active_connection=null){
     //check if the request is already approved or declined (approved_account_user_id exists or request_status is declined)
     const existing_request = helper.emptyOrSingle(await db.query(`select * from account_requests where id=(?)`, [request.request_id]));
     if(helper.isEmptyObj(existing_request)) {
-      throw new Error(`Request with id ${request.id} not found`);
+      throw i18n.fail('server:users.request_id_not_found', { id: request.id });
     }
     if(existing_request.approved_account_user_id || existing_request.request_status === 'declined') {
-      throw new Error(`Request with id ${request.id} has already been processed`);
+      throw i18n.fail('server:users.request_processed', { id: request.id });
     }
 
     //update the request status to declined
@@ -1964,7 +1965,7 @@ async function updateInvitation(inviteDetails, active_connection=null){
         from account_invites where id=(?)`, 
         [inviteDetails.id]));
     if(helper.isEmptyObj(original_invite)){
-      throw new Error(`Invitation with ID ${inviteDetails.id} not found`);
+      throw i18n.fail('server:users.invitation_not_found', { id: inviteDetails.id });
     }
 
     // 2. check if the email was updated, if yes, check that the new email is not taken by another user, account request, or invitation (exception will be thrown)
@@ -2105,7 +2106,7 @@ async function resendInvitation(id, auth_token, active_connection=null){
           account_invites ai 
         where ai.id=(?);`, [ id ]));
     if(helper.isEmptyObj(inviteDetails)){
-      throw new Error(`Invitation with ID ${id} not found`);
+      throw i18n.fail('server:users.invitation_not_found', { id });
     }
     await send_new_account_invitation_to_user(
       inviteDetails.firstname,
@@ -2124,7 +2125,7 @@ async function get_logins(users_refresh_token, user_ids, active_connection=null)
   try {
 
     if(!users_refresh_token && (!user_ids || user_ids.length <= 0 || user_ids.filter(id => id > 0).length == 0)){
-      throw new Error("No refresh token found and no user IDs provided");
+      throw i18n.fail('server:users.no_token_or_ids');
     }
 
     await cleanup_expired_tokens(0, active_connection);
@@ -2135,17 +2136,17 @@ async function get_logins(users_refresh_token, user_ids, active_connection=null)
         [ users_refresh_token ]));
 
       if(helper.isEmptyObj(curr_user)) {
-        throw new Error("User not found");
+        throw i18n.fail('server:users.not_found');
       }          
       user_ids = [curr_user["id"]];
 
       if(curr_user["is_verified"] == 0){
-        throw new Error("Account not verified. Please check your email!");
+        throw i18n.fail('server:users.not_verified_check_mail');
       }
 
       //console.log("disabled " + user["is_disabled"]);
       if(curr_user["is_disabled"] != 0){
-        throw new Error("This account is disabled");
+        throw i18n.fail('server:users.disabled');
       }
     }
 
@@ -2203,15 +2204,15 @@ async function clear_logins(login_ids, users_refresh_token, current_user_id, act
       [ current_user_id ]));
 
     if(helper.isEmptyObj(curr_user)) {
-      throw new Error("User not found");
+      throw i18n.fail('server:users.not_found');
     }
 
     if(curr_user["is_verified"] == 0){
-      throw new Error("Account not verified. Please check your email!");
+      throw i18n.fail('server:users.not_verified_check_mail');
     }
 
     if(curr_user["is_disabled"] != 0){
-      throw new Error("This account is disabled");
+      throw i18n.fail('server:users.disabled');
     }
     
     //cleanup
@@ -2236,14 +2237,14 @@ async function clear_logins(login_ids, users_refresh_token, current_user_id, act
         await db.transaction_query(`delete from logins where id in (${placeholder})  and refresh_token<>(?)`, params, active_connection);
     }
     else {
-      throw new Error("User has no permissions to logout other users");
+      throw i18n.fail('server:users.no_permission_logout');
     }
    }
    //No IDs specified
    else {
     //go by the refresh token to identify the current login
     if(!users_refresh_token){
-      throw new Error("No refresh token found");
+      throw i18n.fail('server:users.no_refresh_token');
     }
 
     await db.transaction_query(
@@ -2308,11 +2309,11 @@ async function refresh_tokens(old_refresh_token, ip_address, active_connection=n
     }
 
     if(existing_login["is_verified"] == 0){
-      throw new Error("This account is not verified");
+      throw i18n.fail('server:users.account_not_verified');
     }
 
     if(existing_login["is_disabled"] != 0){
-      throw new Error("This account is disabled");
+      throw i18n.fail('server:users.disabled');
     }
 
     const access_token = generateAuthToken(
@@ -2475,7 +2476,7 @@ async function getSingle(user_id){
     where uc.user_id=(?)`, [user_id]));
   
   if(helper.isEmptyObj(user)){
-    throw new Error(`User with ID ${user_id} not found`);
+    throw i18n.fail('server:users.id_not_found', { id: user_id });
   }
 
   user["roles"] = roles;
@@ -2542,7 +2543,7 @@ async function updateUser(userDetails, photo_url, auth_token, active_connection)
         !user_was_disabled_until_now &&
         (user_is_being_disabled || updated_user_is_not_admin)
         ) {
-          throw new Error("Cannot remove the last admin in the system");
+          throw i18n.fail('server:users.last_admin_remove');
         }
 
 
@@ -2554,7 +2555,7 @@ async function updateUser(userDetails, photo_url, auth_token, active_connection)
           //check that no other user alreadh has this email
           const existing_other_user_with_the_new_email = await findUser(null, userDetails["email"]);
           if(!helper.isEmptyObj(existing_other_user_with_the_new_email) && existing_other_user_with_the_new_email["id"] != userDetails["id"]) {
-            throw new Error(`A user with email ${userDetails["email"]} already exists`);
+            throw i18n.fail('server:users.email_taken', { email: userDetails["email"] });
           }
           new_email_code = helper.getRandomString(10);
           update_fields.push('pending_new_email=(?)', 'pending_new_email_code=(?)');
@@ -2715,7 +2716,7 @@ async function updateUser(userDetails, photo_url, auth_token, active_connection)
       }
     }
     else {
-      throw new Error("User not found");
+      throw i18n.fail('server:users.not_found');
     }
 
     if(self_executing) {
@@ -2747,7 +2748,7 @@ async function remove(user_id, active_connection){
     where r.name='administrator' and u.id=(?) limit 1`, [user_id]))).length > 0);
 
   if(trying_to_delete_admin && num_of_admins < 2) {
-    throw new Error("Cannot the delete the last admin in the system");
+    throw i18n.fail('server:users.last_admin_delete');
   }
 
   let self_executing = false;

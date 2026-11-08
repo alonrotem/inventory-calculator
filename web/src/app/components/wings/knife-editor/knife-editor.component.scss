@@ -1,7 +1,7 @@
 .upper-button {
     width: 60px;
     height: 60px;
-    margin-left: 20px;
+    margin-inline-start: 20px;
 }
 
 .knife_canvas_container {
@@ -28,7 +28,7 @@
 .knife_zoom {
     position: absolute;
     top: 8px;
-    right: 8px;
+    inset-inline-end: 8px;
 
     .btn {
         width: 32px;

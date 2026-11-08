@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit,QueryList,ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, OnInit,QueryList,ViewChild, ViewChildren } from '@angular/core';
 import { AsyncPipe, DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { Customer, Allocation_Baby, TransactionType, nameIdPair, RawMaterialBasicDetails } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
@@ -27,14 +27,16 @@ import { KnifePickerComponent } from "../../wings/knife-picker/knife-picker.comp
 import { SaveChangesButtonComponent } from "../../common/save-changes-button/save-changes-button.component";
 import { NumericInputDirective } from "../../../utils/directives/auto-numeric.directive";
 import { WingsTableComponent } from "../../wings/wings-table/wings-table.component";
+import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-customer-editor',
   standalone: true,
-  imports: [RouterModule, FormsModule, NgSelectModule, DateStrPipe,
+  imports: [TranslateEnumPipe, RouterModule, FormsModule, NgSelectModule, DateStrPipe,
     FaIconComponent, NgIf, NgFor, ConfirmationDialogComponent, AutocompleteLibModule,
     CustomerBanksTableComponent, HatsCalculatorDialogComponent,
-    UnsavedChangesDialogComponent, HasPermissionPipe, AsyncPipe, KnifePickerComponent, SaveChangesButtonComponent, NumericInputDirective, WingsTableComponent, DecimalPipe],
+    UnsavedChangesDialogComponent, HasPermissionPipe, AsyncPipe, KnifePickerComponent, SaveChangesButtonComponent, NumericInputDirective, WingsTableComponent, DecimalPipe, TranslatePipe],
   templateUrl: './customer-editor.component.html',
   styleUrl: './customer-editor.component.scss'
 })
@@ -64,7 +66,9 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     is_disabled: false
   }
 
-  title: string = "Create Customer";
+  private translation = inject(TranslationService);
+
+  title: string = this.translation.t('customers:editor.title_create');
   newCustomerMode: boolean = true;
   faSave: IconDefinition = faSave;
   faTrashAlt:IconDefinition = faTrashAlt;
@@ -184,7 +188,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     //console.dir(this.activatedRoute.snapshot.queryParamMap);
     if(!this.is_new_customer)
     {
-      this.title = "Edit Customer";
+      this.title = this.translation.t('customers:editor.title_edit');
       this.newCustomerMode = false;
       const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
       this.getCustomer(id);
@@ -192,7 +196,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     else {
       this.usersService.user$.subscribe({ next: (loggedInUser)=> { 
         if(loggedInUser && loggedInUser.is_demo_customer){
-          this.title = "Demo customer playground";
+          this.title = this.translation.t('customers:editor.title_demo');
           this.getDemoCustomerByUserId(loggedInUser.id);
         }
       }
@@ -238,11 +242,11 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     {
       next: (customer: Customer) => {
         if(customer.is_demo_customer){
-          this.title = "Demo customer playground";
+          this.title = this.translation.t('customers:editor.title_demo');
         }
         //failed to fetch material with ID, returned an empty object
         if(Object.keys(customer).length == 0) {
-          this.gotoCustomersList("Could not find customer with ID " + id, true);
+          this.gotoCustomersList(this.translation.t('customers:editor.errors.not_found', { id }), true);
           return;
         }
 
@@ -307,7 +311,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
         (firstInvalidControl as HTMLElement).focus();
         firstInvalidControl.classList.add("ng-invalid");
       }
-      this.toastService.showError("Please fill all the mandatory fields before saving!");
+      this.toastService.showError(this.translation.t('customers:editor.errors.fill_mandatory'));
     }
   }
 
@@ -366,7 +370,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
       error:(error) => { 
         //console.log("ERRRR:"); console.dir(error.error.message);
         this.btn_save.nativeElement.classList.remove("disabled"); 
-        this.toastService.showError("Server error saving customer");
+        this.toastService.showError(this.translation.t('customers:editor.errors.save_failed'));
         //this.gotoCustomersList(error, true); 
       }
     });
@@ -385,10 +389,10 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
 
   async confirm_delete() {
     const confirmed = await this.delete_confirmation.open_with_message({
-      modalText: `Are you sure you want to delete this customer, ${this.customerItem.name}?`,
-      modalTitle: "Delete confirmation",
+      modalText: this.translation.t('customers:editor.dialogs.delete_text', { name: this.customerItem.name }),
+      modalTitle: this.translation.t('customers:editor.dialogs.delete_title'),
       btnYesIcon: this.faTrashAlt,
-      btnYesText: "Delete",
+      btnYesText: this.translation.t('customers:editor.dialogs.delete_yes'),
       btnYesClass: "btn-danger"
     });
     if(confirmed) {
@@ -466,11 +470,11 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
       return;
     }
     const confirmed = await this.delete_confirmation.open_with_message({
-      modalText: `Are you sure you want to disable this customer, ${this.customerItem.name}?<br/>Users will not be able to access it`,
-      modalTitle: "Disable confirmation",
+      modalText: this.translation.t('customers:editor.dialogs.disable_text', { name: this.customerItem.name }) + '<br/>' + this.translation.t('customers:editor.dialogs.disable_note'),
+      modalTitle: this.translation.t('customers:editor.dialogs.disable_title'),
       btnYesIcon: this.faTimesCircle,
-      btnYesText: "Disable",
-      btnNoText: "Don't disable",
+      btnYesText: this.translation.t('customers:editor.dialogs.disable_yes'),
+      btnNoText: this.translation.t('customers:editor.dialogs.disable_no'),
       btnYesClass: "btn-danger",
       dialogIcon: this.faTriangleExclamation
     });

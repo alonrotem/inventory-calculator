@@ -1,3 +1,4 @@
+const i18n = require('./i18n');
 const db = require('./db');
 const helper = require('../helper');
 const config = require('../config');
@@ -280,11 +281,11 @@ async function sync_raw_material_purchases(rawMaterial, raw_material_id, current
 
   const deleted_purchases = purchases_deletion.affectedRows;
   const deleted_banks = banks_deletion.affectedRows + orphan_banks_deletion.affectedRows;
-  let message = `, ${purchases_saved} purchase(s) and ${banks_saved} bank(s) saved`;
-  if(deleted_purchases > 0) message += `, ${deleted_purchases} purchase(s) removed`;
-  if(deleted_banks > 0) message += `, ${deleted_banks} bank(s) removed`;
-  if(customers_created > 0) message += `, ${customers_created} customer(s) created`;
-  return { message };
+  const parts = [i18n.tr('server:raw.purchases_saved', { count: purchases_saved }), i18n.tr('server:raw.banks_saved', { count: banks_saved })];
+  if(deleted_purchases > 0) parts.push(i18n.tr('server:raw.purchases_removed', { count: deleted_purchases }));
+  if(deleted_banks > 0) parts.push(i18n.tr('server:raw.banks_removed', { count: deleted_banks }));
+  if(customers_created > 0) parts.push(i18n.tr('server:raw.customers_created', { count: customers_created }));
+  return { message: ', ' + i18n.tr('server:raw.details', { parts }) };
 }
 
 //create or update
@@ -304,7 +305,7 @@ async function save_material(rawMaterial, currentUserId, active_connection=null)
        rec['name'] && rec['name'].toUpperCase() == rawMaterial.name.toUpperCase() && 
        rec['color'] && rec['color'].toUpperCase() == rawMaterial.color.toUpperCase() && 
        (rawMaterial.id <= 0 || rawMaterial.id != rec['id'])){
-      throw new Error(`A material with the name ${rawMaterial.name} and color ${rawMaterial.color} already exists`);
+      throw i18n.fail('server:raw.exists', { name: rawMaterial.name, color: rawMaterial.color });
     }
 
     const isNew = rawMaterial.id <= 0;
@@ -360,9 +361,9 @@ async function save_material(rawMaterial, currentUserId, active_connection=null)
 
     let message = '';
     //console.log("New material ID: " + result.insertId + " ("+ rawMaterial.name +")");
-    let action_taken = (isNew)? "created" : "updated";
+    
     if (result.affectedRows) {
-      message = 'Raw material \'' + rawMaterial.name + '\' ' + action_taken + ' successfully';
+      message = i18n.tr(isNew ? 'server:raw.created' : 'server:raw.updated', { name: rawMaterial.name });
     }
 
     // purchases and their customer banks (replaces customers.sync_banks_for_raw_material, which still
@@ -407,7 +408,7 @@ async function remove(id, active_connection=null){
     let message = '';
   
     if (result2.affectedRows) {
-      message = 'Raw material deleted successfully';
+      message = i18n.tr('server:raw.deleted');
     }
     if(self_executing) {
       await db.transaction_commit(active_connection);

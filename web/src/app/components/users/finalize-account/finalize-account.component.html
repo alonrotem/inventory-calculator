@@ -1,22 +1,22 @@
 <app-unsaved-changes-dialog #unsaved_changes_dialog></app-unsaved-changes-dialog>
 <app-modal-dialog 
     #invalid_code_dialog
-    [modalTitle]="'Invalid code'"
+    [modalTitle]="'users:finalize.invalid_title' | t"
     [btnSaveClass]="'d-none'"
     [btnCancelClass]="'btn-primary'"
-    [btnCancelText]="'Go home'"
+    [btnCancelText]="'users:finalize.go_home' | t"
     (cancel)="gotoHome()">
-    <div>Invalid code, or account already finalized.</div>
+    <div>{{ 'users:finalize.invalid_text' | t }}</div>
 </app-modal-dialog>
 
 <div class="row justify-content-center">
     <div class="col-12 col-lg-8 col-xl-10">
 
-        <h3><fa-icon [icon]="faAddressCard"></fa-icon> Finalize your profile: {{ user.username }}</h3>
+        <h3><fa-icon [icon]="faAddressCard"></fa-icon> {{ 'users:finalize.title' | t: { name: user.username } }}</h3>
 
         <app-page-loading 
             [stretch_height]="true" 
-            [loading_message]="'Loading user details'" 
+            [loading_message]="'users:finalize.loading' | t" 
             [hidden]="!loading" />
 
         <form novalidate #profile_form="ngForm" [id]="'profile_form'">
@@ -27,15 +27,15 @@
             <div class="col-12 mb-3" 
                 [innerHTML]="
                 ((user.roles)? 
-                '<strong>Role' + ((user.roles.length == 1)?'':'s') + ':</strong> ' + ((user.roles | map: 'name').join(', ')) + '. ' :
+                '<strong>' + ('users:role_label' | t: { count: user.roles.length }) + '</strong> ' + ((user.roles | map: 'name').join(', ')) + '. ' :
                 '') + 
-                '<strong>Registered on </strong>' + (user.registered_on | dateStr)"
+                '<strong>' + ('users:details.registered_on' | t) + ' </strong>' + (user.registered_on | dateStr)"
                 >
             </div>
 
             <div class="col-12"><!--col-12 col-md-12 col-lg-8 order-2 order-lg-1-->
                 <div class="profile-section">
-                    <div>Personal details</div>
+                    <div>{{ 'users:details.personal' | t }}</div>
 
                         <div class="row section-row">
                             <div class="col-12 col-xl-7 order-2 order-xl-1">
@@ -45,12 +45,12 @@
                                 <div class="form-floating">
                                     <input type="text" 
                                         id="user_username" class="form-control" placeholder="0" [(ngModel)]="user.username" name="user_username" #user_username="ngModel" [required]="true" [pattern]="'^[a-zA-Z][a-zA-Z0-9\\-_]*$'">
-                                    <label for="user_username">Username<span class="text-danger">*</span></label>
+                                    <label for="user_username">{{ 'users:fields.username' | t }}<span class="text-danger">*</span></label>
                                 </div>
                             </div>
                             <div class="text-danger" *ngIf="user_username.invalid && (user_username.touched || user_username.dirty)" > 
-                                <span *ngIf="user_username.errors?.['required']">Username is required</span>
-                                <Span *ngIf="user_username.errors?.['pattern']">Only letters, numbers, - and _. Start with a letter</Span>
+                                <span *ngIf="user_username.errors?.['required']">{{ 'users:validation.username_required' | t }}</span>
+                                <Span *ngIf="user_username.errors?.['pattern']">{{ 'users:validation.username_pattern' | t }}</Span>
                             </div>
                             </div>                                  
 
@@ -59,12 +59,12 @@
                                 <div class="form-floating">
                                     <input type="text" 
                                         id="user_firstname" class="form-control" placeholder="0" [(ngModel)]="user.firstname" name="user_firstname" #user_firstname="ngModel" [required]="true" [pattern]="'^[a-zA-Z][a-zA-Z\\-_\\s]*$'">
-                                    <label for="user_firstname">First name<span class="text-danger">*</span></label>
+                                    <label for="user_firstname">{{ 'users:fields.first_name' | t }}<span class="text-danger">*</span></label>
                                 </div>
                             </div>
                             <div class="text-danger" *ngIf="user_firstname.invalid && (user_firstname.touched || user_firstname.dirty)" > 
-                                <span *ngIf="user_firstname.errors?.['required']">First name is required</span>
-                                <span *ngIf="user_firstname.errors?.['pattern']">Use only letters, space or -</span>
+                                <span *ngIf="user_firstname.errors?.['required']">{{ 'users:validation.first_name_required' | t }}</span>
+                                <span *ngIf="user_firstname.errors?.['pattern']">{{ 'users:validation.letters_only' | t }}</span>
                             </div>
                             </div>             
 
@@ -73,12 +73,12 @@
                                 <div class="form-floating">
                                     <input type="text" 
                                         id="user_lastname" class="form-control" placeholder="0" [(ngModel)]="user.lastname" name="user_lastname" #user_lastname="ngModel"  [required]="true" [pattern]="'^[a-zA-Z][a-zA-Z\\-_]*$'">
-                                    <label for="user_lastname">Last name<span class="text-danger">*</span></label>
+                                    <label for="user_lastname">{{ 'users:fields.last_name' | t }}<span class="text-danger">*</span></label>
                                 </div>
                             </div>
                             <div class="text-danger" *ngIf="user_lastname.invalid && (user_lastname.touched || user_lastname.dirty)" > 
-                                <span *ngIf="user_lastname.errors?.['required']">Last name is required</span>
-                                <span *ngIf="user_lastname.errors?.['pattern']">Use only letters, space or -</span>
+                                <span *ngIf="user_lastname.errors?.['required']">{{ 'users:validation.last_name_required' | t }}</span>
+                                <span *ngIf="user_lastname.errors?.['pattern']">{{ 'users:validation.letters_only' | t }}</span>
                             </div>
                             </div>
                             
@@ -87,14 +87,14 @@
                                 <div class="form-floating">
                                     <input type="text" 
                                         id="user_email" class="form-control" placeholder="0" [(ngModel)]="user.email" name="user_email" #user_email="ngModel" [required]="true" [email]="true">
-                                    <label for="user_email">Email address<span class="text-danger">*</span></label>
+                                    <label for="user_email">{{ 'users:fields.email_address' | t }}<span class="text-danger">*</span></label>
                                 </div>
                             </div>                
                             <div class="text-danger" *ngIf="user_email.invalid && (user_email.touched || user_email.dirty)" > 
-                                <span *ngIf="user_email.errors?.['required']">Email is required</span>
+                                <span *ngIf="user_email.errors?.['required']">{{ 'users:validation.email_required' | t }}</span>
                             </div>  
                             <div class="text-danger" *ngIf="user_email.errors?.['email'] && (user_email.touched || user_email.dirty)" > 
-                                <span *ngIf="user_email.errors?.['email']">Invalid email</span>
+                                <span *ngIf="user_email.errors?.['email']">{{ 'users:validation.email_invalid' | t }}</span>
                             </div>
                             </div>            
 
@@ -103,7 +103,7 @@
                                 <div class="form-floating">
                                     <input type="tel" 
                                         id="user_phone" class="form-control" placeholder="0" [(ngModel)]="user.phone" name="user_phone" #user_phone="ngModel">
-                                    <label for="user_phone">Phone number</label>
+                                    <label for="user_phone">{{ 'users:fields.phone' | t }}</label>
                                 </div>
                             </div>
                             </div>
@@ -121,7 +121,7 @@
                 <div class="profile-section">
                     <div class="row">
                         <div class="col col-12 col-md-6  mt-3 mt-md-0 mb-3 mb-md-0">
-                        Set your password
+                        {{ 'users:finalize.set_password' | t }}
                         </div>
                         <div class="col col-12 col-md-6  mt-3 mt-md-0 mb-3 mb-md-0">
 
@@ -129,7 +129,7 @@
                             <div class="form-floating">
                                 <input type="password" 
                                     id="user_new_pass" class="form-control" placeholder="0" [(ngModel)]="password_change.new_password" name="user_new_pass" #user_new_pass="ngModel" (change)="checkPasswords()" [required]="true">
-                                <label for="user_new_pass">Password<span class="text-danger">*</span></label>
+                                <label for="user_new_pass">{{ 'users:fields.password' | t }}<span class="text-danger">*</span></label>
                             </div>
                         </div>
                         <div class="text-danger" *ngIf="password_change_errors.new_password" > 
@@ -140,7 +140,7 @@
                             <div class="form-floating">
                                 <input type="password" 
                                     id="user_new_pass2" class="form-control" placeholder="0" [(ngModel)]="password_change.repeat_new_password" name="user_new_pass2" #user_new_pass2="ngModel" (change)="checkPasswords()" [required]="true">
-                                <label for="user_new_pass2">Repeat password<span class="text-danger">*</span></label>
+                                <label for="user_new_pass2">{{ 'users:finalize.repeat' | t }}<span class="text-danger">*</span></label>
                             </div>
                         </div>                                
                         <div class="text-danger" *ngIf="password_change_errors.repeat_new_password" > 
@@ -161,7 +161,7 @@
         <button class="btn btn-success save-button" (click)="save()" [disabled]="saving">
             <span *ngIf="!saving">
                 <fa-icon [icon]="faSave" ></fa-icon>
-                <span style="margin-left: 10px;">Save changes</span>
+                <span style="margin-inline-start: 10px;">{{ 'users:details.save' | t }}</span>
             </span>
             <fa-icon [icon]="faArrowsRotate" [animation]="'spin'" class="action-icon" *ngIf="saving"></fa-icon>
         </button>

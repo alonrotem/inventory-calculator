@@ -27,8 +27,8 @@
     margin-bottom: 10px;
 
     position: fixed;
-    left: 16px;
-    right: 33px;
+    inset-inline-start: 16px;
+    inset-inline-end: 33px;
     background: var(--bs-modal-bg);
     padding: 10px 5px;
     top: 67px;    
@@ -49,11 +49,11 @@
     justify-content: center;
     align-items: center;
     padding: 14px;
-    margin-left: 10px;
+    margin-inline-start: 10px;
 }
 
 .preview_bar .loading_preview {
-    margin-left: 10px;
+    margin-inline-start: 10px;
 }
 
 ::ng-deep .log-preview .timestamp {

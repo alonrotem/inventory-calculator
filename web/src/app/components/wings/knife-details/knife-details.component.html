@@ -9,7 +9,7 @@
 <app-unsaved-changes-dialog #unsaved_changes_dialog></app-unsaved-changes-dialog>
 
 <app-page-loading
-  [loading_message]="'Loading knife...'"
+  [loading_message]="'knives:details.loading' | t"
   [icon_size]="'3x'"
   [hidden]="!loading"
   [stretch_height]="true" />
@@ -17,15 +17,15 @@
 <div class="row justify-content-center" [hidden]="loading">
 <div class="col-12 col-md-8">
     <div class="d-flex flex-row justify-content-between align-items-center">
-        <h3><span class="icon-knife"></span> Edit Knife</h3>
+        <h3><span class="icon-knife"></span> {{ 'knives:details.title' | t }}</h3>
         <div class="d-flex flex-row justify-items-end">
-            <button class="btn btn-warning upper-button" (click)="gotoKnivesList()" title="Back to knives">
+            <button class="btn btn-warning upper-button" (click)="gotoKnivesList()" [attr.title]="'knives:details.back_to_list' | t">
                 <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>
             </button>
-            <button class="btn btn-success upper-button" type="submit" [class.disabled]="saving" (click)="save()" title="Save">
+            <button class="btn btn-success upper-button" type="submit" [class.disabled]="saving" (click)="save()" [attr.title]="'common:actions.save' | t">
                 <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
             </button>
-            <button class="btn btn-danger upper-button" (click)="confirm_delete()" title="Delete">
+            <button class="btn btn-danger upper-button" (click)="confirm_delete()" [attr.title]="'common:actions.delete' | t">
                 <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>
             </button>
         </div>
@@ -34,16 +34,16 @@
     <form novalidate #knife_form="ngForm">
         <div class="row g-3 align-items-end">
             <div class="col-12 col-md-6">
-                <label class="form-label" for="knife_name">Name</label>
+                <label class="form-label" for="knife_name">{{ 'knives:details.name' | t }}</label>
                 <input id="knife_name" name="name" type="text" class="form-control" maxlength="255" required [(ngModel)]="name">
             </div>
             <div class="col-6 col-md-3">
-                <div class="text-body-secondary small">Width (L1 → Crown)</div>
-                <div>{{ knife?.width_cm | number: '1.0-2' }} cm</div>
+                <div class="text-body-secondary small">{{ 'knives:width_label' | t }}</div>
+                <div>{{ knife ? ('common:units.cm' | t: { value: knife.width_cm }) : '' }}</div>
             </div>
             <div class="col-6 col-md-3 text-end">
                 <button type="button" class="btn btn-outline-primary" (click)="advancedEdit()">
-                    <fa-icon [icon]="faPenRuler"></fa-icon> Advanced edit
+                    <fa-icon [icon]="faPenRuler"></fa-icon> {{ 'knives:details.advanced_edit' | t }}
                 </button>
             </div>
         </div>
@@ -51,7 +51,7 @@
         <div class="form-check mb-2">
             <input class="form-check-input" type="checkbox" id="knife_show_babies" [ngModelOptions]="{ standalone: true }"
                 [(ngModel)]="showBabies" (ngModelChange)="draw()">
-            <label class="form-check-label" for="knife_show_babies">Preview with babies</label>
+            <label class="form-check-label" for="knife_show_babies">{{ 'knives:details.preview_babies' | t }}</label>
         </div>
 
         <div class="knife_canvas_container">
@@ -62,19 +62,19 @@
             <div class="col-12 col-md-4 d-flex justify-content-center">
                 <button type="button" class="btn btn-warning" (click)="gotoKnivesList()">
                     <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>
-                    <div>Back</div>
+                    <div>{{ 'common:actions.back' | t }}</div>
                 </button>
             </div>
             <div class="col-12 col-md-4 d-flex justify-content-center">
                 <button class="btn btn-success" type="submit" [class.disabled]="saving" (click)="save()">
                     <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
-                    <div>Save Knife</div>
+                    <div>{{ 'knives:details.save_knife' | t }}</div>
                 </button>
             </div>
             <div class="col-12 col-md-4 d-flex justify-content-center">
                 <button type="button" class="btn btn-danger" (click)="confirm_delete()">
                     <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>
-                    <div>Delete Knife</div>
+                    <div>{{ 'knives:details.delete_knife' | t }}</div>
                 </button>
             </div>
         </div>

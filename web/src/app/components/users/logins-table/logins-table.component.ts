@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild, inject } from '@angular/core';
 import { UsersService } from '../../../services/users.service';
 import { ToastService } from '../../../services/toast.service';
 import { LoginInfo } from '../../../../types';
@@ -10,15 +10,19 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { IconDefinition } from '@fortawesome/fontawesome-common-types';
 import { faArrowsRotate, faBan } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmationDialogComponent } from "../../common/confirmation-dialog/confirmation-dialog.component";
+import { TranslatePipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-logins-table',
   standalone: true,
-  imports: [NgIf, NgFor, PageLoadingComponent, DateStrPipe, SafePipe, FaIconComponent, ConfirmationDialogComponent],
+  imports: [TranslatePipe, NgIf, NgFor, PageLoadingComponent, DateStrPipe, SafePipe, FaIconComponent, ConfirmationDialogComponent],
   templateUrl: './logins-table.component.html',
   styleUrl: './logins-table.component.scss'
 })
 export class LoginsTableComponent implements OnInit, AfterViewInit, OnChanges {
+  private translation = inject(TranslationService);
+
   user_logins: LoginInfo[] = [];
   fetching: boolean = true;
   clearning: boolean = false;
@@ -70,8 +74,8 @@ export class LoginsTableComponent implements OnInit, AfterViewInit, OnChanges {
 
   async clearAllLogins(){
     const confirmed = await this.confirm_action.open_with_message({
-      modalTitle: "Log everyone out?",
-      modalText: "<div class='text-warning'>This will log out from all devices" + (this.logged_into_this_device?", except this one":"") + ".</div>Are you sure?",
+      modalTitle: this.translation.t('users:logins.everyone_title'),
+      modalText: "<div class='text-warning'>" + (this.logged_into_this_device ? this.translation.t('users:logins.everyone_except') : this.translation.t('users:logins.everyone_text')) + "</div>" + this.translation.t('users:logins.are_you_sure'),
       btnYesClass: "btn-danger",
       btnYesIcon: this.faBan
     });
@@ -82,8 +86,8 @@ export class LoginsTableComponent implements OnInit, AfterViewInit, OnChanges {
 
   async clear_login(id:number) {
     const confirmed = await this.confirm_action.open_with_message({
-      modalTitle: "Log everyone out?",
-      modalText: "'<div class=\'text-warning\'>This will log out this device.</div>Are you sure?'",
+      modalTitle: this.translation.t('users:logins.everyone_title'),
+      modalText: "<div class='text-warning'>" + this.translation.t('users:logins.this_device') + "</div>" + this.translation.t('users:logins.are_you_sure'),
       btnYesClass: "btn-danger",
       btnYesIcon: this.faBan
     });  
@@ -98,7 +102,7 @@ export class LoginsTableComponent implements OnInit, AfterViewInit, OnChanges {
     this.usersService.clear_logins(ids).subscribe({
       next: (logins: LoginInfo[]) => {
         this.user_logins = logins;
-        this.toastService.showSuccess("Logins cleared");
+        this.toastService.showSuccess(this.translation.t('users:logins.cleared'));
         this.number_of_external_logins = logins.filter(l => !(l.is_current_login)).length;
         this.clearning = false;
       },

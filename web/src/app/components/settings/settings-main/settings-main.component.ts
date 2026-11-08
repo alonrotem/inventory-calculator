@@ -1,5 +1,5 @@
 import { NgClass, NgIf } from '@angular/common';
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faGears, faSave, IconDefinition } from '@fortawesome/free-solid-svg-icons';
@@ -23,17 +23,21 @@ enum settingsPage {
   backup,
   system_logs
 };
+import { TranslatePipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-settings-main',
   standalone: true,
-  imports: [
+  imports: [TranslatePipe, 
     NgClass, RouterLink, FaIconComponent, SettingsAlertsComponent, BackupDownloadComponent, BackupUploadComponent, 
     SettingsNotificationsComponent, SystemLogsComponent, SettingsUiComponent, NgIf, UnsavedChangesDialogComponent],
   templateUrl: './settings-main.component.html',
   styleUrl: './settings-main.component.scss'
 })
 export class SettingsMainComponent implements HasUnsavedChanges {
+  private translation = inject(TranslationService);
+
   settings: Record<string, string> = {};
   unchanged_settings: Record<string, string> = {};
   pending_changes: boolean = false;
@@ -91,12 +95,12 @@ export class SettingsMainComponent implements HasUnsavedChanges {
     this.settingsService.saveSettings(this.settings).subscribe(
     {
       next:(data) => { 
-        this.toastService.showSuccess("Saved successfully!");
+        this.toastService.showSuccess(this.translation.t('settings:main.saved'));
         this.btn_save.nativeElement.classList.remove("disabled");
         this.pending_changes = false;
       },
       error:(error) => { 
-        this.toastService.showError("Server error saving customer");        
+        this.toastService.showError(this.translation.t('settings:main.save_failed'));        
         this.btn_save.nativeElement.classList.remove("disabled");
       }
     });

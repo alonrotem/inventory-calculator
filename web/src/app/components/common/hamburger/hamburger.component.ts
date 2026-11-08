@@ -4,11 +4,12 @@ import { Component, ElementRef, ViewChild } from '@angular/core';
 Adapted from https://codepen.io/elitsa_dimitrova/pen/LJWBVo
 Source: https://www.sliderrevolution.com/resources/css-hamburger-menu/
 */
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-hamburger',
   standalone: true,
-  imports: [],
+  imports: [TranslatePipe, ],
   templateUrl: './hamburger.component.html',
   styleUrl: './hamburger.component.scss'
 })

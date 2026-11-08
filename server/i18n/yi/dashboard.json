@@ -1,0 +1,22 @@
+{
+  "chart": {
+    "title": "קוואַנטיטעט פֿון רויע מאַטעריאַלן:",
+    "date": "דאַטום"
+  },
+  "card": {
+    "loading": "לאָדט אינפֿאָרמאַציע...",
+    "inventory": "לאַגער",
+    "raw_material": "רוי־מאַטעריאַל:",
+    "records": "רעקאָרדס פֿון רויע מאַטעריאַלן: {{count, number}}",
+    "total_kg": "סך הכל {{total, number(maximumFractionDigits: 0)}} קג ({{remaining, number(maximumFractionDigits: 0)}} איבערגעבליבן)",
+    "total_units": "סך הכל {{total, number(maximumFractionDigits: 0)}} יוניטס ({{remaining, number(maximumFractionDigits: 0)}} איבערגעבליבן)",
+    "templates": "מוסטערן",
+    "wings": "פֿליגל: {{count, number}}",
+    "sales": "איצטיקע פֿאַרקויף",
+    "new_orders": "נײַע באַשטעלונגען: {{count, number}}",
+    "ordered_hats": "באַשטעלטע היט: {{count, number}}",
+    "go_raw": "גיין צו פֿאַרוואַלטן רויע מאַטעריאַלן",
+    "go_wings": "גיין צו פֿאַרוואַלטן פֿליגל",
+    "go_orders": "גיין צו באַשטעלונגען"
+  }
+}

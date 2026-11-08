@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild, inject } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faMoneyCheckDollar, faPencil, faTrashAlt, faTrashCan, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { RawMaterial, RawMaterialCustomerBank, RawMaterialPurchase } from '../../../../types';
@@ -9,11 +9,13 @@ import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/co
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { RawMaterialCustomerDialogComponent } from "../raw-material-customer-dialog/raw-material-customer-dialog.component";
 import { TooltipDirective } from '../../common/tooltip/tooltip.directive';
+import { TranslatePipe, TranslateQuantityPipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-raw-material-customer-table',
   standalone: true,
-  imports: [
+  imports: [TranslatePipe, TranslateQuantityPipe, 
     FaIconComponent, RouterModule, NgFor, NgIf,
     ConfirmationDialogComponent, 
     RawMaterialCustomerDialogComponent, DecimalPipe,
@@ -23,6 +25,8 @@ import { TooltipDirective } from '../../common/tooltip/tooltip.directive';
   styleUrl: './raw-material-customer-table.component.scss'
 })
 export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChanges {
+  private translation = inject(TranslationService);
+
 
   faMoneyCheckDollar: IconDefinition = faMoneyCheckDollar;
   faTrashAlt: IconDefinition = faTrashAlt;
@@ -92,10 +96,10 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
   async deleteBank(index:number, bank: RawMaterialCustomerBank){
 
     const confirmed = await this.confirm_action.open_with_message({
-      modalTitle: "Delete confirmation",
-      modalText: `Are you sure you want to delete this bank for customer <strong>${bank.name}</strong>?`,
+      modalTitle: this.translation.t('raw_materials:customer_table.delete_title'),
+      modalText: this.translation.t('raw_materials:customer_table.delete_text', { name: `<strong>${bank.name}</strong>` }),
       btnYesIcon: faTrashAlt,
-      btnYesText: "Delete",
+      btnYesText: this.translation.t('common:actions.delete'),
       btnYesClass: "btn-danger"
     });
     if(confirmed) {

@@ -3,13 +3,13 @@
 <app-modal-dialog 
     #log_preview
     [btnSaveClass]="'d-none'"
-    [btnCancelText]="'close'"
+    [btnCancelText]="'common:actions.close' | t"
     [modalSize]="'modal-fullscreen'"
     [fullscreen]="true"
     [modalTitle]="preview_filename"
     [modalBodyClass]="'d-flex flex-column'">
     <div class="preview_bar">
-      <div><strong>File size:</strong> {{ preview_filesize | filesize}}.</div>
+      <div><strong>{{ 'settings:logs.file_size' | t }}</strong> {{ preview_filesize | filesize}}.</div>
       <div>
         <button class="btn btn-secondary" (click)="load_preview(preview_filename, preview_filesize)"><fa-icon [icon]="faArrowsRotate"></fa-icon></button>
       </div>
@@ -19,7 +19,7 @@
       <div>
         <button class="btn btn-secondary" (click)="clearLogFile(preview_filename)"><span class="icon-bin"></span></button>
       </div>           
-      <div *ngIf="preview_loading" class="loading_preview text-info">* Loading...</div>
+      <div *ngIf="preview_loading" class="loading_preview text-info">{{ 'settings:logs.loading' | t }}</div>
     </div>
     <div class="log-preview">
       <div *ngIf="log_content.length > 0" class="preview-content">
@@ -27,34 +27,34 @@
       </div>
       <div *ngIf="log_content.length == 0"  class="preview-content centered">
         <div><fa-icon [icon]="faTriangleExclamation" size="2x"></fa-icon></div>
-        <div>Log file is empty</div>
+        <div>{{ 'settings:logs.empty_file' | t }}</div>
       </div>
     </div>
 </app-modal-dialog>
 
 <div class="row justify-content-center"><div class="col-12">
     <div style="display: flex; flex-direction: row; align-items: center; margin-bottom: 10px;">
-      <h1><span class="icon-folder-open"></span> System log files </h1>
-      <button class="btn btn-secondary" style="margin-left: 10px;" (click)="loadLogFilesList()"><fa-icon [icon]="faArrowsRotate"></fa-icon></button>
+      <h1><span class="icon-folder-open"></span> {{ 'settings:logs.title' | t }}</h1>
+      <button class="btn btn-secondary" style="margin-inline-start: 10px;" (click)="loadLogFilesList()"><fa-icon [icon]="faArrowsRotate"></fa-icon></button>
     </div>
 
     <app-page-loading 
-        [loading_message]="'Loading log files...'" 
+        [loading_message]="'settings:logs.loading_files' | t" 
         [icon_size]="'3x'" 
         [hidden]="!loading" 
         [stretch_height]="true" />
     
     <div [hidden]="loading">
       
-      <a class="btn btn-warning" (click)="downloadallLogs()"><span class="icon-cloud-download"></span> Fetch all logs</a>
-      <a class="btn btn-danger" (click)="deleteAllLogs()" style="margin-left: 20px;"><span class="icon-bin"></span> Clear logs</a>
+      <a class="btn btn-warning" (click)="downloadallLogs()"><span class="icon-cloud-download"></span> {{ 'settings:logs.fetch_all' | t }}</a>
+      <a class="btn btn-danger" (click)="deleteAllLogs()" style="margin-inline-start: 20px;"><span class="icon-bin"></span> {{ 'settings:logs.clear' | t }}</a>
       <div [hidden]="loading || this.logFiles.length == 0">
     <table class="table table-responsive table-striped table-hover">
         <thead>
           <tr>
-            <th scope="col">File</th>
-            <th scope="col">Size</th>
-            <th scope="col" class="text-center">Last modified</th>
+            <th scope="col">{{ 'settings:logs.col_file' | t }}</th>
+            <th scope="col">{{ 'settings:logs.col_size' | t }}</th>
+            <th scope="col" class="text-center">{{ 'settings:logs.col_modified' | t }}</th>
             <th></th>
             <th></th>
             <th></th>
@@ -75,7 +75,7 @@
     </div>
     
       <div [hidden]="loading || this.logFiles.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
-        Log files found on the server.<br/>
+        {{ 'settings:logs.none' | t }}<br/>
       </div>
     </div>
     

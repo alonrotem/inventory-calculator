@@ -12,11 +12,12 @@ enum length_options {
   individual,
   common
 };
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-crown-editor',
   standalone: true,
-  imports: [NgFor, NgIf, FormsModule, SortBabiesPipe, PrefixPipe, FaIconComponent, DecimalPipe],
+  imports: [TranslatePipe, NgFor, NgIf, FormsModule, SortBabiesPipe, PrefixPipe, FaIconComponent, DecimalPipe],
   templateUrl: './crown-editor.component.html',
   styleUrl: './crown-editor.component.scss'
 })

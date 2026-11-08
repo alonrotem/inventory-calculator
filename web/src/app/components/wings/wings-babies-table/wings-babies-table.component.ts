@@ -10,11 +10,12 @@ import { RawMaterialsService } from '../../../services/raw-materials.service';
 import { ToastService } from '../../../services/toast.service';
 import { PrefixPipe } from "../../../utils/pipes/prefix-pipe";
 import { SortBabiesPipe } from '../../../utils/pipes/sort-babies-pipe';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-wings-babies-table',
   standalone: true,
-  imports: [NgFor, NgIf, FaIconComponent, BabiesLengthPickerComponent, AutocompleteLibModule, FormsModule, PrefixPipe, SortBabiesPipe],
+  imports: [TranslatePipe, NgFor, NgIf, FaIconComponent, BabiesLengthPickerComponent, AutocompleteLibModule, FormsModule, PrefixPipe, SortBabiesPipe],
   templateUrl: './wings-babies-table.component.html',
   styleUrl: './wings-babies-table.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

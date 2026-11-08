@@ -2,11 +2,12 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from
 import { CustomersService } from '../../../services/customers.service';
 import { BasicCustomerInfo, CustomerListItem, Customers, nameIdPair } from '../../../../types';
 import { MultiPickerComponent } from '../../common/multi-picker/multi-picker.component';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-customer-picker',
   standalone: true,
-  imports: [MultiPickerComponent],
+  imports: [MultiPickerComponent, TranslatePipe],
   templateUrl: './customer-picker.component.html'
 })
 export class CustomerPickerComponent implements OnChanges {

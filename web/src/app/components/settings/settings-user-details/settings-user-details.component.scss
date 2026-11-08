@@ -34,9 +34,9 @@
     position: fixed;
     z-index: 900000;
     top: 83px;
-    right: 0;
+    inset-inline-end: 0;
 }
 
 input[type='radio'] {
-    margin-right: 10px;
+    margin-inline-end: 10px;
 }

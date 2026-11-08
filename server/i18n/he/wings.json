@@ -1,0 +1,97 @@
+{
+  "list": {
+    "loading": "טוען כנפיים",
+    "new": "+ כנף",
+    "total_one": "סה״כ: כנף {{count, number}}",
+    "total_two": "סה״כ: {{count, number}} כנפיים",
+    "total_other": "סה״כ: {{count, number}} כנפיים",
+    "col_name": "שם",
+    "col_knife": "סכין",
+    "col_babies": "תינוקות",
+    "empty": "לא נוספו כנפיים.",
+    "empty_hint": "אפשר להוסיף בלחיצה על כפתור ה־+ שלמעלה."
+  },
+  "babies_table": {
+    "count_one": "תינוק {{count, number}}",
+    "count_two": "{{count, number}} תינוקות",
+    "count_other": "{{count, number}} תינוקות",
+    "col_length": "אורך",
+    "col_remove": "הסרה",
+    "insert": "+ הוספה כאן",
+    "delete_title": "מחיקת {{position}} ({{length}})",
+    "append": "לחצו כדי להוסיף תינוקות:"
+  },
+  "crown_editor": {
+    "total_width": "רוחב כולל של הכתר:",
+    "common_length": "אורך משותף לכל תינוקות הכתר",
+    "all_babies": "אורך לכל התינוקות:",
+    "individual": "אורך נפרד לכל תינוק",
+    "individual_hint": "קבעו את האורך של כל תינוק בכתר בנפרד",
+    "add_baby": "+ הוספת תינוק",
+    "max_babies_one": "* בכתר יכול להיות לכל היותר תינוק {{count, number}}",
+    "max_babies_two": "* בכתר יכולים להיות לכל היותר {{count, number}} תינוקות",
+    "max_babies_other": "* בכתר יכולים להיות לכל היותר {{count, number}} תינוקות"
+  },
+  "length_modal": {
+    "crown_count": "בחרו את מספר תינוקות הכתר"
+  },
+  "length_picker": {
+    "title": "בחרו אורך תינוק:",
+    "invalid": "נא לבחור אורך"
+  },
+  "baby_editor": {
+    "available": "יחידות זמינות: {{count, number}}",
+    "edit_quantities": "עריכת כמויות",
+    "top_up": "תוספת",
+    "quantity": "כמות",
+    "maximum": "מקסימום: {{count, number}}",
+    "not_enough": "אין מספיק יחידות זמינות. מקסימום של {{available, number}} + {{before, number}} = {{max, number}}",
+    "hit_enter": "(לחצו Enter כדי לשלוח ולעבור לבא)",
+    "none_available": "אין יחידות זמינות בהקצאה הזאת כדי להוסיף עוד תינוקות"
+  },
+  "editor": {
+    "title_create": "יצירת כנף",
+    "title_edit": "עריכת כנף",
+    "name": "שם הכנף",
+    "name_required": "נא להזין שם לכנף",
+    "delete_title": "מחיקת הכנף הזאת",
+    "copy_from": "העתקת עיצוב מ...",
+    "assigned": "הכנף הזאת משויכת במיוחד ללקוחות הבאים:",
+    "select_knife": "בחרו את הסכין לכנף הזאת:",
+    "pick_knife": "בחירת סכין",
+    "total_height": "גובה הכנף הכולל: {{height}}",
+    "shorten_pairs": "לאפשר קיצור תינוקות של הכנף הזאת בזוגות (לחומרים נבחרים)",
+    "preview": "תצוגה מקדימה של הכנף",
+    "preview_title": "לחצו כדי לראות את הכנף",
+    "left_babies": "תינוקות שמאל",
+    "right_babies": "תינוקות ימין",
+    "split_before": "פיצול תינוק L1 ל־",
+    "split_after": "חלקים",
+    "top": "עליון",
+    "crown": "כתר",
+    "choose_top": "בחרו אורך עליון:",
+    "cancel_changes": "ביטול שינויים",
+    "save": "שמירת כנף",
+    "delete": "מחיקת כנף",
+    "dialogs": {
+      "override_title": "לדרוס את נתוני הכנף הנוכחית?",
+      "override_text": "בטוחים שברצונכם להעתיק את נתוני התינוקות מהכנף {{name}}? הפעולה תדרוס את כל נתוני הכנף הנוכחית.",
+      "override_yes": "דריסה",
+      "reset_title": "לאפס את נתוני הכנף?",
+      "reset_text": "בטוחים שברצונכם למחוק את כל נתוני הכנף?",
+      "reset_yes": "להתחיל מחדש!",
+      "delete_title": "אישור מחיקה",
+      "delete_text": "בטוחים שברצונכם למחוק את הכנף {{name}}?"
+    }
+  },
+  "diagram": {
+    "knife_width": "רוחב הסכין: {{value}}",
+    "add_left": "הוספת L{{n}}",
+    "add_right": "הוספת R{{n}}",
+    "add_crown": "הוספת תינוק לכתר",
+    "add_top": "הוספת עליון",
+    "tip_crown": "כתר ({{n}})",
+    "tip_remove": "לחצו כדי להסיר",
+    "tip_edit": "גללו כדי לשנות גודל, לחצו כדי לערוך"
+  }
+}

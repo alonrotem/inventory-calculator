@@ -1,3 +1,4 @@
+const i18n = require('./i18n');
 const db = require('./db');
 const helper = require('../helper');
 const config = require('../config');
@@ -158,7 +159,7 @@ async function save(wing, active_connection=null){
     const wings_by_name = await db.query(`select * from wings where name=(?)`, [wing.name]);
     const rec = helper.emptyOrSingle(wings_by_name);
     if(rec && rec['name'] &&rec['name'].toUpperCase() == wing.name.toUpperCase() && (wing.id <= 0 || wing.id != rec['id'])){
-      throw new Error(`A wing with the name ${wing.name} already exists`);
+      throw i18n.fail('server:wings.exists', { name: wing.name });
     }
 
     //if this is a new wing, all babies should be saved as new too (for example, duplicated for a customer)
@@ -180,7 +181,7 @@ async function save(wing, active_connection=null){
     //console.log("New wing ID: " + result.insertId + " ("+ wing.name +")");
 
     if (result.affectedRows) {
-      message = 'Wing \'' + wing.name + '\' saved successfully';
+      message = i18n.tr('server:wings.saved', { name: wing.name });
     }
     let wing_id = (wing.id)? wing.id : result.insertId;
     
@@ -249,10 +250,10 @@ async function update(id, wing){
       `UPDATE wings SET name=(?), width=(?) WHERE id=${id}`, [ wing.name, wing.width ]
     );
     //console.log("Updated wing ID: " + id + " ("+ wing.name +")");
-    let message = 'Error in updating wing';
+    let message = i18n.tr('server:wings.update_failed');
   
     if (result.affectedRows) {
-      message = 'Wing \''+wing.name +'\' updated successfully';
+      message = i18n.tr('server:wings.updated', { name: wing.name });
     }
     if(wing.babies)
     {
@@ -340,7 +341,7 @@ async function remove(id, active_connection=null){
     let message = '';
   
     if (result.affectedRows) {
-      message = 'Wing deleted successfully';
+      message = i18n.tr('server:wings.deleted');
     }
     if(self_executing) {
       await db.transaction_commit(active_connection);

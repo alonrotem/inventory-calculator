@@ -1,13 +1,13 @@
-<h3><fa-icon [icon]="faPaintRoller" class="action-icon"></fa-icon> User Interface Tweaks</h3>
+<h3><fa-icon [icon]="faPaintRoller" class="action-icon"></fa-icon> {{ 'settings:ui.title' | t }}</h3>
 <form novalidate #settings_form="ngForm" [id]="'settings_form'" *ngIf="settings">
 <div class="section">
-    <h5>Grid behavior</h5>
+    <h5>{{ 'settings:ui.grid' | t }}</h5>
     <div class="switch-group form-check form-switch">
         <input class="form-check-input" type="checkbox" #chk_ui_settings_grid_paging="ngModel" name="chk_ui_settings_grid_paging" [(ngModel)]="settings['ui_settings_grid_paging']" (change)="emit_settings_changed()">
         <label class="form-check-label" for="chk_ui_settings_grid_paging">
-            Show item tables in pages,
+            {{ 'settings:ui.paging_before' | t }}
             <input type="number" class="form-control" #txt_ui_settings_grid_page_size="ngModel" name="txt_ui_settings_grid_page_size" placeholder="0" [(ngModel)]="settings['ui_settings_grid_page_size']" [disabled]="!settings['ui_settings_grid_paging']" (change)="emit_settings_changed()" (keyup)="emit_settings_changed()"> 
-            items per page
+            {{ 'settings:ui.paging_after' | t }}
         </label>
     </div>
 </div>

@@ -5,19 +5,19 @@
             <span>
                 <!--http://localhost:4200/inventory/customer/orders?customer_id=10-->
                 <button class="btn btn-warning" (click)="goToCustomersList()"><fa-icon [icon]="faArrowLeft"></fa-icon></button>
-                <button class="btn btn-secondary" (click)="print()"><span class="icon-printer"></span> Print</button>
+                <button class="btn btn-secondary" (click)="print()"><span class="icon-printer"></span> {{ 'customers:order_editor.print' | t }}</button>
                 <button class="btn btn-secondary" (click)="exportPdf()"><span class="icon-file-pdf"></span> PDF</button>
                 <button class="btn btn-success" *ngIf="unsaved_changes"><fa-icon [icon]="faSave"></fa-icon></button>
             </span>
             <span class="order-status-area">
-                <span>Order status: <span class="order-status order-status-{{orderDetails.last_status}}">{{ orderDetails.last_status }}</span></span>
+                <span>{{ 'customers:order_editor.status' | t }} <span class="order-status order-status-{{orderDetails.last_status}}">{{ orderDetails.last_status | tenum: 'customers:order_status.' }}</span></span>
                 <span style="cursor:pointer;" (click)="openUpdateStatus()">
                     <span class="text-primary">
                         <fa-icon [icon]="faPencil"></fa-icon>
                     </span>
                 </span>
                 <span>
-                    <span class="icon-history"(click)="openHistoryDialog()" style="font-size: 23px; cursor:pointer;" title="History records"></span>
+                    <span class="icon-history"(click)="openHistoryDialog()" style="font-size: 23px; cursor:pointer;" [attr.title]="'customers:bank.history' | t"></span>
                 </span>
             </span>
         </div>
@@ -26,7 +26,7 @@
     
         <!-- loading animation -->
         <app-page-loading 
-            [loading_message]="'Loading order...'" 
+            [loading_message]="'customers:order_editor.loading' | t" 
             [icon_size]="'3x'" 
             [hidden]="!loading" 
             [stretch_height]="true" />            
@@ -37,32 +37,32 @@
                 <img src="/assets/images/romtech-w-logo-light.png" alt="">
             </div>
             <div>
-                <h3>Job Order {{ orderDetails.id > 0 ? '#' + orderDetails.id : '' }}</h3>
+                <h3>{{ 'customers:order_editor.job_order' | t: { number: orderDetails.id > 0 ? '#' + orderDetails.id : '' } }}</h3>
             </div>
         </div>
         <div class="fields-row">
-            For customer: {{ orderDetails.customer_name }}. Created on {{ orderDetails.create_date | dateStr }}.
+            {{ 'customers:order_editor.for_customer' | t: { name: orderDetails.customer_name, date: (orderDetails.create_date | dateStr) } }}
             <div *ngIf="orderDetails.isurgent" class="text-danger">
-                <fa-icon [icon]="faTriangleExclamation"></fa-icon> This order is marked as urgent!
+                <fa-icon [icon]="faTriangleExclamation"></fa-icon> {{ 'customers:order_editor.urgent' | t }}
             </div>
         </div>
 
         <div  [hidden]="loading">
             <div class="row fields-row">
                 <div class="col-lg-3 col-6 d-flex flex-column">
-                    <div class="detail-title">Last update</div>
+                    <div class="detail-title">{{ 'customers:order_editor.last_update' | t }}</div>
                     <div class="detail-field flex-grow-1">{{ orderDetails.last_update_date | dateStr: false }}</div>
                 </div>
                 <div class="col-lg-3 col-6 d-flex flex-column">
-                    <div class="detail-title">Hat #</div>
+                    <div class="detail-title">{{ 'customers:order_editor.hat_number' | t }}</div>
                     <div class="detail-field flex-grow-1">{{ orderDetails.hat_id_with_customer }}</div>
                 </div>
                 <div class="col-lg-3 col-6 d-flex flex-column">
-                    <div class="detail-title">Hat style</div>
+                    <div class="detail-title">{{ 'customers:order_editor.hat_style' | t }}</div>
                     <div class="detail-field flex-grow-1">{{ orderDetails.wing_name }}</div>
                 </div>
                 <div class="col-lg-3 col-6 d-flex flex-column">
-                    <div class="detail-title">Knife model</div>
+                    <div class="detail-title">{{ 'customers:order_editor.knife_model' | t }}</div>
                     <div class="detail-field flex-grow-1">{{ orderDetails.knife }}</div>
                 </div>
             </div>
@@ -70,17 +70,17 @@
             <div class="row  fields-row">
                 <div class="col-2"></div>
                 <div class="col-4 d-flex flex-column">
-                    <div class="detail-title">Material</div>
+                    <div class="detail-title">{{ 'customers:order_editor.material' | t }}</div>
                     <div class="detail-field flex-grow-1 material-container">
-                        <span>{{ orderDetails.wall_material }} {{ orderDetails.wall_material_color }}</span>
+                        <span>{{ orderDetails.wall_material }} {{ orderDetails.wall_material_color | tenum: 'common:colors.' }}</span>
                         <span class="alloc-container">
-                            <div>Alloc #</div>
+                            <div>{{ 'customers:order_editor.alloc' | t }}</div>
                             {{ orderDetails.wall_allocation_id }}
                         </span>
                     </div>
                 </div>
                 <div class="col-4 d-flex flex-column">
-                    <div class="detail-title">Wings</div>
+                    <div class="detail-title">{{ 'customers:order_editor.wings' | t }}</div>
                     <div class="detail-field flex-grow-1">{{ orderDetails.wing_quantity }}</div>
                 </div>
             </div>
@@ -119,26 +119,26 @@
             <div class="row fields-row">
                 <div class="col-12 col-md-6">
                     <table class="checks-table">
-                        <tr><td>A</td><td>Crown</td><td><div class="check_line"></div></td></tr>
-                        <tr><td>B</td><td>FR</td><td><div class="check_line"></div></td></tr>
-                        <tr><td>C</td><td>H</td><td><div class="check_line"></div></td></tr>
-                        <tr><td>D</td><td>Sew</td><td><div class="check_line"></div></td></tr>
-                        <tr><td>E</td><td>2nd R</td><td><div class="check_line"></div></td></tr>
-                        <tr><td>F</td><td>Cover</td><td><div class="check_line"></div></td></tr>
-                        <tr><td>G</td><td>Sewing on band</td><td><div class="check_line"></div></td></tr>
-                        <tr><td>H</td><td>Glance</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>A</td><td>{{ 'customers:order_editor.step_crown' | t }}</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>B</td><td>{{ 'customers:order_editor.step_fr' | t }}</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>C</td><td>{{ 'customers:order_editor.step_h' | t }}</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>D</td><td>{{ 'customers:order_editor.step_sew' | t }}</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>E</td><td>{{ 'customers:order_editor.step_second_r' | t }}</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>F</td><td>{{ 'customers:order_editor.step_cover' | t }}</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>G</td><td>{{ 'customers:order_editor.step_band' | t }}</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>H</td><td>{{ 'customers:order_editor.step_glance' | t }}</td><td><div class="check_line"></div></td></tr>
                     </table>
                 </div>
                 <div class="col-12 col-md-6">
                     <table class="checks-table">
-                        <tr><td>Checked A</td><td><div class="check_line"></div></td></tr>
-                        <tr><td>Checked AB</td><td><div class="check_line"></div></td></tr>
-                        <tr><td>Checked ABC</td><td><div class="check_line"></div></td></tr>
-                        <tr><td>Checked ABCD</td><td><div class="check_line"></div></td></tr>
-                        <tr><td>Checked ABCDE</td><td><div class="check_line"></div></td></tr>
-                        <tr><td>Checked ABCDEF</td><td><div class="check_line"></div></td></tr>
-                        <tr><td>Checked ABCDEFG</td><td><div class="check_line"></div></td></tr>
-                        <tr><td>Checked ABCDEFGH</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>{{ 'customers:order_editor.checked' | t: { steps: 'A' } }}</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>{{ 'customers:order_editor.checked' | t: { steps: 'AB' } }}</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>{{ 'customers:order_editor.checked' | t: { steps: 'ABC' } }}</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>{{ 'customers:order_editor.checked' | t: { steps: 'ABCD' } }}</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>{{ 'customers:order_editor.checked' | t: { steps: 'ABCDE' } }}</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>{{ 'customers:order_editor.checked' | t: { steps: 'ABCDEF' } }}</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>{{ 'customers:order_editor.checked' | t: { steps: 'ABCDEFG' } }}</td><td><div class="check_line"></div></td></tr>
+                        <tr><td>{{ 'customers:order_editor.checked' | t: { steps: 'ABCDEFGH' } }}</td><td><div class="check_line"></div></td></tr>
                     </table>
                 </div>
             </div>

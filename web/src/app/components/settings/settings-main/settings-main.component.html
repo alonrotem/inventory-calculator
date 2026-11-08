@@ -3,27 +3,27 @@
 <div class="row justify-content-center">
     <div class="col-12 col-md-8">
       <div class="settings-title">
-        <h3><fa-icon [icon]="faGears"></fa-icon> System settings</h3>
+        <h3><fa-icon [icon]="faGears"></fa-icon> {{ 'settings:main.title' | t }}</h3>
         <button #btn_save class="btn btn-success" *ngIf="pending_changes" (click)="save_settings()">
           <fa-icon [icon]="faSave" class="action-icon me-2"></fa-icon>
-          <span>Save changes</span>
+          <span>{{ 'common:dialogs.save_changes' | t }}</span>
         </button>
       </div>
   <ul class="nav nav-tabs">
     <li class="nav-item">
-      <a [ngClass]="{'nav-link': true, 'active': (currentPage == settingsPage.alerts)}" aria-current="page" (click)="setPage(settingsPage.alerts)">Alerts</a>
+      <a [ngClass]="{'nav-link': true, 'active': (currentPage == settingsPage.alerts)}" aria-current="page" (click)="setPage(settingsPage.alerts)">{{ 'settings:main.tab_alerts' | t }}</a>
     </li>
     <li class="nav-item">
-      <a  [ngClass]="{'nav-link': true, 'active': (currentPage == settingsPage.notifications)}" (click)="setPage(settingsPage.notifications)">Notifications</a>
+      <a  [ngClass]="{'nav-link': true, 'active': (currentPage == settingsPage.notifications)}" (click)="setPage(settingsPage.notifications)">{{ 'settings:main.tab_notifications' | t }}</a>
     </li>
     <li class="nav-item">
-      <a  [ngClass]="{'nav-link': true, 'active': (currentPage == settingsPage.ui)}" (click)="setPage(settingsPage.ui)">User Interface</a>
+      <a  [ngClass]="{'nav-link': true, 'active': (currentPage == settingsPage.ui)}" (click)="setPage(settingsPage.ui)">{{ 'settings:main.tab_ui' | t }}</a>
     </li>
     <li class="nav-item">
-      <a [ngClass]="{'nav-link': true, 'active': (currentPage == settingsPage.backup)}" (click)="setPage(settingsPage.backup)">Backup</a>
+      <a [ngClass]="{'nav-link': true, 'active': (currentPage == settingsPage.backup)}" (click)="setPage(settingsPage.backup)">{{ 'settings:main.tab_backup' | t }}</a>
     </li>
     <li class="nav-item">
-      <a [ngClass]="{'nav-link': true, 'active': (currentPage == settingsPage.system_logs)}" (click)="setPage(settingsPage.system_logs)">System logs</a>
+      <a [ngClass]="{'nav-link': true, 'active': (currentPage == settingsPage.system_logs)}" (click)="setPage(settingsPage.system_logs)">{{ 'settings:main.tab_logs' | t }}</a>
     </li>    
   </ul>
   <div class="settings-contents">

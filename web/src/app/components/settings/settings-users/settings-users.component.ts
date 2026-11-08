@@ -16,11 +16,12 @@ import { FaIconComponent, IconDefinition } from '@fortawesome/angular-fontawesom
 import { faEnvelope, faFlask } from '@fortawesome/free-solid-svg-icons';
 import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.component";
 import { SettingsUserInviteFormComponent } from "../settings-user-invite-form/settings-user-invite-form.component";
+import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-settings-users',
   standalone: true,
-  imports: [UserTabsComponent, PageLoadingComponent, DecimalPipe, NgFor, NgIf, RouterLink, PaginatorComponent, DateStrPipe, FaIconComponent, ModalDialogComponent, SettingsUserInviteFormComponent],
+  imports: [TranslatePipe, TranslateEnumPipe, UserTabsComponent, PageLoadingComponent, DecimalPipe, NgFor, NgIf, RouterLink, PaginatorComponent, DateStrPipe, FaIconComponent, ModalDialogComponent, SettingsUserInviteFormComponent],
   templateUrl: './settings-users.component.html',
   styleUrl: './settings-users.component.scss'
 })

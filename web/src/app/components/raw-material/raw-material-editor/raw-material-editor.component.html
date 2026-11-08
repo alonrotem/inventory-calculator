@@ -17,7 +17,7 @@
 <app-modal-dialog 
     #purchase_editor
     [modalSize]="'lg'"
-    [btnCancelText]="'Cancel bank changes'"
+    [btnCancelText]="'raw_materials:editor.cancel_bank_changes' | t"
     [btnCancelClass]="'btn-warning'"
     [preventDismiss]="true"
     [canClose]="can_save_purchase"
@@ -29,8 +29,8 @@
         <div class="row">
             <div class="col">
                 <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="txtPurchaseVendor" placeholder="Vendor" [(ngModel)]="editedPurchase.vendor_name">
-                <label for="floatingInput">Vendor name</label>
+                <input type="text" class="form-control" id="txtPurchaseVendor" [placeholder]="'raw_materials:editor.vendor' | t" [(ngModel)]="editedPurchase.vendor_name">
+                <label for="floatingInput">{{ 'raw_materials:editor.vendor_name' | t }}</label>
                 </div>                
             </div>
             <div class="col">
@@ -40,7 +40,7 @@
                             <ng-option [value]="country.code">{{country.name}}</ng-option>
                         }
                     </ng-select>
-                    <label for="">Origin country</label>
+                    <label for="">{{ 'raw_materials:editor.origin_country' | t }}</label>
                 </div>                
             </div>
         </div>
@@ -52,24 +52,23 @@
                             [appNumericInput]="{ decimalPlaces: (editedPurchase.quantity_units=='kg')? 2: 0 }"
                             inputmode="decimal"
                             id="materialPurchaseQuantity" class="form-control" [class.is-invalid]="is_purchase_quantity_too_low" placeholder="0" [(ngModel)]="editedPurchase.purchase_quantity" name="materialPurchaseQuantity" #purchase_quantity="ngModel" (ngModelChange)="purchaseQuantityChanged($event)">
-                        <label for="materialPurchaseQuantity">Total quantity purchased</label>
+                        <label for="materialPurchaseQuantity">{{ 'raw_materials:editor.total_purchased' | t }}</label>
                     </div>
-                    <ng-select [(ngModel)]="editedPurchase.quantity_units" name="quantityunits" [clearable]="false" #rawMaterialItem.quantity_units="ngModel" [disabled]="lock_quantity_control" [appTooltip]="'<strong>🔒 Locked</strong><br/>Measurement type is locked for editing, as it is used by customer banks.<br/>You can top it up with the top-up button!'" [tooltipEnabled]="lock_quantity_control"><!---->
+                    <ng-select [(ngModel)]="editedPurchase.quantity_units" name="quantityunits" [clearable]="false" #rawMaterialItem.quantity_units="ngModel" [disabled]="lock_quantity_control" [appTooltip]="'<strong>🔒 ' + ('raw_materials:editor.locked_title' | t) + '</strong><br/>' + ('raw_materials:editor.locked_text' | t) + '<br/>' + ('raw_materials:editor.locked_hint' | t)" [tooltipEnabled]="lock_quantity_control"><!---->
                         @for (unit of quantity_units; track $index) {
-                            <ng-option [value]="unit">{{unit}}</ng-option>
+                            <ng-option [value]="unit">{{ unit | tenum: 'common:quantity_units.' }}</ng-option>
                         }
                     </ng-select>
                 </div>
                 <div class="text-danger small mt-1" *ngIf="is_purchase_quantity_too_low">
-                    The quantity can't be lower than {{ min_purchase_quantity | number: (editedPurchase.quantity_units == 'kg')? ('1.2-2') : ('1.0') }} {{ editedPurchase.quantity_units }}, which is already used by customer banks.
+                    {{ 'raw_materials:editor.too_low' | t: { quantity: (min_purchase_quantity | tquantity: editedPurchase.quantity_units) } }}
                 </div>
             </div>
             <div class="col" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; flex-wrap: nowrap;">
-                <span style="text-align: center;"><strong>Remaining:<br/></strong>
-                    {{ editedPurchase.remaining_quantity | number: (editedPurchase.quantity_units == 'kg')? ('1.2-2') : ('1.0') }} 
-                    {{ editedPurchase.quantity_units }}</span>
+                <span style="text-align: center;"><strong>{{ 'raw_materials:editor.remaining' | t }}<br/></strong>
+{{ editedPurchase.remaining_quantity | tquantity: editedPurchase.quantity_units }}</span>
                 <span>
-                    <button class="btn btn-primary" style="font-size:12px;" (click)="openQuantityDialog()">+<br/>Top up!</button>
+                    <button class="btn btn-primary" style="font-size:12px;" (click)="openQuantityDialog()">+<br/>{{ 'raw_materials:quantity_dialog.top_up' | t }}</button>
                 </span>
             </div>            
         </div>
@@ -101,17 +100,17 @@
                     <input type="text" 
                         appNumericInput
                         inputmode="decimal" id="materialWeight" class="form-control" placeholder="0" [(ngModel)]="editedPurchase.price" name="price" #price="ngModel">
-                    <label for="materialWeight">Price</label>
+                    <label for="materialWeight">{{ 'raw_materials:editor.price' | t }}</label>
                 </div>
             </div> 
             <div class="text-danger" *ngIf="((price.touched || price.dirty) && price.value) && !currency.value">
-                Please select a currency for the price
+                {{ 'raw_materials:editor.currency_required' | t }}
             </div>                
             </div>
             <div class="col">
                 <div class="form-floating">
                 <input type="date" #purchasedAt class="form-control" placeholder="0" [ngModel]="editedPurchase.purchased_at | date: 'yyyy-MM-dd'" name="purchased_at">
-                <label for="purchasedAt">Purchased at</label>
+                <label for="purchasedAt">{{ 'raw_materials:editor.purchased_at' | t }}</label>
             </div>            
         </div>
 
@@ -120,14 +119,14 @@
             <div class="col col-12">
                 <div class="form-floating">
                     <input type="text" class="form-control" id="notes" [(ngModel)]="editedPurchase.notes" name="notes">
-                    <label for="notes">Notes</label>
+                    <label for="notes">{{ 'raw_materials:editor.notes' | t }}</label>
                 </div>
             </div>
         </div>
 <!--
         <div class="row mb-3">
             <div class="col">
-                <button class="btn btn-primary" (click)="openPurchaseBankEditor()"><fa-icon [icon]="faArrowRightArrowLeft"></fa-icon> Transfer to customer banks</button>
+                <button class="btn btn-primary" (click)="openPurchaseBankEditor()"><fa-icon [icon]="faArrowRightArrowLeft"></fa-icon> {{ 'raw_materials:editor.transfer_title' | t }}</button>
             </div>
         </div>
 
@@ -135,11 +134,11 @@
         <!-- border from here -->
         <div class="bank-editing-section">
         <h5>
-            <fa-icon [icon]="faArrowRightArrowLeft"></fa-icon> Transfer to customer banks
+            <fa-icon [icon]="faArrowRightArrowLeft"></fa-icon> {{ 'raw_materials:editor.transfer_title' | t }}
         </h5>
         <div class="row">
             <div class="col">
-                Click a bank below to edit it, or select a customer, to create a new bank
+                {{ 'raw_materials:editor.transfer_hint' | t }}
             </div>
         </div>
         <div class="row">
@@ -147,7 +146,7 @@
                 <div class="ng-autocomplete-wrapper">
                     <ng-autocomplete #customerAutocomplete
                         [data]="customer_names"
-                        placeholder="Customer name"
+                        [placeholder]="'raw_materials:editor.customer_placeholder' | t"
                         [itemTemplate]="itemTemplate"
                         [searchKeyword]="'name'"
                         (selected)="onCustomerChanged($event)"
@@ -167,18 +166,17 @@
             <div class="col">
                 <div class="form-floating">
                     <input type="text" appNumericInput inputmode="decimal" id="purchase_quantity" class="form-control" placeholder="0" [(ngModel)]="edited_bank.quantity" name="purchase_quantity" (keyup)="customerBankQuantityChanged(edited_bank.quantity)">
-                    <label for="purchase_quantity">Bank quantity</label>
+                    <label for="purchase_quantity">{{ 'raw_materials:editor.bank_quantity' | t }}</label>
                 </div>
                 <div class="text-danger" *ngIf="edited_bank.quantity < min_bank_quantity || edited_bank.quantity > max_bank_quantity">
-                    Quantity should be {{ min_bank_quantity }} - {{ max_bank_quantity }}
+                    {{ 'raw_materials:editor.bank_range' | t: { min: min_bank_quantity, max: max_bank_quantity } }}
                 </div>              
             </div>
             <div class="col" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; flex-wrap: nowrap;">
-                <span style="text-align: center;"><strong>Remaining:<br/></strong>
-                    {{ edited_bank.remaining_quantity | number: (editedPurchase.quantity_units == 'kg')? ('1.2-2') : ('1.0') }} 
-                    {{ editedPurchase.quantity_units }}</span>
+                <span style="text-align: center;"><strong>{{ 'raw_materials:editor.remaining' | t }}<br/></strong>
+{{ edited_bank.remaining_quantity | tquantity: editedPurchase.quantity_units }}</span>
                 <span>
-                    <button class="btn btn-primary" style="font-size:12px;" (click)="openQuantityDialog()">+<br/>Top up!</button>
+                    <button class="btn btn-primary" style="font-size:12px;" (click)="openQuantityDialog()">+<br/>{{ 'raw_materials:quantity_dialog.top_up' | t }}</button>
                 </span>
             </div>
         </div>
@@ -206,12 +204,12 @@
         <div class="row">
             <div class="col d-flex flex-row justify-content-center justify-content-around">
                 <button class="btn btn-success" [disabled]="!is_bank_saveable" (click)="save_bank_changes()">
-                    Update bank
-                </button>
+{{ 'raw_materials:editor.update_bank' | t }}
+</button>
 
                 <button class="btn btn-warning" [disabled]="!is_bank_cancellable" (click)="verify_cancellation_of_unsaved_changes()">
-                    Cancel bank changes
-                </button>
+{{ 'raw_materials:editor.cancel_bank_changes' | t }}
+</button>
             </div>
         </div>
         </div>
@@ -263,7 +261,7 @@
                             <ng-autocomplete 
                                 #rawMaterialAutoComplete
                                 [data]="raw_material_names"
-                                placeholder="Select a material or enter a new one*"
+                                [placeholder]="'raw_materials:editor.name_placeholder' | t"
                                 [itemTemplate]="itemTemplate"
                                 [(ngModel)]="rawMaterialItem.name"
                                 [className]="'form-control'"
@@ -279,27 +277,27 @@
                     </div>
 
                     <div class="text-danger" *ngIf="materialName.invalid && (materialName.touched || materialName.dirty)" > 
-                        <span *ngIf="materialName.errors?.['required']">Please enter a name for the raw material</span>
+                        <span *ngIf="materialName.errors?.['required']">{{ 'raw_materials:editor.name_required' | t }}</span>
                     </div> 
                 </div>
 
                 <div class="col-12 col-md-6">
                     <div class="floating-label-group always-float">
-                    <label>Color</label>
+                    <label>{{ 'raw_materials:editor.color' | t }}</label>
                         <ng-select [(ngModel)]="rawMaterialItem.color" name="color" [clearable]="false" #color="ngModel" [required]="true">
                             @for (color of colors; track $index) {
-                                <ng-option [value]="color"><span [className]="'color color-' + color.toLowerCase().replace(' ', '-')"></span> {{ color }}</ng-option>
+                                <ng-option [value]="color"><span [className]="'color color-' + color.toLowerCase().replace(' ', '-')"></span> {{ color | tenum: 'common:colors.' }}</ng-option>
                             }
                         </ng-select>
                     </div>
                     <div class="text-danger" *ngIf="((color.touched || color.dirty) && !color.value)">
-                        Please select a material color
+                        {{ 'raw_materials:editor.color_required' | t }}
                     </div>            
                 </div>
             </div>
 
             <div class="ms-3">
-                <span class="icon-history" *ngIf="rawMaterialItem.id!=0"  (click)="openHistoryDialog()" style="font-size: 23px; margin-left: 14px; cursor:pointer;" title="History records"></span>
+                <span class="icon-history" *ngIf="rawMaterialItem.id!=0"  (click)="openHistoryDialog()" style="font-size: 23px; margin-inline-start: 14px; cursor:pointer;" [attr.title]="'customers:bank.history' | t"></span>
             </div>
     </div>
     <!--/Autocomplete -->
@@ -308,16 +306,16 @@
         <div class="col">
             <div>
                 <button class="btn btn-primary" (click)="open_purchase_editor()">
-                    <fa-icon [icon]="faCartShopping"></fa-icon> Add purchase
+                    <fa-icon [icon]="faCartShopping"></fa-icon> {{ 'raw_materials:editor.add_purchase' | t }}
                 </button>
             </div>
             <table *ngIf="this.rawMaterialItem.purchases.length > 0" class="purchases-table table table-responsive table-striped table-hover">
                 <thead>
                     <tr>
-                        <th scope="col">Vendor</th>
-                        <th scope="col">Purchase quantity</th>
-                        <th scope="col">Purchase date</th>
-                        <th scope="col" class="text-center">Remove</th>
+                        <th scope="col">{{ 'raw_materials:editor.col_vendor' | t }}</th>
+                        <th scope="col">{{ 'raw_materials:editor.col_purchase_quantity' | t }}</th>
+                        <th scope="col">{{ 'raw_materials:editor.col_purchase_date' | t }}</th>
+                        <th scope="col" class="text-center">{{ 'raw_materials:editor.col_remove' | t }}</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -328,9 +326,8 @@
                             {{ (purchase.vendor_name)? purchase.vendor_name : '-' }}
                         </td>
                         <td>
-                            {{ purchase.purchase_quantity| number: ((purchase.quantity_units)? ('1.2-2'): ('1.0')) }} 
-                            {{ purchase.quantity_units }}
-                            ({{ purchase.remaining_quantity| number: ((purchase.quantity_units=='kg')? ('1.2-2'): ('1.0')) }} left)
+                            {{ purchase.purchase_quantity | tquantity: purchase.quantity_units }}
+{{ 'raw_materials:list.left' | t: { quantity: (purchase.remaining_quantity | tquantity: purchase.quantity_units) } }}
                         </td>
                         <td>
                             {{ purchase.purchased_at | dateStr}}
@@ -340,7 +337,7 @@
                                 <fa-icon [icon]="faTrashAlt"></fa-icon>
                             </span>
                             <span *ngIf="is_purchase_in_use(purchase.id)"
-                                [appTooltip]="'This purchase cannot be deleted,<br/>because one or more of its banks are used in customer orders'">
+                                [appTooltip]="('raw_materials:editor.in_use_1' | t) + '<br/>' + ('raw_materials:editor.in_use_2' | t)">
                                 <fa-icon style="color:var(--bs-gray)" [icon]="faTrashAlt"></fa-icon>
                             </span>
                         </td>
@@ -349,8 +346,8 @@
             </table>
 
             <div class="no-purchase-info" *ngIf="this.rawMaterialItem.purchases.length <= 0">
-                No purchases saved for this material.<br/>
-                Add a purchase, then you can add customer banks to it.
+                {{ 'raw_materials:editor.no_purchases' | t }}<br/>
+{{ 'raw_materials:editor.no_purchases_hint' | t }}
             </div>
         </div>
     </div>
@@ -373,7 +370,7 @@
         </div>
     </div>
 
-    <div *ngIf="rawMaterialItem.quantity_units=='kg' && rawMaterialItem.units_per_kg > 0" class="text-info" style="padding-left: calc(var(--bs-gutter-x) * 0.5);">
+    <div *ngIf="rawMaterialItem.quantity_units=='kg' && rawMaterialItem.units_per_kg > 0" class="text-info" style="padding-inline-start: calc(var(--bs-gutter-x) * 0.5);">
         Approx. {{ (rawMaterialItem.purchase_quantity * rawMaterialItem.units_per_kg) | number: '1.0-0' }} units in {{ rawMaterialItem.purchase_quantity  | number: '1.2-2' }} kg.
     </div>
 
@@ -398,11 +395,11 @@
                     <input type="text" 
                         appNumericInput
                         inputmode="decimal" id="materialWeight" class="form-control" placeholder="0" [(ngModel)]="rawMaterialItem.price" name="price" #price="ngModel">
-                    <label for="materialWeight">Price</label>
+                    <label for="materialWeight">{{ 'raw_materials:editor.price' | t }}</label>
                 </div>
             </div>
             <div class="text-danger" *ngIf="((price.touched || price.dirty) && price.value) && !currency.value">
-                Please select a currency for the price
+                {{ 'raw_materials:editor.currency_required' | t }}
             </div>
         </div>
         <div class="col col-12 col-md-4 mt-3 mt-md-0 mb-3 mb-md-0">
@@ -434,7 +431,7 @@
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" [(ngModel)]="rawMaterialItem.allow_shortening_babies_in_pairs" id="chkAllowShorteningInPairs" name="chkAllowShorteningInPairs" />
                 <label class="form-check-label" for="chkAllowShorteningInPairs">
-                    Allow shortening babies of this material in pairs (for selected wings)
+                    {{ 'raw_materials:editor.shorten_pairs' | t }}
                 </label>
             </div>
         </div>
@@ -445,7 +442,7 @@
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" [(ngModel)]="rawMaterialItem.is_usable_for_h_material" id="chk" name="chkIs_usable_for_h_material" />
                 <label class="form-check-label" for="chkIs_usable_for_h_material">
-                    Allow using this material as H material allocations
+                    {{ 'raw_materials:editor.use_as_h' | t }}
                 </label>
             </div>
         </div>
@@ -477,19 +474,19 @@
             <div class="col-12 d-flex justify-content-center {{ this.is_new_material? 'col-md-6':'col-md-4' }}">
                 <button class="btn btn-warning" (click)="gotoMaterialsList()">
                     <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>
-                    <div>Back</div>
+                    <div>{{ 'common:actions.back' | t }}</div>
                 </button>
             </div>
             <div class="col-12 d-flex justify-content-center {{ this.is_new_material? 'col-md-6':'col-md-4' }}">
                 <button #btn_save class="btn btn-success" type="submit" (click)="save()"><!--[disabled]="!raw_material_form.form.valid"-->
                     <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
-                    <div>Save Material</div>
+                    <div>{{ 'raw_materials:editor.save' | t }}</div>
                 </button>
             </div>
             <div class="col-12 d-flex justify-content-center col-md-4" *ngIf="!this.is_new_material">
                 <button class="btn btn-danger" (click)="confirm_delete()">
                     <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>
-                    <div>Delete Material</div>
+                    <div>{{ 'raw_materials:editor.delete' | t }}</div>
                 </button>
             </div>
     </div>

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnInit, Output, QueryList, SimpleChanges, viewChild, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnInit, Output, QueryList, SimpleChanges, viewChild, ViewChild, ViewChildren, inject } from '@angular/core';
 import { Baby, Customer, Allocation_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, HistoryReportRecord, TransactionRecord, TransactionType, Wing, ShortWingsInfo, Bank_Allocation_Type, BasicUserInfoStatus } from '../../../../types';
 import { RouterModule } from '@angular/router';
 import { AsyncPipe, DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
@@ -24,11 +24,13 @@ import { UsersService } from '../../../services/users.service';
 import { HasPermissionPipe } from '../../../utils/pipes/has-permission.pipe';
 import { tap } from 'rxjs';
 import { SettingsService } from '../../../services/settings.service';
+import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-customer-banks-table',
   standalone: true,
-  imports: [RouterModule, NgFor, FilterPipe, NgIf, FaIconComponent, NgClass,
+  imports: [TranslatePipe, TranslateEnumPipe, RouterModule, NgFor, FilterPipe, NgIf, FaIconComponent, NgClass,
     DecimalPipe, ConfirmationDialogComponent, BankAllocationDialogComponent,
     BabyEditorDialogComponent, SortPipe, BankHistoryDialogComponent, AllocationPickerComponent,
     SumPipe, OrderAdvisorComponent, FormsModule, NumericInputDirective, AsyncPipe, HasPermissionPipe],
@@ -36,6 +38,8 @@ import { SettingsService } from '../../../services/settings.service';
   styleUrl: './customer-banks-table.component.scss'
 })
 export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnChanges {
+  private translation = inject(TranslationService);
+
   @Input() customer: Customer = {
     id: 0, name: '', business_name: '', email: '', phone: '', tax_id: '',
     created_at: new Date(), updated_at: new Date(), created_by: 0, updated_by: 0,
@@ -202,7 +206,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     this.babies_picker.dialogWrapper.close.subscribe(() => {  this.babies_picker_closed.emit(); });
     this.babies_picker.dialogWrapper.cancel.subscribe(() => {  this.babies_picker_closed.emit(); });
 
-    this.allocation_dialog.dialogWrapper.modalTitle = "Manage allocation";
+    this.allocation_dialog.dialogWrapper.modalTitle = this.translation.t('customers:bank.dialogs.manage_allocation');
 
     //test
     
@@ -276,10 +280,10 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
             this.banks_baby_allocations = [...data["customer"]["banks_baby_allocations"]];
             this.babies = [... data["customer"]["babies"]];
             this.unsaved_changes = false;
-            this.toastService.showSuccess("Saved successfully");
+            this.toastService.showSuccess(this.translation.t('common:status.saved'));
             this.customer_updated.emit(this.customer);
           },
-          error:(error) => { this.toastService.showError("Error saving pending changes"); }
+          error:(error) => { this.toastService.showError(this.translation.t('customers:bank.toasts.pending_save_failed')); }
         });        
 
   }
@@ -293,10 +297,10 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
       this.pendingAllocationIdAction = allocationId;
 
       const confirmation = await this.confirm_action.open_with_message({
-        modalTitle: "Delete confirmation",
-        modalText: "Are you sure you wish to delete this allocation?<br/>All its babies will be removed too!",
+        modalTitle: this.translation.t('customers:bank.dialogs.delete_title'),
+        modalText: this.translation.t('customers:bank.dialogs.delete_text') + '<br/>' + this.translation.t('customers:bank.dialogs.delete_note'),
         btnYesIcon: this.faTrashCan,
-        btnYesText: "Delete",
+        btnYesText: this.translation.t('common:actions.delete'),
         btnYesClass: "btn-danger"
       });
 
@@ -395,9 +399,9 @@ recalculateBank(){
       if(this.bank.remaining_quantity <= 0 && !this.userInfo?.is_demo_customer) {
 
      await this.confirm_action.open_with_message({
-          modalTitle: "Not enough material in the bank!",
-          modalText: "Not enough remaining material to allocate for work.<br/>Please request more material!",
-          btnYesText: "I see...",
+          modalTitle: this.translation.t('customers:bank.dialogs.no_material_title'),
+          modalText: this.translation.t('customers:bank.dialogs.no_material_text') + '<br/>' + this.translation.t('customers:bank.dialogs.no_material_note'),
+          btnYesText: this.translation.t('customers:bank.dialogs.no_material_ok'),
           btnYesClass: "btn btn-warning m-auto",
           btnNoClass: "d-none",
           dialogIcon: this.faTriangleExclamation
@@ -409,7 +413,7 @@ recalculateBank(){
         this.allocation_dialog.MaxQuantity = this.bank.remaining_quantity;
       }
     }
-    this.allocation_dialog.dialogWrapper.modalTitle = (allocation_id == -999)? "Create Allocation" : "Manage Allocation";
+    this.allocation_dialog.dialogWrapper.modalTitle = (allocation_id == -999)? this.translation.t('customers:bank.dialogs.create_allocation') : this.translation.t('customers:bank.dialogs.manage_allocation');
     this.allocation_dialog.isNew = (allocation_id == -999);
     this.allocation_dialog.QuantityInBank = this.bank.quantity;
     this.allocation_dialog.RemainingInBank = this.bank.remaining_quantity;
@@ -544,13 +548,13 @@ recalculateBank(){
     let babiesToEdit: { length: number; quantity: number }[] = [];
     this.babies_picker.dialogWrapper.btnSaveIcon = faSave;
     this.babies_picker.dialogWrapper.btnSaveClass = "btn-success";
-    this.babies_picker.dialogWrapper.btnCancelText = "Cancel";
+    this.babies_picker.dialogWrapper.btnCancelText = this.translation.t('common:actions.cancel');
     //if(baby_length > 0) {
     babiesToEdit = this.babies
       .filter(b => b.allocation_id == bank_allocation_id)
       .map(b => ({ length: b.length, quantity: b.quantity }));
     this.babies_picker.babyEditMode = false;
-    this.babies_picker.dialogWrapper.modalTitle = "Edit babies";
+    this.babies_picker.dialogWrapper.modalTitle = this.translation.t('customers:bank.dialogs.edit_babies');
     //}
     //else {
     //  this.babies_picker.babyEditMode = false;
@@ -639,7 +643,7 @@ recalculateBank(){
 
   openAllocationMergeDialog(sourceAllocationId: number){
     this.pendingMergedSourceAllocationID = sourceAllocationId;
-    this.allocation_picker.dialogWrapper.modalTitle = "<span class='icon-merge'></span> Merge Allocation";
+    this.allocation_picker.dialogWrapper.modalTitle = "<span class='icon-merge'></span> " + this.translation.t('customers:bank.dialogs.merge_title');
     this.allocation_picker.dialogWrapper.btnSaveClass = "d-none";
     this.allocation_picker.banks_baby_allocations = this.banks_baby_allocations.filter(a => a.id != sourceAllocationId);
     this.allocation_picker.open(sourceAllocationId);
@@ -661,10 +665,10 @@ recalculateBank(){
 />      
       */
       const confirmed = await this.confirm_action.open_with_message({
-        modalTitle: "Save first!",
-        modalText: "Save changes to the bank before selecting this allocation!",
+        modalTitle: this.translation.t('customers:bank.dialogs.save_first_title'),
+        modalText: this.translation.t('customers:bank.dialogs.save_first_text'),
         btnYesIcon: this.faSave,
-        btnYesText: "Save",
+        btnYesText: this.translation.t('common:actions.save'),
         btnYesClass: "btn-success",
         btnNoClass: "d-none"
       });
@@ -685,12 +689,12 @@ recalculateBank(){
             if(alloc){
               this.select_allocation_confirmed(alloc);
             }
-            this.toastService.showSuccess("Allocation saved successfully");
+            this.toastService.showSuccess(this.translation.t('customers:bank.toasts.allocation_saved'));
             this.allocation_picker.dialogWrapper.onCancel();
           },
           error:(error) => { 
             this.pendingAllocationIdAction = -999; 
-            this.toastService.showError("Failed to save allocation");
+            this.toastService.showError(this.translation.t('customers:bank.toasts.allocation_save_failed'));
             console.dir(error);
           }
         });

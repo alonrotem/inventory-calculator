@@ -5,11 +5,12 @@ import { UsersService } from '../../../services/users.service';
 import { Router } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowsRotate, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [ FormsModule, NgIf, FaIconComponent ],
+  imports: [TranslatePipe,  FormsModule, NgIf, FaIconComponent ],
   templateUrl: './signup.component.html',
   styleUrl: './signup.component.scss'
 })

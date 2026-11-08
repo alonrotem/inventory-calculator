@@ -13,29 +13,29 @@
             />
 
         <div class="settings-title">
-            <h3 class="mt-4 mb-4"><fa-icon [icon]="faEnvelope"></fa-icon> User Invites</h3>
+            <h3 class="mt-4 mb-4"><fa-icon [icon]="faEnvelope"></fa-icon> {{ 'users:invites.title' | t }}</h3>
         </div>
         <app-page-loading 
-            [loading_message]="'Loading user invites...'" 
+            [loading_message]="'users:invites.loading' | t" 
             [icon_size]="'3x'" 
             [hidden]="!loading" 
             [stretch_height]="true" />
 
 <div [hidden]="loading">
-  <a id="btnNewRaw" class="btn btn-warning" (click)="open_invite_form()"><fa-icon [icon]="faEnvelope"></fa-icon> Invite a user</a>
+  <a id="btnNewRaw" class="btn btn-warning" (click)="open_invite_form()"><fa-icon [icon]="faEnvelope"></fa-icon> {{ 'users:list.invite_user' | t }}</a>
 
-  <div class="infotitle mt-4" [hidden]="loading || this.invitations.length <= 0">Total: {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'user':'users' }}</div>
+  <div class="infotitle mt-4" [hidden]="loading || this.invitations.length <= 0">{{ 'users:invites.total' | t: { count: totalRecords } }}</div>
 
   <div [hidden]="loading || this.invitations.length == 0">
     <table class="table table-responsive table-striped table-hover">
         <thead>
         <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Email</th>
-            <th scope="col">Role</th>
-            <th scope="col">Status</th>
-            <th scope="col">Sent</th>
-            <th scope="col">Last update</th>
+            <th scope="col">{{ 'users:fields.name' | t }}</th>
+            <th scope="col">{{ 'users:fields.email' | t }}</th>
+            <th scope="col">{{ 'users:list.col_role' | t }}</th>
+            <th scope="col">{{ 'users:list.col_status' | t }}</th>
+            <th scope="col">{{ 'users:invites.col_sent' | t }}</th>
+            <th scope="col">{{ 'users:invites.col_last_update' | t }}</th>
         </tr>
         </thead>
         <tbody>
@@ -47,10 +47,10 @@
             <td>{{ invitation.firstname }} {{ invitation.lastname }}</td>
             <td>{{ invitation.email }}</td>
             <td class="capitalize">
-                <span *ngIf="invitation.is_demo_customer" class="text-warning"><fa-icon [icon]="faFlask"></fa-icon> Demo customer</span>
-                <span *ngIf="!invitation.is_demo_customer">{{ invitation.role }}</span>
+                <span *ngIf="invitation.is_demo_customer" class="text-warning"><fa-icon [icon]="faFlask"></fa-icon> {{ 'users:hints.demo_customer' | t }}</span>
+                <span *ngIf="!invitation.is_demo_customer">{{ $any(invitation.role?.name ?? invitation.role) | tenum: 'users:roles.' }}</span>
             </td>
-            <td [attr.class]="'capitalize status-' + invitation.invite_status">{{ invitation.invite_status }}</td>
+            <td [attr.class]="'capitalize status-' + invitation.invite_status">{{ invitation.invite_status | tenum: 'users:status.' }}</td>
             <td>{{ invitation.sent_date   | dateStr }}</td>
             <td>{{ invitation.last_update | dateStr }}</td>
         </tr>
@@ -61,8 +61,8 @@
     </div>
 
     <div [hidden]="loading || this.invitations.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
-        No invitations found.<br/>
-        Send an invite to new users in the system.
+        {{ 'users:invites.empty' | t }}<br/>
+{{ 'users:invites.empty_hint' | t }}
     </div>
     </div>
     </div>

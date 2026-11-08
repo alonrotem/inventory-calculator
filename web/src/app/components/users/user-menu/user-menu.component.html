@@ -5,14 +5,14 @@
   </a>
   <ul class="dropdown-menu dropdown-menu-end">
     <li class="user-names">{{ user.firstname + " " + user.lastname }}</li>
-    <li class="user-role text-secondary">{{ user.is_demo_customer? 'Demo customer': user.roles[0] }}</li>
+    <li class="user-role text-secondary">{{ user.is_demo_customer ? ('users:hints.demo_customer' | t) : (($any(user.roles[0])?.name ?? $any(user.roles[0])) | tenum: 'users:roles.') }}</li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" routerLink="profile" [ngClass]="(currentUrl.indexOf('/profile') >= 0) ? 'active': ''"><fa-icon [icon]="faAddressCard"></fa-icon> My profile</a></li>
-    <li><a class="dropdown-item" (click)="logout()" style="cursor: pointer;"><fa-icon [icon]="faArrowRightFromBracket"></fa-icon> Log out</a></li>
+    <li><a class="dropdown-item" routerLink="profile" [ngClass]="(currentUrl.indexOf('/profile') >= 0) ? 'active': ''"><fa-icon [icon]="faAddressCard"></fa-icon> {{ 'users:auth.profile' | t }}</a></li>
+    <li><a class="dropdown-item" (click)="logout()" style="cursor: pointer;"><fa-icon [icon]="faArrowRightFromBracket"></fa-icon> {{ 'users:auth.logout' | t }}</a></li>
   </ul>
 </div>
 <div class="nav-item" *ngIf="((!(user$ | async)) && (this.currentUrl.indexOf('/users/signin') < 0))">
-  <a class="nav-link" routerLink="/users/signin"><fa-icon [icon]="faRightToBracket"></fa-icon> Sign in</a>
+  <a class="nav-link" routerLink="/users/signin"><fa-icon [icon]="faRightToBracket"></fa-icon> {{ 'users:auth.sign_in' | t }}</a>
 </div>
 
 <!--
@@ -21,8 +21,8 @@
     <span>{{ initials }}</span>
   </a>
   <ul class="dropdown-menu dropdown-menu-end">
-    <li><a class="dropdown-item" routerLink="inventory/customers"><fa-icon [icon]="faAddressCard"></fa-icon> My profile</a></li>
-    <li><a class="dropdown-item" (click)="logout()"><fa-icon [icon]="faArrowRightFromBracket"></fa-icon> Log out</a></li>
+    <li><a class="dropdown-item" routerLink="inventory/customers"><fa-icon [icon]="faAddressCard"></fa-icon> {{ 'users:auth.profile' | t }}</a></li>
+    <li><a class="dropdown-item" (click)="logout()"><fa-icon [icon]="faArrowRightFromBracket"></fa-icon> {{ 'users:auth.logout' | t }}</a></li>
   </ul>
 </li> 
 

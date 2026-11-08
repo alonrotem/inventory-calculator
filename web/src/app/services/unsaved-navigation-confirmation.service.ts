@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { first } from 'rxjs/operators';
 import { StateService } from './state.service';
+import { TranslationService } from '../i18n/translation.service';
 import { UnsavedChangesDialogComponent } from '../components/common/unsaved-changes-dialog/unsaved-changes-dialog.component';
 
 @Injectable({ providedIn: 'root' })
@@ -12,7 +13,8 @@ import { UnsavedChangesDialogComponent } from '../components/common/unsaved-chan
 export class UnsavedNavigationConfirmationService {
 
   constructor(
-    private stateService: StateService
+    private stateService: StateService,
+    private translation: TranslationService
   ) {}
 
 
@@ -33,12 +35,12 @@ export class UnsavedNavigationConfirmationService {
       const sub_save_changes = confirmationDialog.save_click.pipe(first()).subscribe(() => {
         saveFn().subscribe({
           next: (result: any) => {
-            this.stateService.setState({ message: result?.message || 'Saved successfully.', isError: false });
+            this.stateService.setState({ message: result?.message || this.translation.t('common:unsaved.saved'), isError: false });
             observer.next(true);
             observer.complete();
           },
           error: () => {
-            this.stateService.setState({ message: 'Error during save', isError: true });
+            this.stateService.setState({ message: this.translation.t('common:unsaved.save_error'), isError: true });
             observer.next(false);
             observer.complete();
           }
@@ -48,7 +50,7 @@ export class UnsavedNavigationConfirmationService {
         .pipe() // take the first result only
         .subscribe(() => {
           //console.log("discard");
-          this.stateService.setState({ message: "Changes discarded", isError: false });
+          this.stateService.setState({ message: this.translation.t('common:unsaved.discarded'), isError: false });
           observer.next(true);
         }); 
 

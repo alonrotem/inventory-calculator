@@ -2,3 +2,9 @@ nav
 {
     margin-top: 40px;
 }
+
+// the previous / next arrows point the other way in right-to-left languages
+:host-context([dir=rtl]) .page-link span[aria-hidden] {
+    display: inline-block;
+    transform: scaleX(-1);
+}

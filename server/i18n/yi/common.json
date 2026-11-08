@@ -1,0 +1,124 @@
+{
+  "language": {
+    "label": "שפּראַך",
+    "switch_to": "ענדערן די שפּראַך צו {{language}}"
+  },
+  "nav": {
+    "raw_materials": "רוי־מאַטעריאַלן",
+    "customers": "קונדן",
+    "orders": "באַשטעלונגען",
+    "demo_customer": "דעמאָ־קונה",
+    "design": "דיזײַן",
+    "wings": "פֿליגלען",
+    "knives": "מעסערס",
+    "knife_editor": "מעסער־רעדאַקטאָר",
+    "system": "סיסטעם",
+    "settings": "איינשטעלונגען",
+    "users": "באַניצער"
+  },
+  "actions": {
+    "save": "אָפּהיטן",
+    "cancel": "אָפּזאָגן",
+    "delete": "אויסמעקן",
+    "edit": "רעדאַקטירן",
+    "add": "צולייגן",
+    "back": "צוריק",
+    "close": "פֿאַרמאַכן",
+    "search": "זוכן",
+    "yes": "יאָ",
+    "no": "נײן"
+  },
+  "dialogs": {
+    "confirm_title": "באַשטעטיקן",
+    "confirm_text": "זענט איר זיכער?",
+    "save_changes": "אָפּהיטן ענדערונגען",
+    "unsaved_title": "גייט איר שוין אַוועק?",
+    "unsaved_text": "ענדערונגען וואָס זענען נישט אָפּגעהיט וועלן פֿאַרלוירן ווערן אויב איר היט זיי נישט אָפּ איצט.",
+    "save_and_continue": "אָפּהיטן און פֿאָרזעצן",
+    "discard_changes": "אָפּווארפֿן ענדערונגען"
+  },
+  "save_bar": {
+    "message": "אָפּהיטן ענדערונגען איצט?"
+  },
+  "paginator": {
+    "label": "נאַוויגאַציע צווישן בלעטער",
+    "previous": "פֿריִערדיקער",
+    "next": "ווײַטער"
+  },
+  "picker": {
+    "add": "+ צולייגן",
+    "placeholder": "קלײַבט אויס אַ פּונקט",
+    "already_picked": "{{name}} איז שוין אויסגעקליבן"
+  },
+  "unsaved": {
+    "saved": "מיט הצלחה אָפּגעהיט.",
+    "save_error": "פֿעלער בײַם אָפּהיטן",
+    "discarded": "ענדערונגען אָפּגעוואָרפֿן",
+    "leave_confirm": "איר האָט ענדערונגען וואָס זענען נישט אָפּגעהיט. ווילט איר טאַקע אַוועקגיין?"
+  },
+  "status": {
+    "loading": "ס׳לאָדט זיך...",
+    "saved": "מיט הצלחה אָפּגעהיט",
+    "no_results": "גאָרנישט געפֿונען",
+    "loading_text": "לאָדט"
+  },
+  "units": {
+    "cm": "{{value, number(minimumFractionDigits: 0; maximumFractionDigits: 2)}} סמ",
+    "cm_fixed": "{{value, number(minimumFractionDigits: 2; maximumFractionDigits: 2)}} סמ",
+    "cm_symbol": "סמ",
+    "cm_1": "{{value, number(minimumFractionDigits: 1; maximumFractionDigits: 1)}} סמ"
+  },
+  "list": {
+    "total_one": "סך־הכּל: {{count, number}} פּונקט",
+    "total_other": "סך־הכּל: {{count, number}} פּונקטן"
+  },
+  "errors": {
+    "unexpected": "עפּעס איז פֿאַלש געגאַנגען, ביטע פּרוּווט נאָך אַ מאָל",
+    "not_found": "דער געבעטענער פּונקט איז נישט געפֿונען געוואָרן"
+  },
+  "quantity": {
+    "kg": "{{value, number(minimumFractionDigits: 2; maximumFractionDigits: 2)}} קג",
+    "units": "{{value, number(maximumFractionDigits: 0)}} יוניטס"
+  },
+  "quantity_units": {
+    "kg": "קג",
+    "units": "יוניטס"
+  },
+  "colors": {
+    "dark_brown": "טונקל ברוין",
+    "brown": "ברוין",
+    "light_brown": "העל ברוין",
+    "black": "שוואַרץ",
+    "natural": "נאַטירלעך"
+  },
+  "hamburger": {
+    "toggle": "ווײַזן אָדער באַהאַלטן דעם מעניו"
+  },
+  "image": {
+    "title": "צופּאַסן דאָס בילד",
+    "drag": "שלעפּט אַ בילד אָדער דריקט אונטן",
+    "no_picture": "קיין בילד נישטאָ",
+    "drag_file": "שלעפּט אַ טעקע אַהער",
+    "click_choose": "אָדער דריקט כּדי אויסצוקלײַבן אַ טעקע",
+    "browse": "בלעטערן",
+    "clear": "אויסרײניקן",
+    "load_failed": "מען האָט נישט געקענט לאָדן דאָס בילד",
+    "drop_image": "ביטע לאָזט אַראָפּ אַ בילד־טעקע"
+  },
+  "pages": {
+    "not_found_title": "דער פֿוקס באַהאַלט זיך!",
+    "not_found_text": "מען קען נישט געפֿינען די זײַט",
+    "not_found_hint": "(אפֿשר איז זי נאָך נישט צוגעלייגט געוואָרן)",
+    "forbidden": "איר האָט נישט קיין דערלויבעניש צו קומען צו דער זײַט.",
+    "go_home": "צוריק אַהיים!",
+    "home_reconstruction": "דער הויפּט־דאַשבאָרד ווערט איבערגעבויט"
+  },
+  "footer": {
+    "copyright": "קאָפּירעכט"
+  },
+  "capacity": {
+    "allocated": "צוגעטיילט",
+    "unallocated": "נישט צוגעטיילט",
+    "available": "פֿאַראַן"
+  }
+}

@@ -6,11 +6,12 @@ import { faArrowsRotate, faBasketShopping, faTrashCan, IconDefinition } from '@f
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { HasPermissionPipe } from '../../../utils/pipes/has-permission.pipe';
 import { UsersService } from '../../../services/users.service';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-summary-card',
   standalone: true,
-  imports: [ DecimalPipe, FaIconComponent, NgClass, HasPermissionPipe, AsyncPipe, NgIf ],
+  imports: [TranslatePipe,  DecimalPipe, FaIconComponent, NgClass, HasPermissionPipe, AsyncPipe, NgIf ],
   templateUrl: './summary-card.component.html',
   styleUrl: './summary-card.component.scss'
 })

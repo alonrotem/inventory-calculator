@@ -38,7 +38,7 @@ h3 {
 .crown-size {
     width: 50px;
     text-align: center;
-    margin-left: 10px;
+    margin-inline-start: 10px;
 }
 
 .crown-size-wrapper {
@@ -49,7 +49,7 @@ h3 {
     border:1px solid var(--bs-gray);
     border-radius: 10px;
     position:fixed;
-    right:0;
+    inset-inline-end:0;
     top: 50%;
     padding: 5px;
     cursor: pointer;

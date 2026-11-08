@@ -16,7 +16,7 @@
 
 .btn {
     min-width: 200px;
-    margin-right: 20px;
+    margin-inline-end: 20px;
 }
 
 .roles-select, .roles-select option {
@@ -24,7 +24,7 @@
 }
 
 .roles-select {
-    margin-left: 10px;
+    margin-inline-start: 10px;
     min-width: 200px;
 }
 
@@ -48,11 +48,11 @@
 }
 
 .horizontal div {
-    margin-right: 5px;
+    margin-inline-end: 5px;
 }
 
 input[type='radio'] {
-    margin-right: 10px;
+    margin-inline-end: 10px;
 }
 
 div[disabled='true'], .customer-selection-wrapper[disabled='true'] {

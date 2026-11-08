@@ -23,7 +23,7 @@
 .main-image-container-overlay {
     position: absolute;
     top: 0px;
-    left: 0px;
+    inset-inline-start: 0px;
     height: 100%;
     width: 100%;
 }
@@ -31,7 +31,7 @@
 .main-image-overlay-browse-icon {
     position: absolute;
     bottom: 0;
-    right: 6px;
+    inset-inline-end: 6px;
     display: none;
 }
 
@@ -177,7 +177,7 @@
 
   .zoom-value {
     min-width: 50px;
-    text-align: right;
+    text-align: end;
     font-weight: 600;
   }
 }

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { GlobalsService } from '../../../services/globals.service';
 import { KnivesService } from '../../../services/knives.service';
@@ -31,6 +31,8 @@ const WIDTH_DIMENSION_ROOM = 34;     // px under the knife for its width
  * When editable, babies can also be added (+ buttons), removed (x) and resized (mouse wheel);
  * those edits are emitted through babyEdited and are shown once the host updates the inputs (see applyBabyEdit).
  */
+import { TranslationService } from '../../../i18n/translation.service';
+
 @Component({
   selector: 'app-wing-diagram',
   standalone: true,
@@ -39,6 +41,8 @@ const WIDTH_DIMENSION_ROOM = 34;     // px under the knife for its width
   styleUrl: './wing-diagram.component.scss'
 })
 export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy {
+  private translation = inject(TranslationService);
+
 
   //inputs
   @Input() lefts: number[] = [];          // lengths in cm, L1 -> Ln
@@ -272,12 +276,12 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
     const buttons: AddButton[] = [];
     const regions = this.knife!.regions;
     const sides: { side: AddSide; region: KnifeRegion | undefined; title: string }[] = [
-      { side: 'L', region: regions.lefts, title: `Add L${(this.lefts?.length ?? 0) + 1}` },
-      { side: 'R', region: regions.rights, title: `Add R${(this.rights?.length ?? 0) + 1}` },
-      { side: 'C', region: regions.crown, title: 'Add a crown baby' },
+      { side: 'L', region: regions.lefts, title: this.translation.t('wings:diagram.add_left', { n: (this.lefts?.length ?? 0) + 1 }) },
+      { side: 'R', region: regions.rights, title: this.translation.t('wings:diagram.add_right', { n: (this.rights?.length ?? 0) + 1 }) },
+      { side: 'C', region: regions.crown, title: this.translation.t('wings:diagram.add_crown') },
     ];
     if (!this.top_length?.[0]) {
-      sides.push({ side: 'TOP', region: regions.top, title: 'Add a top' });
+      sides.push({ side: 'TOP', region: regions.top, title: this.translation.t('wings:diagram.add_top') });
     }
     const half = ADD_BUTTON_SIZE / 2 + 2;
     for (const { side, region, title } of sides) {
@@ -379,7 +383,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       ctx.fillStyle = this.color;
-      ctx.fillText('Knife width: ' + this.knifeWidth!.toFixed(2) + ' cm', (x1 + x2) / 2, y + 6);
+      ctx.fillText(this.translation.t('wings:diagram.knife_width', { value: this.translation.t('common:units.cm_fixed', { value: this.knifeWidth }) }), (x1 + x2) / 2, y + 6);
     }
   }
 
@@ -598,10 +602,10 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
   private tooltipHtml(baby: PreviewBaby): string {
     let title: string;
     if (baby.position == 'TOP') {
-      title = "<span class='icon-top'></span> Top";
+      title = "<span class='icon-top'></span> " + this.translation.t('wings:editor.top');
     }
     else if (baby.position.startsWith('C')) {
-      title = `<span class='icon-crown'></span> Crown (${baby.label.substring(1)})`;
+      title = "<span class='icon-crown'></span> " + this.translation.t('wings:diagram.tip_crown', { n: baby.label.substring(1) });
     }
     else if (baby.position.startsWith('L')) {
       title = `<span class='icon-feather-wing'></span> ${baby.position}`;
@@ -610,9 +614,9 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
       title = `<span class='icon-feather-wing-r'></span> ${baby.position}`;
     }
     const split = (baby.position == 'L1' && this.split_l1 > 1) ? ' x' + this.split_l1 : '';
-    let html = `<strong>${title}</strong>${split}<br/>${baby.length} cm`;
+    let html = `<strong>${title}</strong>${split}<br/>${this.translation.t('common:units.cm', { value: baby.length })}`;
     if (this.editable) {
-      html += `<div style="font-size: 10px; opacity: 0.7;">${this.onDelete ? 'Click to remove' : 'Scroll to resize, click to edit'}</div>`;
+      html += `<div style="font-size: 10px; opacity: 0.7;">${this.onDelete ? this.translation.t('wings:diagram.tip_remove') : this.translation.t('wings:diagram.tip_edit')}</div>`;
     }
     return html;
   }

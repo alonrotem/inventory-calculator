@@ -37,6 +37,7 @@ app.use(
     extended: true,
   })
 );
+app.use(require("./middleware/language"));
 
 // 1. Serve Angular static files
 app.use(config.hats_pictures_path, express.static(config.hatsUploadDir));
@@ -51,6 +52,7 @@ else {
 }
 
 // 2. API routes
+app.use("/i18n", require("./routes/i18n"));
 app.use("/raw_materials", require("./routes/raw_materials"));
 app.use("/currencies", require("./routes/currencies"));
 app.use("/countries", require("./routes/countries"));
@@ -74,6 +76,11 @@ app.get('*', (req, res) => {
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   console.error(err.message, err.stack);
+  // errors made with translatable_error (services/i18n.js) are answered in the language of the request
+  if (err.i18n) {
+    res.status(statusCode).json({ message: req.t(err.i18n.key, err.i18n.params), code: err.i18n.key, params: err.i18n.params });
+    return;
+  }
   res.status(statusCode).json({ message: err.message });
   return;
 });

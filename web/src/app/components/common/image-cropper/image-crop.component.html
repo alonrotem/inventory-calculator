@@ -1,8 +1,8 @@
 <app-modal-dialog 
     #image_adjust_modal
-    [modalTitle]="'Adjust image'"
+    [modalTitle]="'common:image.title' | t"
     [btnSaveClass]="'d-none'"
-    [btnCancelText]="'Close'"
+    [btnCancelText]="'common:actions.close' | t"
     [btnCancelClass]="'btn-primary'"
     (cancel)="newImageLoaded()">
     <div class="controls" *ngIf="imageChangedEvent">
@@ -50,13 +50,13 @@
 
 <div class="image-container" [class.dragging]="isDragging">
     <div class="instructions">
-        Drag a picture or click below
+        {{ 'common:image.drag' | t }}
     </div>
     <div class="main-image-container">
         <div *ngIf="!croppedImage" class="main-image-message main-image-container-overlay">
-            <span class="text-warning">No picture</span><br/>
-            Drag a file here<br/>
-            or click to choose a file
+            <span class="text-warning">{{ 'common:image.no_picture' | t }}</span><br/>
+            {{ 'common:image.drag_file' | t }}<br/>
+{{ 'common:image.click_choose' | t }}
         </div>
         <img class="main-image" [src]="croppedImage" />
         <input 
@@ -73,8 +73,8 @@
     </div>
 
     <div class="button-area">
-        <label for="fileInput" class="btn btn-primary"><fa-icon [icon]="faFolderOpen"></fa-icon> Browse</label>
-        <button  type="button" class="btn btn-danger" (click)="clearImage()" [disabled]="!croppedImage"><fa-icon [icon]="faBan"></fa-icon> Clear</button>
+        <label for="fileInput" class="btn btn-primary"><fa-icon [icon]="faFolderOpen"></fa-icon> {{ 'common:image.browse' | t }}</label>
+        <button  type="button" class="btn btn-danger" (click)="clearImage()" [disabled]="!croppedImage"><fa-icon [icon]="faBan"></fa-icon> {{ 'common:image.clear' | t }}</button>
     </div>
     <div>
     </div>

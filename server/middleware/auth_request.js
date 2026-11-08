@@ -23,19 +23,19 @@ const authenticateRequest = (requiredPermissions) => {
                 }
             }
             if(!token){
-                return res.status(401).send({ message: 'Authorization denied: No active session.' });
+                return res.status(401).send({ message: req.t('server:auth.no_session') });
             }
             const auth_token = await jwt.verify(token, process.env.AUTH_TOKEN_SECRET);
             req["auth_token"] = auth_token;
 
             if (!await users.doesUserHavePermissions(auth_token.id, requiredPermissions)) {
-                return res.status(403).json({ error: 'Forbidden: No permissions to access this url!' });
+                return res.status(403).json({ error: req.t('server:auth.forbidden') });
             }
             next();
         }
         catch (err) {
             // Send 401 Unauthorized response
-            return res.status(401).send({ message: 'Session invalid or expired. Please log in.' + err });
+            return res.status(401).send({ message: req.t('server:auth.session_invalid') + ' ' + err });
         }
     }
 }
@@ -52,7 +52,7 @@ const authenticateRequest_with_params = async(throw_error) => {
                 }
             }
             if(!token){
-                return res.status(401).send({ message: 'Authorization denied: No active session.' });
+                return res.status(401).send({ message: req.t('server:auth.no_session') });
             }
             const auth_token = await jwt.verify(token, process.env.AUTH_TOKEN_SECRET);
             req["auth_token"] = auth_token;
@@ -60,7 +60,7 @@ const authenticateRequest_with_params = async(throw_error) => {
         }
         catch (err) {
             // Send 401 Unauthorized response
-            return res.status(401).send({ message: 'Session invalid or expired. Please log in.' + err });
+            return res.status(401).send({ message: req.t('server:auth.session_invalid') + ' ' + err });
         }
     }
 };

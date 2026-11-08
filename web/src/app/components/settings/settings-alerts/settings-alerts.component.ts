@@ -3,11 +3,12 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from
 import { FormsModule, NgForm } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faPersonDigging, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-settings-alerts',
   standalone: true,
-  imports: [ NgIf, FormsModule, FaIconComponent ],
+  imports: [TranslatePipe,  NgIf, FormsModule, FaIconComponent ],
   templateUrl: './settings-alerts.component.html',
   styleUrl: './settings-alerts.component.scss'
 })

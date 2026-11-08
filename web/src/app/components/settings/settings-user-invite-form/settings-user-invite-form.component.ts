@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { AccountInviteDetails, AccountInviteStatus, nameIdPair } from '../../../../types';
 import { NgIf } from '@angular/common';
@@ -9,15 +9,19 @@ import { FaIconComponent } from "@fortawesome/angular-fontawesome";
 import { CustomerPickerComponent } from "../../customers/customer-picker/customer-picker.component";
 import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.component";
 import { ToastService } from '../../../services/toast.service';
+import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-settings-user-invite-form',
   standalone: true,
-  imports: [FormsModule, NgIf, NgSelectModule, FaIconComponent, CustomerPickerComponent, ModalDialogComponent],
+  imports: [TranslatePipe, TranslateEnumPipe, FormsModule, NgIf, NgSelectModule, FaIconComponent, CustomerPickerComponent, ModalDialogComponent],
   templateUrl: './settings-user-invite-form.component.html',
   styleUrl: './settings-user-invite-form.component.scss'
 })
 export class SettingsUserInviteFormComponent {
+  private translation = inject(TranslationService);
+
 
   invitation: AccountInviteDetails = {
     id: 0,
@@ -74,13 +78,13 @@ export class SettingsUserInviteFormComponent {
         //this.invite_user_form_dialog.close();
         this.reset();
         this.invite_user_form_dialog.onCancel();
-        this.toastService.showSuccess("Invitation sent successfully!");
+        this.toastService.showSuccess(this.translation.t('users:invite_form.sent'));
         this.sending = false;
       }, 
       error: (error: any) => {
-        this.error_message = error.error?.message || "Failed to send invitation. Please try again.";
+        this.error_message = error.error?.message || this.translation.t('users:invite_form.failed');
         console.log("Error sending invitation: " + error.error?.message);
-        this.toastService.showError("Failed to send invitation. Please try again.");
+        this.toastService.showError(this.translation.t('users:invite_form.failed'));
         this.sending = false;
       }
     });

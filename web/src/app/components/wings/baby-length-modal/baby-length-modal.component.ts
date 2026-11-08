@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, Output, ViewChild, inject } from '@angular/core';
 import { ModalDialog, WingBaby } from '../../../../types';
 import { BabiesLengthPickerComponent } from "../../babies/babies-length-picker/babies-length-picker.component";
 import { NgFor, NgIf } from '@angular/common';
@@ -6,11 +6,13 @@ import { FormsModule } from '@angular/forms';
 import { DialogClosingReason, ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 import { ModalContentDirective } from '../../common/directives/modal-content.directive';
 import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor.token';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-baby-length-modal',
   standalone: true,
-  imports: [BabiesLengthPickerComponent, NgFor, NgIf, FormsModule, ModalDialogComponent, ModalContentDirective],
+  imports: [TranslatePipe, BabiesLengthPickerComponent, NgFor, NgIf, FormsModule, ModalDialogComponent, ModalContentDirective],
   templateUrl: './baby-length-modal.component.html',
   styleUrl: './baby-length-modal.component.scss',
   providers: [
@@ -21,6 +23,8 @@ import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor
   ]
 })
 export class BabyLengthModalComponent implements ModalContentDirective, ModalDialog, AfterViewInit {
+  private translation = inject(TranslationService);
+
 
   @ViewChild("dialogWrapper") dialogWrapper!: ModalDialogComponent | null;
 
@@ -49,7 +53,7 @@ export class BabyLengthModalComponent implements ModalContentDirective, ModalDia
   }
 
   ngAfterViewInit(): void {
-    this.dialogWrapper!.btnCancelText = "Cancel";
+    this.dialogWrapper!.btnCancelText = this.translation.t('common:actions.cancel');
     this.dialogWrapper!.cancel.subscribe({next: () => {
       if(this.object_changed) {
         //restore the original object

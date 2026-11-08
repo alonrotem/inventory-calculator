@@ -4,9 +4,9 @@
         <div 
             (click)="setLength(current_length.length)" 
             [className]="((this.selected_lengths.includes(Number(current_length.length)))? 'length-selector-box selected-length' :'length-selector-box')">
-            {{ current_length.length | number : '1.1-1' }} {{ this.units }}
+            {{ 'common:units.cm_1' | t: { value: current_length.length } }}
             <div [hidden]="!show_counts" class="text-secondary length-count">{{ current_length.count | number: '1.0-0' }}</div>
         </div>
 }
 </div>
-<div class="text-danger" *ngIf="isLengthInvalid()">Please select the length</div>
+<div class="text-danger" *ngIf="isLengthInvalid()">{{ 'wings:length_picker.invalid' | t }}</div>

@@ -29,6 +29,8 @@
             "assets": [
               "src/site.webmanifest",
               "src/assets",
+              { "glob": "bootstrap.min.css", "input": "node_modules/bootstrap/dist/css", "output": "/assets/bootstrap" },
+              { "glob": "bootstrap.rtl.min.css", "input": "node_modules/bootstrap/dist/css", "output": "/assets/bootstrap" },
               "src/assets/favicon-32x32.png",
               "src/assets/favicon-16x16.png",
               "src/assets/apple-touch-icon.png",
@@ -37,7 +39,6 @@
 
             ],
             "styles": [
-              "node_modules/bootstrap/scss/bootstrap.scss",
               "node_modules/@ng-select/ng-select/themes/default.theme.css",
               "src/styles.scss",
               "src/assets/icomoon/style.css",

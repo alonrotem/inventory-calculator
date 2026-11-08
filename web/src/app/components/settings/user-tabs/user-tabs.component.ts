@@ -6,11 +6,12 @@ export enum ActivePage {
   AccountRequests,
   AccountInvites
 }
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-user-tabs',
   standalone: true,
-  imports: [ NgClass ],
+  imports: [TranslatePipe,  NgClass ],
   templateUrl: './user-tabs.component.html',
   styleUrl: './user-tabs.component.scss'
 })

@@ -31,13 +31,13 @@
 .babies-table th:nth-child(1), 
 .babies-table th:nth-child(4),
 .babies-table .th-title  {
-    border-left: 1px solid var(--bs-warning);
+    border-inline-start: 1px solid var(--bs-warning);
 }
 .babies-table td:nth-child(6),
 .babies-table th:nth-child(6),
 .babies-table tr:last-child td:last-child,
 .babies-table .th-title {
-    border-right: 1px solid var(--bs-warning);
+    border-inline-end: 1px solid var(--bs-warning);
 }
 
 .babies-table .th-title {
@@ -47,7 +47,7 @@
 }
 
 .table-message {
-  border-right: 1px solid var(--bs-warning);
+  border-inline-end: 1px solid var(--bs-warning);
   border-bottom: 1px solid var(--bs-warning);
 }
 .table-message div {
@@ -175,7 +175,7 @@
 }
 
 .toolbar .btn {
-  margin-right: 10px;
+  margin-inline-end: 10px;
   width: 80px;
 }
 
@@ -221,7 +221,7 @@ datalist {
 }
 
 .order-notes .form-check, .order-notes input[type="date"] {
-  margin-left: 15px;
+  margin-inline-start: 15px;
 }
 
 .h-material-analysis {
@@ -257,7 +257,7 @@ datalist {
 }
 
 .option-table .cell:not(:first-child) {
-  border-left: 1px solid var(--bs-body-color);
+  border-inline-start: 1px solid var(--bs-body-color);
 }
 
 /*

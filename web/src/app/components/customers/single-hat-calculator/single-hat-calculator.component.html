@@ -17,8 +17,8 @@
 
 <app-modal-dialog 
   #crown_editor_dialog
-  [modalTitle]="'Edit crown'"
-  [btnSaveText]="'Close'"
+  [modalTitle]="'customers:calc.dialogs.edit_crown' | t"
+  [btnSaveText]="'common:actions.close' | t"
   [btnCancelClass]="'d-none'"
   [modalSize]="'l'">
     <app-crown-editor 
@@ -32,20 +32,20 @@
 
 <app-modal-dialog 
   #order_wing_adjustment
-  [modalTitle]="'Fine-tune your order'"
+  [modalTitle]="'customers:calc.dialogs.fine_tune' | t"
   [btnSaveIcon]="faBasketShopping"
-  [btnSaveText]="'Place order!'"
+  [btnSaveText]="'customers:calc.dialogs.place_order' | t"
   [btnSaveClass]="(is_hat_tentative || max_number_of_wings_in_all_allocations > 0)? 'btn-success' : 'd-none'"
-  [btnCancelText]="(is_hat_tentative || max_number_of_wings_in_all_allocations > 0)? 'Cancel': 'Close'"
+  [btnCancelText]="(is_hat_tentative || max_number_of_wings_in_all_allocations > 0)? ('common:actions.cancel' | t): ('common:actions.close' | t)"
   [modalSize]="'xl'">
   <div class="order_adjustment_dialog" *ngIf="!is_hat_tentative && max_number_of_wings_in_all_allocations <= 0">
-    You do not have sufficient wings to produce hats!
+    {{ 'customers:calc.adjust.not_enough_wings' | t }}
   </div>
   <div class="order_adjustment_dialog" *ngIf="is_hat_tentative || max_number_of_wings_in_all_allocations > 0">
     
     <div [hidden]="is_hat_tentative">
-      <div>You can produce a total of {{ max_number_of_wings_in_all_allocations }} wings with your allocations</div>
-      <div>In all hats, you are now using {{ allWingsInOrder }} wings</div>
+      <div>{{ 'customers:calc.adjust.can_produce' | t: { count: max_number_of_wings_in_all_allocations } }}</div>
+      <div>{{ 'customers:calc.adjust.using' | t: { count: allWingsInOrder } }}</div>
       <div class="d-flex flex-row align-items-center" style="margin: 15px 0px;">
         <div>0</div>
         <div class="progress" style="flex-grow:1; margin: 0px 15px;">    
@@ -58,17 +58,17 @@
       </div>
     </div>
     <div class="order-notes" [hidden]="!is_hat_tentative">
-      <fa-icon [icon]="faTriangleExclamation" class="text-warning"></fa-icon> This order is marked as tentative
+      <fa-icon [icon]="faTriangleExclamation" class="text-warning"></fa-icon> {{ 'customers:calc.adjust.tentative' | t }}
     </div>
 
     <table class="table table-responsive">
-      <th>Hat in order</th>
-      <th class="text-center">Number of wings</th>
-      <th class="text-center">Babies per hat</th>
-      <th class="text-center" style="white-space: nowrap; width: 250px;">Customer</th>
-      <th>Kippa size</th>
+      <th>{{ 'customers:calc.adjust.col_hat' | t }}</th>
+      <th class="text-center">{{ 'customers:calc.adjust.col_wings' | t }}</th>
+      <th class="text-center">{{ 'customers:calc.adjust.col_babies' | t }}</th>
+      <th class="text-center" style="white-space: nowrap; width: 250px;">{{ 'customers:calc.adjust.col_customer' | t }}</th>
+      <th>{{ 'customers:calc.adjust.col_kippa' | t }}</th>
       <tr *ngFor="let order of this.customerHat.single_hat_orders; let i = index; trackBy: trackByOrder"><!--trackBy: trackByIndex-->
-        <td>Hat #{{ i+1 }}</td>
+        <td>{{ 'customers:calc.adjust.hat_n' | t: { n: i + 1 } }}</td>
         <td class="d-flex justify-content-center">
           <!--{{order.wing_quantity}}-->
           
@@ -93,7 +93,7 @@
              <div class="input-group-append" *ngIf="i==0">
               <button 
                 class="btn btn-outline-primary"
-                style="border-top-left-radius: 0; border-bottom-left-radius: 0;"
+                style="border-start-start-radius: 0; border-end-start-radius: 0;"
                 type="button" (click)="duplicate_customer_name()"><!--[className]="'btn btn-primary ' + (i==0? '':'in') + 'visible'"-->
                 <fa-icon [icon]="faCopy"></fa-icon>
                 <fa-icon [icon]="faArrowDown"></fa-icon>
@@ -108,13 +108,13 @@
               *ngFor="let kippa of arr_kippa" 
               value="{{ kippa }}"
               >
-                {{ kippa  | number : '1.1-1' }} cm
+                {{ 'common:units.cm_1' | t: { value: (kippa) } }}
             </option>
           </select>
         -->
        <ng-select
           #select_kippa
-          placeholder="Kippa size"
+          [placeholder]="'customers:calc.kippa_placeholder' | t"
           [(ngModel)]="kippa_size"
           name="select_kippa"
           [clearable]="false"
@@ -125,7 +125,7 @@
             [value]="item.cm"
             [disabled]="item.disabled">
             <div  [ngClass]="{ 'option-table': true, 'option-2-col': true, 'no-pad':true, 'text-danger': item.disabled }">
-              <div class="cell">{{ item.cm | number:'1.2-2' }} cm</div>
+              <div class="cell">{{ 'common:units.cm_fixed' | t: { value: (item.cm) } }}</div>
               <div class="cell">{{ item.inches | number:'1.2-2' }}"</div>
             </div>
           </ng-option>
@@ -138,11 +138,11 @@
 
 <app-modal-dialog
     #advanced_wing_editor_dialog
-    [modalTitle]="'<span class=\'icon-feather-wing\'></span> Advanced wing editor'"
+    [modalTitle]="'<span class=\'icon-feather-wing\'></span> ' + ('customers:calc.dialogs.advanced_editor' | t)"
     [modalSize]="'xl'"
-    [btnCancelText]="'Cancel'"
+    [btnCancelText]="'common:actions.cancel' | t"
     [btnSaveClass]="'btn-success'"
-    [btnSaveText]="'Save changes'"
+    [btnSaveText]="'common:dialogs.save_changes' | t"
     [btnSaveIcon]="faSave"
     (confirm)="advanced_edit_confirmed()"
     (cancel)="revert_advanced_edit()"
@@ -165,10 +165,10 @@
     <div class="row">
       <div class="col" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-top: 13px;">
         <button class="btn btn-warning" [routerLink]="'/inventory/customer/editor'" [queryParams]="{ id: this.customer.id }">
-          <div><fa-icon [icon]="faArrowLeft"></fa-icon> Back to {{ customer.name }}'s page</div>
+          <div><fa-icon [icon]="faArrowLeft"></fa-icon> {{ 'customers:calc.back_to_customer' | t: { name: customer.name } }}</div>
         </button>
         <button *ngIf="!customer.is_demo_customer" class="btn btn-success" (click)="go_to_orders()">
-          <div><fa-icon [icon]="faBasketShopping"></fa-icon> Your orders</div>
+          <div><fa-icon [icon]="faBasketShopping"></fa-icon> {{ 'customers:calc.your_orders' | t }}</div>
         </button>
       </div>
     </div>
@@ -178,13 +178,13 @@
     <div class="row">
       <div class="col">
         <div style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; border: 1px solid; border-radius: 10px; margin: 20px 0px;padding: 20px;">
-        <div style="margin-right: 10px;">
-          Choose a wing design
+        <div style="margin-inline-end: 10px;">
+          {{ 'customers:advisor.choose_wing' | t }}
         </div>
-        <div style="margin-right: 10px;">
+        <div style="margin-inline-end: 10px;">
           <ng-select
             #wing_selector
-            placeholder="Select a wing"
+            [placeholder]="'customers:advisor.select_wing' | t"
             (change)="wing_selected(selected_wing_id)"
             (clear)="wing_cleared()"
             [items]="wings"
@@ -196,23 +196,23 @@
           <ng-template ng-label-tmp let-item="item">
             <!-- Customize the selected label here -->
             <span [className]="item.customer_id ? 'text-primary' : ''">
-              {{ item.name }} <span *ngIf="item.customer_id"> (private)</span>
+              {{ item.name }} <span *ngIf="item.customer_id"> {{ 'customers:advisor.private' | t }}</span>
             </span>
           </ng-template>
 
           <ng-template ng-option-tmp let-item="item">
             <!-- Customize the dropdown options here -->
             <span [className]="item.customer_id ? 'text-primary' : ''">
-              {{ item.name }} <span *ngIf="item.customer_id"> (private)</span>
+              {{ item.name }} <span *ngIf="item.customer_id"> {{ 'customers:advisor.private' | t }}</span>
             </span>
           </ng-template>
           </ng-select>
         </div>
-        <div *ngIf="is_wing_customized"style="margin-right: 10px;">
-          <span class="text-danger" style="margin-right: 10px;">* Wing customized</span>
+        <div *ngIf="is_wing_customized"style="margin-inline-end: 10px;">
+          <span class="text-danger" style="margin-inline-end: 10px;">{{ 'customers:calc.wing_customized' | t }}</span>
           <button class="btn btn-warning" (click)="confirm_reset()">
             <fa-icon [icon]="faArrowsRotate"></fa-icon>
-            Reset
+            {{ 'customers:calc.reset' | t }}
           </button>
         </div>
       </div>
@@ -231,11 +231,11 @@
           <!-- Wall allocation section -->
           <div class="hat-info-section">
             <div [hidden]="raw_material_names.length == 0">
-              <div><strong>Wall material:</strong></div>
+              <div><strong>{{ 'customers:calc.wall_material' | t }}</strong></div>
               <div class="ng-autocomplete">
                 <ng-select
                   #wall_material_selector
-                  placeholder="Wall material"
+                  [placeholder]="'customers:calc.wall_placeholder' | t"
                   (change)="wall_material_changed($event)"
                   (clear)="wall_material_cleared()"
                   [items]="raw_material_names_babies"
@@ -244,10 +244,10 @@
                   [(ngModel)]="customerHat.hat_material_id"        
                   >
                     <ng-template ng-label-tmp let-item="item">
-                        <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color }}</span>
+                        <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color | tenum: 'common:colors.' }}</span>
                     </ng-template>
                       <ng-template ng-option-tmp let-item="item" let-index="index">
-                          <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color }}</span>
+                          <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color | tenum: 'common:colors.' }}</span>
                       </ng-template>          
                 </ng-select>
               </div>
@@ -257,36 +257,35 @@
                     <fa-icon [icon]="faTriangleExclamation" class="text-warning"></fa-icon>
                   </div>
                   <div class="ms-2">
-                    You don't have banks assigned to you with the selected materials. This order will be sent as tentative.
+                    {{ 'customers:calc.tentative_no_banks' | t }}
                   </div>
                 </div>
               </div>
               <div [hidden]="is_hat_tentative">
                 <div class="sub-info-section">
-                  <strong>Material allocation:</strong>
+                  <strong>{{ 'customers:calc.material_allocation' | t }}</strong>
                 </div>
                 <div *ngIf="customerHat.hat_material_id">
                   <div>
                     <div *ngIf="wall_alocation" class="text-success">
-                      Allocation #{{ wall_alocation.id }}, {{ wall_alocation.quantity | number : '1.1-1' }} {{ wall_allocation_units }}
+                      {{ 'customers:calc.allocation_line' | t: { id: wall_alocation.id, quantity: wall_alocation.quantity, units: (wall_allocation_units | tenum: 'common:quantity_units.') } }}
                     </div>
                     <div *ngIf="!wall_alocation">
-                      <span class="text-danger">Choose an allocation</span>
+                      <span class="text-danger">{{ 'customers:calc.choose_allocation_error' | t }}</span>
                     </div>
                   </div>
                   <div class="section-btn-wrapper">
                     <button  
                       class="btn btn-success" 
-                      style="padding: 0px 11px 1px 5px;" 
+                      style="padding-block: 0px 1px; padding-inline: 5px 11px;" 
                       (click)="open_material_allocation_picker(customerHat.hat_material_id, 'wall')">
-                      <span class="icon-baby"></span>
-                      Choose allocation
+                      <span class="icon-baby"></span> {{ 'customers:calc.choose_allocation' | t }}
                     </button>
                   </div>
                 </div>
               </div>
               <div class="text-warning" *ngIf="raw_material_names_babies.length > 0 && customerHat.hat_material_id == null">
-                Choose a material to get started
+                {{ 'customers:calc.choose_material' | t }}
               </div>
               <!--
               <div *ngIf="raw_material_names_babies.length > 0 && customerHat.hat_material_id != null && num_of_allocations_with_wall_material <= 0">
@@ -296,25 +295,25 @@
             </div>
             <div *ngIf="raw_material_names.length == 0" class="text-danger d-flex flex-column align-items-center">
               <fa-icon [icon]="faTriangleExclamation" class="text-danger"></fa-icon>
-              <span class="text-center">No banks with raw materials assigned to this customer!</span>
+              <span class="text-center">{{ 'customers:calc.no_banks' | t }}</span>
             </div>
           </div>
           <!--/Wall allocation section -->
 
           <!-- Crown allocation section -->
           <div class="hat-info-section" [hidden]="raw_material_names.length == 0">
-            <div><strong>Crown material:</strong></div>
+            <div><strong>{{ 'customers:calc.crown_material' | t }}</strong></div>
           <div class="form-check">
             <input class="form-check-input" type="checkbox" [(ngModel)]="use_the_same_allocation_for_wall_and_crown"  id="chkHMaterial_crown_is_wall" (change)="chkCrown_allocation_is_wall_allocation_changed()">
             <label class="form-check-label" for="chkHMaterial_crown_is_wall">
-              Use the same allocation as wall
+              {{ 'customers:calc.same_as_wall' | t }}
             </label>
           </div>
           <div [hidden]="use_the_same_allocation_for_wall_and_crown">
             <div class="ng-autocomplete">
               <ng-select
                 #crown_material_selector
-                placeholder="Crown material"
+                [placeholder]="'customers:calc.crown_placeholder' | t"
                 (change)="crown_material_changed($event)"
                 (clear)="crown_material_cleared()"
                 [items]="raw_material_names_babies"
@@ -322,10 +321,10 @@
                 bindValue="id"
                 [(ngModel)]="customerHat.crown_material_id">
                   <ng-template ng-label-tmp let-item="item">
-                      <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color }}</span>
+                      <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color | tenum: 'common:colors.' }}</span>
                   </ng-template>
                     <ng-template ng-option-tmp let-item="item" let-index="index">
-                        <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color }}</span>
+                        <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color | tenum: 'common:colors.' }}</span>
                     </ng-template>          
               </ng-select>
             </div>
@@ -335,36 +334,35 @@
                   <fa-icon [icon]="faTriangleExclamation" class="text-warning"></fa-icon>
                 </div>
                 <div class="ms-2">
-                  You don't have banks assigned to you with the selected materials. This order will be sent as tentative.
+                  {{ 'customers:calc.tentative_no_banks' | t }}
                 </div>
               </div>
             </div>
             <div [hidden]="is_hat_tentative">
             <div class="sub-info-section">
-                <strong>Material allocation:</strong>
+                <strong>{{ 'customers:calc.material_allocation' | t }}</strong>
             </div>
             <div *ngIf="customerHat.crown_material_id">
               <div>
                 <div *ngIf="crown_allocation" class="text-success">
-                  Allocation #{{ crown_allocation.id }}, {{ crown_allocation.quantity | number : '1.1-1' }} {{ crown_allocation_units }}
+                  {{ 'customers:calc.allocation_line' | t: { id: crown_allocation.id, quantity: crown_allocation.quantity, units: (crown_allocation_units | tenum: 'common:quantity_units.') } }}
                 </div>
                 <div *ngIf="!crown_allocation">
-                  <span class="text-danger">Choose an allocation</span>
+                  <span class="text-danger">{{ 'customers:calc.choose_allocation_error' | t }}</span>
                 </div>
               </div>
               <div class="section-btn-wrapper">
                 <button  
                   class="btn btn-success" 
-                  style="padding: 0px 11px 1px 5px;" 
+                  style="padding-block: 0px 1px; padding-inline: 5px 11px;" 
                   (click)="open_material_allocation_picker(customerHat.crown_material_id, 'crown')">
-                  <span class="icon-baby"></span>
-                  Choose allocation
+                  <span class="icon-baby"></span> {{ 'customers:calc.choose_allocation' | t }}
                 </button>
               </div>
             </div>
           </div>
               <div class="text-warning" *ngIf="raw_material_names_babies.length > 0 && customerHat.crown_material_id == null">
-                Choose a material to get started
+                {{ 'customers:calc.choose_material' | t }}
               </div>
               <!--
               <div *ngIf="raw_material_names_babies.length > 0 && customerHat.crown_material_id != null && num_of_allocations_with_crown_material <= 0">
@@ -378,11 +376,11 @@
     <!-- Tails allocation section -->
      <!--================ L =================-->
     <div class="hat-info-section" [hidden]="raw_material_names.length == 0">
-      <div><strong>H material (L):</strong></div>
+      <div><strong>{{ 'customers:calc.h_l' | t }}</strong></div>
       <div class="ng-autocomplete">
         <ng-select
           #tails_l_material_selector
-          placeholder="H material (L)"
+          [placeholder]="'customers:calc.h_l_placeholder' | t"
           (change)="tails_material_changed($event, null)"
           (clear)="tails_material_cleared('l')"
           [items]="raw_material_names_tails"
@@ -390,10 +388,10 @@
           bindValue="id"
           [(ngModel)]="customerHat.tails_material_id_l">
             <ng-template ng-label-tmp let-item="item">
-                <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color }}</span>
+                <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color | tenum: 'common:colors.' }}</span>
             </ng-template>
               <ng-template ng-option-tmp let-item="item" let-index="index">
-                  <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color }}</span>
+                  <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color | tenum: 'common:colors.' }}</span>
               </ng-template>          
         </ng-select>
       </div>
@@ -403,36 +401,35 @@
             <fa-icon [icon]="faTriangleExclamation" class="text-warning"></fa-icon>
           </div>
           <div class="ms-2">
-            You don't have banks assigned to you with the selected materials. Left tails will be in overdraft.
+            {{ 'customers:calc.tails_no_banks_l' | t }}
           </div>
         </div>
       </div>
     <div [hidden]="is_hl_tentative">
       <div class="sub-info-section">
-          <strong>Material allocation:</strong>
+          <strong>{{ 'customers:calc.material_allocation' | t }}</strong>
       </div>
       <div *ngIf="customerHat.tails_material_id_l">
         <div>
           <div *ngIf="tails_allocation_l" class="text-success">
-            Allocation #{{ tails_allocation_l.id }}, {{ tails_allocation_l.tails_quantity | number : '1.1-1' }} {{ tails_allocation_units }} ({{tails_allocation_l.tails_quantity}} tails)
+            {{ 'customers:calc.tails_allocation_line' | t: { id: tails_allocation_l.id, quantity: tails_allocation_l.tails_quantity, units: (tails_allocation_units | tenum: 'common:quantity_units.'), tails: tails_allocation_l.tails_quantity } }}
           </div>
           <div *ngIf="!tails_allocation_l">
-            <span class="text-warning">Choose an allocation (optional)</span>
+            <span class="text-warning">{{ 'customers:calc.choose_allocation_optional' | t }}</span>
           </div>
         </div>
         <div class="section-btn-wrapper">
           <button  
             class="btn btn-success" 
-            style="padding: 0px 11px 1px 5px;" 
+            style="padding-block: 0px 1px; padding-inline: 5px 11px;" 
             (click)="open_material_allocation_picker(customerHat.tails_material_id_l, 'tails_l')">
-            <span class="icon-tails"></span>
-            Choose allocation
+            <span class="icon-tails"></span> {{ 'customers:calc.choose_allocation' | t }}
           </button>
         </div>
       </div>
     </div>
       <div class="text-warning" *ngIf="raw_material_names_tails.length > 0 && customerHat.tails_material_id_l == null">
-        Choose a material to get started
+        {{ 'customers:calc.choose_material' | t }}
       </div>
       <!--
       <div *ngIf="raw_material_names_tails.length > 0 && customerHat.tails_material_id != null && num_of_allocations_with_tails_material <= 0">
@@ -443,19 +440,19 @@
   <!--================/L =================-->
   <!--================ R =================-->
   <div class="hat-info-section" [hidden]="raw_material_names.length == 0">
-    <div><strong>H material (R):</strong></div>
+    <div><strong>{{ 'customers:calc.h_r' | t }}</strong></div>
 
     <div class="form-check">
       <input class="form-check-input" type="checkbox" [(ngModel)]="use_the_same_allocation_for_l_and_r_h_material"  id="chkHMaterial_L_is_R" (change)="use_the_same_allocation_for_l_and_r_h_material_changed()">
       <label class="form-check-label" for="chkHMaterial_L_is_R">
-        Use the same allocation as L tails
+        {{ 'customers:calc.same_as_l' | t }}
       </label>
     </div>
     <div [hidden]="use_the_same_allocation_for_l_and_r_h_material">
       <div class="ng-autocomplete">
         <ng-select
           #tails_r_material_selector
-          placeholder="H material (R)"
+          [placeholder]="'customers:calc.h_r_placeholder' | t"
           (change)="tails_material_changed(null, $event)"
           (clear)="tails_material_cleared('r')"
           [items]="raw_material_names_tails"
@@ -463,10 +460,10 @@
           bindValue="id"
           [(ngModel)]="customerHat.tails_material_id_r">
             <ng-template ng-label-tmp let-item="item">
-                <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color }}</span>
+                <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color | tenum: 'common:colors.' }}</span>
             </ng-template>
               <ng-template ng-option-tmp let-item="item" let-index="index">
-                  <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color }}</span>
+                  <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> <span [className]="(item.has_banks_for_current_customer)?'':'text-success'">{{item.name}} - {{ item.color | tenum: 'common:colors.' }}</span>
               </ng-template>          
         </ng-select>
       </div>
@@ -477,36 +474,35 @@
           <fa-icon [icon]="faTriangleExclamation" class="text-warning"></fa-icon>
         </div>
         <div class="ms-2">
-          You don't have banks assigned to you with the selected materials. Left tails will be in overdraft.
+          {{ 'customers:calc.tails_no_banks_r' | t }}
         </div>
       </div>
     </div>      
     <div [hidden]="is_hr_tentative">
       <div class="sub-info-section">
-          <strong>Material allocation:</strong>
+          <strong>{{ 'customers:calc.material_allocation' | t }}</strong>
       </div>
       <div *ngIf="customerHat.tails_material_id_r">
         <div>
           <div *ngIf="tails_allocation_r" class="text-success">
-            Allocation #{{ tails_allocation_r.id }}, {{ tails_allocation_r.tails_quantity | number : '1.1-1' }} {{ tails_allocation_units }} ({{tails_allocation_r.tails_quantity}} tails)
+            {{ 'customers:calc.tails_allocation_line' | t: { id: tails_allocation_r.id, quantity: tails_allocation_r.tails_quantity, units: (tails_allocation_units | tenum: 'common:quantity_units.'), tails: tails_allocation_r.tails_quantity } }}
           </div>
           <div *ngIf="!tails_allocation_r">
-            <span class="text-warning">Choose an allocation (optional)</span>
+            <span class="text-warning">{{ 'customers:calc.choose_allocation_optional' | t }}</span>
           </div>
         </div>
         <div class="section-btn-wrapper">
           <button  
             class="btn btn-success" 
-            style="padding: 0px 11px 1px 5px;" 
+            style="padding-block: 0px 1px; padding-inline: 5px 11px;" 
             (click)="open_material_allocation_picker(customerHat.tails_material_id_r, 'tails_r')">
-            <span class="icon-tails"></span>
-            Choose allocation
+            <span class="icon-tails"></span> {{ 'customers:calc.choose_allocation' | t }}
           </button>
         </div>
       </div>
     </div>
       <div class="text-warning" *ngIf="raw_material_names_tails.length > 0 && customerHat.tails_material_id_r == null">
-        Choose a material to get started
+        {{ 'customers:calc.choose_material' | t }}
       </div>
       <!--
       <div *ngIf="raw_material_names_tails.length > 0 && customerHat.tails_material_id != null && num_of_allocations_with_tails_material <= 0">
@@ -520,14 +516,14 @@
 
     <!-- Wing number picker -->
     <div class="hat-info-section" [hidden]="raw_material_names.length == 0">
-      <div><strong>Number of wings:</strong></div>
-      <div>{{ (customerHat.wing)? this.selected_wing_name : 'Loading wing' }} x <!--{{ customerHat.wing_quantity }}-->
+      <div><strong>{{ 'customers:calc.number_of_wings' | t }}</strong></div>
+      <div>{{ (customerHat.wing)? this.selected_wing_name : ('customers:calc.loading_wing' | t) }} x <!--{{ customerHat.wing_quantity }}-->
         
         <input type="number" [(ngModel)]="customerHat.wing_quantity" style="width: 70px; text-align: center;" (change)="num_of_wings_changed()" (keyup)="num_of_wings_changed()" min="1" />
       
       </div>
       <div style="font-size: 12px;">
-        Based on diameter {{ this.diameter_inches }}" and crown width {{ this.customerHat.wing.crown_width }} cm
+        {{ 'customers:calc.based_on' | t: { diameter: this.diameter_inches, crown: ('common:units.cm' | t: { value: this.customerHat.wing.crown_width }) } }}
       </div>
     </div>
     <!--/Wing number picker -->
@@ -539,7 +535,7 @@
   <div class="col-12 col-md-8">
     <div class="diagram-container">
       <div class="advanced-edit-wing">
-        <button class="btn btn-primary" (click)="open_wing_editor()"><span class="icon-feather-wing"></span> Advanced edit</button>
+        <button class="btn btn-primary" (click)="open_wing_editor()"><span class="icon-feather-wing"></span> {{ 'customers:calc.advanced_edit' | t }}</button>
       </div>
       <app-wing-diagram
           #diagram 
@@ -570,11 +566,11 @@
   <div class="col-12 col-md-6">
     <div class="hat-info-section">
 
-      <div style="margin-bottom: 15px;"><strong>Hat tweaks:</strong></div>
+      <div style="margin-bottom: 15px;"><strong>{{ 'customers:calc.tweaks' | t }}</strong></div>
       
       <div class="d-flex flex-row align-items-center">
-        <div style="min-width: 200px;"><fa-icon [icon]="faScissors" style="margin-right: 5px;"></fa-icon><label for="tempB">Shorten top by:</label> {{ customerHat.shorten_top_by | number : '1.1-1' }} cm<br /></div>
-        <div class="flex-grow-1" style="margin-left: 15px;">
+        <div style="min-width: 200px;"><fa-icon [icon]="faScissors" style="margin-inline-end: 5px;"></fa-icon><label for="tempB">{{ 'customers:calc.shorten_top' | t }}</label> {{ 'common:units.cm_1' | t: { value: (customerHat.shorten_top_by) } }}<br /></div>
+        <div class="flex-grow-1" style="margin-inline-start: 15px;">
           <input type="range" id="margin_top" name="margin_top" [(ngModel)]="customerHat.shorten_top_by" list="values" min="{{baby_margin_min}}" max="{{baby_margin_max}}" step="{{baby_margin_step}}" (change)="margins_changed()"/>
           <datalist id="values">
             <ng-container *ngFor="let margin_length of baby_margins_list">
@@ -585,8 +581,8 @@
       </div>
       
       <div class="d-flex flex-row align-items-center">
-        <div  style="min-width: 200px;"><fa-icon [icon]="faScissors" style="margin-right: 5px;"></fa-icon><label for="tempB">Shorten crown by:</label>  {{ customerHat.shorten_crown_by | number : '1.1-1' }} cm<br /></div>
-        <div class="flex-grow-1" style="margin-left: 15px;">
+        <div  style="min-width: 200px;"><fa-icon [icon]="faScissors" style="margin-inline-end: 5px;"></fa-icon><label for="tempB">{{ 'customers:calc.shorten_crown' | t }}</label>  {{ 'common:units.cm_1' | t: { value: (customerHat.shorten_crown_by) } }}<br /></div>
+        <div class="flex-grow-1" style="margin-inline-start: 15px;">
           <input type="range" id="margin_crown" name="margin_crown" [(ngModel)]="customerHat.shorten_crown_by" list="crown_values" min="{{baby_margin_min}}" max="{{baby_margin_max}}" step="{{baby_margin_step}}" (change)="margins_changed()" />
           <datalist id="crown_values">
             <ng-container *ngFor="let margin_length of baby_margins_list">
@@ -596,10 +592,7 @@
         </div>
       </div>
       <div class="text-warning">
-        According to material and wing, babies will be shortened
-        {{ (this.customerHat.wing != null &&
-          this.customerHat.wing.allow_shortening_babies_in_pairs &&
-          this.allow_shortening_material_babies_in_pairs)? 'in pairs' : 'individually' }}
+        {{ ((this.customerHat.wing != null && this.customerHat.wing.allow_shortening_babies_in_pairs && this.allow_shortening_material_babies_in_pairs) ? 'customers:calc.shorten_pairs' : 'customers:calc.shorten_individually') | t }}
       </div>
 
       <div><hr></div>
@@ -607,12 +600,12 @@
         <div class="form-check">
           <input class="form-check-input" type="checkbox" [(ngModel)]="customerHat.white_hair"  id="chkWhiteHair">
           <label class="form-check-label" for="chkWhiteHair">
-            White hair
+            {{ 'customers:calc.white_hair' | t }}
           </label>
         </div>
         <div class="form-floating">
-          <textarea class="form-control" placeholder="White hair notes" id="textWhiteHairNotes" [(ngModel)]="customerHat.white_hair_notes" [disabled]="!customerHat.white_hair"></textarea>
-          <label for="textWhiteHairNotes">White hair notes</label>
+          <textarea class="form-control" [placeholder]="'customers:calc.white_hair_notes' | t" id="textWhiteHairNotes" [(ngModel)]="customerHat.white_hair_notes" [disabled]="!customerHat.white_hair"></textarea>
+          <label for="textWhiteHairNotes">{{ 'customers:calc.white_hair_notes' | t }}</label>
         </div>        
       </div>
 
@@ -624,21 +617,21 @@
   <div class="col-12 col-md-6">
     <div class="hat-info-section">
 
-      <div style="margin-bottom: 15px;"><strong>Measurements:</strong></div>
+      <div style="margin-bottom: 15px;"><strong>{{ 'customers:calc.measurements' | t }}</strong></div>
       
       <!-- visible only if wing is selected -->
       <div [hidden]="(this.customerHat.wing == null || this.customerHat.wing.id <= 0)"> 
 
       <div *ngIf="arr_knives.length > 0" class="d-flex flex-row align-items-center measurement-row">
         <div class="d-flex flex-row align-items-center" style="min-width: 150px;">
-          <span class="icon-knife" style="font-size: 30px; margin-right: 10px;"></span>
-          <label for="tempB">Knife:</label>
+          <span class="icon-knife" style="font-size: 30px; margin-inline-end: 10px;"></span>
+          <label for="tempB">{{ 'customers:calc.knife' | t }}</label>
         </div>
-        <div class="flex-grow-1" style="margin-left: 15px;">
+        <div class="flex-grow-1" style="margin-inline-start: 15px;">
 
         <ng-select
           #knife_selector
-          placeholder="Hat knife"
+          [placeholder]="'customers:calc.knife_placeholder' | t"
           [ngModel]="customerHat.wing.knife"
           (ngModelChange)="knife_changed()"
           name="knife_selector"
@@ -647,7 +640,7 @@
           [searchable]="false">
           <ng-template ng-label-tmp let-item="item" let-search="searchTerm">
             <div class="option-table option-2-col">
-              <div class="cell">{{ item?.cm || customerHat.wing.knife | number:'1.2-2' }} cm</div>
+              <div class="cell">{{ 'common:units.cm_fixed' | t: { value: (item?.cm || customerHat.wing.knife) } }}</div>
               <div class="cell">{{ ((item?.cm || customerHat.wing.knife) * cm_to_inch)  | number:'1.2-2' }}"</div>
             </div>
           </ng-template>
@@ -656,7 +649,7 @@
             *ngFor="let item of arr_knives"
             [value]="item.cm">
             <div class="option-table option-2-col">
-              <div class="cell">{{ item.name ? item.name + ' - ' : '' }}{{ item.cm | number:'1.2-2' }} cm</div>
+              <div class="cell">{{ item.name ? item.name + ' - ' : '' }}{{ 'common:units.cm_fixed' | t: { value: (item.cm) } }}</div>
               <div class="cell">{{ (item.cm * cm_to_inch) | number:'1.2-2' }}"</div>
             </div>
           </ng-option>
@@ -668,14 +661,14 @@
 
       <div class="d-flex flex-row align-items-center measurement-row">
         <div style="min-width: 150px;" class="d-flex flex-row align-items-center">
-          <span class="icon-wing-size" style="font-size: 30px; margin-right: 10px;"></span>
-          <label for="tempB">Total height:</label>
+          <span class="icon-wing-size" style="font-size: 30px; margin-inline-end: 10px;"></span>
+          <label for="tempB">{{ 'customers:calc.total_height' | t }}</label>
         </div>
-        <div class="flex-grow-1" style="margin-left: 15px;">
+        <div class="flex-grow-1" style="margin-inline-start: 15px;">
 
         <ng-select
           #select_height
-          placeholder="Total height"
+          [placeholder]="'customers:calc.total_height_placeholder' | t"
           [(ngModel)]="wing_total_height"
           (ngModelChange)="height_changed($event.toString())"
           name="select_height"
@@ -687,7 +680,7 @@
             [value]="item.cm"
             [disabled]="item.disabled">
             <div  [ngClass]="{ 'option-table': true, 'option-2-col': true, 'text-danger': item.disabled }">
-              <div class="cell">{{ item.cm | number:'1.2-2' }} cm</div>
+              <div class="cell">{{ 'common:units.cm_fixed' | t: { value: (item.cm) } }}</div>
               <div class="cell">{{ item.inches | number:'1.2-2' }}"</div>
             </div>
           </ng-option>
@@ -698,24 +691,24 @@
 
       <div class="d-flex flex-row align-items-center measurement-row">
         <div class="d-flex flex-row align-items-center" style="min-width: 150px;">
-          <fa-icon [icon]="faRecordVinyl" style="margin-right: 10px;"></fa-icon>
-          <label for="tempB">Kippa size:</label>
+          <fa-icon [icon]="faRecordVinyl" style="margin-inline-end: 10px;"></fa-icon>
+          <label for="tempB">{{ 'customers:calc.kippa' | t }}</label>
         </div>
-        <div class="flex-grow-1" style="margin-left: 15px;">
+        <div class="flex-grow-1" style="margin-inline-start: 15px;">
         <!--
         <select class="form-select" [(ngModel)]="kippa_size" #select_kippa>
           <option 
             *ngFor="let kippa of arr_kippa" 
             value="{{ kippa }}" 
             >
-              {{ kippa  | number : '1.1-1' }} cm
+              {{ 'common:units.cm_1' | t: { value: (kippa) } }}
           </option>
         </select>
         -->
 
         <ng-select
           #select_kippa
-          placeholder="Kippa size"
+          [placeholder]="'customers:calc.kippa_placeholder' | t"
           [(ngModel)]="kippa_size"
           name="select_kippa"
           [clearable]="false"
@@ -726,7 +719,7 @@
             [value]="item.cm"
             [disabled]="item.disabled">
             <div  [ngClass]="{ 'option-table': true, 'option-2-col': true, 'text-danger': item.disabled }">
-              <div class="cell">{{ item.cm | number:'1.2-2' }} cm</div>
+              <div class="cell">{{ 'common:units.cm_fixed' | t: { value: (item.cm) } }}</div>
               <div class="cell">{{ item.inches | number:'1.2-2' }}"</div>
             </div>
           </ng-option>
@@ -736,14 +729,14 @@
 
       <div class="d-flex flex-row align-items-center measurement-row">
         <div class="d-flex flex-row align-items-center" style="min-width: 150px;">
-          <fa-icon [icon]="faRecordVinyl" style="margin-right: 10px;"></fa-icon>
-          <label for="tempB">Hat diameter:</label>
+          <fa-icon [icon]="faRecordVinyl" style="margin-inline-end: 10px;"></fa-icon>
+          <label for="tempB">{{ 'customers:calc.diameter' | t }}</label>
         </div>
-        <div class="flex-grow-1" style="margin-left: 15px;">
+        <div class="flex-grow-1" style="margin-inline-start: 15px;">
 
           <ng-select
             #diameter_selector
-            placeholder="Hat diameter"
+            [placeholder]="'customers:calc.diameter_placeholder' | t"
             [items]="arr_diameter"
             bindLabel="caption"
             bindValue="inches"
@@ -756,7 +749,7 @@
               <!-- Template for default/selected item (ng-label-tmp), and for items in the select list (ng-option-tmp) -->
               <ng-template ng-option-tmp ng-label-tmp let-item="item">
                 <div class="option-table option-2-col">
-                  <div class="cell">{{ item.cm | number : '1.2-2' }} cm</div>
+                  <div class="cell">{{ 'common:units.cm_fixed' | t: { value: (item.cm) } }}</div>
                   <div class="cell">{{ item.inches| number : '1.2-2'  }}"</div>
                   <!--<div class="cell d-none">Box: {{ item.box | number : '1.1-1' }}</div>-->
                 </div>
@@ -767,16 +760,16 @@
 
       <div class="d-flex flex-row align-items-center measurement-row">
         <div style="min-width: 150px;" class="d-flex flex-row align-items-center">
-          <fa-icon [icon]="faRuler" style="margin-right: 10px;"></fa-icon>
-          <label for="tempB">Mayler thickness:</label>
+          <fa-icon [icon]="faRuler" style="margin-inline-end: 10px;"></fa-icon>
+          <label for="tempB">{{ 'customers:calc.mayler' | t }}</label>
         </div>
-        <div class="flex-grow-1" style="margin-left: 15px;">
+        <div class="flex-grow-1" style="margin-inline-start: 15px;">
         <select class="form-select" [(ngModel)]="customerHat.mayler_width" #select_kippa>
           <option 
             *ngFor="let mayler of arr_mayler" 
             value="{{ mayler }}" 
             >
-              {{ mayler  | number : '1.2-2' }} cm
+              {{ 'common:units.cm_fixed' | t: { value: (mayler) } }}
           </option>
         </select>
         </div>
@@ -784,60 +777,60 @@
 
       <div class="d-flex flex-row align-items-center measurement-row">
         <div style="min-width: 150px;" class="d-flex flex-row align-items-center">
-          <fa-icon [icon]="faRuler" style="margin-right: 10px;"></fa-icon>
-          <label for="tempB">H tails (L):</label>
+          <fa-icon [icon]="faRuler" style="margin-inline-end: 10px;"></fa-icon>
+          <label for="tempB">{{ 'customers:calc.h_tails_l' | t }}</label>
         </div>
-        <div class="flex-grow-1" style="margin-left: 15px;">
+        <div class="flex-grow-1" style="margin-inline-start: 15px;">
           <select *ngIf="customerHat.tails_material_id_l" class="form-select" [(ngModel)]="customerHat.hl_width" #select_hr_hl (change)="calculateVisibleCrown()">
             <option 
               *ngFor="let w of arr_hr_hl" 
               value="{{ w }}" 
               >
-                {{ w  | number : '1.2-2' }} cm
+                {{ 'common:units.cm_fixed' | t: { value: (w) } }}
             </option>
           </select>
 
           <div *ngIf="!customerHat.tails_material_id_l" class="text-warning">
-            Select material for tails (L)
+            {{ 'customers:calc.select_tails_l' | t }}
           </div>
         </div>
       </div>
 	  
       <div class="d-flex flex-row align-items-center measurement-row">
         <div style="min-width: 150px;" class="d-flex flex-row align-items-center">
-          <fa-icon [icon]="faRuler" style="margin-right: 10px;"></fa-icon>
-          <label for="tempB">H tails (R):</label>
+          <fa-icon [icon]="faRuler" style="margin-inline-end: 10px;"></fa-icon>
+          <label for="tempB">{{ 'customers:calc.h_tails_r' | t }}</label>
         </div>
-        <div class="flex-grow-1" style="margin-left: 15px;">
+        <div class="flex-grow-1" style="margin-inline-start: 15px;">
           <select *ngIf="customerHat.tails_material_id_r" class="form-select" [(ngModel)]="customerHat.hr_width" #select_hr_hl (change)="calculateVisibleCrown()">
             <option 
               *ngFor="let w of arr_hr_hl" 
               value="{{ w }}" 
               >
-                {{ w  | number : '1.2-2' }} cm
+                {{ 'common:units.cm_fixed' | t: { value: (w) } }}
             </option>
           </select>
 
           <div *ngIf="!customerHat.tails_material_id_r" class="text-warning">
-            Select material for tails (R)
+            {{ 'customers:calc.select_tails_r' | t }}
           </div>
         </div>
       </div>
 
       <div class="d-flex flex-row align-items-center measurement-row">
         <div class="d-flex flex-row align-items-center" style="min-width: 150px;">
-          <fa-icon [icon]="faRuler" style="margin-right: 10px;"></fa-icon>
-          <label for="tempB">Crown visible:</label>
+          <fa-icon [icon]="faRuler" style="margin-inline-end: 10px;"></fa-icon>
+          <label for="tempB">{{ 'customers:calc.crown_visible' | t }}</label>
         </div>
-        <div class="flex-grow-1" style="margin-left: 15px;">
-            {{ customerHat.crown_visible  | number : '1.2-2' }} cm
+        <div class="flex-grow-1" style="margin-inline-start: 15px;">
+            {{ 'common:units.cm_fixed' | t: { value: (customerHat.crown_visible) } }}
         </div>
       </div>
 
       </div> <!-- visible only if wing is selected -->
       
       <div [hidden]="(this.customerHat.wing != null && this.customerHat.wing.id > 0)" class="text-warning pt-5 pb-5">
-        Please select a wing to see the measurements and knife options.
+        {{ 'customers:calc.select_wing_hint' | t }}
       </div>
 
     </div> <!--measurements section-->
@@ -854,7 +847,7 @@
       <div class="col">
         <select class="form-select" [value]="customerHat.wing?.knife" #select_height (change)="height_changed(select_height.value)">
           <option selected>Choose height</option>
-          <option *ngFor="let height of arr_wing_width" value="{{ height }}">{{ height  | number : '1.1-1' }} cm</option>
+          <option *ngFor="let height of arr_wing_width" value="{{ height }}">{{ 'common:units.cm_1' | t: { value: (height) } }}</option>
         </select>
       </div>
     </div>
@@ -864,7 +857,7 @@
       <div class="col">
         <select class="form-select" [value]="wing_knife" #select_knife (change)="knife_changed(select_knife.value)">
           <option selected>Choose knife</option>
-          <option *ngFor="let knife of arr_knives" value="{{ knife }}">{{ knife  | number : '1.1-1' }} cm</option>
+          <option *ngFor="let knife of arr_knives" value="{{ knife }}">{{ 'common:units.cm_1' | t: { value: (knife) } }}</option>
         </select>
       </div>
     </div>
@@ -879,16 +872,16 @@
 <table class="table table-striped table-hover babies-table">
     <thead>
       <tr>
-        <th class="th-title" colspan="3">Hat Specs</th>
-        <th class="th-title" colspan="3">Bank Allocation</th>
+        <th class="th-title" colspan="3">{{ 'customers:calc.summary.hat_specs' | t }}</th>
+        <th class="th-title" colspan="3">{{ 'customers:calc.summary.bank_allocation' | t }}</th>
       </tr>
       <tr>
-        <th scope="col">Baby length</th>
-        <th scope="col">Total qty per hat</th>
-        <th scope="col">Position(s)</th>
-        <th scope="col">In allocation</th>
-        <th scope="col">Hats</th>
-        <th scope="col">Remaining</th>
+        <th scope="col">{{ 'customers:advisor.col_baby_length' | t }}</th>
+        <th scope="col">{{ 'customers:calc.summary.col_total_qty' | t }}</th>
+        <th scope="col">{{ 'customers:calc.summary.col_positions' | t }}</th>
+        <th scope="col">{{ 'customers:advisor.col_in_allocation' | t }}</th>
+        <th scope="col">{{ 'customers:calc.summary.col_hats' | t }}</th>
+        <th scope="col">{{ 'customers:calc.summary.col_remaining' | t }}</th>
       </tr>
     </thead>
     <tbody>
@@ -902,7 +895,7 @@
           <td colspan="6"><div style="text-align: center; margin: 12px 0px;">{{ summary_table_instructions }}</div></td>
         </tr>
         <tr *ngFor="let item of hat_babies; index as i">
-          <td>{{ item.length | number : '1.1-1' }} cm</td>
+          <td>{{ 'common:units.cm_1' | t: { value: (item.length) } }}</td>
           <td>{{ item.quantity }}</td>
           <td>{{ item.position }}</td>
 
@@ -910,22 +903,22 @@
             <div>{{ summary_table_instructions }}</div>
           </td>
 
-          <td *ngIf="!summary_table_instructions">{{ (is_hat_tentative)? 'Tentative' : item.quantity_in_allocation }}</td>
-          <td *ngIf="!summary_table_instructions" [className]="(item.possible_num_of_hats == total_num_of_possible_hats)? 'text-danger' : ''">{{ (order_amount && order_amount > 0)? order_amount : '0' }} {{(is_hat_tentative)?'': ((item.possible_num_of_hats != total_num_of_possible_hats)? '' : '(max ' + item.possible_num_of_hats +')')}}</td>
+          <td *ngIf="!summary_table_instructions">{{ (is_hat_tentative)? ('customers:calc.summary.tentative' | t) : item.quantity_in_allocation }}</td>
+          <td *ngIf="!summary_table_instructions" [className]="(item.possible_num_of_hats == total_num_of_possible_hats)? 'text-danger' : ''">{{ (order_amount && order_amount > 0)? order_amount : '0' }} {{(is_hat_tentative)?'': ((item.possible_num_of_hats != total_num_of_possible_hats)? '' : ('customers:calc.summary.max' | t: { count: item.possible_num_of_hats }))}}</td>
           <td *ngIf="!summary_table_instructions">{{ (is_hat_tentative)? '-': item.remaining }}</td>
         </tr>
         <tr *ngFor="let item of crown_babies">
-          <td>{{ item.length | number : '1.1-1' }} cm</td>
+          <td>{{ 'common:units.cm_1' | t: { value: (item.length) } }}</td>
           <td>{{ item.quantity }}</td>
           <td>{{ item.position }}</td>
-          <td *ngIf="!summary_table_instructions">{{ (is_hat_tentative)? 'Tentative' : item.quantity_in_allocation }}</td>
-          <td *ngIf="!summary_table_instructions" [className]="(item.possible_num_of_hats == total_num_of_possible_hats)? 'text-danger' : ''">{{ (order_amount && order_amount > 0)? order_amount : '0' }} {{(is_hat_tentative)?'': ((item.possible_num_of_hats != total_num_of_possible_hats)? '' : '(max ' + item.possible_num_of_hats +')')}}</td>
+          <td *ngIf="!summary_table_instructions">{{ (is_hat_tentative)? ('customers:calc.summary.tentative' | t) : item.quantity_in_allocation }}</td>
+          <td *ngIf="!summary_table_instructions" [className]="(item.possible_num_of_hats == total_num_of_possible_hats)? 'text-danger' : ''">{{ (order_amount && order_amount > 0)? order_amount : '0' }} {{(is_hat_tentative)?'': ((item.possible_num_of_hats != total_num_of_possible_hats)? '' : ('customers:calc.summary.max' | t: { count: item.possible_num_of_hats }))}}</td>
           <td *ngIf="!summary_table_instructions">{{ (is_hat_tentative)? '-': item.remaining }}</td>
         </tr>        
 
         <tr>
           <td class="text-warning">
-            <strong>Total babies per hat</strong>
+            <strong>{{ 'customers:calc.summary.total_babies' | t }}</strong>
           </td>
           <td class="text-warning">{{ total_babies_per_hat }}</td>
           <td></td>
@@ -936,15 +929,15 @@
 
   <!-- H Material analysis -->
   <div class="h-material-analysis border border-warning"><!-- *ngIf="!summary_table_instructions && customerHat.tails_material_id != null && customerHat.tails_material_id >= 0"-->
-    <div class="text-warning"><strong>H Material:</strong></div>
+    <div class="text-warning"><strong>{{ 'customers:calc.h.title' | t }}</strong></div>
     
 
     <div *ngIf="(this.customerHat.wing == null || this.customerHat.wing.id <= 0)">
-      Please select a wing
+      {{ 'customers:calc.instructions.select_wing' | t }}
     </div>
 
     <div *ngIf="this.customerHat.wing != null && this.customerHat.wing.id > 0 && total_num_of_possible_hats == 0">
-      Not sufficient material to produce hats
+      {{ 'customers:calc.h.not_sufficient' | t }}
     </div>
 
     <!-- No H material selected (required for order) -->
@@ -953,7 +946,7 @@
       (total_num_of_possible_hats > 0) &&
       (customerHat.tails_material_id_l == null || customerHat.tails_material_id_l <= 0) &&
       (customerHat.tails_material_id_r == null || customerHat.tails_material_id_r <= 0)" class="text-danger">
-      Please select the H materials for this order (L/R).
+      {{ 'customers:calc.h.select_lr' | t }}
     </div>
 
     <!-- H material selected without allocation -->
@@ -964,20 +957,20 @@
       (customerHat.tails_material_id_l != null && customerHat.tails_material_id_r != null &&
        customerHat.tails_material_id_l == customerHat.tails_material_id_r &&
        customerHat.tails_material_id_l > 0 &&  customerHat.tails_material_id_r > 0)">
-      H material selected (L &amp; R)
+      {{ 'customers:calc.h.selected_lr' | t }}
 
       <!-- without allocations -->
       <div *ngIf="tails_allocation_l == null && tails_allocation_r == null">
-        No H material allocations.<br/>
-        {{ customerHat.wing_quantity }} {{ customerHat.wing_quantity==1? 'wing':'wings' }} x {{ order_amount }} {{ order_amount==1? 'hat':'hats' }} = {{ customerHat.wing_quantity * order_amount }} tails will be produced as overdraft.
+        {{ 'customers:calc.h.no_allocations' | t }}<br/>
+            {{ 'customers:calc.h.overdraft_all' | t: { wings: customerHat.wing_quantity, hats: order_amount, tails: customerHat.wing_quantity * order_amount } }}
       </div>
 
       <!-- with similar allocations -->
        <div *ngIf="tails_allocation_l != null && tails_allocation_r != null && tails_allocation_l.id == tails_allocation_r.id">
-        L &amp; R llocation selected.<br/>
-        {{ customerHat.wing_quantity }} {{ customerHat.wing_quantity==1? 'wing':'wings' }} x {{ order_amount }} {{ order_amount==1? 'hat':'hats' }} = {{ customerHat.wing_quantity * order_amount }} tails required for order.<br/>
-        {{ tails_allocation_l.tails_quantity }} tails in allocation. <br/>
-        {{ (tails_allocation_l.tails_quantity >= (customerHat.wing_quantity * order_amount))? 0 : (customerHat.wing_quantity * order_amount) - tails_allocation_l.tails_quantity }} will be produced as overdraft.
+        {{ 'customers:calc.h.same_allocation' | t }}<br/>
+            {{ 'customers:calc.h.required' | t: { wings: customerHat.wing_quantity, hats: order_amount, tails: customerHat.wing_quantity * order_amount } }}<br/>
+        {{ 'customers:calc.h.in_allocation' | t: { count: tails_allocation_l.tails_quantity } }}<br/>
+        {{ 'customers:calc.h.overdraft' | t: { count: (tails_allocation_l.tails_quantity >= (customerHat.wing_quantity * order_amount)) ? 0 : (customerHat.wing_quantity * order_amount) - tails_allocation_l.tails_quantity } }}
        </div>
     </div>
 
@@ -989,30 +982,30 @@
       <div class="row">
         
         <div class="col col-6">
-          <strong>Left tails</strong><br/>
+          <strong>{{ 'customers:calc.h.left' | t }}</strong><br/>
           <div *ngIf="(!tails_allocation_l || (tails_allocation_l && tails_allocation_l.id <= 0))">
-            No H material allocation.<br/>
-            ({{ customerHat.wing_quantity }} {{ customerHat.wing_quantity==1? 'wing':'wings' }} x {{ order_amount }} {{ order_amount==1? 'hat':'hats' }}) / 2 = {{ (customerHat.wing_quantity * order_amount)/2 }} tails will be produced as overdraft.
+            {{ 'customers:calc.h.side_no_allocation' | t }}<br/>
+          {{ 'customers:calc.h.side_overdraft_all' | t: { wings: customerHat.wing_quantity, hats: order_amount, tails: (customerHat.wing_quantity * order_amount) / 2 } }}
           </div>
           <div *ngIf="tails_allocation_l && tails_allocation_l.id > 0">
-            Allocation selected<br/>
-            ({{ customerHat.wing_quantity }} {{ customerHat.wing_quantity==1? 'wing':'wings' }} x {{ order_amount }} {{ order_amount==1? 'hat':'hats' }}) / 2 = {{ (customerHat.wing_quantity * order_amount)/2 }} left tails are required.<br/>
-            {{ tails_allocation_l.tails_quantity }} tails in allocation. <br/>
-            {{ (tails_allocation_l.tails_quantity >= (customerHat.wing_quantity * order_amount)/2)? 0 : (customerHat.wing_quantity * order_amount) / 2 - tails_allocation_l.tails_quantity }} will be produced as overdraft.
+            {{ 'customers:calc.h.allocation_selected' | t }}<br/>
+          {{ 'customers:calc.h.side_required_left' | t: { wings: customerHat.wing_quantity, hats: order_amount, tails: (customerHat.wing_quantity * order_amount) / 2 } }}<br/>
+            {{ 'customers:calc.h.in_allocation' | t: { count: tails_allocation_l.tails_quantity } }}<br/>
+            {{ 'customers:calc.h.overdraft' | t: { count: (tails_allocation_l.tails_quantity >= (customerHat.wing_quantity * order_amount)/2) ? 0 : (customerHat.wing_quantity * order_amount) / 2 - tails_allocation_l.tails_quantity } }}
           </div>
         </div>
         
         <div class="col col-6">
-          <strong>Right tails</strong><br/>
+          <strong>{{ 'customers:calc.h.right' | t }}</strong><br/>
          <div *ngIf="(!tails_allocation_r || (tails_allocation_r && tails_allocation_r.id <= 0))">
-            No H material allocation.<br/>
-            ({{ customerHat.wing_quantity }} {{ customerHat.wing_quantity==1? 'wing':'wings' }} x {{ order_amount }} {{ order_amount==1? 'hat':'hats' }}) / 2 = {{ (customerHat.wing_quantity * order_amount)/2 }} tails will be produced as overdraft.
+            {{ 'customers:calc.h.side_no_allocation' | t }}<br/>
+          {{ 'customers:calc.h.side_overdraft_all' | t: { wings: customerHat.wing_quantity, hats: order_amount, tails: (customerHat.wing_quantity * order_amount) / 2 } }}
           </div>
           <div *ngIf="tails_allocation_r && tails_allocation_r.id > 0">
-            Allocation selected<br/>
-            ({{ customerHat.wing_quantity }} {{ customerHat.wing_quantity==1? 'wing':'wings' }} x {{ order_amount }} {{ order_amount==1? 'hat':'hats' }}) / 2 = {{ (customerHat.wing_quantity * order_amount)/2 }} left tails are required.<br/>
-            {{ tails_allocation_r.tails_quantity }} tails in allocation. <br/>
-            {{ (tails_allocation_r.tails_quantity >= (customerHat.wing_quantity * order_amount)/2)? 0 : (customerHat.wing_quantity * order_amount) / 2 - tails_allocation_r.tails_quantity }} will be produced as overdraft.
+            {{ 'customers:calc.h.allocation_selected' | t }}<br/>
+          {{ 'customers:calc.h.side_required_right' | t: { wings: customerHat.wing_quantity, hats: order_amount, tails: (customerHat.wing_quantity * order_amount) / 2 } }}<br/>
+            {{ 'customers:calc.h.in_allocation' | t: { count: tails_allocation_r.tails_quantity } }}<br/>
+            {{ 'customers:calc.h.overdraft' | t: { count: (tails_allocation_r.tails_quantity >= (customerHat.wing_quantity * order_amount)/2) ? 0 : (customerHat.wing_quantity * order_amount) / 2 - tails_allocation_r.tails_quantity } }}
           </div>
         </div>
       </div>
@@ -1020,7 +1013,7 @@
   </div>
   <!--/H Material analysis -->
 
-  <div [hidden]="is_hat_tentative"><h6>Max hats calculated: {{ total_num_of_possible_hats }}</h6></div>
+  <div [hidden]="is_hat_tentative"><h6>{{ 'customers:calc.max_hats' | t: { count: total_num_of_possible_hats } }}</h6></div>
 
   <div>
     <app-order-advisor
@@ -1042,13 +1035,13 @@
     <div [hidden]="!is_hat_tentative" class="advisor">
       <fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon>
       <span class="ms-2">
-        This is a tentative order, and will be handled according to materials inventory.<br/>
-        Material will not be removed from any allocations until then.
+        {{ 'customers:calc.tentative_info1' | t }}<br/>
+{{ 'customers:calc.tentative_info2' | t }}
       </span>
     </div> 
 
   <div *ngIf="!customer.is_demo_customer" style="border: 1px solid; border-radius: 10px; margin: 20px 0px;padding: 20px;">
-    <div><h3>Place an order</h3></div>
+    <div><h3>{{ 'customers:calc.place.title' | t }}</h3></div>
     <div *ngIf="(total_num_of_possible_hats > 0 && customerHat.crown_allocation_id > 0 && customerHat.wall_allocation_id > 0) || is_hat_tentative">
 
       <div>
@@ -1058,14 +1051,14 @@
         <div class="form-check">
           <input class="form-check-input" type="checkbox" [(ngModel)]="customerHat.save_wing_for_customer"  id="chkSaveWing">
           <label class="form-check-label" for="chkSaveWing">
-            Save this wing design for the customer {{ customer.name }}.
-            New wing name: <input type="text" [(ngModel)]="customerHat.save_wing_name_for_customer" [disabled]="!customerHat.save_wing_for_customer" placeholder="Enter wing name" />
+            {{ 'customers:calc.place.save_wing' | t: { name: customer.name } }}
+{{ 'customers:calc.place.new_wing_name' | t }} <input type="text" [(ngModel)]="customerHat.save_wing_name_for_customer" [disabled]="!customerHat.save_wing_for_customer" [placeholder]="'customers:calc.place.wing_name_placeholder' | t" />
           </label>
         </div>
         </div>
 
       <div class="order-notes d-flex flex-row align-items-center flex-wrap">
-        <span>Place the order for a specific date:</span>
+        <span>{{ 'customers:calc.place.order_date' | t }}</span>
         <input
           type="date"
           id="orderDate"
@@ -1076,61 +1069,61 @@
         <div class="form-check">
           <input class="form-check-input" type="checkbox" [(ngModel)]="customerHat.isurgent"  id="chkUrgent">
           <label class="form-check-label" for="chkUrgent">
-            Mark this order as urgent
+            {{ 'customers:calc.place.urgent' | t }}
           </label>
         </div>          
       </div>
       <div class="order-notes">
         <div class="form-floating">
-          <textarea class="form-control" placeholder="Order notes" id="floatingTextarea" [(ngModel)]="customerHat.order_notes"></textarea>
-          <label for="floatingTextarea">Order notes</label>
+          <textarea class="form-control" [placeholder]="'customers:calc.place.notes' | t" id="floatingTextarea" [(ngModel)]="customerHat.order_notes"></textarea>
+          <label for="floatingTextarea">{{ 'customers:calc.place.notes' | t }}</label>
         </div> 
       </div>
 
       <div *ngIf="customerHat.tails_material_id_l == null || customerHat.tails_material_id_l <= 0 || customerHat.tails_material_id_r == null || customerHat.tails_material_id_r <= 0" class="text-danger order-notes">
-        Note: This order is without H materials!
+        {{ 'customers:calc.place.no_h' | t }}
       </div>
 
       <div class="order-notes" [hidden]="!is_hat_tentative">
-        <fa-icon [icon]="faTriangleExclamation" class="text-warning"></fa-icon> This order is marked as tentative
+        <fa-icon [icon]="faTriangleExclamation" class="text-warning"></fa-icon> {{ 'customers:calc.adjust.tentative' | t }}
       </div>
-        <div>Submit an order for
+        <div>{{ 'customers:calc.place.submit' | t }}
         <input type="number" min="0" [attr.max]="total_num_of_possible_hats" [(ngModel)]="order_amount"  (change)="order_amount_changed()" />
-          {{ order_amount == 1 ? 'hat' : 'hats' }}
+          {{ 'customers:calc.place.hat_noun' | t: { count: order_amount } }}
         <button 
           [ngClass]="{'btn btn-success': true, 'disabled': (order_amount <= 0 || order_amount > total_num_of_possible_hats) || (placing_order)}"
           (click)="placeOrder()" style="min-width: 170px;">
 
           <div *ngIf="!placing_order">
             <fa-icon [icon]="faBasketShopping"></fa-icon>
-            Order
+            {{ 'customers:calc.place.order' | t }}
           </div>
 
           <div *ngIf="placing_order">
             <fa-icon [icon]="faArrowsRotate" [animation]="'spin'" size="1x"></fa-icon>
-            Placing order...
+            {{ 'customers:calc.place.placing' | t }}
           </div>
 
         </button>
       </div>
       <div class="text-danger" *ngIf="order_amount <= 0">
-        Please enter a valid quantity to order
+        {{ 'customers:calc.place.invalid_qty' | t }}
       </div>
       <div class="text-danger" *ngIf="order_amount > total_num_of_possible_hats">
-        Your max allocation is limited to a max of {{ total_num_of_possible_hats }} hats
+        {{ 'customers:calc.place.exceeds' | t: { count: total_num_of_possible_hats } }}
       </div>
     </div>
 
 
     </div>
     <div class="order-notes" *ngIf="total_num_of_possible_hats <= 0 && customerHat.crown_allocation_id > 0 && customerHat.wall_allocation_id > 0">
-      No sufficient quota to order hats
+      {{ 'customers:calc.place.no_quota' | t }}
     </div>
     <div class="order-notes" *ngIf="(customerHat.crown_allocation_id <= 0 || customerHat.wall_allocation_id <= 0) && !is_hat_tentative">
-      {{ summary_table_instructions }} to calculate and place an order {{is_hat_tentative}}
+      {{ 'customers:calc.place.calc_hint' | t: { instructions: summary_table_instructions } }}
     </div>
     <div>
-      <a href="javascript:void(0)" (click)="go_to_orders()">See all your orders</a>
+      <a href="javascript:void(0)" (click)="go_to_orders()">{{ 'customers:calc.place.see_orders' | t }}</a>
     </div>
   </div>
 
@@ -1140,8 +1133,8 @@
 
 <div *ngIf="!customerHat.wing" style="display: flex;flex-direction: column;flex-wrap: nowrap;align-items: center; height: 100%; justify-content: center;">
   <div><span class="icon-feather-wing" style="font-size: 80px;"></span><!--<img [attr.src]="no_hat_img" style="width: 200px;">--></div>
-  <div>No wing selected. Choose a wing to calculate.</div>
-  <div>Or load a previously saved setup</div>
+  <div>{{ 'customers:calc.place.no_wing' | t }}</div>
+  <div>{{ 'customers:calc.place.load_setup' | t }}</div>
 </div>
 
 </div></div>

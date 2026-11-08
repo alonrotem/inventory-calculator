@@ -1,10 +1,10 @@
 <app-modal-dialog 
   #notes_editor
-  [modalTitle]="'Edit notes'"
+  [modalTitle]="'customers:orders.edit_notes_title' | t"
   [btnSaveIcon]="faPen"
-  [btnSaveText]="'Update'"
+  [btnSaveText]="'customers:orders.update' | t"
   [btnSaveClass]="'btn-primary'"
-  [btnCancelText]="'Cancel'"
+  [btnCancelText]="'common:actions.cancel' | t"
   [modalSize]="'m'"
   (confirm)="note_editor_confirmed()"
   (cancel)="notes_editor_cancelled()"
@@ -16,10 +16,10 @@
 </app-modal-dialog>
 
 <div class="row justify-content-center"><div class="col-12">
-    <h1><fa-icon [icon]="faBasketShopping"></fa-icon> Orders</h1>
+    <h1><fa-icon [icon]="faBasketShopping"></fa-icon> {{ 'common:nav.orders' | t }}</h1>
     
     <app-page-loading 
-        [loading_message]="'Loading orders...'" 
+        [loading_message]="'customers:orders.loading' | t" 
         [icon_size]="'3x'" 
         [hidden]="!loading" 
         [stretch_height]="true" />
@@ -28,18 +28,18 @@
       <!--<a id="btnNewRaw" class="btn btn-primary" routerLink="/inventory/customer/editor">+ New customer</a>-->
     
       <div style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start;">
-        <a [hidden]="this.customer_id <= 0" style="margin-right: 15px;" class="btn btn-warning" 
+        <a [hidden]="this.customer_id <= 0" style="margin-inline-end: 15px;" class="btn btn-warning" 
           [routerLink]="back_button_link" 
           [queryParams]="{ id: this.customer_id}">
           <fa-icon [icon]="faArrowLeft"></fa-icon> {{ back_button_text }}
         </a>
         <div class="infotitle" [hidden]="loading">
             <div>
-                <span [hidden]="this.customer_id > 0"><strong>All orders available to you.</strong></span>
-                <span [hidden]="this.customer_id <= 0"><strong>Orders for customer {{ (this.customer_name == "") ? ('#' + this.customer_id) : (this.customer_name) }}.</strong></span>
+                <span [hidden]="this.customer_id > 0"><strong>{{ 'customers:orders.all_orders' | t }}</strong></span>
+                <span [hidden]="this.customer_id <= 0"><strong>{{ 'customers:orders.for_customer' | t: { name: (this.customer_name == "") ? ('#' + this.customer_id) : (this.customer_name) } }}</strong></span>
             </div>
             <div [hidden]="this.orders.length <= 0">
-                Total: {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'order':'orders' }}
+                {{ 'customers:orders.total' | t: { count: totalRecords } }}
             </div>
         </div>
       </div>
@@ -49,29 +49,29 @@
     <table class="table  table-striped table-hover" style="border-collapse: collapse; width: 100%;"><!--table-responsive-->
         <thead>
           <tr>
-            <th scope="col" class="sticky-header">Order</th>
-            <th scope="col" class="sticky-header">Status</th>
-            <th scope="col" class="sticky-header">Urgent</th>
-            <th scope="col" class="sticky-header">Name</th>
-            <th scope="col" class="sticky-header">For customer</th>
-            <th scope="col" class="sticky-header">Wall</th>
-            <th scope="col" class="sticky-header">Kippa</th>
-            <th scope="col" class="sticky-header">Wings</th>
-            <th scope="col" class="sticky-header">crown</th>
-            <th scope="col" class="sticky-header">Crown Visible</th>
-            <th scope="col" class="sticky-header">Crown length</th>
-            <th scope="col" class="sticky-header">Knife</th>
-            <th scope="col" class="sticky-header">White hair</th>
-            <th scope="col" class="sticky-header">White hair notes</th>
-            <th scope="col" class="sticky-header">Tails</th>
-            <th scope="col" class="sticky-header">Date</th>
-            <th scope="col" class="sticky-header">Notes</th>
+            <th scope="col" class="sticky-header">{{ 'customers:orders.col.order' | t }}</th>
+            <th scope="col" class="sticky-header">{{ 'customers:orders.col.status' | t }}</th>
+            <th scope="col" class="sticky-header">{{ 'customers:orders.col.urgent' | t }}</th>
+            <th scope="col" class="sticky-header">{{ 'customers:orders.col.name' | t }}</th>
+            <th scope="col" class="sticky-header">{{ 'customers:orders.col.for_customer' | t }}</th>
+            <th scope="col" class="sticky-header">{{ 'customers:orders.col.wall' | t }}</th>
+            <th scope="col" class="sticky-header">{{ 'customers:orders.col.kippa' | t }}</th>
+            <th scope="col" class="sticky-header">{{ 'customers:orders.col.wings' | t }}</th>
+            <th scope="col" class="sticky-header">{{ 'customers:orders.col.crown' | t }}</th>
+            <th scope="col" class="sticky-header">{{ 'customers:orders.col.crown_visible' | t }}</th>
+            <th scope="col" class="sticky-header">{{ 'customers:orders.col.crown_length' | t }}</th>
+            <th scope="col" class="sticky-header">{{ 'customers:orders.col.knife' | t }}</th>
+            <th scope="col" class="sticky-header">{{ 'customers:orders.col.white_hair' | t }}</th>
+            <th scope="col" class="sticky-header">{{ 'customers:orders.col.white_hair_notes' | t }}</th>
+            <th scope="col" class="sticky-header">{{ 'customers:orders.col.tails' | t }}</th>
+            <th scope="col" class="sticky-header">{{ 'customers:orders.col.date' | t }}</th>
+            <th scope="col" class="sticky-header">{{ 'customers:orders.col.notes' | t }}</th>
           </tr>
         </thead>
         <tbody>           
           <tr *ngFor="let order of this.orders; index as i" role="button">
             <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.hat_id_with_customer }}</td>
-            <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.order_status }}</td>
+            <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.order_status | tenum: 'customers:order_status.' }}</td>
             <td class="editable text-center" (click)="update_boolean_status(updating_urgent_status, i, 'isurgent')"><fa-icon *ngIf="updating_urgent_status[i]" [icon]="faArrowsRotate" [animation]="'spin'"></fa-icon><input *ngIf="!updating_urgent_status[i]" class="form-check-input" type="checkbox" onclick="return false;" [checked]="order.isurgent" /></td>
             <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.customer_name }}</td>
             <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.ordering_customer }}</td>
@@ -86,10 +86,10 @@
             <td class="editable" (click)="edit_white_hair_notes(i)"><fa-icon *ngIf="updating_white_hair_notes_status[i]" [icon]="faArrowsRotate" [animation]="'spin'"></fa-icon><div class="shortened" *ngIf="!updating_white_hair_notes_status[i]">{{ order.white_hair_notes }}</div></td>
             <td (click)="go_to_odrer(order.order_id, customer_id)">
               <span *ngIf="order.tails_l == order.tails_r">
-                {{ order.tails_l }} (overdrft: {{ order.tails_overdraft_l + order.tails_overdraft_r  }})
+                {{ 'customers:orders.tails_same' | t: { count: order.tails_l, overdraft: order.tails_overdraft_l + order.tails_overdraft_r } }}
               </span>
               <span *ngIf="order.tails_l != order.tails_r">
-                L: {{ order.tails_l }}, R: {{ order.tails_r }}(overdrfts: {{ order.tails_overdraft_l + order.tails_overdraft_r  }})
+                {{ 'customers:orders.tails_sides' | t: { left: order.tails_l, right: order.tails_r, overdraft: order.tails_overdraft_l + order.tails_overdraft_r } }}
               </span>
             </td>
             <td (click)="go_to_odrer(order.order_id, customer_id)">{{ order.date  | dateStr }}</td>
@@ -105,12 +105,12 @@
     
       <div [hidden]="loading || (this.orders.length > 0)" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
         <div *ngIf="this.customer_id <= 0">
-            No orders created.<br/>
-            They should be submitted by customers.
+            {{ 'customers:orders.empty_all' | t }}<br/>
+            {{ 'customers:orders.empty_all_note' | t }}
         </div>
         <div *ngIf="this.customer_id > 0">
-            You haven't created any orders yet.<br/>
-            <span><a href="" [routerLink]="'/inventory/customer/hat-calculator'" [queryParams]="{ id: this.customer_id}">Go to your hats calculator</a> to submit orders.</span>    
+            {{ 'customers:orders.empty_mine' | t }}<br/>
+            <span><a href="" [routerLink]="'/inventory/customer/hat-calculator'" [queryParams]="{ id: this.customer_id}">{{ 'customers:orders.go_calculator' | t }}</a></span>    
         </div>
       </div>
     </div>

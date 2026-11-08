@@ -315,7 +315,7 @@ router.get('/refresh', async function(req, res, next) {
   logger.debug(`Body: ${ JSON.stringify(req.body) }`);
   try {
     if(!req.cookies || !req.cookies.refresh_token){
-      return res.status(401).send({ message: 'No refresh token, authorization denied' });
+      return res.status(401).send({ message: req.t('server:users.no_refresh_token_denied') });
     }
     const decoded_refresh_token = jwt.verify(req.cookies.refresh_token, process.env.AUTH_TOKEN_SECRET);
 
@@ -323,7 +323,7 @@ router.get('/refresh', async function(req, res, next) {
       await users.refresh_tokens(req.cookies.refresh_token, req.ip);
 
     if(!access_token || !refresh_token){
-      return res.status(401).send({ message: unauthorizedMessage?? 'Unauthorized' });
+      return res.status(401).send({ message: unauthorizedMessage ?? req.t('server:auth.unauthorized') });
     }
 
     res.clearCookie('refresh_token', { httpOnly: true, sameSite: 'None', secure: true });
@@ -439,7 +439,7 @@ router.post('/profile', auth_request(), upload.single('photo'), async function(r
       //file is available at <server>/uploads/images/users/1767022665227-photo.png
   }
   if(req["auth_token"] && req["auth_token"].id != req.body.id){
-    return res.status(401).send({ message: 'Wrong profile user ID provided' });
+    return res.status(401).send({ message: req.t('server:users.wrong_profile') });
   }
   const updatedProfile = await users.saveUserProfile(req.body, profile_photo_path);
   res.status(200).send(updatedProfile);
@@ -493,7 +493,7 @@ router.get('/get_logins/:id', auth_request(), async function(req, res, next) {
   logger.debug(`Body: ${ JSON.stringify(req.body) }`);
   try {
     //if(!req.cookies || !req.cookies.refresh_token){
-    //  return res.status(401).send({ message: 'No refresh token, authorization denied' });
+    //  return res.status(401).send({ message: req.t('server:users.no_refresh_token_denied') });
     //}
     
     const user_id = (req.params.id && req.params.id != 0)? req.params.id : 0;
@@ -515,7 +515,7 @@ router.post('/clear_logins', auth_request(), async function(req, res, next) {
   try {
 
     if(!req.cookies || !req.cookies.refresh_token){
-      return res.status(401).send({ message: 'No refresh token, authorization denied' });
+      return res.status(401).send({ message: req.t('server:users.no_refresh_token_denied') });
     }
     const current_user_id = req["auth_token"].id;
 
@@ -672,7 +672,7 @@ router.get('/logout', auth_request(), async function(req, res, next) {
     
     await users.logout(refresh_token);
     res.clearCookie('refresh_token');
-    res.status(200).send({ message: "Successfully logged out"});
+    res.status(200).send({ message: req.t('server:users.logged_out') });
   } 
   catch (err) {
     logger.error(`Logout error: ${err.message}`);

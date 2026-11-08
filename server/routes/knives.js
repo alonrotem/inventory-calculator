@@ -60,7 +60,7 @@ router.put('/', (req, res, next) => {
   logger.info(`put /knives`);
   try {
     logger.debug(`Body: ${ JSON.stringify(req.body) }`);
-    const response = await knives.save(req.body, req["auth_token"].id);
+    const response = await knives.save(req.body, req["auth_token"].id, req.t);
     logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
     res.json(response);
   }
@@ -80,7 +80,7 @@ curl -i -X DELETE \
 router.delete('/:id', auth_request([{ requiredArea: 'knives', requiredPermission: 'D' }]), async function(req, res, next) {
   logger.info(`delete /knives/${req.params.id}`);
   try {
-    const response = await knives.remove(req.params.id);
+    const response = await knives.remove(req.params.id, req.t);
     logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
     res.json(response);
   }

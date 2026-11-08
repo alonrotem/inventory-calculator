@@ -8,11 +8,11 @@
   (dragleave)="onDragLeave($event)"
   (drop)="onDrop($event)"
   [class.dragging]="isDragging">
-    <h3><fa-icon [icon]="faCloudUpload" class="action-icon"></fa-icon> Restore backup</h3>
+    <h3><fa-icon [icon]="faCloudUpload" class="action-icon"></fa-icon> {{ 'backup:restore' | t }}</h3>
   
     <div class="backupSection">
-      <div><a href="javascript:void(0)"><label for="backupFile" class="form-label"><fa-icon [icon]="faFolderOpen" class="action-icon"></fa-icon>Click here to choose a backup file to upload</label></a></div>
-      <div><fa-icon [icon]="faFileImport" class="action-icon"></fa-icon>Or drag and drop a backup file here</div>
+      <div><a href="javascript:void(0)"><label for="backupFile" class="form-label"><fa-icon [icon]="faFolderOpen" class="action-icon"></fa-icon>{{ 'backup:choose_file' | t }}</label></a></div>
+      <div><fa-icon [icon]="faFileImport" class="action-icon"></fa-icon>{{ 'backup:drag' | t }}</div>
     </div>
     
     <input #backupFile id="backupFile" name="backupFile" type="file" (change)="onFileSelected($event)" accept=".sql,.zip" />
@@ -23,7 +23,7 @@
       <div class="switch-group form-check form-switch">
         <input class="form-check-input" type="checkbox" id="chk_alert_customer_bank_kg" name="chk_alert_customer_bank_kg" [(ngModel)]="overwriterestore">
         <label class="form-check-label" for="chk_alert_customer_bank_kg">
-            Overwrite system data
+            {{ 'backup:overwrite' | t }}
         </label>
       </div>
     </div>
@@ -31,7 +31,7 @@
   <button type="button" [className]="(!isProcessing)? 'btn btn-primary' :'btn btn-warning'" (click)="onUpload()" [disabled]="!file || isProcessing">
     <fa-icon [icon]="faCloudUpload" class="action-icon" *ngIf="!isProcessing"></fa-icon>
     <fa-icon [icon]="faArrowsRotate" [animation]="'spin'" class="action-icon" *ngIf="isProcessing"></fa-icon>
-    <span *ngIf="!isProcessing">Upload and restore backup</span>
-    <span *ngIf="isProcessing">Processing...</span>
+    <span *ngIf="!isProcessing">{{ 'backup:upload' | t }}</span>
+    <span *ngIf="isProcessing">{{ 'backup:processing' | t }}</span>
   </button>
 </div>

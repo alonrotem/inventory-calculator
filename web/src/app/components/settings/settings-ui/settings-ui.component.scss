@@ -13,13 +13,13 @@
 }
 
 .switch-group input[type='checkbox'] {
-    margin-right: 10px;
+    margin-inline-end: 10px;
 }
 
 .switch-group input[type='number'] {
     display: inline-block;
     width: 60px;
     padding: 0;
-    text-align: right;
+    text-align: end;
     margin: 0px 3px;
 }

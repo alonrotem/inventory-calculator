@@ -2,12 +2,12 @@
   #invite_user_form_dialog 
   [modalSize]="'lg'" 
   [canClose]="canCloseAccountInvite"
-  [modalTitle]="'Invite a new user'"
+  [modalTitle]="'users:invite_form.title' | t"
   [btnSaveClass]="'btn-warning' + (sending?' disabled':'')"
-  [btnSaveText]="(sending)? 'Sending...' : 'Send invite'"
+  [btnSaveText]="(sending)? ('users:invite_form.sending' | t) : ('users:invite_form.send' | t)"
   [btnSaveIcon]="(sending)? faArrowsRotate : faEnvelopeCircleCheck"
   [btnSaveSpin]="sending"
-  [btnCancelText]="'Cancel'"
+  [btnCancelText]="'common:actions.cancel' | t"
   (cancel)="reset()"><!--(confirm)="send_invite()" -->
 
 <form novalidate #account_invite_form="ngForm" [id]="'account_invite_form'" (keyup.enter)="get_data()" modalContent>
@@ -15,7 +15,7 @@
         {{ error_message }}
     </div>
     <div>
-    Fill details to invite a new user to the system. They will receive a link to set their password and login.
+    {{ 'users:invite_form.intro' | t }}
     </div>
 
     <div class="row mt-4">
@@ -25,17 +25,17 @@
             type="text" 
             class="form-control" 
             id="input_firstname" 
-            placeholder="First name" 
+            [placeholder]="'users:fields.first_name' | t" 
             [(ngModel)]="invitation.firstname" 
             #input_firstname="ngModel" 
             name="input_firstname" 
             [required]="true"
             [pattern]="'^[a-zA-Z\\s\\-_]*$'">
-            <label for="input_firstname">First name <span class="text-danger">*</span></label>
+            <label for="input_firstname">{{ 'users:fields.first_name' | t }} <span class="text-danger">*</span></label>
         </div> 
         <div class="text-danger" *ngIf="input_firstname.invalid && (input_firstname.touched || input_firstname.dirty)" > 
-            <span *ngIf="input_firstname.errors?.['required']">First name is required</span>
-            <span *ngIf="input_firstname.errors?.['pattern']">Use only letters, space or -</span>
+            <span *ngIf="input_firstname.errors?.['required']">{{ 'users:validation.first_name_required' | t }}</span>
+            <span *ngIf="input_firstname.errors?.['pattern']">{{ 'users:validation.letters_only' | t }}</span>
         </div>
         </div>
 
@@ -45,17 +45,17 @@
             type="text" 
             class="form-control" 
             id="input_lastname" 
-            placeholder="Last name" 
+            [placeholder]="'users:fields.last_name' | t" 
             [(ngModel)]="invitation.lastname" 
             #input_lastname="ngModel" 
             name="input_lastname" 
             [required]="true"
             [pattern]="'^[a-zA-Z\\s\\-]*$'">
-            <label for="input_lastname">Last name <span class="text-danger">*</span></label>
+            <label for="input_lastname">{{ 'users:fields.last_name' | t }} <span class="text-danger">*</span></label>
         </div> 
         <div class="text-danger" *ngIf="input_lastname.invalid && (input_lastname.touched || input_lastname.dirty)" > 
-            <span *ngIf="input_lastname.errors?.['required']">Last name is required</span>
-            <span *ngIf="input_lastname.errors?.['pattern']">Use only letters, space or -</span>
+            <span *ngIf="input_lastname.errors?.['required']">{{ 'users:validation.last_name_required' | t }}</span>
+            <span *ngIf="input_lastname.errors?.['pattern']">{{ 'users:validation.letters_only' | t }}</span>
         </div>
         </div>
     </div>
@@ -73,13 +73,13 @@
             name="input_email" 
             [required]="true"
             [email]="true">
-            <label for="input_email">email <span class="text-danger">*</span></label>
+            <label for="input_email">{{ 'users:fields.email' | t }} <span class="text-danger">*</span></label>
         </div>
         <div class="text-danger" *ngIf="input_email.invalid && (input_email.touched || input_email.dirty)" > 
-            <span *ngIf="input_email.errors?.['required']">Email is required</span>
+            <span *ngIf="input_email.errors?.['required']">{{ 'users:validation.email_required' | t }}</span>
         </div>
         <div class="text-danger" *ngIf="input_email.errors?.['email'] && (input_email.touched || input_email.dirty)" > 
-            <span *ngIf="input_email.errors?.['email']">Please enter a valid email</span>
+            <span *ngIf="input_email.errors?.['email']">{{ 'users:validation.email_invalid' | t }}</span>
         </div>
         </div>
 
@@ -91,15 +91,18 @@
                 name="role_select"
                 [multiple]="false"
                 bindLabel="name"
-                [placeholder]="'Pick a role'"
+                [placeholder]="'users:hints.pick_role' | t"
                 (change)="role_selected($event)"
                 class="roles-select"
                 required
                 #role_select_model="ngModel"
-            ></ng-select>
+            >
+<ng-template ng-label-tmp let-item="item">{{ item.name | tenum: 'users:roles.' }}</ng-template>
+<ng-template ng-option-tmp let-item="item">{{ item.name | tenum: 'users:roles.' }}</ng-template>
+</ng-select>
 
             <div *ngIf="role_select_model.invalid && (role_select_model.dirty || role_select_model.touched)" class="text-danger">
-                Role selection is required
+                {{ 'users:hints.role_required' | t }}
             </div>
         </div>
         
@@ -107,14 +110,14 @@
 
                 <div class="text-danger" [hidden]="!invitation || !invitation.role || invitation.role.name.toLowerCase()!='administrator'">
                     <fa-icon [icon]="faTriangleExclamation" class="text-warning me-2"></fa-icon>
-                    <strong><span class="text-warning">Careful!</span> An administrator has unlimited access!</strong>
+                    <strong><span class="text-warning">{{ 'users:hints.careful' | t }}</span> {{ 'users:hints.admin_unlimited' | t }}</strong>
                 </div>
                 <!--  customer section -->
                 <div [hidden]="!invitation || !invitation.role || invitation.role.name.toLowerCase()!='customer'">
                     <div class="d-flex flex-nowrap align-items-start">
                         <input class="form-check-input" type="radio" name="customer_options" id="customer_options_not_demo" [(ngModel)]="invitation.is_demo_customer" [value]="false">
                         <label class="form-check-label" for="customer_options_not_demo">
-                            This user represents a real customer, connected as follows: 
+                            {{ 'users:hints.real_customer' | t }} 
                         </label>  
                     </div>
                     <div class="customer-selection-wrapper" [attr.disabled]="invitation.is_demo_customer">
@@ -122,11 +125,11 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" value="" name="chk_create_customer" id="chkCreateNewCustoemr" #chkCreateNewCustoemr (change)="set_instructions_and_approval_btn_status()" [(ngModel)]="invitation.create_new_customer" [disabled]="invitation.is_demo_customer">
                                 <label class="form-check-label" for="chkCreateNewCustoemr">
-                                    Create a new customer in the system for this user
+                                    {{ 'users:hints.new_customer' | t }}
                                 </label>
                             </div>                        
                         </div>
-                        <div class="mt-4 mb-4" [attr.disabled]="invitation.is_demo_customer"><strong>Connect this user to the following existing customers:</strong></div>
+                        <div class="mt-4 mb-4" [attr.disabled]="invitation.is_demo_customer"><strong>{{ 'users:hints.connect_existing' | t }}</strong></div>
                         <app-customer-picker 
                             #customer_picker 
                             [(pickedCustomers)]="invitation.customers"
@@ -137,22 +140,22 @@
                     <div class="d-flex flex-nowrap align-items-start">
                         <input class="form-check-input" type="radio" name="customer_options" id="customer_options_demo" [(ngModel)]="invitation.is_demo_customer" [value]="true">
                         <label class="form-check-label" for="customer_options_demo">
-                            This is a demo customer (not connected to real customers)
+                            {{ 'users:hints.demo_not_connected' | t }}
                         </label>
                     </div>
                     <div *ngIf="invitation.is_demo_customer" class="text-warning d-flex align-items-center flex-row" style="margin: 10px;">
                         <fa-icon [icon]="faTriangleExclamation" class="text-warning me-2"></fa-icon>
-                        <span>A demo customer can play with calculations but not affect the inventory, or send new orders.</span>
+                        <span>{{ 'users:hints.demo_can' | t }}</span>
                     </div>                     
                 </div>
 
                
                 <!-- / customer section -->
                 <div class="text-warning" [hidden]="!invitation || !invitation.role || invitation.role.name.toLowerCase()!='employee'">
-                    Employees have access to orders and speficically approved system areas.
+                    {{ 'users:hints.employee' | t }}
                 </div>
                 <div class="text-warning" [hidden]="!invitation || !invitation.role || invitation.role.name.toLowerCase()!='guest'">
-                    Guests have specicially <em>READONLY</em> access to some areas.
+                    {{ 'users:hints.guest' | t }}
                 </div>
             </div>        
 

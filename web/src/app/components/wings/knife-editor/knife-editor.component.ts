@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -21,6 +21,8 @@ import {
   outlineSamples, regionLength, regionSegments, sampleRegion, segment, shortestRegion, splitSegment, sub
 } from './knife-shape';
 import { traceOutline } from './outline-tracer';
+import { TranslationService } from '../../../i18n/translation.service';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { fitOutline } from './bezier-fit';
 import { loadImageFile, loadPdfPage } from './image-source';
 import { PreviewBaby, buildBabyPreview } from './baby-preview';
@@ -36,7 +38,7 @@ const IMPORT_UNITS_PER_CM = 100;
 @Component({
   selector: 'app-knife-editor',
   standalone: true,
-  imports: [FormsModule, ConfirmationDialogComponent, FaIconComponent, UnsavedChangesDialogComponent, SaveChangesButtonComponent],
+  imports: [FormsModule, ConfirmationDialogComponent, FaIconComponent, UnsavedChangesDialogComponent, SaveChangesButtonComponent, TranslatePipe],
   templateUrl: './knife-editor.component.html',
   styleUrl: './knife-editor.component.scss'
 })
@@ -53,7 +55,9 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
   readonly faFolderOpen = faFolderOpen;
   readonly faTrashAlt = faTrashAlt;
   readonly regionKeys = REGION_KEYS;
-  readonly regionInfo = REGION_INFO;
+  readonly regionInfo = REGION_INFO;   // the colors; the names are translated, see regionLabel
+
+  private translation = inject(TranslationService);
 
   name = '';
   knifeId: number | null = null;   // database record being edited; null for a new knife
@@ -125,7 +129,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
 
   color = '';
   backcolor = '';
-  status = 'Open, drop or paste a scan of the knife to start.';
+  status = this.translation.t('knives:editor.status.start');
   busy = false;
   dragOver = false;
   private dirty = false;   // changed since it was loaded, traced or exported
@@ -180,17 +184,17 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     }
     this.openedWithKnifeId = id;
     this.busy = true;
-    this.status = 'Loading the knife...';
+    this.status = this.translation.t('knives:editor.status.loading_knife');
     try {
       const knife = await firstValueFrom(this.knivesService.getKnife(id));
       if (!knife?.id) {
-        throw new Error('the knife was not found');
+        throw new Error(this.translation.t('knives:editor.errors.not_found'));
       }
       this.loadKnife(knife, true);
-      this.status = 'Opened ' + knife.name;
+      this.status = this.translation.t('knives:editor.status.opened', { name: knife.name });
     }
     catch (e) {
-      this.status = 'Could not open the knife: ' + this.errorMessage(e);
+      this.status = this.translation.t('knives:editor.status.open_failed', { reason: this.errorMessage(e) });
     }
     finally {
       this.busy = false;
@@ -217,14 +221,19 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     this.backcolor = (theme == 'dark') ? '#212529' : '#f8f9fa';
   }
 
+  /** The translated name of a region (the labels in REGION_INFO are English). */
+  regionLabel(key: RegionKey): string {
+    return this.translation.tx('knives:region_names.' + key);
+  }
+
   /** Clears everything and starts over. */
   async reset() {
     if (this.nodes.length || this.source) {
       const confirmed = await this.confirm_action.open_with_message({
-        modalText: "Are you sure you want to clear the knife? The scan, outline, regions and size will be removed.",
-        modalTitle: "Reset knife?",
+        modalText: this.translation.t('knives:editor.dialogs.reset_text'),
+        modalTitle: this.translation.t('knives:editor.dialogs.reset_title'),
         btnYesClass: "btn-danger",
-        btnYesText: "Start fresh!",
+        btnYesText: this.translation.t('knives:editor.dialogs.reset_yes'),
         btnYesIcon: faEraser
       });
       if (!confirmed) {
@@ -260,7 +269,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     this.dirty = false;
     this.initialState = null;
     this.knifeId = null;
-    this.status = 'Open, drop or paste a scan of the knife to start.';
+    this.status = this.translation.t('knives:editor.status.start');
     this.requestDraw();
   }
 
@@ -290,10 +299,10 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       return;
     }
     const confirmed = await this.confirm_action.open_with_message({
-      modalText: "Are you sure you want to undo all changes since the knife was imported?",
-      modalTitle: "Revert changes?",
+      modalText: this.translation.t('knives:editor.dialogs.revert_text'),
+      modalTitle: this.translation.t('knives:editor.dialogs.revert_title'),
       btnYesClass: "btn-danger",
-      btnYesText: "Revert",
+      btnYesText: this.translation.t('knives:editor.dialogs.revert_yes'),
       btnYesIcon: faRotateLeft
     });
     if (!confirmed) {
@@ -310,7 +319,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     this.undoStack = [];
     this.cancelTool();
     this.dirty = false;
-    this.status = 'Changes reverted.';
+    this.status = this.translation.t('knives:editor.status.reverted');
     this.fitView();
   }
 
@@ -320,10 +329,10 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       return true;
     }
     return this.confirm_action.open_with_message({
-      modalText: "The current knife has changes that were not saved. Opening another one will discard them.",
-      modalTitle: "Discard changes?",
+      modalText: this.translation.t('knives:editor.dialogs.discard_text'),
+      modalTitle: this.translation.t('knives:editor.dialogs.discard_title'),
       btnYesClass: "btn-danger",
-      btnYesText: "Discard changes",
+      btnYesText: this.translation.t('knives:editor.dialogs.discard_yes'),
       btnYesIcon: faEraser
     });
   }
@@ -377,7 +386,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     e.preventDefault();
     // clipboard images come with a generic name such as "image.png"
     if (/^image\.(png|jpe?g)$/i.test(file.name)) {
-      file = new File([file], 'Pasted image.' + file.name.split('.').pop(), { type: file.type });
+      file = new File([file], this.translation.t('knives:editor.pasted_image') + '.' + file.name.split('.').pop(), { type: file.type });
     }
     await this.openFile(file);
   }
@@ -391,7 +400,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       await this.loadSourceFile(file);
     }
     else {
-      this.status = 'Unsupported file: ' + file.name + ' (' + (file.type || 'unknown type') + '). Use PNG, JPG, PDF or a knife JSON file.';
+      this.status = this.translation.t('knives:editor.status.unsupported_file', { name: file.name, type: file.type || this.translation.t('knives:editor.status.unknown_type') });
     }
   }
 
@@ -401,7 +410,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     }
     const replacing = this.nodes.length > 0 || !!this.source;
     this.busy = true;
-    this.status = 'Loading ' + file.name + '...';
+    this.status = this.translation.t('knives:editor.status.loading_file', { name: file.name });
     try {
       if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
         this.pdfData = await file.arrayBuffer();
@@ -423,7 +432,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       this.markImported();
     }
     catch (e) {
-      this.status = 'Could not load ' + file.name + ': ' + (e instanceof Error ? e.message : e);
+      this.status = this.translation.t('knives:editor.status.load_file_failed', { name: file.name, reason: e instanceof Error ? e.message : String(e) });
     }
     finally {
       this.busy = false;
@@ -480,7 +489,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
 
     const result = traceOutline(workCtx.getImageData(0, 0, work.width, work.height), this.autoThreshold ? undefined : this.threshold);
     if (!result) {
-      this.status = 'No shape was found in the image. Try another threshold.';
+      this.status = this.translation.t('knives:editor.status.no_shape');
       return;
     }
     this.usedAlpha = result.usedAlpha;
@@ -501,7 +510,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     this.regions = {};
     this.selectedId = null;
     this.cancelTool();
-    this.status = `Outline traced: ${this.nodes.length} points. Straighten it, then mark the regions.`;
+    this.status = this.translation.t('knives:editor.status.traced', { count: this.nodes.length });
     this.fitView();
   }
 
@@ -556,7 +565,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
   startStraighten() {
     this.cancelTool();
     this.tool = 'straighten';
-    this.status = 'Straighten: click two points on the base line (e.g. both ends of the bottom edge).';
+    this.status = this.translation.t('knives:editor.status.straighten_first');
     this.requestDraw();
   }
 
@@ -568,7 +577,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     const candidates = [-angle, 180 - angle];
     const diff = (r: number) => Math.abs(((r - this.rotation) % 360 + 540) % 360 - 180);
     this.setRotation(diff(candidates[0]) <= diff(candidates[1]) ? candidates[0] : candidates[1]);
-    this.status = `Straightened: rotation is ${this.rotation}°.`;
+    this.status = this.translation.t('knives:editor.status.straightened', { angle: this.rotation });
     this.fitView();
   }
 
@@ -581,7 +590,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     this.cancelTool();
     this.tool = 'mark';
     this.markKey = key;
-    this.status = `${REGION_INFO[key].label}: click where it starts on the outline.`;
+    this.status = this.translation.t('knives:editor.status.mark_start', { region: this.regionLabel(key) });
     this.requestDraw();
   }
 
@@ -595,7 +604,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     const key = this.markKey!;
     this.regions[key] = shortestRegion(this.nodes, firstId, secondId);
     this.deriveRegions();
-    this.status = `${REGION_INFO[key].label} marked.`;
+    this.status = this.translation.t('knives:editor.status.marked', { region: this.regionLabel(key) });
     this.cancelTool();
   }
 
@@ -677,7 +686,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     const i = indexOfId(this.nodes, this.selectedId ?? -1);
     if (i < 0) return;
     if (this.nodes.length <= 3) {
-      this.status = 'The outline needs at least 3 points.';
+      this.status = this.translation.t('knives:editor.status.min_points');
       return;
     }
     this.saveUndo();
@@ -686,7 +695,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     removed.forEach(k => delete this.regions[k]);
     this.nodes.splice(i, 1);
     this.selectedId = null;
-    this.status = removed.length ? 'Point deleted. Cleared regions that used it: ' + removed.map(k => REGION_INFO[k].label).join(', ') : 'Point deleted.';
+    this.status = removed.length ? this.translation.t('knives:editor.status.point_deleted_regions', { regions: removed.map(k => this.regionLabel(k)) }) : this.translation.t('knives:editor.status.point_deleted');
     this.requestDraw();
   }
 
@@ -749,26 +758,26 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
   }
 
   get missingRegions(): string[] {
-    return REGION_KEYS.filter(k => !this.regions[k]).map(k => REGION_INFO[k].label);
+    return REGION_KEYS.filter(k => !this.regions[k]).map(k => this.regionLabel(k));
   }
 
   /** The knife as stored ({ id, name, data } with data in cm); null (with a status message) while incomplete. */
   getKnife(): Knife | null {
     if (!this.name.trim()) {
-      this.status = 'Give the knife a name.';
+      this.status = this.translation.t('knives:editor.status.need_name');
       return null;
     }
     if (this.nodes.length < 3) {
-      this.status = 'There is no outline yet.';
+      this.status = this.translation.t('knives:editor.status.no_outline');
       return null;
     }
     if (this.missingRegions.length) {
-      this.status = 'Mark all regions first. Missing: ' + this.missingRegions.join(', ');
+      this.status = this.translation.t('knives:editor.status.missing_regions', { regions: this.missingRegions });
       return null;
     }
     const measured = this.measuredWidth();
     if (!measured || !this.widthCm || this.widthCm <= 0) {
-      this.status = 'Enter the knife width (L1 to Crown) in cm.';
+      this.status = this.translation.t('knives:editor.status.need_width');
       return null;
     }
     const data = bakeShape(this.nodes, this.regions, this.toOriented, this.flipped, measured / this.widthCm);
@@ -781,7 +790,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     if (!knife) return;
     const name = knife.name.replace(/[\\/:*?"<>|]+/g, '_') + '.json';
     saveAs(new Blob([JSON.stringify(knife, null, 2)], { type: 'application/json' }), name);
-    this.status = 'Exported ' + name;
+    this.status = this.translation.t('knives:editor.status.exported', { name });
     this.dirty = false;
   }
 
@@ -803,7 +812,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     }
     catch (e) {
       const message = this.errorMessage(e);
-      this.status = 'Could not save the knife: ' + message;
+      this.status = this.translation.t('knives:editor.status.save_failed', { reason: message });
       this.toastService.showError(message);
     }
     finally {
@@ -829,7 +838,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       }
     }
     catch (e) {
-      this.status = 'Could not load the saved knives: ' + this.errorMessage(e);
+      this.status = this.translation.t('knives:editor.status.list_failed', { reason: this.errorMessage(e) });
     }
     finally {
       this.loadingList = false;
@@ -845,15 +854,15 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     try {
       const knife = await firstValueFrom(this.knivesService.getKnife(id));
       if (!knife?.id) {
-        throw new Error('the knife was not found');
+        throw new Error(this.translation.t('knives:editor.errors.not_found'));
       }
       this.loadKnife(knife, true);
       this.sourceName = '';
       this.showDbList = false;
-      this.status = 'Opened ' + knife.name;
+      this.status = this.translation.t('knives:editor.status.opened', { name: knife.name });
     }
     catch (e) {
-      this.status = 'Could not open the knife: ' + this.errorMessage(e);
+      this.status = this.translation.t('knives:editor.status.open_failed', { reason: this.errorMessage(e) });
     }
     finally {
       this.busy = false;
@@ -867,10 +876,10 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       return;
     }
     const confirmed = await this.confirm_action.open_with_message({
-      modalTitle: "Delete confirmation",
-      modalText: "Are you sure you want to delete the knife " + this.name + "?",
+      modalTitle: this.translation.t('knives:editor.dialogs.delete_title'),
+      modalText: this.translation.t('knives:editor.dialogs.delete_text', { name: this.name }),
       btnYesIcon: faTrashAlt,
-      btnYesText: "Delete",
+      btnYesText: this.translation.t('knives:editor.dialogs.delete_yes'),
       btnYesClass: "btn-danger",
       reverseButtons: true
     });
@@ -887,7 +896,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     }
     catch (e) {
       const message = this.errorMessage(e);
-      this.status = 'Could not delete the knife: ' + message;
+      this.status = this.translation.t('knives:editor.status.delete_failed', { reason: message });
       this.toastService.showError(message);
     }
     finally {
@@ -919,10 +928,10 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       // a file isn't linked to a database record: saving it creates a new knife
       this.loadKnife(knife, false);
       this.sourceName = file.name;
-      this.status = 'Loaded ' + file.name;
+      this.status = this.translation.t('knives:editor.status.loaded', { name: file.name });
     }
     catch (e) {
-      this.status = 'Could not read ' + file.name + ': ' + (e instanceof Error ? e.message : e);
+      this.status = this.translation.t('knives:editor.status.read_failed', { name: file.name, reason: e instanceof Error ? e.message : String(e) });
     }
   }
 
@@ -930,7 +939,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
   loadKnife(knife: Knife, fromDatabase: boolean) {
     const shape = knife?.data;
     if (!Array.isArray(shape?.nodes) || shape.nodes.length < 3) {
-      throw new Error('not a knife file');
+      throw new Error(this.translation.t('knives:editor.errors.not_a_knife_file'));
     }
     this.saveUndo();
     this.knifeId = fromDatabase ? knife.id : null;
@@ -962,11 +971,11 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
   toggleBabies() {
     if (!this.showBabies) {
       if (this.missingRegions.length) {
-        this.status = 'Mark all regions to preview babies. Missing: ' + this.missingRegions.join(', ');
+        this.status = this.translation.t('knives:editor.status.preview_missing_regions', { regions: this.missingRegions });
         return;
       }
       if (!this.unitsPerCm()) {
-        this.status = 'Enter the knife width to preview babies.';
+        this.status = this.translation.t('knives:editor.status.preview_need_width');
         return;
       }
     }
@@ -977,13 +986,13 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
   /** Why the babies preview can't be shown yet; null when it can. */
   get babiesBlockedReason(): string | null {
     if (this.nodes.length < 3) {
-      return 'Load a knife first.';
+      return this.translation.t('knives:editor.blocked.load_first');
     }
     if (this.missingRegions.length) {
-      return 'Mark all regions first. Missing: ' + this.missingRegions.join(', ') + '.';
+      return this.translation.t('knives:editor.blocked.missing_regions', { regions: this.missingRegions });
     }
     if (!this.unitsPerCm()) {
-      return 'Enter the knife width first.';
+      return this.translation.t('knives:editor.blocked.need_width');
     }
     return null;
   }
@@ -1012,7 +1021,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       const m = this.fromScreen(s);
       if (!this.straightenFirst) {
         this.straightenFirst = m;
-        this.status = 'Straighten: click the second point.';
+        this.status = this.translation.t('knives:editor.status.straighten_second');
       }
       else {
         const first = this.straightenFirst;
@@ -1031,7 +1040,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       if (this.markFirstId === null) {
         this.saveUndo();
         this.markFirstId = id;
-        this.status = `${REGION_INFO[this.markKey!].label}: now click where it ends.`;
+        this.status = this.translation.t('knives:editor.status.mark_end', { region: this.regionLabel(this.markKey!) });
       }
       else if (id !== this.markFirstId) {
         this.completeMark(this.markFirstId, id);
@@ -1100,7 +1109,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     const id = this.pickOrInsertNode(s);
     if (id !== null) {
       this.selectedId = id;
-      this.status = 'Point added.';
+      this.status = this.translation.t('knives:editor.status.point_added');
       this.requestDraw();
     }
   }
@@ -1378,7 +1387,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       const samples = sampleRegion(this.nodes, region).map(p => this.toScreen(p));
       const mid = samples[Math.floor(samples.length / 2)];
       const pos = add(mid, mul(norm(sub(mid, centroid)), 22));
-      this.drawLabel(REGION_INFO[key].label, pos, REGION_INFO[key].color);
+      this.drawLabel(this.regionLabel(key), pos, REGION_INFO[key].color);
     }
   }
 
@@ -1424,7 +1433,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.fillStyle = this.color;
-    ctx.fillText(this.widthCm ? this.widthCm + ' cm' : 'width ?', (x1 + x2) / 2, y + 6);
+    ctx.fillText(this.widthCm ? this.translation.t('common:units.cm', { value: this.widthCm }) : this.translation.t('knives:editor.canvas.width_unknown'), (x1 + x2) / 2, y + 6);
   }
 
   private drawNodes() {

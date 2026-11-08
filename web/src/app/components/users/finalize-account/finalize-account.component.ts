@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastService } from '../../../services/toast.service';
 import { UsersService } from '../../../services/users.service';
@@ -17,15 +17,19 @@ import { MapPipe } from '../../../utils/pipes/map-pipe';
 import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.component";
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { StateService } from '../../../services/state.service';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-finalize-account',
   standalone: true,
-  imports: [PageLoadingComponent, UnsavedChangesDialogComponent, FaIconComponent, NgIf, FormsModule, DateStrPipe, ImageCropComponent, MapPipe, ModalDialogComponent],
+  imports: [TranslatePipe, PageLoadingComponent, UnsavedChangesDialogComponent, FaIconComponent, NgIf, FormsModule, DateStrPipe, ImageCropComponent, MapPipe, ModalDialogComponent],
   templateUrl: './finalize-account.component.html',
   styleUrl: './finalize-account.component.scss'
 })
 export class FinalizeAccountComponent extends NavigatedMessageComponent {
+  private translation = inject(TranslationService);
+
 
   user_verification_code: string = "";
   loading: boolean = true;
@@ -170,12 +174,12 @@ export class FinalizeAccountComponent extends NavigatedMessageComponent {
     let error = false;
 
     if(!this.password_change.new_password) {
-      this.password_change_errors.new_password = 'Password is required';
+      this.password_change_errors.new_password = this.translation.t('users:validation.password_required');
       error = true;
     }
 
     if(!this.password_change.repeat_new_password) {
-      this.password_change_errors.repeat_new_password = 'Password confirmation required';
+      this.password_change_errors.repeat_new_password = this.translation.t('users:reset.confirm_required');
       error = true;
     }
 
@@ -184,7 +188,7 @@ export class FinalizeAccountComponent extends NavigatedMessageComponent {
       this.password_change.new_password && 
       this.password_change.repeat_new_password && 
       this.password_change.new_password != this.password_change.repeat_new_password) {
-      this.password_change_errors.repeat_new_password = 'Passwords do not match';
+      this.password_change_errors.repeat_new_password = this.translation.t('users:validation.mismatch');
       error = true;
     }
     return !error;    

@@ -4,11 +4,12 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { SettingsService } from '../../../services/settings.service';
 import { faPaintRoller, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-settings-ui',
   standalone: true,
-  imports: [ FormsModule, NgIf, FaIconComponent ],
+  imports: [TranslatePipe,  FormsModule, NgIf, FaIconComponent ],
   templateUrl: './settings-ui.component.html',
   styleUrl: './settings-ui.component.scss'
 })

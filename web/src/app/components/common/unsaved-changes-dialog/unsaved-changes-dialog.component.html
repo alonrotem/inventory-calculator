@@ -8,8 +8,8 @@
         <div class="dialog-content" [innerHTML]="modalText"></div>
     </div>
         <div class="modal-footer">
-        <button type="button" class="btn btn-success" (click)="save()"><fa-icon [icon]="faSave" ></fa-icon> Save &amp; continue</button>
-        <button type="button" class="btn btn-warning" (click)="discard()"><fa-icon [icon]="faArrowLeft" ></fa-icon> Discard changes</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="cancel()">Cancel</button>
+        <button type="button" class="btn btn-success" (click)="save()"><fa-icon [icon]="faSave" ></fa-icon> {{ 'common:dialogs.save_and_continue' | t }}</button>
+        <button type="button" class="btn btn-warning" (click)="discard()"><fa-icon [icon]="faArrowLeft" ></fa-icon> {{ 'common:dialogs.discard_changes' | t }}</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="cancel()">{{ 'common:actions.cancel' | t }}</button>
       </div>
 </app-modal-dialog>

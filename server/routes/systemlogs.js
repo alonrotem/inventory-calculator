@@ -35,7 +35,7 @@ router.get('/getlog/:filename', auth_request([{requiredArea:'system_logs', requi
         res.download(filepath, downloadfilename);
     }
     else {
-        res.status(404).json({ message: `Log file "${filename}" not found` });
+        res.status(404).json({ message: req.t('server:logs.not_found', { filename }) });
         return;
     }
 });
@@ -52,7 +52,7 @@ router.get('/getall/', auth_request([{requiredArea:'system_logs', requiredPermis
         res.end();
     }
     else {
-        res.status(404).json({ message: `No log files found on the server` });
+        res.status(404).json({ message: req.t('server:logs.none') });
         return;
     }
 });
@@ -66,7 +66,7 @@ router.get('/getlogtail/:filename', auth_request([{requiredArea:'system_logs', r
         res.json(logContent);
     }
     else {
-        res.status(404).json({ message: `Log file "${filename}" not found` });
+        res.status(404).json({ message: req.t('server:logs.not_found', { filename }) });
         return;
     }
 });
@@ -79,7 +79,7 @@ router.delete('/', auth_request([{requiredArea:'system_logs', requiredPermission
     } 
     catch (err) {
       logger.error(`Error deleting log files ${err.message}`);
-      res.status(400).json({ message: `Error deleting log files: ${err.message}` });
+      res.status(400).json({ message: req.t('server:logs.delete_failed', { reason: err.message }) });
     }
 });
 
@@ -93,7 +93,7 @@ router.delete('/:filename', auth_request([{requiredArea:'system_logs', requiredP
         res.json(files);
     }
     else {
-        res.status(404).json({ message: `Log file "${filename}" not found` });
+        res.status(404).json({ message: req.t('server:logs.not_found', { filename }) });
         return;
     }
 });

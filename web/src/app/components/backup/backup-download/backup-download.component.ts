@@ -4,11 +4,12 @@ import { BackupService } from '../../../services/backup.service';
 import { faCloudDownload, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-backup-download',
   standalone: true,
-  imports: [ FaIconComponent, FormsModule ],
+  imports: [TranslatePipe,  FaIconComponent, FormsModule ],
   templateUrl: './backup-download.component.html',
   styleUrl: './backup-download.component.scss'
 })

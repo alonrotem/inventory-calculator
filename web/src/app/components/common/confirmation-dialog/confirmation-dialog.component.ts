@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnInit, Output, ViewChild, inject } from '@angular/core';
+import { TranslationService } from '../../../i18n/translation.service';
 import { ModalDialogComponent } from "../modal-dialog/modal-dialog.component";
 import { faBorderNone, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { NgIf } from '@angular/common';
@@ -12,11 +13,12 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
   styleUrl: './confirmation-dialog.component.scss'
 })
 export class ConfirmationDialogComponent implements OnInit, AfterViewInit {
+  private translation = inject(TranslationService);
   @ViewChild("confirmation_dialog") confirmation_dialog!: ModalDialogComponent;
-  @Input() modalTitle: string = "Confirm";
-  @Input() modalText: string = "Are you absolutely sure?";
-  @Input() btnYesText: string = "Yes";
-  @Input() btnNoText: string = "No";
+  @Input() modalTitle: string = this.translation.t('common:dialogs.confirm_title');
+  @Input() modalText: string = this.translation.t('common:dialogs.confirm_text');
+  @Input() btnYesText: string = this.translation.t('common:actions.yes');
+  @Input() btnNoText: string = this.translation.t('common:actions.no');
   @Input() btnYesIcon: IconDefinition = faBorderNone;
   @Input() btnYesClass: string = "";
   @Input() btnNoClass: string = "";

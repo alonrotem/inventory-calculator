@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { TranslationService } from '../../../i18n/translation.service';
 import { trigger, style, transition, animate } from '@angular/animations';
 import { NgIf } from '@angular/common';
 import { FaIconComponent, IconDefinition } from '@fortawesome/angular-fontawesome';
@@ -23,7 +24,8 @@ import { faSave } from '@fortawesome/free-solid-svg-icons';
   ]
 })
 export class SaveChangesButtonComponent {
-  @Input() message: string = "Save changes quickly?";
+  private translation = inject(TranslationService);
+  @Input() message: string = this.translation.t('common:save_bar.message');
   @Input() show: boolean = false;
   @Output() save = new EventEmitter<void>();
   faSave: IconDefinition = faSave;

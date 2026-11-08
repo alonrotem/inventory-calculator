@@ -1,27 +1,27 @@
 <app-modal-dialog #dialog 
   [btnSaveClass]="'d-none'" 
   [btnCancelClass]="'btn-primary m-auto'" 
-  [modalTitle]="'<span class=\'icon-history\'></span> Transaction history'"
+  [modalTitle]="'<span class=\'icon-history\'></span> ' + ('raw_materials:history.title' | t)"
   [modalSize]="'lg'"
   >
 
   <div *ngIf="loading">
     <div style="height: 170px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
       <div><fa-icon [icon]="faArrowsRotate" [animation]="'spin'" size="3x"></fa-icon></div>
-      <div id="loading_message" class="mt-4">Loading history records...</div>
+      <div id="loading_message" class="mt-4">{{ 'raw_materials:history.loading' | t }}</div>
     </div>
   </div>
   <div *ngIf="!loading && history_records && history_records.length > 0">
     <div class="mb-3">
-      History records for raw material: <strong>{{ raw_material_name }}</strong>
+      {{ 'raw_materials:history.for_material' | t }} <strong>{{ raw_material_name }}</strong>
     </div>
     <table class="table table-light">
         <thead>
           <tr>
-            <th scope="col">Date</th>
-            <th scope="col">Action</th>
-            <th scope="col">Quantity</th>
-            <th scope="col">Remaining quantity</th>
+            <th scope="col">{{ 'raw_materials:history.col_date' | t }}</th>
+            <th scope="col">{{ 'raw_materials:history.col_action' | t }}</th>
+            <th scope="col">{{ 'raw_materials:history.col_quantity' | t }}</th>
+            <th scope="col">{{ 'raw_materials:history.col_remaining' | t }}</th>
           </tr>
         </thead>
         <tbody>
@@ -29,42 +29,42 @@
             <td>{{ record.date | dateStr }}</td>
             <td [ngSwitch]="record.transaction_type">
               <span *ngSwitchCase="'raw_material_purchase'">
-                <span *ngIf="record.transaction_quantity >= 0">Material purchase</span>
-                <span *ngIf="record.transaction_quantity < 0">Material quantity reduction</span>
+                <span *ngIf="record.transaction_quantity >= 0">{{ 'raw_materials:history.purchase' | t }}</span>
+                <span *ngIf="record.transaction_quantity < 0">{{ 'raw_materials:history.reduction' | t }}</span>
                 
               </span>
               <span *ngSwitchCase="'to_customer_bank'">
-                <span *ngIf="record.transaction_quantity >= 0">To customer's bank:</span>
-                <span *ngIf="record.transaction_quantity < 0">From customer's bank:</span>
-                <strong style="margin-left:5px;">{{ record.customer_name }}</strong>
+                <span *ngIf="record.transaction_quantity >= 0">{{ 'raw_materials:history.to_bank' | t }}</span>
+                <span *ngIf="record.transaction_quantity < 0">{{ 'raw_materials:history.from_bank' | t }}</span>
+                <strong style="margin-inline-start:5px;">{{ record.customer_name }}</strong>
               </span>
               <span *ngSwitchCase="'deleted_customer_bank'">
-                Deleted customer bank: <strong>{{ record.customer_name }}</strong>
+                {{ 'raw_materials:history.deleted_bank_named' | t }} <strong>{{ record.customer_name }}</strong>
               </span>
             </td>
             <td [ngSwitch]="record.transaction_type" class="text-end">
               <span *ngSwitchCase="'raw_material_purchase'" class="text-success">
-                <span *ngIf="record.transaction_quantity >= 0">+</span>{{ record.transaction_quantity | number: ((raw_material_units == 'kg')? '1.2-2' : '1.0-0') }} {{ raw_material_units }}
+                <span *ngIf="record.transaction_quantity >= 0">+</span>{{ record.transaction_quantity | tquantity: raw_material_units }}
               </span>
               <span *ngSwitchCase="'to_customer_bank'">
-                <span class="text-danger" *ngIf="record.transaction_quantity >= 0">-{{ record.transaction_quantity | number: ((raw_material_units == 'kg')? '1.2-2' : '1.0-0') }}</span>
-                <span class="text-success" *ngIf="record.transaction_quantity < 0">+{{ Math.abs(record.transaction_quantity) | number: ((raw_material_units == 'kg')? '1.2-2' : '1.0-0') }}</span> {{ raw_material_units }}
+                <span class="text-danger" *ngIf="record.transaction_quantity >= 0">-{{ record.transaction_quantity | tquantity: raw_material_units }}</span>
+                <span class="text-success" *ngIf="record.transaction_quantity < 0">+{{ Math.abs(record.transaction_quantity) | tquantity: raw_material_units }}</span>
               </span>
-              <span *ngSwitchCase="'deleted_customer_bank'" class="text-success">+{{ record.transaction_quantity }} {{ raw_material_units }}</span>
+              <span *ngSwitchCase="'deleted_customer_bank'" class="text-success">+{{ record.transaction_quantity | tquantity: raw_material_units }}</span>
             </td>
-            <td class="text-end">{{ record.cur_raw_material_quantity | number: ((raw_material_units == 'kg')? '1.2-2' : '1.0-0') }} {{ raw_material_units }}</td>
+            <td class="text-end">{{ record.cur_raw_material_quantity | tquantity: raw_material_units }}</td>
           </tr>
         </tbody>
       </table>
       <div (click)="ExportToExcel()" style="text-align: center; cursor: pointer;">
-        <span class="icon-file-excel"></span> Download raw data to Excel
+        <span class="icon-file-excel"></span> {{ 'raw_materials:history.export' | t }}
       </div>
     </div>
 
     <div *ngIf="((!loading) && (!history_records || history_records.length == 0))">
       <div style="height: 170px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
         <div><fa-icon [icon]="faTriangleExclamation" size="3x"></fa-icon></div>
-        <div id="loading_message" class="mt-4">No history records for this material</div>
+        <div id="loading_message" class="mt-4">{{ 'raw_materials:history.empty' | t }}</div>
       </div>
     </div>
 

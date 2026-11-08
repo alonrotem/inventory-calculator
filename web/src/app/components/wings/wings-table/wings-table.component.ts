@@ -13,11 +13,12 @@ import { NavigatedMessageComponent } from '../../common/navigated-message/naviga
 import { SettingsService } from '../../../services/settings.service';
 import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
 import { Observable } from 'rxjs';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-wings-table',
   standalone: true,
-  imports: [DateStrPipe, RouterModule, NgFor, DecimalPipe, FaIconComponent, FontAwesomeModule, 
+  imports: [TranslatePipe, DateStrPipe, RouterModule, NgFor, DecimalPipe, FaIconComponent, FontAwesomeModule, 
     PaginatorComponent, PaginatorComponent, PageLoadingComponent, NgIf],
   templateUrl: './wings-table.component.html',
   styleUrl: './wings-table.component.scss'

@@ -1,24 +1,24 @@
 <div class="row justify-content-center"><div class="col-12 col-md-9">
-<h1><span class="icon-knife"></span> Knives</h1>
+<h1><span class="icon-knife"></span> {{ 'common:nav.knives' | t }}</h1>
 
 <app-page-loading
-  [loading_message]="'Loading knives...'"
+  [loading_message]="'knives:list.loading' | t"
   [icon_size]="'3x'"
   [hidden]="!loading"
   [stretch_height]="true" />
 
 <div [hidden]="loading">
-  <a id="btnNewKnife" class="btn btn-primary" routerLink="/templates/knives/editor">+ New knife</a>
+  <a id="btnNewKnife" class="btn btn-primary" routerLink="/templates/knives/editor">{{ 'knives:list.new_knife' | t }}</a>
 
-  <div class="infotitle" [hidden]="loading || this.knives.length <= 0">Total: {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'knife':'knives' }}</div>
+  <div class="infotitle" [hidden]="loading || this.knives.length <= 0">{{ 'knives:list.total' | t: { count: totalRecords } }}</div>
 
   <div [hidden]="loading || this.knives.length == 0">
   <table class="table table-responsive table-striped table-hover">
     <thead>
       <tr>
         <th scope="col" class="knife_thumbnail_col"></th>
-        <th scope="col">Name</th>
-        <th scope="col">Width</th>
+        <th scope="col">{{ 'knives:list.name' | t }}</th>
+        <th scope="col">{{ 'knives:list.width' | t }}</th>
       </tr>
     </thead>
     <tbody>
@@ -34,7 +34,7 @@
           }
         </td>
         <td>{{ knife.name }}</td>
-        <td>{{ knife.width_cm | number: '1.0-2' }} cm</td>
+        <td>{{ 'common:units.cm' | t: { value: knife.width_cm } }}</td>
       </tr>
     </tbody>
   </table>
@@ -43,8 +43,8 @@
   </div>
 
   <div [hidden]="loading || this.knives.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
-    No knives added.<br/>
-    Please add some by clicking the + button above.
+    {{ 'knives:list.empty' | t }}<br/>
+    {{ 'knives:list.empty_hint' | t }}
   </div>
 </div>
 </div></div>

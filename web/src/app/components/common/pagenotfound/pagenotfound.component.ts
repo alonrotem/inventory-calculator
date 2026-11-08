@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
 import { GlobalsService } from '../../../services/globals.service';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-pagenotfound',
   standalone: true,
-  imports: [ RouterLink ],
+  imports: [TranslatePipe,  RouterLink ],
   templateUrl: './pagenotfound.component.html',
   styleUrl: './pagenotfound.component.scss'
 })

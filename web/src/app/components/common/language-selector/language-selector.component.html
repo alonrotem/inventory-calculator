@@ -1,0 +1,15 @@
+@if (translation.languages.length > 1) {
+  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+     (click)="$event.preventDefault()" [attr.title]="'common:language.label' | t">
+    <fa-icon [icon]="faGlobe"></fa-icon> <span class="language-name">{{ translation.current.nativeName }}</span>
+  </a>
+  <ul class="dropdown-menu">
+    @for (language of translation.languages; track language.code) {
+      <li>
+        <a class="dropdown-item" href="#" [class.active]="language.code === translation.language"
+           [attr.lang]="language.code" [attr.dir]="language.dir" (click)="choose(language.code, $event)"
+           [attr.title]="'common:language.switch_to' | t: { language: language.nativeName }">{{ language.nativeName }}</a>
+      </li>
+    }
+  </ul>
+}

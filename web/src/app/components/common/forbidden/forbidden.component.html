@@ -1,11 +1,11 @@
 <div class="forbidden-container">
     <img class="banner-img" src="/assets/images/forbidden.png" alt="">
     <div class="lower-text">
-        <h2>You are not allowed to access this page.</h2>
+        <h2>{{ 'common:pages.forbidden' | t }}</h2>
         <div class="gohome">
             <a routerLink="/">
                 <img src="/assets/images/{{ logo_img }}" />
-                <span>Go back home!</span>
+                <span>{{ 'common:pages.go_home' | t }}</span>
             </a>
         </div>
     </div>

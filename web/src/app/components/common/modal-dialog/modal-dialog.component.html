@@ -4,7 +4,7 @@
 <ng-template class="modal-dialog modal-fullscreen" #content let-c="close" let-d="dismiss" style="z-index: 99999;">
     <div class="modal-header">
         <h4 class="modal-title" id="modal-basic-title" [innerHTML]="modalTitle"></h4>
-        <button type="button" class="btn-close" aria-label="Close" (click)="this.onCancel()"></button>
+        <button type="button" class="btn-close" [attr.aria-label]="'common:actions.close' | t" (click)="this.onCancel()"></button>
     </div>
     <div class="modal-body {{ modalBodyClass }}">
         <ng-content ></ng-content>

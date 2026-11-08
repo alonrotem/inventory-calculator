@@ -2,19 +2,19 @@
 <app-modal-dialog #babyEditorDialog>
     <div modalContent>
 <!--<form novalidate #baby_editor_form="ngForm" [formGroup]="babyFormEditor">-->
-    <div *ngIf="!is_demo_customer" class="text-warning">Available units: {{ units_available | number: '1.' }}</div>
-    <div *ngIf="is_demo_customer" class="text-success">Demo customer, no quota.</div>
+    <div *ngIf="!is_demo_customer" class="text-warning">{{ 'wings:baby_editor.available' | t: { count: units_available } }}</div>
+    <div *ngIf="is_demo_customer" class="text-success">{{ 'customers:bank.demo_no_quota' | t }}</div>
     <div class="d-flex flex-row flex-nowrap justify-content-start">
         <div class="form-check">
         <input class="form-check-input" type="radio" name="radioEditMode" id="radioEditMode" [(ngModel)]="babyEditMode" [value]="true" (change)="switch_mode()">
         <label class="form-check-label" for="radioEditMode">
-            Edit quantities
+            {{ 'wings:baby_editor.edit_quantities' | t }}
         </label>
         </div>
         <div class="form-check ms-3">
         <input class="form-check-input" type="radio" name="radioEditMode" id="radioTopUpMode" [(ngModel)]="babyEditMode" [value]="false" (change)="switch_mode()">
         <label class="form-check-label" for="radioTopUpMode">
-            Top up
+            {{ 'wings:baby_editor.top_up' | t }}
         </label>
         </div>        
     </div>
@@ -59,7 +59,7 @@
             min="0" 
             (focus)="$any($event.target).select()" 
             (keyup.enter)="sendit($event)">
-        <label for="quantity">Quantity</label>
+        <label for="quantity">{{ 'wings:baby_editor.quantity' | t }}</label>
     </div>
     <div [className]="(babyEditMode)? 'd-none': 'top-up'">
         <span>{{ highlighted_baby_quantity | number: '1.0-0' }}</span>
@@ -78,23 +78,23 @@
                 min="0" 
                 (focus)="$any($event.target).select()" 
                 (keyup.enter)="sendit($event)">
-            <label for="highlighted_baby_top_up">Top up</label>
+            <label for="highlighted_baby_top_up">{{ 'wings:baby_editor.top_up' | t }}</label>
         </div>
         <span>=</span>
         <span>{{ (highlighted_baby_quantity + highlighted_baby_top_up) | number: '1.0-0' }}</span>
     </div>
 
 
-    <div *ngIf="customer_banks_babies_reduce_from_allocation">Maximum: {{ units_available + highlighted_baby_quantity_before_change }}</div>
-    <div *ngIf="customer_banks_babies_reduce_from_allocation && highlighted_baby_quantity > units_available + highlighted_baby_quantity_before_change" class="text-danger">Not enough available units. Maximum of {{ units_available | number: '1.' }} + {{ highlighted_baby_quantity_before_change | number: '1.' }} = {{ units_available + highlighted_baby_quantity_before_change | number: '1.' }}</div>
+    <div *ngIf="customer_banks_babies_reduce_from_allocation">{{ 'wings:baby_editor.maximum' | t: { count: units_available + highlighted_baby_quantity_before_change } }}</div>
+    <div *ngIf="customer_banks_babies_reduce_from_allocation && highlighted_baby_quantity > units_available + highlighted_baby_quantity_before_change" class="text-danger">{{ 'wings:baby_editor.not_enough' | t: { available: units_available, before: highlighted_baby_quantity_before_change, max: units_available + highlighted_baby_quantity_before_change } }}</div>
     <!--div class="text-danger" *ngIf="babyFormEditor.get('quantity')?.invalid && (babyFormEditor.get('quantity')?.touched || babyFormEditor.get('quantity')?.dirty || isSubmitted) && (babyFormEditor.get('quantity') && !babyFormEditor.get('quantity')?.value)"> 
         <span>Please enter a valid babies quantity</span>
     </div--> 
     <div *ngIf="units_available > 0" class="text-success d-flex justify-content-center">
-        (Hit Enter to send and move next)
+        {{ 'wings:baby_editor.hit_enter' | t }}
     </div>
     <div *ngIf="!is_demo_customer &&units_available <= 0" class="bg-danger" style="padding: 10px;">
-        No units available in this allocation to add more babies
+        {{ 'wings:baby_editor.none_available' | t }}
     </div>
 <!--</form>-->
 </div>

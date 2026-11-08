@@ -1,10 +1,11 @@
 import { Component, Input, Output, EventEmitter, ElementRef, HostListener } from '@angular/core';
 import { DecimalPipe, NgIf } from '@angular/common';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-capacity-bar',
   standalone: true,
-  imports: [ DecimalPipe, NgIf ],
+  imports: [TranslatePipe,  DecimalPipe, NgIf ],
   providers: [DecimalPipe],
   templateUrl: './capacity-bar.component.html',
   styleUrls: ['./capacity-bar.component.scss']

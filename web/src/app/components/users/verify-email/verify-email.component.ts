@@ -7,11 +7,12 @@ import { faUserLock, faArrowsRotate, faEnvelope, faCheck, faX } from '@fortaweso
 import { UsersService } from '../../../services/users.service';
 import { ToastService } from '../../../services/toast.service';
 import { ActivatedRoute } from '@angular/router';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-verify-email',
   standalone: true,
-  imports: [ FaIconComponent, FormsModule, NgIf, NgClass, CommonModule, PromptDialogComponent ],
+  imports: [TranslatePipe,  FaIconComponent, FormsModule, NgIf, NgClass, CommonModule, PromptDialogComponent ],
   templateUrl: './verify-email.component.html',
   styleUrl: './verify-email.component.scss'
 })

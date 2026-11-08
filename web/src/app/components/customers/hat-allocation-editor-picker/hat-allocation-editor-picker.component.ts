@@ -5,11 +5,12 @@ import { ModalContentDirective } from '../../common/directives/modal-content.dir
 import { Customer, Allocation_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, ModalDialog, Bank_Allocation_Type } from '../../../../types';
 import { CustomerBanksTableComponent } from '../customer-banks-table/customer-banks-table.component';
 import { NgFor } from '@angular/common';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-hat-allocation-editor-picker',
   standalone: true,
-  imports: [ ModalDialogComponent, CustomerBanksTableComponent, NgFor, ModalContentDirective ],
+  imports: [TranslatePipe,  ModalDialogComponent, CustomerBanksTableComponent, NgFor, ModalContentDirective ],
   templateUrl: './hat-allocation-editor-picker.component.html',
   styleUrl: './hat-allocation-editor-picker.component.scss',
     providers: [

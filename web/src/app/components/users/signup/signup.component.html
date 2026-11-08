@@ -5,7 +5,7 @@
     <fieldset class="border">
         <div class="logo"></div>
     <div>
-        <h2 class="form-title">Admin account sign up</h2>
+        <h2 class="form-title">{{ 'users:auth.signup_title' | t }}</h2>
     </div>
 
     <form novalidate #signup_form="ngForm" [id]="'signup_form'"  (keyup.enter)="send_signup()">
@@ -21,17 +21,17 @@
           type="text" 
           class="form-control" 
           id="input_firstname" 
-          placeholder="First name" 
+          [placeholder]="'users:fields.first_name' | t" 
           [(ngModel)]="signupData.firstname" 
           #input_firstname="ngModel" 
           name="input_firstname" 
           [required]="true"
           [pattern]="'^[a-zA-Z\\s\\-_]*$'">
-        <label for="input_firstname">First name <span class="text-danger">*</span></label>
+        <label for="input_firstname">{{ 'users:fields.first_name' | t }} <span class="text-danger">*</span></label>
       </div> 
       <div class="text-danger" *ngIf="input_firstname.invalid && (input_firstname.touched || input_firstname.dirty)" > 
-          <span *ngIf="input_firstname.errors?.['required']">First name is required</span>
-          <span *ngIf="input_firstname.errors?.['pattern']">Use only letters, space or -</span>
+          <span *ngIf="input_firstname.errors?.['required']">{{ 'users:validation.first_name_required' | t }}</span>
+          <span *ngIf="input_firstname.errors?.['pattern']">{{ 'users:validation.letters_only' | t }}</span>
       </div>
     </div>
 
@@ -41,17 +41,17 @@
           type="text" 
           class="form-control" 
           id="input_lastname" 
-          placeholder="Last name" 
+          [placeholder]="'users:fields.last_name' | t" 
           [(ngModel)]="signupData.lastname" 
           #input_lastname="ngModel" 
           name="input_lastname" 
           [required]="true"
           [pattern]="'^[a-zA-Z\\s\\-]*$'">
-        <label for="input_lastname">Last name <span class="text-danger">*</span></label>
+        <label for="input_lastname">{{ 'users:fields.last_name' | t }} <span class="text-danger">*</span></label>
       </div> 
       <div class="text-danger" *ngIf="input_lastname.invalid && (input_lastname.touched || input_lastname.dirty)" > 
-          <span *ngIf="input_lastname.errors?.['required']">Last name is required</span>
-          <span *ngIf="input_lastname.errors?.['pattern']">Use only letters, space or -</span>
+          <span *ngIf="input_lastname.errors?.['required']">{{ 'users:validation.last_name_required' | t }}</span>
+          <span *ngIf="input_lastname.errors?.['pattern']">{{ 'users:validation.letters_only' | t }}</span>
       </div>
     </div>
 
@@ -61,17 +61,17 @@
           type="text" 
           class="form-control" 
           id="input_username" 
-          placeholder="Username" 
+          [placeholder]="'users:fields.username' | t" 
           [(ngModel)]="signupData.username" 
           #input_username="ngModel" 
           name="input_username" 
           [required]="true"
           [pattern]="'^[a-zA-Z][a-zA-Z0-9\\-_]*$'">
-        <label for="input_username">Username <span class="text-danger">*</span></label>
+        <label for="input_username">{{ 'users:fields.username' | t }} <span class="text-danger">*</span></label>
       </div> 
       <div class="text-danger" *ngIf="input_username.invalid && (input_username.touched || input_username.dirty)" > 
-          <span *ngIf="input_username.errors?.['required']">Username is required</span>
-          <Span *ngIf="input_username.errors?.['pattern']">Only letters, numbers, - and _. Start with a letter</Span>
+          <span *ngIf="input_username.errors?.['required']">{{ 'users:validation.username_required' | t }}</span>
+          <Span *ngIf="input_username.errors?.['pattern']">{{ 'users:validation.username_pattern' | t }}</Span>
       </div>
     </div>
 
@@ -87,13 +87,13 @@
           name="input_email" 
           [required]="true"
           [email]="true">
-        <label for="input_email">email <span class="text-danger">*</span></label>
+        <label for="input_email">{{ 'users:fields.email' | t }} <span class="text-danger">*</span></label>
       </div>
       <div class="text-danger" *ngIf="input_email.invalid && (input_email.touched || input_email.dirty)" > 
-          <span *ngIf="input_email.errors?.['required']">Email is required</span>
+          <span *ngIf="input_email.errors?.['required']">{{ 'users:validation.email_required' | t }}</span>
       </div>
       <div class="text-danger" *ngIf="input_email.errors?.['email'] && (input_email.touched || input_email.dirty)" > 
-          <span *ngIf="input_email.errors?.['email']">Please enter a valid email</span>
+          <span *ngIf="input_email.errors?.['email']">{{ 'users:validation.email_invalid' | t }}</span>
       </div>
     </div>
 
@@ -103,15 +103,15 @@
           type="password" 
           class="form-control" 
           id="input_password" 
-          placeholder="Password" 
+          [placeholder]="'users:fields.password' | t" 
           [(ngModel)]="signupData.password" 
           #input_password="ngModel" 
           name="input_password" 
           [required]="true">
-        <label for="input_password">Password <span class="text-danger">*</span></label>
+        <label for="input_password">{{ 'users:fields.password' | t }} <span class="text-danger">*</span></label>
       </div>
       <div class="text-danger" *ngIf="input_password.invalid && (input_password.touched || input_password.dirty)" > 
-          <span *ngIf="input_password.errors?.['required']">Password is required</span>
+          <span *ngIf="input_password.errors?.['required']">{{ 'users:validation.password_required' | t }}</span>
       </div>
     </div>
 
@@ -121,24 +121,24 @@
           type="password"
           class="form-control"
           id="input_password_confirm"
-          placeholder="Confirm password"
+          [placeholder]="'users:fields.confirm_password' | t"
           [(ngModel)]="signupData.password_confirm" 
           #input_password_confirm="ngModel" 
           name="input_password_confirm" 
           [required]="true">
-        <label for="input_password_confirm">Confirm password <span class="text-danger">*</span></label>
+        <label for="input_password_confirm">{{ 'users:fields.confirm_password' | t }} <span class="text-danger">*</span></label>
       </div>
       <div class="text-danger" *ngIf="input_password_confirm.invalid && (input_password_confirm.touched || input_password_confirm.dirty)" > 
-          <span *ngIf="input_password_confirm.errors?.['required']">Password confirmation is required</span>
+          <span *ngIf="input_password_confirm.errors?.['required']">{{ 'users:validation.confirm_required' | t }}</span>
       </div>
       <div class="text-danger" *ngIf="(input_password_confirm.touched || input_password_confirm.dirty) && input_password_confirm.value !='' && input_password.value != input_password_confirm.value" > 
-          <span>Passwords do not match</span>
+          <span>{{ 'users:validation.mismatch' | t }}</span>
       </div>
     </div>
 
     <div class="col-12 btn-container">
       <button type="button" class="btn btn-success" (click)="send_signup()" [disabled]="signing_up">
-        <span *ngIf="!signing_up">Sign up</span>
+        <span *ngIf="!signing_up">{{ 'users:auth.signup' | t }}</span>
         <fa-icon [icon]="faArrowsRotate" [animation]="'spin'" class="action-icon" *ngIf="signing_up"></fa-icon>
       </button>
     </div>

@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, HostListener, Input, OnInit, viewChild, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, HostListener, Input, OnInit, viewChild, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { WingsService } from '../../../services/wings.service';
@@ -51,11 +51,13 @@ if the wing was customized (not loaded for a custoemr, and changed), set its id 
 loading wing:
 apply the sliders after the load
 */
+import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-single-hat-calculator',
   standalone: true,
-  imports: [
+  imports: [TranslatePipe, TranslateEnumPipe, 
     NgSelectModule, FormsModule, NgFor, NgIf, DecimalPipe, NgClass,
     WingDiagramComponent, PrefixPipe, FilterPipe, StartsWithPipe, LightboxModule,
     AllocationPickerComponent, FaIconComponent, AutocompleteLibModule, BabyLengthModalComponent,
@@ -69,6 +71,8 @@ apply the sliders after the load
   styleUrl: './single-hat-calculator.component.scss'
 })
 export class SingleHatCalculatorComponent extends NavigatedMessageComponent implements OnInit, AfterViewInit {
+  private translation = inject(TranslationService);
+
 
   wings: WingsListItem[] = []; //populating the list of wings to select
   raw_material_names: RawMaterialBasicDetails[] = []; //populating the raw material selectors
@@ -446,7 +450,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
         //failed to fetch material with ID, returned an empty object
         if(Object.keys(customer).length == 0) {
-          this.gotoCustomersList("Could not find customer with ID " + id, true);
+          this.gotoCustomersList(this.translation.t('customers:editor.errors.not_found', { id }), true);
           return;
         }
 
@@ -953,7 +957,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
   open_material_allocation_picker(materialFilter: number | null, area: string){
     if(materialFilter) {
-      this.allocation_picker.dialogWrapper.modalTitle = "Pick allocation";
+      this.allocation_picker.dialogWrapper.modalTitle = this.translation.t('customers:calc.dialogs.pick_allocation');
       this.allocation_picker.banks = this.customer.banks.filter(bank => (materialFilter)? bank.raw_material_id == materialFilter : true);
       //this.allocation_picker.banks_baby_allocations = this.customer.banks_baby_allocations.filter(a => a.allocation_type == ((area!="tails")? Object.keys(Bank_Allocation_Type)[Object.values(Bank_Allocation_Type).indexOf(Bank_Allocation_Type.babies)] : Object.keys(Bank_Allocation_Type)[Object.values(Bank_Allocation_Type).indexOf(Bank_Allocation_Type.tails)]));
       this.allocation_picker.banks_baby_allocations = this.customer.banks_baby_allocations;
@@ -1011,7 +1015,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         if(this.customerHat.wing && baby){
           let crown_units = this.customerHat.wing.babies.filter((b) => b.position.startsWith("C")).length;
           this.length_editor.editedObject = baby;
-          this.length_editor.dialogWrapper!.modalTitle = "Edit " + ((baby.position.toUpperCase().startsWith("C"))? "Crown" : baby.position);
+          this.length_editor.dialogWrapper!.modalTitle = this.translation.t('customers:calc.dialogs.edit_position', { position: (baby.position.toUpperCase().startsWith("C")) ? this.translation.t('knives:region_names.crown') : baby.position });
           this.length_editor.crown_units = crown_units;
           //this.length_editor.crown_babies_options = [];
           this.length_editor.dialogWrapper!.open();
@@ -1210,10 +1214,10 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
   async confirm_reset(){
     const confirmed = await this.confirm_action.open_with_message({
-      modalTitle: "Reset customizations",
-      modalText: "Are you sure you want to reset the changes made to this wing?",
+      modalTitle: this.translation.t('customers:calc.dialogs.reset_title'),
+      modalText: this.translation.t('customers:calc.dialogs.reset_text'),
       btnYesIcon: faArrowsRotate,
-      btnYesText: "Reset",
+      btnYesText: this.translation.t('customers:calc.dialogs.reset_yes'),
       btnYesClass: "btn-danger"
     });
     if(confirmed){
@@ -1233,39 +1237,39 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   update_table_instructions(){
     this.summary_table_instructions = "";
     if(this.customerHat.wing == null || this.customerHat.wing.id <= 0) {
-      this.summary_table_instructions = "Please select a wing";
+      this.summary_table_instructions = this.translation.t('customers:calc.instructions.select_wing');
     }
     else {
       if(this.customerHat.wing.id > 0 && this.customerHat.wing.babies.length == 0) {
-        this.summary_table_instructions = "This wing design has no babies";
+        this.summary_table_instructions = this.translation.t('customers:calc.instructions.no_babies');
       }
       else {
       if(this.customerHat.hat_material_id == 0) {
-        this.summary_table_instructions = "Please select the wall material";
+        this.summary_table_instructions = this.translation.t('customers:calc.instructions.select_wall_material');
       }/*
       else {
         if(this.customerHat.tails_material_id == 0){
-          this.summary_table_instructions = "Please select the H material";
+          this.summary_table_instructions = this.translation.t('customers:calc.instructions.select_h_material');
         }*/
         else
         {
           if(this.customerHat.crown_material_id == 0) {
-            this.summary_table_instructions = "Please select the crown material";
+            this.summary_table_instructions = this.translation.t('customers:calc.instructions.select_crown_material');
           }
           else {
             if(!this.is_hat_tentative){
               if(!this.wall_alocation) {
-                this.summary_table_instructions = "Please select the wall allocation";
+                this.summary_table_instructions = this.translation.t('customers:calc.instructions.select_wall_allocation');
               }
               else {
                 if(!this.crown_allocation) {
-                  this.summary_table_instructions = "Please select the crown allocation";
+                  this.summary_table_instructions = this.translation.t('customers:calc.instructions.select_crown_allocation');
                 }
             }
 /*
               else {
                 if(!this.tails_allocation) {
-                  this.summary_table_instructions = "Please select the H allocation";
+                  this.summary_table_instructions = this.translation.t('customers:calc.instructions.select_h_allocation');
                 }
               }*/
             }
@@ -1304,13 +1308,13 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   async placeOrder(){
     if(this.order_amount > 10){
       const confirmed = await this.confirm_action.open_with_message({
-        modalTitle: "Large order",
-        modalText: `Are you sure you want want to order ${this. order_amount} hats?`,
+        modalTitle: this.translation.t('customers:calc.dialogs.large_order_title'),
+        modalText: this.translation.t('customers:calc.dialogs.large_order_text', { count: this.order_amount }),
         dialogIcon: faTriangleExclamation,
         btnYesIcon: faBasketShopping,
-        btnYesText: "I'm sure",
+        btnYesText: this.translation.t('customers:calc.dialogs.large_order_yes'),
         btnYesClass: "btn-success",
-        btnNoText: "Cancel"
+        btnNoText: this.translation.t('common:actions.cancel')
       });
       if(!confirmed){
         return;
@@ -1480,7 +1484,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
           this.placing_order = false;
         },
         error:(error) => { 
-          this.toastService.showError("Failed to issue order");
+          this.toastService.showError(this.translation.t('customers:calc.toasts.order_failed'));
           this.placing_order = false;
          }
       }

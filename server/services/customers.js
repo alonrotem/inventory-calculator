@@ -1,3 +1,4 @@
+const i18n = require('./i18n');
 const db = require('./db');
 const helper = require('../helper');
 const transaction_history = require('./transaction_history');
@@ -8,9 +9,7 @@ const { logger } = require('../logger');
 async function getSingle(id, currentUserId){
 
   if(!canUserAccessThisCustomer(id, currentUserId, "R")){
-    let err = new Error("User has no permissions to view this customer");
-    err.status = 403;
-    throw err;
+    throw i18n.translatable_error(403, 'server:customers.no_view');
   }
 
   const can_user_access_advanced_customer_fields = await canUserAccessAdvancedCustomerFeatures(currentUserId, "R");
@@ -30,9 +29,7 @@ async function getSingle(id, currentUserId){
   
   const customer = helper.emptyOrSingle(rows);
   if(!can_user_access_advanced_customer_fields && customer.is_disabled){
-    let err = new Error("User has no permissions to access this customer");
-    err.status = 403;
-    throw err;  
+    throw i18n.translatable_error(403, 'server:customers.no_access');  
   }
 
   if(!helper.isEmptyObj(customer)) {
@@ -97,11 +94,11 @@ async function getDemoCustomerForUserId(user_id, active_connection=null){
     const user = await users.getSingle(user_id);
     
     if(!user || helper.isEmptyObj(user)){
-      throw new Error(`User with ID ${user_id} not found`);
+      throw i18n.fail('server:customers.user_not_found', { id: user_id });
     }
 
     if(!user.is_demo_customer){
-      throw new Error(`User with ID ${user_id} is not a demo customer`);
+      throw i18n.fail('server:customers.not_demo', { id: user_id });
     }
 
     let demo_customer_rec = helper.emptyOrSingle(await db.query(
@@ -423,9 +420,7 @@ async function canUserAccessAdvancedCustomerFeatures(currentUserId, required_per
 async function save(customer, currentUserId, active_connection=null){
 
   if(!await canUserAccessThisCustomer(customer.id, currentUserId, ((customer.id)<=0)? "C": "U")){
-    let err = new Error("User has no permissions to save this customer");
-    err.status = 403;
-    throw err;    
+    throw i18n.translatable_error(403, 'server:customers.no_save');    
   }
 
   //check if there is an active connection called from another function, or this call is a standalone
@@ -527,7 +522,7 @@ async function save(customer, currentUserId, active_connection=null){
   }
 
     return { 
-      message: "Saved successfully",
+      message: i18n.tr('server:customers.saved'),
       customer: saved_customer
     };
   }
@@ -934,9 +929,7 @@ async function sync_customer_banks(customer, active_connection){
 async function remove(id, currentUserId, active_connection=null){
 
   if(!canUserAccessThisCustomer(id, currentUserId, "D")){
-    let err = new Error("User has no permissions to delete this customer");
-    err.status = 403;
-    throw err;    
+    throw i18n.translatable_error(403, 'server:customers.no_delete');    
   }
 
   //check if there is an active connection called from another function, or this call is a standalone
@@ -971,7 +964,7 @@ async function remove(id, currentUserId, active_connection=null){
     //let message = 'Error in deleting customer';
 
     if (del_customer.affectedRows) {
-      message = 'Customer deleted successfully';
+      message = i18n.tr('server:customers.deleted');
     }
 
     if(self_executing) {

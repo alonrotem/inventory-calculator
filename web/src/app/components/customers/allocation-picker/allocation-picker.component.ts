@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, ViewChild, inject } from '@angular/core';
 import { Allocation_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, ModalDialog } from '../../../../types';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
@@ -9,11 +9,13 @@ import { MODAL_OBJECT_EDITOR } from '../../common/directives/modal-object-editor
 import { ModalContentDirective } from '../../common/directives/modal-content.directive';
 import { SumPipe } from '../../../utils/pipes/sum-pipe';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
+import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-allocation-picker',
   standalone: true,
-  imports: [
+  imports: [TranslatePipe, TranslateEnumPipe, 
     NgFor, NgIf, FilterPipe, FaIconComponent, ModalDialogComponent, ModalContentDirective, 
     DecimalPipe, SumPipe, ConfirmationDialogComponent 
   ],
@@ -27,6 +29,8 @@ import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/co
     ]
 })
 export class AllocationPickerComponent implements ModalContentDirective, ModalDialog, AfterViewInit {
+  private translation = inject(TranslationService);
+
 
 
   @ViewChild("tooltip", { read: ElementRef }) tooltip!: ElementRef;
@@ -63,9 +67,9 @@ export class AllocationPickerComponent implements ModalContentDirective, ModalDi
     this.editedObject = allocation_id;
     if(this.confirmAction){
       const result = await this.pickConfirmation.open_with_message({
-        modalText: "Are you sure you want to merge the baabies into this allocation?",
-        modalTitle: "Merge confirmation",
-        btnYesText: "Merge",
+        modalText: this.translation.t('customers:allocation_picker.merge_text'),
+        modalTitle: this.translation.t('customers:allocation_picker.merge_title'),
+        btnYesText: this.translation.t('customers:allocation_picker.merge_yes'),
         btnYesClass: "btn-warning"
       });
       

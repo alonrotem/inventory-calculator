@@ -1,41 +1,41 @@
 <div class="row justify-content-center"><div [attr.class]="'col-12 ' + ((stretchWidth)?'':'col-md-9')">
-<h1 *ngIf="showTitle"><span class="icon-address-book"></span> Customers</h1>
+<h1 *ngIf="showTitle"><span class="icon-address-book"></span> {{ 'common:nav.customers' | t }}</h1>
 
 <app-page-loading 
-  [loading_message]="'Loading customers...'" 
+  [loading_message]="'customers:list.loading' | t"
   [icon_size]="'3x'" 
   [hidden]="!loading" 
   [stretch_height]="true" />
 
 <div [hidden]="loading">
-  <a id="btnNewRaw" *ngIf="showTitle && ((user$ | async) | hasPermission: [{area: 'customers', permission: 'C'}])" class="btn btn-primary" routerLink="/inventory/customer/editor">+ New customer</a>
+  <a id="btnNewRaw" *ngIf="showTitle && ((user$ | async) | hasPermission: [{area: 'customers', permission: 'C'}])" class="btn btn-primary" routerLink="/inventory/customer/editor">{{ 'customers:list.new_customer' | t }}</a>
 
-  <div class="infotitle" [hidden]="loading || this.customers.length <= 0">Total: {{ totalRecords | number: '1.0-0' }} {{ totalRecords == 1? 'customer':'customers' }}</div>
+  <div class="infotitle" [hidden]="loading || this.customers.length <= 0">{{ 'customers:list.total' | t: { count: totalRecords } }}</div>
 
   <div [hidden]="loading || this.customers.length == 0">
 <table class="table table-responsive table-striped table-hover">
     <thead>
       <tr>
-        <th scope="col">Name</th>
-        <th scope="col">Business name</th>
-        <th scope="col" class="text-center">Raw material banks</th>
-        <th scope="col" class="text-center">Work allocations</th>
-        <td scope="col" class="text-center">Orders</td>
+        <th scope="col">{{ 'customers:list.name' | t }}</th>
+        <th scope="col">{{ 'customers:list.business_name' | t }}</th>
+        <th scope="col" class="text-center">{{ 'customers:list.raw_material_banks' | t }}</th>
+        <th scope="col" class="text-center">{{ 'customers:list.work_allocations' | t }}</th>
+        <td scope="col" class="text-center">{{ 'customers:list.orders' | t }}</td>
       </tr>
     </thead>
     <tbody>
       <tr 
         *ngFor="let customer of this.customers" 
         role="button">
-        <td routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }">{{ customer.name }} <span class="customer-disabled" *ngIf="customer.is_disabled">Disabled</span></td>
+        <td routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }">{{ customer.name }} <span class="customer-disabled" *ngIf="customer.is_disabled">{{ 'customers:list.disabled' | t }}</span></td>
         <td routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }">{{ customer.business_name }}</td>
         <td routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }" class="text-center">{{ customer.bank_count }}</td>
         <td routerLink="/inventory/customer/editor" [queryParams]="{ id: customer.id }" class="text-center">{{ customer.allocation_count }}</td>
         <td style="width: 1px;">
           <button *ngIf="!customer.is_demo_customer" class="btn btn-outline-primary" style="text-wrap-mode: nowrap;" (click)="go_to_orders(customer.id, customer.name)"><!--(click)="go_to_orders()"-->
-            <div><fa-icon [icon]="faBasketShopping"></fa-icon> Orders</div>
+            <div><fa-icon [icon]="faBasketShopping"></fa-icon> {{ 'customers:list.orders' | t }}</div>
           </button>
-          <div *ngIf="customer.is_demo_customer" class="text-warning text-center demo_indicator"><fa-icon [icon]="faFlask"></fa-icon> DEMO</div>
+          <div *ngIf="customer.is_demo_customer" class="text-warning text-center demo_indicator"><fa-icon [icon]="faFlask"></fa-icon> {{ 'customers:list.demo' | t }}</div>
         </td>        
       </tr>
     </tbody>
@@ -45,7 +45,7 @@
 </div>
 
   <div [hidden]="loading || this.customers.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
-    No customers availble.
+    {{ 'customers:list.empty' | t }}
   </div>
 </div>
 

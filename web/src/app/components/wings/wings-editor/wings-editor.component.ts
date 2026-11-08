@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, viewChild, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, viewChild, ViewChild, inject } from '@angular/core';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 import { faArrowLeft, faArrowUp, faEraser, faL, faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { KnifeListItem, Wing, WingBaby, WingsListItem } from '../../../../types';
@@ -31,11 +31,13 @@ import { LengthPipe } from '../../../utils/pipes/length-pipe';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { KnivesService } from '../../../services/knives.service';
 import { CustomersService } from '../../../services/customers.service';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-wings-editor',
   standalone: true,
-  imports: [ConfirmationDialogComponent, FormsModule, NgIf, NgFor, FaIconComponent, WingsBabiesTableComponent,
+  imports: [TranslatePipe, ConfirmationDialogComponent, FormsModule, NgIf, NgFor, FaIconComponent, WingsBabiesTableComponent,
     WingDiagramComponent, PrefixPipe, BabiesLengthPickerComponent, BabyLengthModalComponent, CustomerPickerComponent,
     UnsavedChangesDialogComponent, DecimalPipe, SortBabiesPipe, CrownEditorComponent, ModalDialogComponent,
     NgClass, SaveChangesButtonComponent, AsyncPipe, FilterPipe, LengthPipe, NgSelectModule ],
@@ -45,6 +47,8 @@ import { CustomersService } from '../../../services/customers.service';
   
 })
 export class WingsEditorComponent extends NavigatedMessageComponent implements OnInit, AfterViewInit,/*, OnDestroy*/ HasUnsavedChanges, OnChanges {
+  private translation = inject(TranslationService);
+
 
   faSave: IconDefinition = faSave;
   faTrashAlt:IconDefinition = faTrashAlt;
@@ -52,7 +56,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   faTimesCircle:IconDefinition = faTimesCircle;
   faArrowUp: IconDefinition = faArrowUp;
   faEraser: IconDefinition = faEraser;
-  title: string = "Create Wing";
+  title: string = this.translation.t('wings:editor.title_create');
   is_new_wing: Boolean = true;
 
   crown_units: number = 0;
@@ -167,7 +171,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
     this.is_new_wing = (!this.activatedRoute.snapshot.queryParamMap.has('id') && (this.wing && this.wing.id == 0));
     if(!this.is_new_wing)
     {
-      this.title = "Edit Wing";
+      this.title = this.translation.t('wings:editor.title_edit');
       this.is_new_wing = false;
       this.wing_id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
       this.getWing(this.wing_id);
@@ -203,10 +207,10 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
     if(!this.wingForm.pristine){
       const wing_name = this.wings.find(w => w.id == wing_id)?.name || wing_id;
       override_wing = await this.confirm_action.open_with_message({
-        modalText: "Are you sure you want to copy the babies data from wing " + wing_name + "? This will override all the current wing data.",
-        modalTitle: "Override current wing data?",
+        modalText: this.translation.t('wings:editor.dialogs.override_text', { name: wing_name }),
+        modalTitle: this.translation.t('wings:editor.dialogs.override_title'),
         btnYesClass: "btn-success",
-        btnYesText: "Override",
+        btnYesText: this.translation.t('wings:editor.dialogs.override_yes'),
         btnSaveIcoMoonIcon: "icon-feather-wing"
       });
     }
@@ -232,10 +236,10 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
 
     if(this.wing && this.wing.babies.length > 0){
       override_wing = await this.confirm_action.open_with_message({
-        modalText: "Are you sure you want to clear all your wing data?",
-        modalTitle: "Reset wing data?",
+        modalText: this.translation.t('wings:editor.dialogs.reset_text'),
+        modalTitle: this.translation.t('wings:editor.dialogs.reset_title'),
         btnYesClass: "btn-danger",
-        btnYesText: "Start fresh!",
+        btnYesText: this.translation.t('wings:editor.dialogs.reset_yes'),
         btnYesIcon: faEraser
       });
     }
@@ -458,10 +462,10 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
 
   async confirm_delete() {
     const response = await this.confirm_action.open_with_message({
-      modalTitle: "Delete confirmation",
-      modalText: "Are you sure you want to delete this wing, " + this.wing?.name + "?",
+      modalTitle: this.translation.t('wings:editor.dialogs.delete_title'),
+      modalText: this.translation.t('wings:editor.dialogs.delete_text', { name: this.wing?.name }),
       btnYesIcon: faTrashAlt,
-      btnYesText: "Delete",
+      btnYesText: this.translation.t('common:actions.delete'),
       btnYesClass: "btn-danger",
       reverseButtons: true
     });
@@ -545,7 +549,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
     if(this.wing){
       if(!obj.position.startsWith("C")){
         this.length_editor.editedObject = obj;
-        this.length_editor.dialogWrapper!.modalTitle = "Edit " + ((obj.position.toUpperCase().startsWith("C"))? "Crown" : obj.position);
+        this.length_editor.dialogWrapper!.modalTitle = this.translation.t('customers:calc.dialogs.edit_position', { position: (obj.position.toUpperCase().startsWith("C")) ? this.translation.t('wings:editor.crown') : obj.position });
         this.crown_units = (this.wing && this.wing.babies) ? this.wing.babies.filter((b) => b.position.startsWith("C")).length : 0;
         this.length_editor.crown_units = this.crown_units;
         this.length_editor.crown_babies_options = this.crown_babies_options;

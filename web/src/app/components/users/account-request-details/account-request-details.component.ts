@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, viewChild, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, viewChild, ViewChild, inject } from '@angular/core';
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
 import { IconDefinition } from '@fortawesome/fontawesome-common-types';
 import { faArrowLeft, faBasketShopping, faCheck, faTrash, faTriangleExclamation, faUser, faUserPlus, faX } from '@fortawesome/free-solid-svg-icons';
@@ -19,11 +19,13 @@ import { NavigatedMessageComponent } from '../../common/navigated-message/naviga
 import { StateService } from '../../../services/state.service';
 import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.component";
 import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
+import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-account-request-details',
   standalone: true,
-  imports: [
+  imports: [TranslatePipe, TranslateEnumPipe, 
     FaIconComponent, DateStrPipe, NgIf, CustomerPickerComponent, FormsModule, NgSelectModule, ConfirmationDialogComponent,
     NgForOf, UserTagComponent, RouterLink,
     ModalDialogComponent,
@@ -33,6 +35,8 @@ import { PageLoadingComponent } from "../../common/page-loading/page-loading.com
   styleUrl: './account-request-details.component.scss'
 })
 export class AccountRequestDetailsComponent extends NavigatedMessageComponent implements OnInit {
+  private translation = inject(TranslationService);
+
   faUserPlus: IconDefinition = faUserPlus;
   faX: IconDefinition = faX;
   faCheck: IconDefinition = faCheck;
@@ -128,9 +132,9 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
       error: async (error: any) => {
         this.toastService.showError(error.error.message);
         await this.confirm_action.open_with_message({
-          modalText: `An error has occurred fetching this request:<br/>${error.error.message}`,
-          modalTitle: 'Error',
-          btnYesText: 'Back to the list',
+          modalText: this.translation.t('users:requests.fetch_error') + '<br/>' + error.error.message,
+          modalTitle: this.translation.t('users:requests.error_title'),
+          btnYesText: this.translation.t('users:requests.back_to_list'),
           btnYesClass: 'btn-warning',
           btnYesIcon: faArrowLeft,
           btnNoClass: 'd-none'
@@ -156,12 +160,12 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
     this.approval_instructions = "";
     this.approve_btn_disabled = false;
     if(!this.request || !this.request.role || this.request.role.id <= 0){
-      this.approval_instructions = "To approve this request, please select the role of this user.";
+      this.approval_instructions = this.translation.t('users:invite.approval_role');
       this.approve_btn_disabled = true;
     }
     else {
       if(this.request.role.name.toLowerCase() == 'customer' && this.request.customers && this.request.customers.length == 0 && this.chkCreateNewCustoemr && this.chkCreateNewCustoemr.nativeElement && !this.chkCreateNewCustoemr.nativeElement.checked) {
-        this.approval_instructions = "To approve this request as a customer, please select which customers to connect this user to, or check the option to create a new customer for them.";
+        this.approval_instructions = this.translation.t('users:invite.approval_customer');
         this.approve_btn_disabled = true;
       }
     }
@@ -176,10 +180,10 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
         ` ${this.request.role.name.toLowerCase()}`);
 
     const confirmed = await this.confirm_action.open_with_message({
-      modalText: `Are you sure you want to confirm this request for this user as ${role_name}?`,
-      modalTitle: 'Confirm approval',
-      btnYesText: 'Approve',
-      btnNoText: 'Cancel',
+      modalText: this.translation.t('users:requests.approve_text', { role: this.translation.enumLabel('users:roles.', role_name) }),
+      modalTitle: this.translation.t('users:requests.approve_title'),
+      btnYesText: this.translation.t('users:requests.approve_yes'),
+      btnNoText: this.translation.t('common:actions.cancel'),
       btnYesIcon: faCheck,
       btnYesClass: 'btn-success',
       dialogIcon: (is_admin)? faTriangleExclamation : faUser,
@@ -202,7 +206,7 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
         info: {
           customer_name: customer_name,
           back_to_link: '/inventory/customers',
-          back_to_text: 'Back to customers list'
+          back_to_text: this.translation.t('customers:list.back_to_list')
         }
       },
     });
@@ -210,17 +214,17 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
 
   async deleteRequest(){
     const confirmed = await this.confirm_action.open_with_message({
-      modalText: `Are you sure you want to delete this request?`,
-      modalTitle: 'Delete request?',
-      btnYesText: 'Delete',
-      btnNoText: 'Cancel',
+      modalText: this.translation.t('users:requests.delete_text'),
+      modalTitle: this.translation.t('users:requests.delete_title'),
+      btnYesText: this.translation.t('common:actions.delete'),
+      btnNoText: this.translation.t('common:actions.cancel'),
       btnYesIcon: faTrash,
       btnYesClass: 'btn-danger'
     });
     if(confirmed){
       this.usersService.deleteAccountRequest(this.request.id).subscribe({
         next: (response: boolean) => {
-          this.navigateWithToastMessage('users/account_requests', 'Request deleted successfully', false);
+          this.navigateWithToastMessage('users/account_requests', this.translation.t('users:requests.deleted'), false);
         },
         error: (err: any) => {
           this.toastService.showError(err.error["message"]);
@@ -242,8 +246,8 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
   confirm_decline_confirmed() {
     this.usersService.declineAccountRequest(this.request.id, this.notify_requester_on_decline, this.message_to_requester_on_decline).subscribe({
       next: (response: boolean) => {
-        //this.navigateWithToastMessage('users/account_requests', 'Request declined successfully', false);
-        this.reloadTheSamePageWithToastMessage('Request declined successfully', false);
+        //this.navigateWithToastMessage('users/account_requests', this.translation.t('users:requests.declined'), false);
+        this.reloadTheSamePageWithToastMessage(this.translation.t('users:requests.declined'), false);
       },
       error: (err: any) => {
         this.toastService.showError(err.error["message"]);

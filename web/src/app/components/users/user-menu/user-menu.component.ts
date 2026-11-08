@@ -1,5 +1,5 @@
 import { AsyncPipe, NgClass, NgIf } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
 import { UsersService } from '../../../services/users.service';
 import { BasicUserInfoStatus } from '../../../../types';
@@ -11,15 +11,19 @@ import { environment } from '../../../../environments/environment';
 import { NavigatedMessageComponent } from '../../common/navigated-message/navigated-message.component';
 import { StateService } from '../../../services/state.service';
 import { ToastService } from '../../../services/toast.service';
+import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-user-menu',
   standalone: true,
-  imports: [ RouterLink, NgIf, NgClass, AsyncPipe, FaIconComponent ],
+  imports: [TranslatePipe, TranslateEnumPipe,  RouterLink, NgIf, NgClass, AsyncPipe, FaIconComponent ],
   templateUrl: './user-menu.component.html',
   styleUrl: './user-menu.component.scss'
 })
 export class UserMenuComponent extends NavigatedMessageComponent implements OnInit {
+  private translation = inject(TranslationService);
+
 
   userInfo: BasicUserInfoStatus = {
     id: 0,
@@ -102,7 +106,7 @@ export class UserMenuComponent extends NavigatedMessageComponent implements OnIn
   }
 
   logout(){
-    let nextPageMessage = "Logged out successfully";
+    let nextPageMessage = this.translation.t('users:auth.logged_out');
     let isError = false;
     let pendingNavigationMessage = this.getPendingMessage();
     if(pendingNavigationMessage && pendingNavigationMessage.textInfo) {

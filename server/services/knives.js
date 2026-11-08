@@ -1,14 +1,12 @@
 const db = require('./db');
 const helper = require('../helper');
+const i18n = require('./i18n');
 
 // A knife is { id, name, width_cm, data }: `name` (unique) and `width_cm` have their own columns,
 // `data` holds the drawing (size_cm, nodes, regions) as JSON.
 
-function httpError(statusCode, message) {
-  const error = new Error(message);
-  error.statusCode = statusCode;
-  return error;
-}
+// errors are translatable_error(status, key, params): answered in the language of the request (see index.js)
+const default_t = (key, params) => i18n.t(i18n.default_language(), key, params);
 
 async function getSingle(id){
   const rows = await db.query(
@@ -45,18 +43,18 @@ async function getMultiple(page = 1, perPage, with_shape = false){
   }
 }
 
-//create or update
-async function save(knife, currentUserId){
+//create or update. `t` translates the answer's message (req.t of the request)
+async function save(knife, currentUserId, t = default_t){
   const name = (knife?.name ?? '').trim();
   if(!name){
-    throw httpError(400, 'A knife must have a name');
+    throw i18n.translatable_error(400, 'knives:server.name_required');
   }
   const width_cm = Number(knife.width_cm);
   if(!(width_cm > 0)){
-    throw httpError(400, 'A knife must have a width');
+    throw i18n.translatable_error(400, 'knives:server.width_required');
   }
   if(!knife.data || !Array.isArray(knife.data.nodes) || knife.data.nodes.length < 3){
-    throw httpError(400, 'A knife must have an outline of at least 3 points');
+    throw i18n.translatable_error(400, 'knives:server.outline_required');
   }
   const isNew = !(knife.id > 0);
 
@@ -68,7 +66,7 @@ async function save(knife, currentUserId){
     [name, isNew? 0 : knife.id]
   ));
   if(!helper.isEmptyObj(same_name)){
-    throw httpError(409, `A knife named '${name}' already exists`);
+    throw i18n.translatable_error(409, 'knives:server.name_exists', { name });
   }
 
   let knife_id = knife.id;
@@ -86,19 +84,19 @@ async function save(knife, currentUserId){
         [name, width_cm, JSON.stringify(data), currentUserId, knife.id]
       );
       if(!result.affectedRows){
-        throw httpError(404, `Knife ${knife.id} was not found`);
+        throw i18n.translatable_error(404, 'knives:server.not_found', { id: knife.id });
       }
     }
   }
   catch(error){
     // a knife with the same name saved meanwhile (unique name)
     if(error.code == 'ER_DUP_ENTRY'){
-      throw httpError(409, `A knife named '${name}' already exists`);
+      throw i18n.translatable_error(409, 'knives:server.name_exists', { name });
     }
     throw(error);
   }
 
-  const message = `Knife '${name}' ${isNew? 'created' : 'updated'} successfully`;
+  const message = t(isNew? 'knives:server.created' : 'knives:server.updated', { name });
   return {message, knife: await getSingle(knife_id)};
 }
 
@@ -108,11 +106,12 @@ async function inUseError(id){
   if(!wings.length){
     return null;
   }
-  const names = wings.slice(0, 3).map(w => `'${w.name}'`).join(', ') + (wings.length > 3 ? ` and ${wings.length - 3} more` : '');
-  return httpError(409, `This knife is used by ${wings.length} wing${wings.length > 1 ? 's' : ''} (${names}), pick another knife for them first`);
+  // the names of the first few wings; when there are more, the message says "including"
+  const names = wings.slice(0, 3).map(w => `'${w.name}'`);
+  return i18n.translatable_error(409, wings.length > names.length ? 'knives:server.in_use_including' : 'knives:server.in_use', { count: wings.length, names });
 }
 
-async function remove(id){
+async function remove(id, t = default_t){
   const inUse = await inUseError(id);
   if(inUse){
     throw inUse;
@@ -124,14 +123,14 @@ async function remove(id){
   catch(error){
     // a wing got this knife meanwhile
     if(error.code === 'ER_ROW_IS_REFERENCED_2'){
-      throw (await inUseError(id)) ?? httpError(409, 'This knife is used by wings, pick another knife for them first');
+      throw (await inUseError(id)) ?? error;
     }
     throw error;
   }
   if(!result.affectedRows){
-    throw httpError(404, `Knife ${id} was not found`);
+    throw i18n.translatable_error(404, 'knives:server.not_found', { id });
   }
-  return {message: 'Knife deleted successfully'};
+  return {message: t('knives:server.deleted')};
 }
 
 module.exports = {

@@ -1,0 +1,22 @@
+{
+  "chart": {
+    "title": "Raw materials quantity:",
+    "date": "Date"
+  },
+  "card": {
+    "loading": "Loading info...",
+    "inventory": "Inventory",
+    "raw_material": "Raw material:",
+    "records": "Raw material records: {{count, number}}",
+    "total_kg": "Total {{total, number(maximumFractionDigits: 0)}} kg ({{remaining, number(maximumFractionDigits: 0)}} remaining)",
+    "total_units": "Total {{total, number(maximumFractionDigits: 0)}} units ({{remaining, number(maximumFractionDigits: 0)}} remaining)",
+    "templates": "Templates",
+    "wings": "Wings: {{count, number}}",
+    "sales": "Current sales",
+    "new_orders": "New orders: {{count, number}}",
+    "ordered_hats": "Ordered hats: {{count, number}}",
+    "go_raw": "Go to raw materials management",
+    "go_wings": "Go to wings management",
+    "go_orders": "Go to orders"
+  }
+}

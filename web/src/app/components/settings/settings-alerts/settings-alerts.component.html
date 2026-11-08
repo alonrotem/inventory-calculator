@@ -1,24 +1,24 @@
-<h4 class="text-warning" style="margin: 25px 0px;"><fa-icon [icon]="faPersonDigging"></fa-icon> Alerts section is under construction</h4>
+<h4 class="text-warning" style="margin: 25px 0px;"><fa-icon [icon]="faPersonDigging"></fa-icon> {{ 'settings:alerts.under_construction' | t }}</h4>
 
-<h3><span class="icon-leaf"></span>Raw material alerts</h3>
+<h3><span class="icon-leaf"></span>{{ 'settings:alerts.title' | t }}</h3>
 <form novalidate #settings_form="ngForm" [id]="'settings_form'" *ngIf="settings">
 <div class="section">
-    <h5>Raw material totals</h5>
+    <h5>{{ 'settings:alerts.totals' | t }}</h5>
     <div class="switch-group form-check form-switch">
         <input class="form-check-input" type="checkbox" #chk_alert_raw_material_total_kg="ngModel" name="chk_alert_raw_material_total_kg" [(ngModel)]="settings['alert_raw_material_total_kg']" (change)="emit_settings_changed()">
         <label class="form-check-label" for="chk_alert_raw_material_total_kg">
-            Alert when raw material total quantity below 
+            {{ 'settings:alerts.total_below' | t }} 
             <input type="number" class="form-control" #txtAlert_raw_material_total_kg_below="ngModel" name="txtAlert_raw_material_total_kg_below" placeholder="0" [(ngModel)]="settings['alert_raw_material_total_kg_below']" [disabled]="!settings['alert_raw_material_total_kg']" (change)="emit_settings_changed()" (keyup)="emit_settings_changed()"> 
-            kg
+            {{ 'common:quantity_units.kg' | t }}
         </label>
     </div>
 
     <div class="switch-group form-check form-switch">
         <input class="form-check-input" type="checkbox" #chk_alert_raw_material_total_units="ngModel" name="chk_alert_raw_material_total_units" [(ngModel)]="settings['alert_raw_material_total_units']" (change)="emit_settings_changed()">
         <label class="form-check-label" for="chk_alert_raw_material_total_units">
-            Alert when raw material total quantity below 
+            {{ 'settings:alerts.total_below' | t }} 
             <input type="number" class="form-control" #txtAlert_raw_material_total_units_below="ngModel" name="txtAlert_raw_material_total_units_below" placeholder="0" [(ngModel)]="settings['alert_raw_material_total_units_below']" [disabled]="!settings['alert_raw_material_total_units']" (change)="emit_settings_changed()" (keyup)="emit_settings_changed()"> 
-            units
+            {{ 'common:quantity_units.units' | t }}
         </label>
     </div>
 
@@ -26,12 +26,12 @@
 
 
 <div class="section">
-    <h5>Raw material single item</h5>
+    <h5>{{ 'settings:alerts.single' | t }}</h5>
 
     <div class="switch-group form-check form-switch">
         <input class="form-check-input" type="checkbox" #chk_alert_raw_material_item_percents="ngModel" name="chk_alert_raw_material_total_kg" [(ngModel)]="settings['alert_raw_material_item_percents']" (change)="emit_settings_changed()">
         <label class="form-check-label" for="chk_alert_raw_material_item_percents">
-            Alert when raw material item remaining quantity goes below 
+            {{ 'settings:alerts.single_below' | t }} 
             <input type="number" class="form-control" #txt_alert_raw_material_item_percents="ngModel" name="txt_alert_raw_material_item_percents" placeholder="0" [(ngModel)]="settings['alert_raw_material_item_percents_below']" [disabled]="!settings['alert_raw_material_item_percents']" (change)="emit_settings_changed()" (keyup)="emit_settings_changed()"> 
             %
         </label>
@@ -40,25 +40,25 @@
     <div class="switch-group form-check form-switch">
         <input class="form-check-input" type="checkbox" #chk_alert_raw_material_item_kg="ngModel" name="chk_alert_raw_material_total_kg" [(ngModel)]="settings['alert_raw_material_item_kg']" (change)="emit_settings_changed()">
         <label class="form-check-label" for="chk_alert_raw_material_item_kg">
-            Alert when raw material item remaining quantity goes below 
+            {{ 'settings:alerts.single_below' | t }} 
             <input type="number" class="form-control" #txt_alert_raw_material_item_kg="ngModel" name="txt_alert_raw_material_item_kg" placeholder="0" [(ngModel)]="settings['alert_raw_material_item_kg_below']" [disabled]="!settings['alert_raw_material_item_kg']" (change)="emit_settings_changed()" (keyup)="emit_settings_changed()"> 
-            kg
+            {{ 'common:quantity_units.kg' | t }}
         </label>
     </div>
 
     <div class="switch-group form-check form-switch">
         <input class="form-check-input" type="checkbox" #chk_alert_raw_material_item_units="ngModel" name="chk_alert_raw_material_item_units" [(ngModel)]="settings['alert_raw_material_item_units']" (change)="emit_settings_changed()">
         <label class="form-check-label" for="chk_alert_raw_material_item_units">
-            Alert when raw material item remaining quantity goes below 
+            {{ 'settings:alerts.single_below' | t }} 
             <input type="number" class="form-control" #txt_alert_raw_material_item_units="ngModel" name="txt_alert_raw_material_item_units" placeholder="0" [(ngModel)]="settings['alert_raw_material_item_units_below']" [disabled]="!settings['alert_raw_material_item_units']" (change)="emit_settings_changed()" (keyup)="emit_settings_changed()"> 
-            units
+            {{ 'common:quantity_units.units' | t }}
         </label>
     </div>
 
     <div class="switch-group form-check form-switch">
         <input class="form-check-input" type="checkbox" #chk_mark_yellow_raw_material_item_percents="ngModel" name="chk_mark_yellow_raw_material_item_percents" [(ngModel)]="settings['mark_yellow_raw_material_item_percents']" (change)="emit_settings_changed()">
         <label class="form-check-label" for="chk_mark_yellow_raw_material_item_percents">
-            <span class="text-warning">Mark material item YELLOW if remaining quantity goes below</span>
+            <span class="text-warning">{{ 'settings:alerts.single_yellow' | t }}</span>
             <input type="number" class="form-control" #txt_mark_yellow_raw_material_item_percents="ngModel" name="txt_mark_yellow_raw_material_item_percents" placeholder="0" [(ngModel)]="settings['mark_yellow_raw_material_item_percents_below']" [disabled]="!settings['mark_yellow_raw_material_item_percents']" (change)="emit_settings_changed()" (keyup)="emit_settings_changed()"> 
             %
         </label>
@@ -67,7 +67,7 @@
     <div class="switch-group form-check form-switch">
         <input class="form-check-input" type="checkbox" #chk_mark_red_raw_material_item_percents="ngModel" name="chk_mark_red_raw_material_item_percents" [(ngModel)]="settings['mark_red_raw_material_item_percents']" (change)="emit_settings_changed()">
         <label class="form-check-label" for="chk_mark_red_raw_material_item_percents">
-            <span class="text-danger">Mark material item RED if remaining quantity goes below</span>
+            <span class="text-danger">{{ 'settings:alerts.single_red' | t }}</span>
             <input type="number" class="form-control" #txt_mark_red_raw_material_item_percents="ngModel" name="txt_mark_red_raw_material_item_percents" placeholder="0" [(ngModel)]="settings['mark_red_raw_material_item_percents_below']" [disabled]="!settings['mark_red_raw_material_item_percents']" (change)="emit_settings_changed()" (keyup)="emit_settings_changed()"> 
             %
         </label>
@@ -76,7 +76,7 @@
 </div>
 
 <div class="section">
-    <h5>Raw material in customer banks</h5>
+    <h5>{{ 'settings:alerts.banks' | t }}</h5>
 <!--/* Raw material in customer banks: */
 
 
@@ -90,7 +90,7 @@
     <div class="switch-group form-check form-switch">
         <input class="form-check-input" type="checkbox" #chk_alert_customer_bank_percents="ngModel" name="chk_alert_customer_bank_percents" [(ngModel)]="settings['alert_customer_bank_percents']" (change)="emit_settings_changed()">
         <label class="form-check-label" for="chk_alert_customer_bank_percents">
-            Alert when customer bank remaining quantity goes below 
+            {{ 'settings:alerts.bank_below' | t }} 
             <input type="number" class="form-control" #txt_alert_customer_bank_percents="ngModel" name="txt_alert_customer_bank_percents" placeholder="0" [(ngModel)]="settings['alert_customer_bank_percents_below']" [disabled]="!settings['alert_customer_bank_percents']" (change)="emit_settings_changed()" (keyup)="emit_settings_changed()"> 
             %
         </label>
@@ -99,25 +99,25 @@
     <div class="switch-group form-check form-switch">
         <input class="form-check-input" type="checkbox" #chk_alert_customer_bank_kg="ngModel" name="chk_alert_customer_bank_kg" [(ngModel)]="settings['alert_customer_bank_kg']" (change)="emit_settings_changed()">
         <label class="form-check-label" for="chk_alert_customer_bank_kg">
-            Alert when customer bank remaining quantity goes below 
+            {{ 'settings:alerts.bank_below' | t }} 
             <input type="number" class="form-control" #txt_alert_customer_bank_kg="ngModel" name="txt_alert_customer_bank_kg" placeholder="0" [(ngModel)]="settings['alert_customer_bank_kg_below']" [disabled]="!settings['alert_customer_bank_kg']" (change)="emit_settings_changed()" (keyup)="emit_settings_changed()"> 
-            kg
+            {{ 'common:quantity_units.kg' | t }}
         </label>
     </div>
 
     <div class="switch-group form-check form-switch">
         <input class="form-check-input" type="checkbox" #chk_alert_customer_bank_units="ngModel" name="chk_alert_customer_bank_units" [(ngModel)]="settings['alert_customer_bank_units']" (change)="emit_settings_changed()">
         <label class="form-check-label" for="chk_alert_customer_bank_units">
-            Alert when customer bank remaining quantity goes below 
+            {{ 'settings:alerts.bank_below' | t }} 
             <input type="number" class="form-control" #txt_alert_customer_bank_units="ngModel" name="txt_alert_customer_bank_units" placeholder="0" [(ngModel)]="settings['alert_customer_bank_units_below']" [disabled]="!settings['alert_customer_bank_units']" (change)="emit_settings_changed()" (keyup)="emit_settings_changed()"> 
-            units
+            {{ 'common:quantity_units.units' | t }}
         </label>
     </div>
 
     <div class="switch-group form-check form-switch">
         <input class="form-check-input" type="checkbox" #chk_mark_yellow_customer_bank_percents="ngModel" name="chk_mark_yellow_customer_bank_percents" [(ngModel)]="settings['mark_yellow_customer_bank_percents']" (change)="emit_settings_changed()">
         <label class="form-check-label" for="chk_mark_yellow_customer_bank_percents">
-            <span class="text-warning">Mark customer bank YELLOW if remaining quantity goes below</span>
+            <span class="text-warning">{{ 'settings:alerts.bank_yellow' | t }}</span>
             <input type="number" class="form-control" #txt_mark_yellow_customer_bank_percents="ngModel" name="txt_mark_yellow_customer_bank_percents" placeholder="0" [(ngModel)]="settings['mark_yellow_customer_bank_percents_below']" [disabled]="!settings['mark_yellow_customer_bank_percents']" (change)="emit_settings_changed()" (keyup)="emit_settings_changed()"> 
             %
         </label>
@@ -126,7 +126,7 @@
     <div class="switch-group form-check form-switch">
         <input class="form-check-input" type="checkbox" #chk_mark_red_customer_bank_percents="ngModel" name="chk_mark_red_customer_bank_percents" [(ngModel)]="settings['mark_red_customer_bank_percents']" (change)="emit_settings_changed()">
         <label class="form-check-label" for="chk_mark_red_customer_bank_percents">
-            <span class="text-danger">Mark customer bank RED if remaining quantity goes below</span>
+            <span class="text-danger">{{ 'settings:alerts.bank_red' | t }}</span>
             <input type="number" class="form-control" #txt_mark_red_customer_bank_percents="ngModel" name="txt_mark_red_customer_bank_percents" placeholder="0" [(ngModel)]="settings['mark_red_customer_bank_percents_below']" [disabled]="!settings['mark_red_customer_bank_percents']" (change)="emit_settings_changed()" (keyup)="emit_settings_changed()"> 
             %
         </label>

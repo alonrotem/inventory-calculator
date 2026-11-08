@@ -13,32 +13,30 @@ Pick for hat
 -->
 <app-confirmation-dialog 
     #pickConfirmation
-  modalTitle="Merge confirmation"
-  modalText="Are you sure you want to merge the baabies into this allocation?"
-  btnYesText="Merge"
+  [modalTitle]="'customers:allocation_picker.merge_title' | t"
+  [modalText]="'customers:allocation_picker.merge_text' | t"
+  [btnYesText]="'customers:allocation_picker.merge_yes' | t"
   btnYesClass="btn-warning"
 />
 
-<app-modal-dialog #dialog [btnCancelText]="'Cancel'">
+<app-modal-dialog #dialog [btnCancelText]="'common:actions.cancel' | t">
 <div modalContent>
     <div class="instructions">{{ instructions }}</div>
 <div *ngFor="let bank of banks" class="bank-picker">
     <div class="bank-title">
-        <span class="icon-leaf" style="margin-right: 10px;"></span>
-              Raw Material Bank: {{ bank.raw_material_name }}
+        <span class="icon-leaf" style="margin-inline-end: 10px;"></span>
+              {{ 'customers:allocation_picker.bank_title' | t: { name: bank.raw_material_name } }}
     </div>
     <div *ngIf="(banks_baby_allocations | filter: 'customer_bank_id' : bank.id.toString()).length > 0">
         <div class="bank-picker allocation" *ngFor="let allocation of banks_baby_allocations | filter: 'customer_bank_id' : bank.id.toString()" (click)="allocation_clicked(allocation.id)">
-            <div>Work allocation #{{ allocation.id }}, {{ allocation.quantity }} {{ bank.raw_material_quantity_units }}</div>
+            <div>{{ 'customers:allocation_picker.allocation_line' | t: { id: allocation.id, quantity: allocation.quantity, units: (bank.raw_material_quantity_units | tenum: 'common:quantity_units.') } }}</div>
 
             <div *ngIf="(babies | filter: 'allocation_id' : allocation.id.toString()).length > 0">
                 <div class="accordion" id="accordion_babies_{{ allocation.id }}">
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" [attr.data-bs-target]="'#collapse'+ allocation.id" aria-expanded="false" [attr.aria-controls]="'collapse'+ allocation.id" (click)="$event.stopPropagation()">
-                            Show/hide
-                            {{ (babies | filter: 'allocation_id' : allocation.id.toString()) | sum: 'quantity' }}
-                            {{ (babies | filter: 'allocation_id' : allocation.id.toString() | sum: 'quantity') == 1 ? 'baby' : 'babies' }}
+                            {{ 'customers:allocation_picker.toggle_babies' | t: { count: ((babies | filter: 'allocation_id' : allocation.id.toString()) | sum: 'quantity') } }}
                             </button>
                         </h2>
                         <div id="collapse{{ allocation.id}}" class="accordion-collapse collapse" [attr.data-bs-parent]="'accordion_babies_' + allocation.id">
@@ -47,15 +45,15 @@ Pick for hat
                                     <table class="table table-striped table-hover">
                                         <thead>
                                           <tr>
-                                            <th scope="col">Length</th>
-                                            <th scope="col" class="text-center">Quantity</th>
+                                            <th scope="col">{{ 'customers:bank.col_length' | t }}</th>
+                                            <th scope="col" class="text-center">{{ 'customers:bank.col_quantity' | t }}</th>
                                           </tr>
                                         </thead>
                                         <tbody>
                                           <tr 
                                             *ngFor="let baby of this.babies  | filter: 'allocation_id' : allocation.id.toString()" 
                                             role="button">
-                                            <td>{{ baby.length | number : '1.1-1' }} cm</td>
+                                            <td>{{ 'common:units.cm_1' | t: { value: baby.length } }}</td>
                                             <td class="text-center">{{ baby.quantity }}</td>
                                           </tr>
                                         </tbody>
@@ -67,12 +65,12 @@ Pick for hat
                 </div>
             </div>
             <div *ngIf="(babies | filter: 'allocation_id' : allocation.id.toString()).length == 0">
-                <fa-icon [icon]="faTriangleExclamation"></fa-icon> No babies in this allocation
+                <fa-icon [icon]="faTriangleExclamation"></fa-icon> {{ 'customers:bank.no_babies' | t }}
             </div>
         </div>
     </div>
     <div *ngIf="(banks_baby_allocations | filter: 'customer_bank_id' : bank.id.toString()).length == 0">
-        <fa-icon [icon]="faTriangleExclamation"></fa-icon> No allocations in this bank
+        <fa-icon [icon]="faTriangleExclamation"></fa-icon> {{ 'customers:allocation_picker.no_allocations' | t }}
     </div>
 </div>
 </div>

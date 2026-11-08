@@ -8,35 +8,35 @@
 />
 
 <div class="row justify-content-center"><div class="col-12 col-md-6 col-lg-5">
-<h1 class="margined-horizon"><fa-icon [icon]="faUserLock"></fa-icon> Verify your account</h1>
+<h1 class="margined-horizon"><fa-icon [icon]="faUserLock"></fa-icon> {{ 'users:verify.title' | t }}</h1>
 
 <div *ngIf="!success">
     <div class="margined-horizon">
-        <p>We sent a message to your email address<span [innerHTML]="user_email? ', <span class=\'text-warning\'>' + user_email + '</span>, ' :''"></span> with a verification code.</p>
-        <p><a href="javascript:void(0)" (click)="check_email_to_resend_code()"><fa-icon [icon]="faArrowsRotate" style="margin-right: 5px;" [animation]="(sending_code)? 'spin': undefined"></fa-icon> If you have not received the code, click here to resend it</a></p>
-        <p>To verify your account, please enter the code below:</p>
+        <p>{{ (user_email ? 'users:verify.sent_to' : 'users:verify.sent_generic') | t }} <span *ngIf="user_email" class="text-warning">{{ user_email }}</span></p>
+        <p><a href="javascript:void(0)" (click)="check_email_to_resend_code()"><fa-icon [icon]="faArrowsRotate" style="margin-inline-end: 5px;" [animation]="(sending_code)? 'spin': undefined"></fa-icon> {{ 'users:verify.resend' | t }}</a></p>
+        <p>{{ 'users:verify.enter_code' | t }}</p>
     </div>
 
     <div class="margined-horizon">
         <input class="form-control form-control-lg" type="text" [(ngModel)]="user_verification_code" class="code" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" (keyup)="code_keyup($event)">
-        <div [ngClass]="'message text-center text-danger ' + ((error)?'visible':'invisible')">{{ (error)?error: 'Error' }}</div>
+        <div [ngClass]="'message text-center text-danger ' + ((error)?'visible':'invisible')">{{ (error) ? error : ('users:verify.error_default' | t) }}</div>
 
     </div>
 
     <div class="centralized">
         <button type="button" class="btn-verify btn btn-success" (click)="verify_code()" [disabled]="verifying">
-            <span *ngIf="!verifying">Verify me!</span>
+            <span *ngIf="!verifying">{{ 'users:verify.verify_me' | t }}</span>
             <fa-icon [icon]="faArrowsRotate" [animation]="'spin'" class="action-icon" *ngIf="verifying"></fa-icon>
         </button>
     </div>
-    <div class="centralized" style="margin-top: 10px;">Already verified? <a href="/users/signin" style="margin-left:10px;">Click here to sign in</a>.</div>
+    <div class="centralized" style="margin-top: 10px;">{{ 'users:verify.already' | t }} <a href="/users/signin" style="margin-inline-start:10px;">{{ 'users:verify.go_signin' | t }}</a></div>
 </div>
 <div *ngIf="success" class="success bg-success margined-horizon">
-    <p>Account was verified successfully!</p>
-    <p>Now you can <a href="/users/signin">go to the sign-in page</a> and sign in!</p>
+    <p>{{ 'users:verify.success' | t }}</p>
+    <p><a href="/users/signin">{{ 'users:verify.now_you_can' | t }}</a></p>
     <div class="centralized">
         <button type="button" class="btn-verify btn btn-warning" (click)="goto_signin()">
-            <span><fa-icon [icon]="faUserLock"></fa-icon> Go to sign in!</span>
+            <span><fa-icon [icon]="faUserLock"></fa-icon> {{ 'users:verify.go_signin_btn' | t }}</span>
         </button>
     </div>
 </div>

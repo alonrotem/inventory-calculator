@@ -21,7 +21,7 @@
     </h3>
 
     <div *ngIf="customerItem.is_disabled" class="text-bg-danger" style="height: 50px; display: flex; justify-content: center; align-items: center;">
-        This customer is disabled!
+        {{ 'customers:editor.disabled_banner' | t }}
     </div>
 
     <form novalidate #customer_form="ngForm" [id]="'customer_form'">
@@ -31,14 +31,14 @@
             <div class="col-6">
                 <div class="form-floating">
                     <input type="text" #customerName="ngModel" class="form-control" placeholder="" [(ngModel)]="customerItem.name" name="customer_name" required>
-                    <label for="materialWeight">Customer name</label>
+                    <label for="materialWeight">{{ 'customers:editor.name' | t }}</label>
                 </div>
                 <div class="text-danger" *ngIf="customerName.invalid && (customerName.touched || customerName.dirty)" > 
-                    <span *ngIf="customerName.errors?.['required']">Please enter a name for the customer</span>
+                    <span *ngIf="customerName.errors?.['required']">{{ 'customers:editor.name_required' | t }}</span>
                 </div> 
             </div>
             <div class="col-2">
-                <button class="btn btn-warning upper-button" (click)="gotoCustomersList()" title="Cancel and go back">
+                <button class="btn btn-warning upper-button" (click)="gotoCustomersList()" [attr.title]="'customers:editor.back_title' | t">
                     <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>
                 </button>
             </div>
@@ -47,12 +47,12 @@
                     ((is_new_customer && (user$ | async) | hasPermission: [{area: 'customers', permission: 'C'}]) || 
                     ((!is_new_customer) && ((user$ | async) | hasPermission: [{area: 'customers', permission: 'U'}, {area: 'customer_resources_by_customer_id', permission: 'U'}])))">
                 <button 
-                #btn_save class="btn btn-success upper-button" type="submit" (click)="save()" title="Save changes"><!--[disabled]="!raw_material_form.form.valid"-->
+                #btn_save class="btn btn-success upper-button" type="submit" (click)="save()" [attr.title]="'customers:editor.save_title' | t"><!--[disabled]="!raw_material_form.form.valid"-->
                     <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
                 </button>
             </div>
             <div class="col-2" *ngIf="(!this.is_new_customer) && ((user$ | async) | hasPermission: [{area: 'customers', permission: 'D'}])">
-                <button class="btn btn-danger upper-button" (click)="confirm_delete()" title="Delete customer">
+                <button class="btn btn-danger upper-button" (click)="confirm_delete()" [attr.title]="'customers:editor.delete_title' | t">
                     <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>
                 </button>
             </div>
@@ -62,13 +62,13 @@
             <div class="col-6">
                 <div class="form-floating">
                     <input type="text" #businessName="ngModel" class="form-control" placeholder="" [(ngModel)]="customerItem.business_name" name="businessName">
-                    <label for="businessName">Business name</label>
+                    <label for="businessName">{{ 'customers:editor.business_name' | t }}</label>
                 </div>
             </div>
             <div class="col-6">
                 <div class="form-floating">
                     <input type="text" #taxId="ngModel" class="form-control" placeholder="" [(ngModel)]="customerItem.tax_id" name="taxId">
-                    <label for="taxId">Tax ID</label>
+                    <label for="taxId">{{ 'customers:editor.tax_id' | t }}</label>
                 </div>
             </div>
         </div>
@@ -76,16 +76,16 @@
             <div class="col-6">
                 <div class="form-floating">
                     <input type="email" #email="ngModel" class="form-control" placeholder="" [(ngModel)]="customerItem.email" name="email" email>
-                    <label for="email">Email address</label>
+                    <label for="email">{{ 'customers:editor.email' | t }}</label>
                 </div>
                 <div class="text-danger" *ngIf="email.invalid && (email.touched || email.dirty)" > 
-                    <span *ngIf="email.errors?.['email']">Please enter a valid email address</span>
+                    <span *ngIf="email.errors?.['email']">{{ 'customers:editor.email_invalid' | t }}</span>
                 </div>                 
             </div>
             <div class="col-6">
                 <div class="form-floating">
                     <input type="tel" #phone="ngModel" class="form-control" placeholder="" [(ngModel)]="customerItem.phone" name="phone" (input)="phoneChanged($event)">
-                    <label for="phone">Phone number</label>
+                    <label for="phone">{{ 'customers:editor.phone' | t }}</label>
                 </div>                
             </div>
         </div>
@@ -95,34 +95,34 @@
                 <div *ngIf="(user$ | async) | hasPermission: [{area: 'customers_advanced_features', permission: 'R'}]">
                     <div class="form-floating">
                         <input type="text" #customer_code="ngModel" class="form-control" placeholder="" [(ngModel)]="customerItem.customer_code" name="customer_code">
-                    <label for="customer_code">Customer code</label>
+                    <label for="customer_code">{{ 'customers:editor.customer_code' | t }}</label>
                 </div>  
                 </div>
                 <div *ngIf="(user$ | async) | hasPermission: [{area: 'customers_advanced_features', permission: 'R'}] : true">
-                    {{ customerItem.customer_code? ('Customer code: ' + customerItem.customer_code): 'No customer code' }}
+                    {{ customerItem.customer_code ? ('customers:editor.customer_code_line' | t: { code: customerItem.customer_code }) : ('customers:editor.no_customer_code' | t) }}
                 </div>
-                <div style="margin-left: 30px;">
-                    Last updated at: {{ (newCustomerMode)? "Not yet!" : customerItem.updated_at | dateStr }}
+                <div style="margin-inline-start: 30px;">
+                    {{ 'customers:editor.last_updated' | t: { date: (newCustomerMode ? ('customers:editor.not_yet' | t) : (customerItem.updated_at | dateStr)) } }}
                 </div>
             </div>
         </div>
 
         <div class="row advanced-settings" *ngIf="(user$ | async) | hasPermission: [{area: 'customers_advanced_features', permission: 'R'}]">
             <div class="col">
-                <h4>Advanced customer settings</h4>
-                <div>Only you can see this as an administrator</div>
+                <h4>{{ 'customers:editor.advanced.title' | t }}</h4>
+                <div>{{ 'customers:editor.advanced.admin_only' | t }}</div>
 
                 <div class="advanced-row">
                     <div class="switch-group form-check form-switch">
                         <input class="form-check-input" type="checkbox" #chkAllowalCalculationAdvisor="ngModel" name="chkAllowalCalculationAdvisor" [(ngModel)]="customerItem.allow_calculation_advisor">
                         <label class="form-check-label" for="chkAllowalCalculationAdvisor">
-                            Show the smart hats calculation advisor
+                            {{ 'customers:editor.advanced.show_advisor' | t }}
                         </label>
                     </div>
                 </div>
 
                 <div class="advanced-row" *ngIf="!customerItem.is_demo_customer">
-                    <div>Allow the customer to pick the following knives:</div>
+                    <div>{{ 'customers:editor.advanced.allow_knives' | t }}</div>
                     <app-knife-picker
                         [(pickedKnives)]="customerItem.knives"
                         (Change)="customer_form.form.markAsDirty()"
@@ -130,7 +130,7 @@
                         />
                 </div>
                 <div class="advanced-row" *ngIf="customerItem.is_demo_customer">
-                    <fa-icon class="me-2" [icon]="faTriangleExclamation" size="1x"></fa-icon> Demo customers can have any knife length they want!
+                    <fa-icon class="me-2" [icon]="faTriangleExclamation" size="1x"></fa-icon> {{ 'customers:editor.advanced.demo_knives' | t }}
                 </div>
             </div>
 
@@ -141,12 +141,12 @@
                             <input class="form-check-input" type="checkbox" id="chkDefaultMayler"
                                 [checked]="customerItem.default_mayler_width != null"
                                 (change)="toggleDefaultMayler($any($event.target).checked); customer_form.form.markAsDirty()">
-                            <label class="form-check-label" for="chkDefaultMayler">Default mayler thickness</label>
+                            <label class="form-check-label" for="chkDefaultMayler">{{ 'customers:editor.advanced.default_mayler' | t }}</label>
                         </div>
                         <select class="form-select w-auto" name="defaultMaylerWidth"
                             [(ngModel)]="customerItem.default_mayler_width"
                             [disabled]="customerItem.default_mayler_width == null">
-                            <option *ngFor="let mayler of mayler_thickness_options" [ngValue]="mayler">{{ mayler | number : '1.2-2' }} cm</option>
+                            <option *ngFor="let mayler of mayler_thickness_options" [ngValue]="mayler">{{ 'common:units.cm_fixed' | t: { value: mayler } }}</option>
                         </select>
                     </div>
                 </div>
@@ -156,7 +156,7 @@
                             <input class="form-check-input" type="checkbox" id="chkDefaultWingsPerHat"
                                 [checked]="customerItem.default_num_of_wings_per_hat != null"
                                 (change)="toggleDefaultWingsPerHat($any($event.target).checked); customer_form.form.markAsDirty()">
-                            <label class="form-check-label" for="chkDefaultWingsPerHat">Default number of wings per hat</label>
+                            <label class="form-check-label" for="chkDefaultWingsPerHat">{{ 'customers:editor.advanced.default_wings' | t }}</label>
                         </div>
                         <input type="number" class="form-control" style="width: 5.5rem;" name="defaultWingsPerHat" min="1"
                             [(ngModel)]="customerItem.default_num_of_wings_per_hat"
@@ -169,7 +169,7 @@
                 <div class="switch-group form-check form-switch">
                     <input class="form-check-input" type="checkbox" #chkDisableCustomer="ngModel" name="chkDisableCustomer" [(ngModel)]="customerItem.is_disabled" (change)="verify_customer_cancellation()">
                     <label class="text-danger form-check-label" for="chkDisableCustomer">
-                        Disable this customer
+                        {{ 'customers:editor.advanced.disable' | t }}
                     </label>
                 </div>
             </div>
@@ -186,7 +186,7 @@
     <div class="col" style="display: flex; flex-direction: column; flex-wrap: nowrap; justify-content: center; align-items: center;">
         <button class="btn btn-success btn-hats-calculator" (click)="openHatsCalculator()" [disabled]="customerItem.banks.length == 0">
             <span class='icon-calculator1'></span>
-            <div>Calculate &amp; order</div>
+            <div>{{ 'customers:editor.calculate' | t }}</div>
         </button>
     </div>
 </div>
@@ -198,7 +198,7 @@
             <div class="accordion-item">
                 <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                    <span class="icon-feather-wing me-2"></span> Wings of this customer
+                    <span class="icon-feather-wing me-2"></span> {{ 'customers:editor.wings_of_customer' | t }}
                 </button>
                 </h2>
                 <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
@@ -218,15 +218,15 @@
 
 <div class="row">
     <div class="col">
-        <h4><fa-icon [icon]="faMoneyCheckDollar" style="margin-right: 10px;"></fa-icon>Material banks</h4>
+        <h4><fa-icon [icon]="faMoneyCheckDollar" style="margin-inline-end: 10px;"></fa-icon>{{ 'customers:editor.banks.title' | t }}</h4>
 
         <div *ngIf="customerItem.is_demo_customer" class="d-flex flex-row align-items-center">
-            <span>Add demo raw material bank</span>
+            <span>{{ 'customers:editor.banks.add_demo' | t }}</span>
             <span class="ms-2">
                 <ng-select
                   #raw_material_select
                   name="raw_material_select"
-                  [placeholder]="'Pick a material'"
+                  [placeholder]="'customers:editor.banks.pick_material' | t"
                   (change)="materialPicked($event)"
                   [items]="raw_materials_list"
                   [multiple]="false" 
@@ -236,10 +236,10 @@
                   class="raw_material_select"
                   >
                     <ng-template ng-label-tmp let-item="item">
-                        <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> {{item.name}} - {{ item.color }}
+                        <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> {{item.name}} - {{ item.color | tenum: 'common:colors.' }}
                     </ng-template>
                       <ng-template ng-option-tmp let-item="item" let-index="index">
-                          <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> {{item.name}} - {{ item.color }}
+                          <span [className]="'color color-' + ((item && item.color)? item.color.toLowerCase().replace(' ', '-'): '')"></span> {{item.name}} - {{ item.color | tenum: 'common:colors.' }}
                       </ng-template>          
                 </ng-select>
             </span>
@@ -247,7 +247,7 @@
 
         <div *ngIf="customerItem.banks.length > 0">
             <div>
-                {{ customerItem.banks.length }} raw material banks, split into {{ customerItem.banks_baby_allocations.length }} allocations and {{ customerItem.babies.length }} babies.
+                {{ 'customers:editor.banks.summary' | t: { banks: customerItem.banks.length, allocations: customerItem.banks_baby_allocations.length, babies: customerItem.babies.length } }}
             </div>
             <div>
                 <app-customer-banks-table 
@@ -270,19 +270,19 @@
         </div>
             <div style="height: 150px; display: flex; flex-direction: column; flex-wrap: nowrap; justify-content: center; align-items: center;" *ngIf="customerItem.banks.length == 0">
                 <div><fa-icon [icon]="faTriangleExclamation" size="2x"></fa-icon></div>
-                <div>No material banks assigned to this customer.</div>
+                <div>{{ 'customers:editor.banks.none' | t }}</div>
                 
                 <div *ngIf="!(customerItem.is_demo_customer) &&((user$ | async) | hasPermission: [{area: 'raw_materials', permission: 'C'}])">
-                    Add some from the <a routerLink="/inventory/raw"><span class="icon-leaf" style="margin-left: 10px;"></span> Raw materials</a>.
+                    {{ 'customers:editor.banks.add_from' | t }} <a routerLink="/inventory/raw"><span class="icon-leaf" style="margin-inline-start: 10px;"></span> {{ 'common:nav.raw_materials' | t }}</a>.
                 </div>
 
                 <div *ngIf="!(customerItem.is_demo_customer) &&((user$ | async) | hasPermission: [{area: 'raw_materials', permission: 'C'}] : true)">
-                    They should be created by an admin through <span class="icon-leaf" style="margin-left: 10px;"></span> Raw materials.
+                    {{ 'customers:editor.banks.admin_creates' | t }} <span class="icon-leaf" style="margin-inline-start: 10px;"></span> {{ 'common:nav.raw_materials' | t }}.
                 </div>
                 
                 <div *ngIf="(customerItem.is_demo_customer)" class="text-center">
-                    Add some banks to calculate hats and quantities to see how the calculator works!<br/>
-                    (This is a demo customer, so you can do whatever you want)
+                    {{ 'customers:editor.banks.demo_hint' | t }}<br/>
+                    {{ 'customers:editor.banks.demo_note' | t }}
                 </div>
         </div>
     </div>
@@ -293,7 +293,7 @@
     <div class="col-12 d-flex justify-content-center {{ this.is_new_customer? 'col-md-6':'col-md-4' }}">
         <button class="btn btn-warning" (click)="gotoCustomersList()">
             <div class="btn-icon"><fa-icon [icon]="faArrowLeft"></fa-icon></div>
-            <div>Cancel Chages</div>
+            <div>{{ 'customers:editor.buttons.cancel_changes' | t }}</div>
         </button>
     </div>
 
@@ -303,13 +303,13 @@
                 ((!is_new_customer) && ((user$ | async) | hasPermission: [{area: 'customers', permission: 'U'}, {area: 'customer_resources_by_customer_id', permission: 'U'}])))">
             <button #btn_save class="btn btn-success" type="submit" (click)="save()"><!--[disabled]="!raw_material_form.form.valid"-->
                 <div class="btn-icon"><fa-icon [icon]="faSave"></fa-icon></div>
-                <div>Save Customer</div>
+                <div>{{ 'customers:editor.buttons.save' | t }}</div>
             </button>
         </div>
         <div class="col-12 d-flex justify-content-center col-md-4" *ngIf="(!this.is_new_customer) && ((user$ | async) | hasPermission: [{area: 'customers', permission: 'D'}])">
             <button class="btn btn-danger" (click)="confirm_delete()">
                 <div class="btn-icon"><fa-icon [icon]="faTrashAlt"></fa-icon></div>
-                <div>Delete Customer</div>
+                <div>{{ 'customers:editor.buttons.delete' | t }}</div>
             </button>
         </div>
 </div>

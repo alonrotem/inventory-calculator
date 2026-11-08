@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, inject } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 import 'chartjs-adapter-date-fns'; 
@@ -6,15 +6,19 @@ import { enUS } from 'date-fns/locale';
 import { InfoService } from '../../../services/info.service';
 import { QuantityHistoryRecord } from '../../../../types';
 import { GlobalsService } from '../../../services/globals.service';
+import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-raw-material-chart',
   standalone: true,
-  imports: [],
+  imports: [TranslatePipe, TranslateEnumPipe, ],
   templateUrl: './raw-material-chart.component.html',
   styleUrl: './raw-material-chart.component.scss'
 })
 export class RawMaterialChartComponent implements OnInit, OnChanges {
+  private translation = inject(TranslationService);
+
 
   @Input() data :any[] = [];
   @Input() raw_material_quantity_units :string = "";
@@ -77,7 +81,7 @@ export class RawMaterialChartComponent implements OnInit, OnChanges {
       type: 'line',
       data: {
         datasets: [{
-          label: this.raw_material_quantity_units,
+          label: this.translation.enumLabel('common:quantity_units.', this.raw_material_quantity_units),
           data: data,               
           backgroundColor: 'transparent',
           borderColor: this.color,
@@ -99,7 +103,7 @@ export class RawMaterialChartComponent implements OnInit, OnChanges {
             },
             title: {
               display: true,
-              text: 'Date'
+              text: this.translation.t('dashboard:chart.date')
             },
             grid: {
               color: grid_color
@@ -108,7 +112,7 @@ export class RawMaterialChartComponent implements OnInit, OnChanges {
           y: {
             title: {
               display: true,
-              text: this.raw_material_quantity_units
+              text: this.translation.enumLabel('common:quantity_units.', this.raw_material_quantity_units)
             },
             grid: {
               color: grid_color

@@ -1,10 +1,11 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { NgClass, NgFor, NgIf } from '@angular/common';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-paginator',
   standalone: true,
-  imports: [ NgClass, NgFor, NgIf ],
+  imports: [ NgClass, NgFor, NgIf, TranslatePipe ],
   templateUrl: './paginator.component.html',
   styleUrl: './paginator.component.scss'
 })

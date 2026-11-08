@@ -1,7 +1,7 @@
-<nav aria-label="Page navigation example">
+<nav [attr.aria-label]="'common:paginator.label' | t">
     <ul class="pagination justify-content-center" *ngIf="pages > 1">
       <li class="page-item" [ngClass]="(current_page == 1) ? 'disabled' : ''" (click)="(current_page == 1)? false : pageClicked((current_page * 1) - 1)">
-        <a class="page-link" href="javascript:void(0)" aria-label="Previous">
+        <a class="page-link" href="javascript:void(0)" [attr.aria-label]="'common:paginator.previous' | t">
           <span aria-hidden="true">&laquo;</span>
         </a>
       </li>
@@ -9,7 +9,7 @@
         <a class="page-link" href="javascript:void(0)" [ngClass]="(current_page == value + 1) ? 'disabled' : ''" (click)="pageClicked(value + 1)">{{ value + 1 }}</a>
       </li>
       <li class="page-item" [ngClass]="(current_page == pages) ? 'disabled' : ''" (click)="(current_page == pages)? false: pageClicked(((current_page * 1) + 1))">
-        <a class="page-link" href="javascript:void(0)" aria-label="Next">
+        <a class="page-link" href="javascript:void(0)" [attr.aria-label]="'common:paginator.next' | t">
           <span aria-hidden="true">&raquo;</span>
         </a>
       </li>

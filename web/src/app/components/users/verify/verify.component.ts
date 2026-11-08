@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Buffer } from "buffer";
 import { UsersService } from '../../../services/users.service';
@@ -10,15 +10,19 @@ import { NgIf, NgClass, CommonModule } from '@angular/common';
 import { PromptDialogComponent } from "../../common/prompt-dialog/prompt-dialog.component";
 import { faEnvelope } from '@fortawesome/free-regular-svg-icons';
 import { ToastService } from '../../../services/toast.service';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-verify',
   standalone: true,
-  imports: [FaIconComponent, FormsModule, NgIf, NgClass, CommonModule, PromptDialogComponent],
+  imports: [TranslatePipe, FaIconComponent, FormsModule, NgIf, NgClass, CommonModule, PromptDialogComponent],
   templateUrl: './verify.component.html',
   styleUrl: './verify.component.scss'
 })
 export class VerifyComponent implements AfterViewInit {
+  private translation = inject(TranslationService);
+
   user_email: string = "";
   email_sent: boolean = false;
   user_verification_code: string = "";
@@ -73,7 +77,7 @@ export class VerifyComponent implements AfterViewInit {
     this.error = "";
     this.verifying = true;
     if(!this.user_verification_code) {
-      this.error = "Please enter a valid code!";
+      this.error = this.translation.t('users:verify.invalid_code');
       this.verifying = false;
       return;
     }
@@ -114,7 +118,7 @@ export class VerifyComponent implements AfterViewInit {
     this.usersService.sendUserAccountVerificationCode(email_address).subscribe(
       {
         next:(data) => { 
-          this.toastService.showSuccess("Verification code sent");
+          this.toastService.showSuccess(this.translation.t('users:verify.code_sent'));
           this.sending_code = false;
         },
         error:(response) => { 

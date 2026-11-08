@@ -8,11 +8,12 @@ import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { faArrowsRotate, faTriangleExclamation, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ExcelService } from '../../../services/excel.service';
+import { TranslatePipe, TranslateQuantityPipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-bank-history-dialog',
   standalone: true,
-  imports: [ ModalDialogComponent, NgFor, NgSwitch, NgSwitchCase, NgIf, DateStrPipe, FaIconComponent, FontAwesomeModule, RouterModule ],
+  imports: [TranslatePipe, TranslateQuantityPipe,  ModalDialogComponent, NgFor, NgSwitch, NgSwitchCase, NgIf, DateStrPipe, FaIconComponent, FontAwesomeModule, RouterModule ],
   templateUrl: './bank-history-dialog.component.html',
   styleUrl: './bank-history-dialog.component.scss'
 })

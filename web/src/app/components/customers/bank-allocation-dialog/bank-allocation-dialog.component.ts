@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, EventEmitter, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, ViewChild, inject } from '@angular/core';
 import { Bank_Allocation_Type, Customer_Bank_Baby_Allocation, ModalDialog } from '../../../../types';
 import { ModalContentDirective } from '../../common/directives/modal-content.directive';
 import { DialogClosingReason, ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
@@ -8,11 +8,13 @@ import { DecimalPipe, NgClass, NgIf } from '@angular/common';
 import { CapacityBarComponent } from '../../raw-material/capacity-bar/capacity-bar.component';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { NumericInputDirective } from '../../../utils/directives/auto-numeric.directive';
+import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-bank-allocation-dialog',
   standalone: true,
-  imports: [ ModalContentDirective, ModalDialogComponent, FormsModule, NgClass, NgIf, CapacityBarComponent, NgSelectModule, DecimalPipe, NumericInputDirective ],
+  imports: [TranslatePipe, TranslateEnumPipe,  ModalContentDirective, ModalDialogComponent, FormsModule, NgClass, NgIf, CapacityBarComponent, NgSelectModule, DecimalPipe, NumericInputDirective ],
   templateUrl: './bank-allocation-dialog.component.html',
   styleUrl: './bank-allocation-dialog.component.scss',
   providers: [{
@@ -21,6 +23,8 @@ import { NumericInputDirective } from '../../../utils/directives/auto-numeric.di
   }]
 })
 export class BankAllocationDialogComponent implements ModalContentDirective, ModalDialog {
+  private translation = inject(TranslationService);
+
   @ViewChild("allocation_dialog") dialogWrapper!: ModalDialogComponent;
   @ViewChild("quantityForm") quantityForm!: NgForm;
   @ViewChild("meter") meter!: CapacityBarComponent;
@@ -36,10 +40,12 @@ export class BankAllocationDialogComponent implements ModalContentDirective, Mod
   @Input() is_material_usable_for_h_material: boolean = true;
   attemptedClose = false;
 
-  allocation_type_cations: { [key: string]: string } = {
-    babies: 'Babies',
-    tails: 'H Material tails'
-  };
+  get allocation_type_cations(): { [key: string]: string } {
+    return {
+      babies: this.translation.t('customers:allocation_dialog.type_babies'),
+      tails: this.translation.t('customers:allocation_dialog.type_tails')
+    };
+  }
   allocation_types = Object.keys(Bank_Allocation_Type)
     .map((item, index) => ({ 
       name: item, 

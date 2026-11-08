@@ -1,0 +1,22 @@
+{
+  "chart": {
+    "title": "כמות חומרי הגלם:",
+    "date": "תאריך"
+  },
+  "card": {
+    "loading": "טוען מידע...",
+    "inventory": "מלאי",
+    "raw_material": "חומר גלם:",
+    "records": "רשומות של חומרי גלם: {{count, number}}",
+    "total_kg": "סה״כ {{total, number(maximumFractionDigits: 0)}} ק״ג (נותרו {{remaining, number(maximumFractionDigits: 0)}})",
+    "total_units": "סה״כ {{total, number(maximumFractionDigits: 0)}} יחידות (נותרו {{remaining, number(maximumFractionDigits: 0)}})",
+    "templates": "תבניות",
+    "wings": "כנפיים: {{count, number}}",
+    "sales": "מכירות נוכחיות",
+    "new_orders": "הזמנות חדשות: {{count, number}}",
+    "ordered_hats": "כובעים שהוזמנו: {{count, number}}",
+    "go_raw": "מעבר לניהול חומרי הגלם",
+    "go_wings": "מעבר לניהול הכנפיים",
+    "go_orders": "מעבר להזמנות"
+  }
+}

@@ -1,10 +1,10 @@
 <app-modal-dialog 
     #advisor_dialog
     [btnSaveClass]="'d-none'"
-    [btnCancelText]="'Close'"
+    [btnCancelText]="'common:actions.close' | t"
     [btnCancelClass]="'btn-secondary m-auto'"
     [modalSize]="'xl'"
-    [modalTitle]="'Hats Advisor'">
+    [modalTitle]="'customers:advisor.title' | t">
     <div class="">
         <table class="table table-responsive">
             <tbody>
@@ -12,7 +12,7 @@
             <tr>
                 <td [attr.rowspan]="suggestion.alternatives.length + 1">
                     <strong>{{ suggestion.wing_name }}</strong><br/>
-                    Up to {{ suggestion.max_num_of_hats }} hats
+                    {{ 'customers:advisor.up_to_hats' | t: { count: suggestion.max_num_of_hats } }}
                 </td>
             </tr>
             <tr *ngFor="let alternative of suggestion.alternatives">
@@ -28,7 +28,7 @@
                             suggestions.crown_allocation_id, 
                             alternative.shorten_top, 
                             alternative.shorten_crown)">
-                        Order!
+                        {{ 'customers:advisor.order_now' | t }}
                     </button>
                 </td>
             </tr>
@@ -41,11 +41,11 @@
 
 <app-modal-dialog 
     #hat_creation_assistant
-    [btnSaveText]="'Add missing babies to my allocation'"
+    [btnSaveText]="'customers:advisor.assistant_save' | t"
     [btnSaveClass]="((is_demo_customer) || (((user$ | async) | hasPermission: ([{area: 'bank_baby_management', permission: 'C'}]))) && sufficient_babies_in_allocations)? 'btn-success' : 'd-none'"
-    [btnCancelText]="((is_demo_customer) || (((user$ | async) | hasPermission: ([{area: 'bank_baby_management', permission: 'C'}]))) && sufficient_babies_in_allocations)? 'Cancel' : 'Close'"
+    [btnCancelText]="((is_demo_customer) || (((user$ | async) | hasPermission: ([{area: 'bank_baby_management', permission: 'C'}]))) && sufficient_babies_in_allocations)? ('common:actions.cancel' | t) : ('common:actions.close' | t)"
     [modalSize]="'xl'"
-    [modalTitle]="'Auto-adjust allocation #' + wall_allocation?.id"
+    [modalTitle]="'customers:advisor.assistant_title' | t: { id: wall_allocation?.id }"
     (confirm)="assistant_add_babies()">
 
         <div style="display:none"><!--Just for info-->
@@ -59,12 +59,12 @@
             <tbody>
                 <tr>
                     <td>
-                        Choose a wing design
+                        {{ 'customers:advisor.choose_wing' | t }}
                     </td>
                     <td>
                         <ng-select
                         #wing_selector
-                        placeholder="Select a wing"
+                        [placeholder]="'customers:advisor.select_wing' | t"
                         (change)="assistant_recalculate()"
                         [items]="systemWings"
                         bindLabel="name"
@@ -75,14 +75,14 @@
                         <ng-template ng-label-tmp let-item="item">
                             <!-- Customize the selected label here -->
                             <span [className]="item.customers[0].id == customer_id ? 'text-primary' : ''">
-                            {{ item.name }} <span *ngIf="item.customers[0].id == customer_id"> (private)</span>
+                            {{ item.name }} <span *ngIf="item.customers[0].id == customer_id"> {{ 'customers:advisor.private' | t }}</span>
                             </span>
                         </ng-template>
 
                         <ng-template ng-option-tmp let-item="item">
                             <!-- Customize the dropdown options here -->
                             <span [className]="item.customers[0].id == customer_id ? 'text-primary' : ''">
-                            {{ item.name }} <span *ngIf="item.customers[0].id == customer_id"> (private)</span>
+                            {{ item.name }} <span *ngIf="item.customers[0].id == customer_id"> {{ 'customers:advisor.private' | t }}</span>
                             </span>
                         </ng-template>
                         </ng-select>
@@ -90,7 +90,7 @@
                 </tr>
                 <tr>
                     <td>
-                        Number of wings per hat
+                        {{ 'customers:advisor.wings_per_hat' | t }}
                     </td>
                     <td>
                         <input type="number" [(ngModel)]="numOfWingsPerHat" style="width: 70px; text-align: center;" (change)="assistant_recalculate()" (keyup)="assistant_recalculate()" (focus)="$any($event.target).select()" />
@@ -98,7 +98,7 @@
                 </tr>
                 <tr>
                     <td>
-                        Number of hats to make
+                        {{ 'customers:advisor.hats_to_make' | t }}
                     </td>
                     <td>
                         <input type="number" [(ngModel)]="assistant_num_of_hats" style="width: 70px; text-align: center;" (change)="assistant_recalculate()" (keyup)="assistant_recalculate()" />
@@ -109,22 +109,22 @@
         <div *ngIf="assistant_selected_wing_id">
             <table class="table">
                 <thead>
-                    <th>Baby length</th>
-                    <th>Positions</th>
-                    <th>Total needed</th>
-                    <th>In allocation</th>
-                    <th>Missing</th>
+                    <th>{{ 'customers:advisor.col_baby_length' | t }}</th>
+                    <th>{{ 'customers:advisor.col_positions' | t }}</th>
+                    <th>{{ 'customers:advisor.col_total_needed' | t }}</th>
+                    <th>{{ 'customers:advisor.col_in_allocation' | t }}</th>
+                    <th>{{ 'customers:advisor.col_missing' | t }}</th>
                 </thead>
                 <tbody>
                     <tr *ngFor="let baby of assistant_aggregated_hat_babies">
-                        <td>{{ baby.length | number : '1.1-1' }} cm</td>
+                        <td>{{ 'common:units.cm_1' | t: { value: baby.length } }}</td>
                         <td>{{ baby.position }}</td>
                         <td>{{ baby.quantity * assistant_num_of_hats }}</td>
                         <td>{{ baby.quantity_in_allocation }}</td>
                         <td [className]="(baby.remaining > 0)? 'text-danger':''">{{ (baby.remaining > 0)? baby.remaining:'-' }}</td>
                     </tr>
                     <tr *ngFor="let baby of assistant_aggregated_crown_babies">
-                        <td>{{ baby.length | number : '1.1-1' }} cm</td>
+                        <td>{{ 'common:units.cm_1' | t: { value: baby.length } }}</td>
                         <td>{{ baby.position }}</td>
                         <td>{{ baby.quantity * assistant_num_of_hats }}</td>
                         <td>{{ baby.quantity_in_allocation }}</td>
@@ -134,40 +134,40 @@
             </table>
             <div>
                 <span>
-                    Total missing babies in {{ (wall_allocation?.id != crown_allocation?.id)?'allocations':'allocation' }}: {{ total_missing_babies | number: '1.' }}
+                    {{ ((wall_allocation?.id != crown_allocation?.id) ? 'customers:advisor.total_missing_multi' : 'customers:advisor.total_missing_single') | t: { count: total_missing_babies } }}
                 </span>
                 <span *ngIf="wall_allocation?.id != crown_allocation?.id">
-                    ({{ total_missing_babies_wall | number: '1.' }} wall, {{ total_missing_babies_crown | number: '1.'}} crown)
+                    {{ 'customers:advisor.missing_split' | t: { wall: total_missing_babies_wall, crown: total_missing_babies_crown } }}
                 </span>
                 
                 <div *ngIf="wall_allocation?.id != crown_allocation?.id">
                     <!-- Different allocations: show how many babies are available in each allocation vs required -->
                      <table class="table">
                         <tr>
-                            <td>Units available in wall allocation</td>
+                            <td>{{ 'customers:advisor.units_wall' | t }}</td>
                             <td>{{ wall_allocation?.remaining_quantity | number: '1.' }}</td>
                         </tr>
                         <tr>
-                            <td>Units available in crown allocation</td>
+                            <td>{{ 'customers:advisor.units_crown' | t }}</td>
                             <td>{{ crown_allocation?.remaining_quantity | number: '1.' }}</td>
                         </tr>                        
                      </table>
                 </div>
                 <div *ngIf="wall_allocation?.id == crown_allocation?.id">
                     <!-- One allocation: show how many babies are available in the wall allocation vs required -->
-                     Units available in allocation: {{ wall_allocation?.remaining_quantity | number: '1.' }}
+                     {{ 'customers:advisor.units_single' | t: { count: wall_allocation?.remaining_quantity } }}
                 </div>
                 <div *ngIf="!sufficient_babies_in_allocations" class="bg-danger" style="padding: 10px; margin: 20px 0px;">
-                    No sufficient units in your {{ (wall_allocation?.id != crown_allocation?.id)?'allocations':'allocation' }}!
+                    {{ ((wall_allocation?.id != crown_allocation?.id) ? 'customers:advisor.insufficient_multi' : 'customers:advisor.insufficient_single') | t }}
                 </div>
             </div>
         </div>
         <div *ngIf="!assistant_selected_wing_id" class="assistant_info">
             <div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon></div>
             <div>
-                This tool can help add babies to your allocation to cover a selected hat to order
+                {{ 'customers:advisor.tool_info' | t }}
             </div>
-            <div class="text-warning" style="margin: 50px 0px;">Choose a wing to get started.</div>
+            <div class="text-warning" style="margin: 50px 0px;">{{ 'customers:advisor.get_started' | t }}</div>
         </div>
         <!------------>
 </app-modal-dialog>
@@ -178,22 +178,22 @@
             <fa-icon [icon]="faArrowsRotate" [animation]="'spin'"></fa-icon>
         </div>
         <div>
-            Calculating...
+            {{ 'customers:advisor.calculating' | t }}
         </div>
     </div>
     <div class="advisor-content" *ngIf="!calculating && suggestions.max_num_of_hats > 0 && try_to_exceed < 0  && (!wait_for_saved_changes || !pending_saved_changes) && (!not_enough_data)">
         <div class="message">
-            <div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon> With this allocation you can make up to {{ suggestions.max_num_of_hats }} {{ (suggestions.max_num_of_hats == 1)? 'hat': 'hats' }} of type <strong>{{ suggestions.max_hat_wing_name }}</strong></div>
-            <div *ngIf="show_options_button"><button class="btn btn-success" (click)="openAdviseTable()">Show me!</button></div>
+            <div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon> {{ 'customers:advisor.can_make' | t: { count: suggestions.max_num_of_hats } }} <strong>{{ suggestions.max_hat_wing_name }}</strong></div>
+            <div *ngIf="show_options_button"><button class="btn btn-success" (click)="openAdviseTable()">{{ 'customers:advisor.show_me' | t }}</button></div>
             <!--div *ngIf="(show_help_me_adjust_button && wall_allocation && crown_allocation && wall_allocation.id == crown_allocation.id)"><button class="btn btn-info" (click)="helpCreateHat()">Help me adjust my allocation!</button></div-->
         </div>
     </div>
     <div class="advisor-content" *ngIf="!calculating && suggestions.max_num_of_hats <= 0 && try_to_exceed < 0 && (!wait_for_saved_changes || !pending_saved_changes) && (!not_enough_data)">
         <div class="message">
         <div><fa-icon class="text-danger" [icon]="faTriangleExclamation" size="1x"></fa-icon>
-            You don't have the capatity to make {{ (wing_id > 0)? 'this hat': 'hats' }} with {{ ((wall_allocation && crown_allocation  && tails_allocation_l && tails_allocation_r) || (wall_allocation?.id == crown_allocation?.id))? 'these allocations':'this allocation' }}
+            {{ (wing_id > 0 ? (many_allocations ? 'customers:advisor.no_capacity_hat_multi' : 'customers:advisor.no_capacity_hat_single') : (many_allocations ? 'customers:advisor.no_capacity_hats_multi' : 'customers:advisor.no_capacity_hats_single')) | t }}
         </div>
-            <div *ngIf="(show_help_me_adjust_button && wall_allocation && crown_allocation && wall_allocation.id == crown_allocation.id)"><button class="btn btn-info" (click)="helpCreateHat()">Help me adjust my allocation!</button></div>
+            <div *ngIf="(show_help_me_adjust_button && wall_allocation && crown_allocation && wall_allocation.id == crown_allocation.id)"><button class="btn btn-info" (click)="helpCreateHat()">{{ 'customers:advisor.help_adjust' | t }}</button></div>
         </div>
     </div>
     <div class="advisor-content" *ngIf="!calculating && try_to_exceed >= 0  && (!wait_for_saved_changes || !pending_saved_changes) && (!not_enough_data)">
@@ -202,27 +202,27 @@
                 <div>
                     <fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon>{{ exceed_number_of_hats_message }}
                 </div>
-                <div *ngIf="!already_at_max_num_of_hats" style="display: flex; justify-content: center;"><button class="btn btn-warning" (click)="emit_exceed_operation()">Make this change for me!</button></div>
+                <div *ngIf="!already_at_max_num_of_hats" style="display: flex; justify-content: center;"><button class="btn btn-warning" (click)="emit_exceed_operation()">{{ 'customers:advisor.make_change' | t }}</button></div>
             </div>
         </div>
     </div>
 
     <div class="advisor-content" *ngIf="wait_for_saved_changes && pending_saved_changes">
         <div class="message">
-            <div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon> In order to assist with calculations, you need to save your pending changes</div>
-            <button class="btn btn-success" (click)="emitSaveChanges()"><fa-icon [icon]="faSave"></fa-icon> Save my pending changes</button>
+            <div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon> {{ 'customers:advisor.need_save' | t }}</div>
+            <button class="btn btn-success" (click)="emitSaveChanges()"><fa-icon [icon]="faSave"></fa-icon> {{ 'customers:advisor.save_pending' | t }}</button>
         </div>
     </div>
 
     <div class="advisor-content" *ngIf="!wing_has_no_babies && not_enough_data">
         <div class="message">
-            <div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon> Choose allocations to get calculation suggestions</div>
+            <div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon> {{ 'customers:advisor.choose_allocations' | t }}</div>
         </div>
     </div>
 
     <div class="advisor-content" *ngIf="wing_has_no_babies">
         <div class="message">
-            <div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon> This wing has no babies</div>
+            <div><fa-icon class="text-warning" [icon]="faLightbulb" size="1x"></fa-icon> {{ 'customers:advisor.wing_no_babies' | t }}</div>
         </div>
     </div>    
 </div>

@@ -1,0 +1,125 @@
+{
+  "language": {
+    "label": "שפה",
+    "switch_to": "החלפת השפה ל{{language}}"
+  },
+  "nav": {
+    "raw_materials": "חומרי גלם",
+    "customers": "לקוחות",
+    "orders": "הזמנות",
+    "demo_customer": "לקוח לדוגמה",
+    "design": "עיצוב",
+    "wings": "כנפיים",
+    "knives": "סכינים",
+    "knife_editor": "עורך סכינים",
+    "system": "מערכת",
+    "settings": "הגדרות",
+    "users": "משתמשים"
+  },
+  "actions": {
+    "save": "שמירה",
+    "cancel": "ביטול",
+    "delete": "מחיקה",
+    "edit": "עריכה",
+    "add": "הוספה",
+    "back": "חזרה",
+    "close": "סגירה",
+    "search": "חיפוש",
+    "yes": "כן",
+    "no": "לא"
+  },
+  "dialogs": {
+    "confirm_title": "אישור",
+    "confirm_text": "האם להמשיך בפעולה?",
+    "save_changes": "שמירת שינויים",
+    "unsaved_title": "כבר עוזבים?",
+    "unsaved_text": "שינויים שלא נשמרו יאבדו אם לא תשמרו אותם עכשיו.",
+    "save_and_continue": "שמירה והמשך",
+    "discard_changes": "ביטול השינויים"
+  },
+  "save_bar": {
+    "message": "לשמור את השינויים עכשיו?"
+  },
+  "paginator": {
+    "label": "ניווט בין עמודים",
+    "previous": "הקודם",
+    "next": "הבא"
+  },
+  "picker": {
+    "add": "+ הוספה",
+    "placeholder": "בחירת פריט",
+    "already_picked": "{{name}} כבר נבחר"
+  },
+  "unsaved": {
+    "saved": "נשמר בהצלחה.",
+    "save_error": "שגיאה בשמירה",
+    "discarded": "השינויים בוטלו",
+    "leave_confirm": "יש שינויים שלא נשמרו. לעזוב בכל זאת?"
+  },
+  "status": {
+    "loading": "טוען...",
+    "saved": "נשמר בהצלחה",
+    "no_results": "לא נמצא דבר",
+    "loading_text": "טוען"
+  },
+  "units": {
+    "cm": "{{value, number(minimumFractionDigits: 0; maximumFractionDigits: 2)}} ס״מ",
+    "cm_fixed": "{{value, number(minimumFractionDigits: 2; maximumFractionDigits: 2)}} ס״מ",
+    "cm_symbol": "ס״מ",
+    "cm_1": "{{value, number(minimumFractionDigits: 1; maximumFractionDigits: 1)}} ס״מ"
+  },
+  "list": {
+    "total_one": "סה״כ: {{count, number}} פריט",
+    "total_two": "סה״כ: {{count, number}} פריטים",
+    "total_other": "סה״כ: {{count, number}} פריטים"
+  },
+  "errors": {
+    "unexpected": "משהו השתבש, נא לנסות שוב",
+    "not_found": "הפריט המבוקש לא נמצא"
+  },
+  "quantity": {
+    "kg": "{{value, number(minimumFractionDigits: 2; maximumFractionDigits: 2)}} ק״ג",
+    "units": "{{value, number(maximumFractionDigits: 0)}} יחידות"
+  },
+  "quantity_units": {
+    "kg": "ק״ג",
+    "units": "יחידות"
+  },
+  "colors": {
+    "dark_brown": "חום כהה",
+    "brown": "חום",
+    "light_brown": "חום בהיר",
+    "black": "שחור",
+    "natural": "טבעי"
+  },
+  "hamburger": {
+    "toggle": "הצגה או הסתרה של התפריט"
+  },
+  "image": {
+    "title": "התאמת התמונה",
+    "drag": "גררו תמונה או לחצו למטה",
+    "no_picture": "אין תמונה",
+    "drag_file": "גררו קובץ לכאן",
+    "click_choose": "או לחצו כדי לבחור קובץ",
+    "browse": "עיון",
+    "clear": "ניקוי",
+    "load_failed": "טעינת התמונה נכשלה",
+    "drop_image": "נא לשחרר קובץ תמונה"
+  },
+  "pages": {
+    "not_found_title": "השועל מתחבא!",
+    "not_found_text": "לא ניתן למצוא את הדף הזה",
+    "not_found_hint": "(אולי הוא עדיין לא נוסף)",
+    "forbidden": "אין לכם הרשאה לגשת לדף הזה.",
+    "go_home": "חזרה לדף הבית!",
+    "home_reconstruction": "לוח הבקרה הראשי בבנייה מחדש"
+  },
+  "footer": {
+    "copyright": "זכויות יוצרים"
+  },
+  "capacity": {
+    "allocated": "מוקצה",
+    "unallocated": "לא מוקצה",
+    "available": "זמין"
+  }
+}

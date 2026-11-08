@@ -69,7 +69,7 @@
     width:50px; 
     position: relative; 
     top: -22px;
-    right: -7px;
+    inset-inline-end: -7px;
     padding: 8px;    
     width: 120px;
     background-color: #555;
@@ -99,7 +99,7 @@ tr:has(.expand-balloon-visible){
     content: "";
     position: absolute;
     top: 50%;
-    right: 100%;
+    inset-inline-end: 100%;
     margin-top: -5px;
     border-width: 5px;
     border-style: solid;

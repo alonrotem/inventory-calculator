@@ -1,8 +1,8 @@
 
 <div class="backup-container">
-    <h3><fa-icon [icon]="faCloudDownload" class="action-icon"></fa-icon> Create backup</h3>
+    <h3><fa-icon [icon]="faCloudDownload" class="action-icon"></fa-icon> {{ 'backup:create' | t }}</h3>
     <p>
-        Click the button to download a backup of the current system state
+        {{ 'backup:create_hint' | t }}
     </p>
 
     <div>
@@ -16,13 +16,13 @@
         <div class="switch-group form-check form-switch">
             <input class="form-check-input" type="checkbox" id="chk_alert_customer_bank_kg" name="chk_alert_customer_bank_kg" [(ngModel)]="deleteExistingRecords">
             <label class="form-check-label" for="chk_alert_customer_bank_kg">
-                Include deletion of existing system data
+                {{ 'backup:include_deletion' | t }}
             </label>
           </div>
       </div>    
 
     <button type="button" class="btn btn-primary" (click)="get_backup()">
         <fa-icon [icon]="faCloudDownload" class="action-icon"></fa-icon>
-        Download backup!
+        {{ 'backup:download' | t }}
     </button>
 </div>

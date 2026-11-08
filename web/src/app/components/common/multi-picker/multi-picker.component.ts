@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild, inject } from '@angular/core';
+import { TranslationService } from '../../../i18n/translation.service';
 import { FormsModule } from '@angular/forms';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -19,14 +20,16 @@ import { nameIdPair } from '../../../../types';
   styleUrl: './multi-picker.component.scss'
 })
 export class MultiPickerComponent<T extends nameIdPair = nameIdPair> implements OnChanges {
+  private translation = inject(TranslationService);
+
   // all the items that can be picked
   @Input() items: T[] = [];
   @Input() pickedItems: nameIdPair[] = [];
   @Input() disabled: boolean = true;
   // when false, the add button is hidden once an item is picked
   @Input() multi: boolean = true;
-  @Input() addButtonText: string = '+ Add';
-  @Input() placeholder: string = 'Pick an item';
+  @Input() addButtonText: string = this.translation.t('common:picker.add');
+  @Input() placeholder: string = this.translation.t('common:picker.placeholder');
   // the text shown for an item, in the dropdown and in the picked tags. Defaults to the item's name
   @Input() itemLabel: (item: T) => string = item => item.name;
   @Output() pickedItemsChange = new EventEmitter<nameIdPair[]>();
@@ -84,7 +87,7 @@ export class MultiPickerComponent<T extends nameIdPair = nameIdPair> implements 
         this.Change.emit();
       }
       else {
-        this.user_message = `${picked.name} is already picked`;
+        this.user_message = this.translation.t('common:picker.already_picked', { name: picked.name });
       }
     }
   }

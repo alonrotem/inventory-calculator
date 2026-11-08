@@ -8,11 +8,12 @@ import { faArrowsRotate, faTriangleExclamation, IconDefinition } from '@fortawes
 import { FaIconComponent, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ExcelService } from '../../../services/excel.service';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
+import { TranslatePipe, TranslateQuantityPipe } from '../../../i18n/translate.pipe';
 
 @Component({
   selector: 'app-raw-material-history-dialog',
   standalone: true,
-  imports: [ ModalDialogComponent, NgFor, NgSwitch, NgSwitchCase, NgIf, DateStrPipe, FaIconComponent, FontAwesomeModule, DecimalPipe ],
+  imports: [TranslatePipe, TranslateQuantityPipe,  ModalDialogComponent, NgFor, NgSwitch, NgSwitchCase, NgIf, DateStrPipe, FaIconComponent, FontAwesomeModule, DecimalPipe ],
   templateUrl: './raw-material-history-dialog.component.html',
   styleUrl: './raw-material-history-dialog.component.scss'
 })

@@ -1,5 +1,5 @@
 import { NgIf } from '@angular/common';
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faArrowsRotate, faSave, faUserLock, faWarning, IconDefinition } from '@fortawesome/free-solid-svg-icons';
@@ -7,15 +7,19 @@ import { UsersService } from '../../../services/users.service';
 import { ActivatedRoute } from '@angular/router';
 import { UserProfile } from '../../../../types';
 import { ToastService } from '../../../services/toast.service';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [ FaIconComponent, NgIf, FormsModule ],
+  imports: [TranslatePipe,  FaIconComponent, NgIf, FormsModule ],
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.scss'
 })
 export class ResetPasswordComponent {
+  private translation = inject(TranslationService);
+
   faUserLock: IconDefinition = faUserLock;
   faArrowsRotate: IconDefinition = faArrowsRotate;
   faSave: IconDefinition = faSave;
@@ -52,20 +56,20 @@ export class ResetPasswordComponent {
     if(this.password_change.new_password){
       //...without filling the new password confirmation
       if(!this.password_change.repeat_new_password) {
-        this.password_change_errors.repeat_new_password = 'Password confirmation required';
+        this.password_change_errors.repeat_new_password = this.translation.t('users:reset.confirm_required');
         error = true;
       }
       else {
         //...but filled the new password confirmation wrong
         if(this.password_change.new_password != this.password_change.repeat_new_password){
-          this.password_change_errors.repeat_new_password = 'Passwords do not match';
+          this.password_change_errors.repeat_new_password = this.translation.t('users:validation.mismatch');
           error = true;
         }
       }
     }
     //The user filled the password confirmation without filling the new password
     if(this.password_change.repeat_new_password && !this.password_change.new_password){
-      this.password_change_errors.new_password = 'New password is required';
+      this.password_change_errors.new_password = this.translation.t('users:reset.new_required');
     }
     return !error;
   }
