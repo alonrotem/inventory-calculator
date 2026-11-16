@@ -32,6 +32,7 @@ const WIDTH_DIMENSION_ROOM = 34;     // px under the knife for its width
  * those edits are emitted through babyEdited and are shown once the host updates the inputs (see applyBabyEdit).
  */
 import { TranslationService } from '../../../i18n/translation.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-wing-diagram',
@@ -102,6 +103,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
 
   constructor(private globalService: GlobalsService, private knivesService: KnivesService, private ngZone: NgZone) {
     this.setColors(this.globalService.currentTheme());
+    this.translation.changed.pipe(takeUntilDestroyed()).subscribe(() => this.scheduleDraw());   // the texts on the canvas
     this.themeSubscription = this.globalService.themeChanged.subscribe({
       next: (theme: string) => this.setColors(theme)
     });

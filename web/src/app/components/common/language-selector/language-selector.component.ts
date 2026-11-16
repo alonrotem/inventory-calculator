@@ -19,6 +19,6 @@ export class LanguageSelectorComponent {
 
   choose(code: string, event: Event) {
     event.preventDefault();
-    this.translation.setLanguage(code);
+    this.translation.setLanguage(code);   // the page is not reloaded: the app shell is created again in the new language
   }
 }

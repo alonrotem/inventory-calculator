@@ -34,6 +34,7 @@ import { FilterPipe } from '../../../utils/pipes/filter-pipe';
 import { TooltipDirective } from '../../common/tooltip/tooltip.directive';
 import { TranslatePipe, TranslateQuantityPipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
 import { TranslationService } from '../../../i18n/translation.service';
+import { TranslationKey } from '../../../i18n/translation-keys';
 
 @Component({
   selector: 'app-raw-material-editor',
@@ -81,7 +82,9 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
   countries: Country[] = [];
   currencies: Currency[] = [];
   quantity_units: string[] = [];
-  title: string = this.translation.t('raw_materials:editor.title_create');
+  private title_key: TranslationKey = 'raw_materials:editor.title_create';
+  /** the title in the language in use: it follows a language change */
+  get title(): string { return this.translation.t(this.title_key); }
   newMaterialMode: boolean = true;
   faSave: IconDefinition = faSave;
   faTrashAlt:IconDefinition = faTrashAlt;
@@ -212,7 +215,7 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     this.is_new_material = !this.activatedRoute.snapshot.queryParamMap.has('id');
     if(!this.is_new_material)
     {
-      this.title = this.translation.t('raw_materials:editor.title_edit');
+      this.title_key = 'raw_materials:editor.title_edit';
       this.newMaterialMode = false;
       const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
       this.getRawMaterial(id);

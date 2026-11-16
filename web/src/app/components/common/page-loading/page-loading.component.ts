@@ -1,4 +1,4 @@
-import { Component, Input, inject } from '@angular/core';
+import { Component, Input, inject, DestroyRef } from '@angular/core';
 import { AnimationProp, FaIconComponent, SizeProp } from '@fortawesome/angular-fontawesome';
 import { IconDefinition } from '@fortawesome/fontawesome-common-types';
 import { faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
@@ -16,6 +16,9 @@ export class PageLoadingComponent {
 
   @Input() loading_icon: IconDefinition = faArrowsRotate;
   @Input() loading_message = this.translation.t('common:status.loading_text');
+  private followLanguage = this.translation.follow(inject(DestroyRef), [
+    ['common:status.loading_text', () => this.loading_message, text => this.loading_message = text]
+  ]);
   @Input() animation : AnimationProp | undefined = 'spin';
   @Input() stretch_height: boolean = false;
   @Input() icon_size: SizeProp = '3x';

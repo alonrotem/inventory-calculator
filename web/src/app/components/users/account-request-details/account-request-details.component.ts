@@ -21,6 +21,7 @@ import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.com
 import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
 import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
 import { TranslationService } from '../../../i18n/translation.service';
+import { TranslationKey } from '../../../i18n/translation-keys';
 
 @Component({
   selector: 'app-account-request-details',
@@ -46,7 +47,9 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
   faArrowLeft: IconDefinition = faArrowLeft;
   faBasketShopping: IconDefinition = faBasketShopping;
   loading: boolean = false;
-  approval_instructions: string = "";
+  private approval_instructions_key: TranslationKey | null = null;
+  /** the instruction in the language in use: it follows a language change */
+  get approval_instructions(): string { return this.approval_instructions_key ? this.translation.t(this.approval_instructions_key) : ""; }
   approve_btn_disabled = true;
   notify_requester_on_decline: boolean = true;
   message_to_requester_on_decline: string = "";
@@ -157,15 +160,15 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
 
   set_instructions_and_approval_btn_status(){
     console.log("selected role: "); console.dir(this.request.role);
-    this.approval_instructions = "";
+    this.approval_instructions_key = null;
     this.approve_btn_disabled = false;
     if(!this.request || !this.request.role || this.request.role.id <= 0){
-      this.approval_instructions = this.translation.t('users:invite.approval_role');
+      this.approval_instructions_key = 'users:invite.approval_role';
       this.approve_btn_disabled = true;
     }
     else {
       if(this.request.role.name.toLowerCase() == 'customer' && this.request.customers && this.request.customers.length == 0 && this.chkCreateNewCustoemr && this.chkCreateNewCustoemr.nativeElement && !this.chkCreateNewCustoemr.nativeElement.checked) {
-        this.approval_instructions = this.translation.t('users:invite.approval_customer');
+        this.approval_instructions_key = 'users:invite.approval_customer';
         this.approve_btn_disabled = true;
       }
     }

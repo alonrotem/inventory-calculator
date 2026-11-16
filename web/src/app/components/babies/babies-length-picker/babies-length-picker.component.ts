@@ -1,5 +1,5 @@
 import { DecimalPipe, NgIf } from '@angular/common';
-import { AfterViewInit, Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, OnInit, Output, inject, DestroyRef } from '@angular/core';
 import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { TranslationService } from '../../../i18n/translation.service';
 
@@ -15,6 +15,9 @@ export class BabiesLengthPickerComponent implements OnInit, AfterViewInit {
 
 
   @Input() title: string = this.translation.t('wings:length_picker.title'); 
+  private followLanguage = this.translation.follow(inject(DestroyRef), [
+    ['wings:length_picker.title', () => this.title, text => this.title = text]
+  ]);
   @Input() min_length: number = 5;
   @Input() max_length: number = 16;
   @Input() length_step: number = 0.5;

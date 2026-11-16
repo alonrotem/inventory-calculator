@@ -34,6 +34,7 @@ const MAX_TRACE_DIM = 2400;   // larger scans are traced on a downscaled copy
 const HIT_RADIUS = 8;         // screen px
 const MAX_UNDO = 100;
 const IMPORT_UNITS_PER_CM = 100;
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-knife-editor',
@@ -140,6 +141,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
               private activatedRoute: ActivatedRoute, private router: Router,
               private unsavedNavigationConfirmationService: UnsavedNavigationConfirmationService) {
     this.setColors(this.globalService.currentTheme());
+    this.translation.changed.pipe(takeUntilDestroyed()).subscribe(() => this.requestDraw());   // the texts on the canvas
     this.themeSubscription = this.globalService.themeChanged.subscribe({
       next: (theme: string) => {
         this.setColors(theme);

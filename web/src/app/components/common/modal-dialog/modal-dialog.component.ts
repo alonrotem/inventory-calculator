@@ -1,4 +1,4 @@
-import { Component, ContentChild, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, inject } from '@angular/core';
+import { Component, ContentChild, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, inject, DestroyRef } from '@angular/core';
 import { TranslationService } from '../../../i18n/translation.service';
 import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
@@ -32,6 +32,10 @@ export class ModalDialogComponent implements ModalDialog {
   @Input() modalTitle: string = "Modal";
   @Input() btnSaveText: string = this.translation.t('common:dialogs.save_changes');
   @Input() btnCancelText: string = this.translation.t('common:actions.close');
+  private followLanguage = this.translation.follow(inject(DestroyRef), [
+    ['common:dialogs.save_changes', () => this.btnSaveText, text => this.btnSaveText = text],
+    ['common:actions.close', () => this.btnCancelText, text => this.btnCancelText = text]
+  ]);
   @Input() btnSaveIcon: IconDefinition = faBorderNone;
   @Input() btnSaveIcoMoonIcon: string | undefined = undefined;
   @Input() btnSaveSpin: boolean = false;

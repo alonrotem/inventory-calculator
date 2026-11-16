@@ -39,10 +39,15 @@ export function initialLocaleId(): string {
   return 'en-US';
 }
 
-/** Registers Angular's formats for the LOCALE_ID, before the first page is shown. */
-export async function registerInitialLocale(): Promise<void> {
-  const loader = ANGULAR_LOCALES[initialLocaleId()];
+/** Registers Angular's formats for a LOCALE_ID (once), before pages that use it are shown. */
+export async function registerLocale(localeId: string): Promise<void> {
+  const loader = ANGULAR_LOCALES[localeId];
   if (loader) {
     registerLocaleData((await loader()).default);
   }
+}
+
+/** Registers Angular's formats for the LOCALE_ID, before the first page is shown. */
+export async function registerInitialLocale(): Promise<void> {
+  await registerLocale(initialLocaleId());
 }

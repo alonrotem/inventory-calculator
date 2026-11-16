@@ -33,6 +33,7 @@ import { KnivesService } from '../../../services/knives.service';
 import { CustomersService } from '../../../services/customers.service';
 import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { TranslationService } from '../../../i18n/translation.service';
+import { TranslationKey } from '../../../i18n/translation-keys';
 
 @Component({
   selector: 'app-wings-editor',
@@ -56,7 +57,9 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   faTimesCircle:IconDefinition = faTimesCircle;
   faArrowUp: IconDefinition = faArrowUp;
   faEraser: IconDefinition = faEraser;
-  title: string = this.translation.t('wings:editor.title_create');
+  private title_key: TranslationKey = 'wings:editor.title_create';
+  /** the title in the language in use: it follows a language change */
+  get title(): string { return this.translation.t(this.title_key); }
   is_new_wing: Boolean = true;
 
   crown_units: number = 0;
@@ -171,7 +174,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
     this.is_new_wing = (!this.activatedRoute.snapshot.queryParamMap.has('id') && (this.wing && this.wing.id == 0));
     if(!this.is_new_wing)
     {
-      this.title = this.translation.t('wings:editor.title_edit');
+      this.title_key = 'wings:editor.title_edit';
       this.is_new_wing = false;
       this.wing_id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
       this.getWing(this.wing_id);

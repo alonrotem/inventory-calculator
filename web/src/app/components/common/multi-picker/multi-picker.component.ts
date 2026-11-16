@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild, inject, DestroyRef } from '@angular/core';
 import { TranslationService } from '../../../i18n/translation.service';
 import { FormsModule } from '@angular/forms';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
@@ -30,6 +30,10 @@ export class MultiPickerComponent<T extends nameIdPair = nameIdPair> implements 
   @Input() multi: boolean = true;
   @Input() addButtonText: string = this.translation.t('common:picker.add');
   @Input() placeholder: string = this.translation.t('common:picker.placeholder');
+  private followLanguage = this.translation.follow(inject(DestroyRef), [
+    ['common:picker.add', () => this.addButtonText, text => this.addButtonText = text],
+    ['common:picker.placeholder', () => this.placeholder, text => this.placeholder = text]
+  ]);
   // the text shown for an item, in the dropdown and in the picked tags. Defaults to the item's name
   @Input() itemLabel: (item: T) => string = item => item.name;
   @Output() pickedItemsChange = new EventEmitter<nameIdPair[]>();

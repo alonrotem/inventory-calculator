@@ -17,6 +17,7 @@ import { Knife } from '../../../../types';
 import { TranslationService } from '../../../i18n/translation.service';
 import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { DEFAULT_PREVIEW_BABIES, drawKnife } from '../knife-editor/knife-render';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-knife-details',
@@ -61,6 +62,7 @@ export class KnifeDetailsComponent implements OnInit, AfterViewInit, OnDestroy, 
     private translation: TranslationService
   ) {
     this.setColors(this.globalService.currentTheme());
+    this.translation.changed.pipe(takeUntilDestroyed()).subscribe(() => this.draw());   // the texts on the canvas
     this.themeSubscription = this.globalService.themeChanged.subscribe({
       next: (theme: string) => {
         this.setColors(theme);

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, DestroyRef } from '@angular/core';
 import { TranslationService } from '../../../i18n/translation.service';
 import { trigger, style, transition, animate } from '@angular/animations';
 import { NgIf } from '@angular/common';
@@ -26,6 +26,9 @@ import { faSave } from '@fortawesome/free-solid-svg-icons';
 export class SaveChangesButtonComponent {
   private translation = inject(TranslationService);
   @Input() message: string = this.translation.t('common:save_bar.message');
+  private followLanguage = this.translation.follow(inject(DestroyRef), [
+    ['common:save_bar.message', () => this.message, text => this.message = text]
+  ]);
   @Input() show: boolean = false;
   @Output() save = new EventEmitter<void>();
   faSave: IconDefinition = faSave;

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnInit, Output, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnInit, Output, ViewChild, inject, DestroyRef } from '@angular/core';
 import { TranslationService } from '../../../i18n/translation.service';
 import { ModalDialogComponent } from "../modal-dialog/modal-dialog.component";
 import { faBorderNone, IconDefinition } from '@fortawesome/free-solid-svg-icons';
@@ -19,6 +19,12 @@ export class ConfirmationDialogComponent implements OnInit, AfterViewInit {
   @Input() modalText: string = this.translation.t('common:dialogs.confirm_text');
   @Input() btnYesText: string = this.translation.t('common:actions.yes');
   @Input() btnNoText: string = this.translation.t('common:actions.no');
+  private followLanguage = this.translation.follow(inject(DestroyRef), [
+    ['common:dialogs.confirm_title', () => this.modalTitle, text => this.modalTitle = text],
+    ['common:dialogs.confirm_text', () => this.modalText, text => this.modalText = text],
+    ['common:actions.yes', () => this.btnYesText, text => this.btnYesText = text],
+    ['common:actions.no', () => this.btnNoText, text => this.btnNoText = text]
+  ]);
   @Input() btnYesIcon: IconDefinition = faBorderNone;
   @Input() btnYesClass: string = "";
   @Input() btnNoClass: string = "";

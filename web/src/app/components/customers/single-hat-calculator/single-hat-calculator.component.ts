@@ -53,6 +53,7 @@ apply the sliders after the load
 */
 import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
 import { TranslationService } from '../../../i18n/translation.service';
+import { TranslationKey } from '../../../i18n/translation-keys';
 
 @Component({
   selector: 'app-single-hat-calculator',
@@ -165,7 +166,9 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   faSave: IconDefinition = faSave;
   faLightbulb: IconDefinition = faLightbulb;
 
-  summary_table_instructions: string = "";
+  private summary_table_instructions_key: TranslationKey | null = null;
+  /** the instruction in the language in use: it follows a language change */
+  get summary_table_instructions(): string { return this.summary_table_instructions_key ? this.translation.t(this.summary_table_instructions_key) : ""; }
   hat_babies: aggregated_babies[] = []; //containing aggregated babies with length, quantity and num of hats
   crown_babies: aggregated_babies[] = []; //crown_babies are used only if the allocations are split between hat and crown
 
@@ -1235,41 +1238,41 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   }
 
   update_table_instructions(){
-    this.summary_table_instructions = "";
+    this.summary_table_instructions_key = null;
     if(this.customerHat.wing == null || this.customerHat.wing.id <= 0) {
-      this.summary_table_instructions = this.translation.t('customers:calc.instructions.select_wing');
+      this.summary_table_instructions_key = 'customers:calc.instructions.select_wing';
     }
     else {
       if(this.customerHat.wing.id > 0 && this.customerHat.wing.babies.length == 0) {
-        this.summary_table_instructions = this.translation.t('customers:calc.instructions.no_babies');
+        this.summary_table_instructions_key = 'customers:calc.instructions.no_babies';
       }
       else {
       if(this.customerHat.hat_material_id == 0) {
-        this.summary_table_instructions = this.translation.t('customers:calc.instructions.select_wall_material');
+        this.summary_table_instructions_key = 'customers:calc.instructions.select_wall_material';
       }/*
       else {
         if(this.customerHat.tails_material_id == 0){
-          this.summary_table_instructions = this.translation.t('customers:calc.instructions.select_h_material');
+          this.summary_table_instructions_key = 'customers:calc.instructions.select_h_material';
         }*/
         else
         {
           if(this.customerHat.crown_material_id == 0) {
-            this.summary_table_instructions = this.translation.t('customers:calc.instructions.select_crown_material');
+            this.summary_table_instructions_key = 'customers:calc.instructions.select_crown_material';
           }
           else {
             if(!this.is_hat_tentative){
               if(!this.wall_alocation) {
-                this.summary_table_instructions = this.translation.t('customers:calc.instructions.select_wall_allocation');
+                this.summary_table_instructions_key = 'customers:calc.instructions.select_wall_allocation';
               }
               else {
                 if(!this.crown_allocation) {
-                  this.summary_table_instructions = this.translation.t('customers:calc.instructions.select_crown_allocation');
+                  this.summary_table_instructions_key = 'customers:calc.instructions.select_crown_allocation';
                 }
             }
 /*
               else {
                 if(!this.tails_allocation) {
-                  this.summary_table_instructions = this.translation.t('customers:calc.instructions.select_h_allocation');
+                  this.summary_table_instructions_key = 'customers:calc.instructions.select_h_allocation';
                 }
               }*/
             }

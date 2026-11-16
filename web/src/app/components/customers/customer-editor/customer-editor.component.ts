@@ -29,6 +29,7 @@ import { NumericInputDirective } from "../../../utils/directives/auto-numeric.di
 import { WingsTableComponent } from "../../wings/wings-table/wings-table.component";
 import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
 import { TranslationService } from '../../../i18n/translation.service';
+import { TranslationKey } from '../../../i18n/translation-keys';
 
 @Component({
   selector: 'app-customer-editor',
@@ -68,7 +69,9 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
 
   private translation = inject(TranslationService);
 
-  title: string = this.translation.t('customers:editor.title_create');
+  private title_key: TranslationKey = 'customers:editor.title_create';
+  /** the title in the language in use: it follows a language change */
+  get title(): string { return this.translation.t(this.title_key); }
   newCustomerMode: boolean = true;
   faSave: IconDefinition = faSave;
   faTrashAlt:IconDefinition = faTrashAlt;
@@ -188,7 +191,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     //console.dir(this.activatedRoute.snapshot.queryParamMap);
     if(!this.is_new_customer)
     {
-      this.title = this.translation.t('customers:editor.title_edit');
+      this.title_key = 'customers:editor.title_edit';
       this.newCustomerMode = false;
       const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
       this.getCustomer(id);
@@ -196,7 +199,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     else {
       this.usersService.user$.subscribe({ next: (loggedInUser)=> { 
         if(loggedInUser && loggedInUser.is_demo_customer){
-          this.title = this.translation.t('customers:editor.title_demo');
+          this.title_key = 'customers:editor.title_demo';
           this.getDemoCustomerByUserId(loggedInUser.id);
         }
       }
@@ -242,7 +245,7 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     {
       next: (customer: Customer) => {
         if(customer.is_demo_customer){
-          this.title = this.translation.t('customers:editor.title_demo');
+          this.title_key = 'customers:editor.title_demo';
         }
         //failed to fetch material with ID, returned an empty object
         if(Object.keys(customer).length == 0) {
