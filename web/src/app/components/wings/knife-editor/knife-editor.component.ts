@@ -16,7 +16,7 @@ import { ToastService } from '../../../services/toast.service';
 import { Knife, nameIdPair } from '../../../../types';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 import {
-  DEFAULT_GUIDE_CM, GUIDE_COLOR, GUIDE_GRAB_PX, MAX_GUIDE_CM, knifeLeftEdge, snapGuideCm, KnifeNode, KnifeRegion, KnifeRegions, REGION_INFO, REGION_KEYS, RegionKey, Vec,
+  DEFAULT_GUIDE_CM, GUIDE_COLOR, GUIDE_GRAB_PX, MAX_GUIDE_CM, knifeLeftEdge, knifeMiddleY, snapGuideCm, KnifeNode, KnifeRegion, KnifeRegions, REGION_INFO, REGION_KEYS, RegionKey, Vec,
   add, bakeShape, bezierPoint, dist, indexOfId, isStraight, len, lerp, measureSpan, mul, norm,
   outlineSamples, regionLength, regionSegments, sampleRegion, segment, shortestRegion, splitSegment, sub
 } from './knife-shape';
@@ -1457,6 +1457,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     const height = this.editorCanvas.nativeElement.height / this.dpr;
     const width = this.editorCanvas.nativeElement.width / this.dpr;
     const x = Math.round(guide.x) + 0.5;
+    const middle = this.pan.y + knifeMiddleY(this.nodes, this.toOriented) * this.zoom;   // halfway down the knife
     ctx.save();
     ctx.strokeStyle = GUIDE_COLOR;
     ctx.fillStyle = GUIDE_COLOR;
@@ -1467,18 +1468,18 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     ctx.lineTo(x, height);
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.font = '12px Arial';
-    ctx.textBaseline = 'top';
+    ctx.font = 'bold 16px Arial';
+    ctx.textBaseline = 'middle';
     ctx.textAlign = 'center';
     const text = this.translation.t('common:units.cm', { value: this.guideCm });
     const half = ctx.measureText(text).width / 2;
     const center = Math.min(Math.max(x, half + 2), width - half - 2);
     ctx.globalAlpha = 0.85;
     ctx.fillStyle = this.backcolor;
-    ctx.fillRect(center - half - 2, 1, 2 * half + 4, 16);
+    ctx.fillRect(center - half - 4, middle - 12, 2 * half + 8, 24);
     ctx.globalAlpha = 1;
     ctx.fillStyle = GUIDE_COLOR;
-    ctx.fillText(text, center, 3);
+    ctx.fillText(text, center, middle);
     ctx.restore();
   }
 

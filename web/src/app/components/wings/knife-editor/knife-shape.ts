@@ -225,6 +225,12 @@ export const GUIDE_STEP_CM = 0.5;
 export const snapGuideCm = (cm: number, max = MAX_GUIDE_CM) =>
   Math.min(max, Math.max(0, Math.round(cm / GUIDE_STEP_CM) * GUIDE_STEP_CM));
 
+/** The y of the middle of the knife's height, after `orient`: where the guide line's label is put. */
+export const knifeMiddleY = (nodes: KnifeNode[], orient: (p: Vec) => Vec): number => {
+  const ys = outlineSamples(nodes).map(p => orient(p).y);
+  return (Math.min(...ys) + Math.max(...ys)) / 2;
+};
+
 /** The x of the knife's left edge (its leftmost point), after `orient`: where the guide line's distance is measured from. */
 export const knifeLeftEdge = (nodes: KnifeNode[], orient: (p: Vec) => Vec): number =>
   Math.min(...outlineSamples(nodes).map(p => orient(p).x));

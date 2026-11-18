@@ -3,7 +3,7 @@ import { Subscription } from 'rxjs';
 import { GlobalsService } from '../../../services/globals.service';
 import { KnivesService } from '../../../services/knives.service';
 import { Knife } from '../../../../types';
-import { DEFAULT_GUIDE_CM, GUIDE_COLOR, GUIDE_GRAB_PX, MAX_GUIDE_CM, knifeLeftEdge, snapGuideCm, KnifeRegion, KnifeShape, Vec, add, dist, isStraight, lerp, measureSpan, mul, norm, outlineSamples, segment, sub } from '../knife-editor/knife-shape';
+import { DEFAULT_GUIDE_CM, GUIDE_COLOR, GUIDE_GRAB_PX, MAX_GUIDE_CM, knifeLeftEdge, knifeMiddleY, snapGuideCm, KnifeRegion, KnifeShape, Vec, add, dist, isStraight, lerp, measureSpan, mul, norm, outlineSamples, segment, sub } from '../knife-editor/knife-shape';
 import { PreviewBaby, buildWingBabies, regionAnchor } from '../knife-editor/baby-preview';
 import { DEFAULT_KNIFE } from './default-knife';
 import { WingBabyEdit } from './wing-baby-edit';
@@ -36,6 +36,7 @@ const HIGHLIGHT_TEXT_COLOR = '#212529';
 const DELETE_COLOR = '#dc3545';
 const DELETE_RADIUS = 8;             // px
 const WHEEL_STEP_DELTA = 50;         // wheel delta (px) per length step, so a touchpad doesn't race
+const GUIDE_FONT = 'bold 16px Arial';
 const FONT = '11px Arial';
 const WIDTH_DIMENSION_ROOM = 34;     // px under the knife for its width
 const PRINT_RESOLUTION = 3;          // canvas pixels per CSS pixel when drawing for paper (288 dpi)
@@ -496,6 +497,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
       return;
     }
     const x = Math.round(guide.x) + 0.5;
+    const middle = this.toScreen({ x: 0, y: knifeMiddleY(this.knife!.nodes, p => p) }).y;   // halfway down the knife
     ctx.save();
     ctx.strokeStyle = GUIDE_COLOR;
     ctx.fillStyle = GUIDE_COLOR;
@@ -506,18 +508,18 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
     ctx.lineTo(x, this.cssHeight);
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.font = FONT;
-    ctx.textBaseline = 'top';
+    ctx.font = GUIDE_FONT;
+    ctx.textBaseline = 'middle';
     const text = this.translation.t('common:units.cm', { value: this.guideCm });
     const half = ctx.measureText(text).width / 2;
     const center = Math.min(Math.max(x, half + 2), this.cssWidth - half - 2);
     ctx.textAlign = 'center';
     ctx.globalAlpha = 0.85;
     ctx.fillStyle = this.backcolor;
-    ctx.fillRect(center - half - 2, 1, 2 * half + 4, 16);
+    ctx.fillRect(center - half - 4, middle - 12, 2 * half + 8, 24);
     ctx.globalAlpha = 1;
     ctx.fillStyle = GUIDE_COLOR;
-    ctx.fillText(text, center, 3);
+    ctx.fillText(text, center, middle);
     ctx.restore();
   }
 
