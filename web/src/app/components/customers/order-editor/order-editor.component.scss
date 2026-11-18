@@ -94,29 +94,80 @@
   box-sizing: border-box;
 }
 
-/* Print-specific A4 page layout */
+.diagram-sheet {
+    display: none;
+}
+
+/*
+ * Printing: A4 with 10 mm margins, so the printable area is 190 x 276 mm. Page 1 is the sheet, page 2 is the wing diagram in
+ * real size (an image of exactly the printable area, see order-diagram-page.ts).
+ * body.printing-order is set while printing (beforeprint / afterprint): the rest of the app is out of the way.
+ */
+@page {
+    size: A4 portrait;
+    margin: 10mm;
+}
+
 @media print {
-    body *, ::ng-deep * {
-        visibility: hidden;
+    ::ng-deep body.printing-order app-navbar,
+    ::ng-deep body.printing-order app-footer,
+    ::ng-deep body.printing-order app-toast {
+        display: none !important;
     }
 
-    .printable-content,
-    .printable-content * {
-        visibility: visible;
+    ::ng-deep body.printing-order .main-content {
+        margin-top: 0 !important;
+        padding: 0 !important;
+    }
+
+    :host {
+        display: block;
+    }
+
+    /* the negative margins of a Bootstrap row make the page wider than the paper, and the browser then shrinks everything to fit:
+       the diagram would not be in real size */
+    .order-editor-container {
+        display: block;
+        margin: 0 !important;
+    }
+
+    .order-editor {
+        width: 190mm;
+        max-width: 190mm;
+        padding: 0;
+    }
+
+    .toolbar, .screen-diagram, button {
+        display: none !important;
     }
 
     .printable-content {
-        position: absolute;
-        top: 0;
-        inset-inline-start: 0;
-        width: 210mm;
-        height: 297mm;
-        overflow: hidden;
-        page-break-after: avoid;
+        width: 190mm;
     }
 
-    button {
-        display: none;
+    /* page 1: the sheet, on one page as before */
+    .sheet-page {
+        height: 276mm;
+        overflow: hidden;
+        break-after: page;
+    }
+
+    /* each page of the diagram (the first one follows the sheet, which ends with a page break) */
+    .diagram-sheet {
+        display: block;
+        width: 190mm;
+        height: 276mm;
+        overflow: hidden;
+    }
+
+    .diagram-sheet + .diagram-sheet {
+        break-before: page;
+    }
+
+    .diagram-sheet img {
+        display: block;
+        width: 190mm;
+        height: 276mm;
     }
 }
 

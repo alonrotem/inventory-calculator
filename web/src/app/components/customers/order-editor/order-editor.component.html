@@ -23,6 +23,7 @@
         </div>
 
         <div class="printable-content" #printSection>
+        <div class="sheet-page">
     
         <!-- loading animation -->
         <app-page-loading 
@@ -63,7 +64,7 @@
                 </div>
                 <div class="col-lg-3 col-6 d-flex flex-column">
                     <div class="detail-title">{{ 'customers:order_editor.knife_model' | t }}</div>
-                    <div class="detail-field flex-grow-1">{{ orderDetails.knife }}</div>
+                    <div class="detail-field flex-grow-1">{{ orderDetails.knife_name || orderDetails.knife }}</div>
                 </div>
             </div>
 
@@ -115,6 +116,8 @@
                     </table>
                 </div>
             </div> <!-- babies list -->
+
+            </div>
             
             <div class="row fields-row">
                 <div class="col-12 col-md-6">
@@ -145,7 +148,30 @@
 
 
 
+
+            <!-- the wing, on the screen (the printout and the PDF have it in real size on a page of its own) -->
+            <div class="row fields-row screen-diagram" data-html2canvas-ignore>
+                <div class="col-12">
+                    <div class="detail-title">{{ 'customers:order_editor.diagram_title' | t }}</div>
+                    <app-wing-diagram
+                        #screenDiagram
+                        [preset_theme]="'light'"
+                        [lefts]="orderDetails.babies | sortbabies | prefix: 'L' : true"
+                        [rights]="orderDetails.babies | sortbabies | prefix: 'R' : true"
+                        [top_length]="orderDetails.babies | sortbabies | prefix: 'TOP' : true"
+                        [crown]="orderDetails.babies | sortbabies | prefix: 'C' : true"
+                        [split_l1]="orderDetails.split_l1 || 1"
+                        [knife_id]="orderDetails.knife_id" />
+                </div>
+
         </div><!--details area-->
+
+        </div><!-- /sheet-page -->
+
+        <!-- the page of the wing diagram in real size: only printed (see the styles) -->
+        <div class="diagram-sheet" *ngFor="let page of diagramPages">
+            <img [src]="page" alt="">
+        </div>
 
         </div>
     </div>

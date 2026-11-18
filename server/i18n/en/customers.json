@@ -264,7 +264,10 @@
     "step_cover": "Cover",
     "step_band": "Sewing on band",
     "step_glance": "Glance",
-    "checked": "Checked {{steps}}"
+    "checked": "Checked {{steps}}",
+    "diagram_title": "Wing diagram",
+    "diagram_ruler": "10 cm",
+    "diagram_failed": "The wing diagram could not be prepared, so it is left out"
   },
   "advisor": {
     "title": "Hats Advisor",

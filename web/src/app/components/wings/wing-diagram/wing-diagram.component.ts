@@ -7,9 +7,24 @@ import { KnifeRegion, KnifeShape, Vec, add, dist, isStraight, lerp, measureSpan,
 import { PreviewBaby, buildWingBabies, regionAnchor } from '../knife-editor/baby-preview';
 import { DEFAULT_KNIFE } from './default-knife';
 import { WingBabyEdit } from './wing-baby-edit';
+import { DiagramSize, MM_PER_PX, PX_PER_CM_1TO1, PagePlan, planPages } from './print-fit';
 
 type AddSide = 'L' | 'R' | 'TOP' | 'C';
 interface AddButton { side: AddSide; x: number; y: number; title: string; }
+
+/** The diagram drawn for paper, always in real size: 1 cm drawn is 1 cm on paper. */
+export interface PrintedDiagram {
+  /** the diagram as it is on paper (turned and with its bottom cut off, see plan), which may be bigger than a page: it is cut into pages */
+  canvas: HTMLCanvasElement;
+  /** the size of the canvas on the paper */
+  widthMm: number;
+  heightMm: number;
+  /** turned 90 degrees clockwise */
+  rotated: boolean;
+  /** the bottom of the diagram that was cut off (all the babies are always kept) */
+  croppedMm: number;
+  plan: PagePlan;
+}
 
 const BASE_PX_PER_CM = 15;           // scale 1
 const MIN_PX_PER_CM_FIT = 0.5;       // auto fit limits
@@ -23,6 +38,7 @@ const DELETE_RADIUS = 8;             // px
 const WHEEL_STEP_DELTA = 50;         // wheel delta (px) per length step, so a touchpad doesn't race
 const FONT = '11px Arial';
 const WIDTH_DIMENSION_ROOM = 34;     // px under the knife for its width
+const PRINT_RESOLUTION = 3;          // canvas pixels per CSS pixel when drawing for paper (288 dpi)
 
 /**
  * Draws a wing: its knife, with the babies laid out around it.
@@ -209,6 +225,20 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
 
   private toScreen = (p: Vec): Vec => ({ x: this.offset.x + p.x * this.pxPerCm, y: this.offset.y + p.y * this.pxPerCm });
 
+  /** The bounds of the knife and its babies, in cm (the knife must be loaded). */
+  private boundsCm() {
+    const pts = [...outlineSamples(this.knife!.nodes), ...this.babies.flatMap(b => b.corners)];
+    const minX = Math.min(...pts.map(p => p.x)), maxX = Math.max(...pts.map(p => p.x));
+    const minY = Math.min(...pts.map(p => p.y)), maxY = Math.max(...pts.map(p => p.y));
+    const babyYs = this.babies.flatMap(b => b.corners.map(p => p.y));
+    return {
+      minX, maxX, minY, maxY,
+      width: (maxX - minX) || 1,
+      height: (maxY - minY) || 1,
+      babiesMaxY: babyYs.length ? Math.max(...babyYs) : minY
+    };
+  }
+
   private layout() {
     const canvas = this.canvasRef?.nativeElement;
     if (!canvas) {
@@ -222,11 +252,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
       return;
     }
 
-    // bounds of the drawing, in cm
-    const pts = [...outlineSamples(this.knife.nodes), ...this.babies.flatMap(b => b.corners)];
-    const minX = Math.min(...pts.map(p => p.x)), maxX = Math.max(...pts.map(p => p.x));
-    const minY = Math.min(...pts.map(p => p.y)), maxY = Math.max(...pts.map(p => p.y));
-    const width = (maxX - minX) || 1, height = (maxY - minY) || 1;
+    const { minX, minY, width, height } = this.boundsCm();
     // room for the lengths and the add buttons, and under the knife for its width
     const margin = (this.show_texts ? 24 : 4) + (this.editable ? 28 : 0);
     const widthRoom = this.showsWidth() ? WIDTH_DIMENSION_ROOM : 0;
@@ -315,6 +341,95 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
   /** The knife's width is shown for a real knife, not the default one. */
   private showsWidth(): boolean {
     return this.show_texts && !!this.knifeWidth;
+  }
+
+  /** Resolves true when the knife is loaded (until then a diagram with a knife id draws nothing), false after the time is up. */
+  async whenReady(timeoutMs = 10000): Promise<boolean> {
+    const until = Date.now() + timeoutMs;
+    while (this.knife === null && Date.now() < until) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+    return this.knife !== null;
+  }
+
+  /**
+   * Draws the diagram for paper, black on white and in real size: 1 cm of the knife is 1 cm on the paper (a CSS px is 1/96 inch,
+   * in print and in a PDF). It is turned 90 degrees clockwise and/or has its bottom cut off, as far as the babies allow, when that
+   * lets it fit a page; when it does not fit one page, the plan (see planPages) says how many pages it takes.
+   * The live diagram is not touched. Null while the knife is not loaded.
+   */
+  renderForPrint(page: { widthMm: number; heightMm: number }): PrintedDiagram | null {
+    if (!this.knife) {
+      return null;
+    }
+    const b = this.boundsCm();
+    const margin = this.show_texts ? 24 : 4;
+    const widthRoom = this.showsWidth() ? WIDTH_DIMENSION_ROOM : 0;
+    const pxPerCm = PX_PER_CM_1TO1;
+    const plan = planPages({
+      widthMm: (b.width * pxPerCm + 2 * margin) * MM_PER_PX,
+      heightMm: (b.height * pxPerCm + 2 * margin + widthRoom) * MM_PER_PX,
+      babiesBottomMm: ((b.babiesMaxY - b.minY) * pxPerCm + 2 * margin) * MM_PER_PX
+    }, page.widthMm, page.heightMm);
+
+    const cssWidth = Math.ceil(b.width * pxPerCm + 2 * margin);
+    const cssHeight = Math.ceil(b.height * pxPerCm + 2 * margin + widthRoom);
+    const source = document.createElement('canvas');
+    source.width = cssWidth * PRINT_RESOLUTION;
+    source.height = cssHeight * PRINT_RESOLUTION;
+    const ctx = source.getContext('2d')!;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, source.width, source.height);
+    ctx.setTransform(PRINT_RESOLUTION, 0, 0, PRINT_RESOLUTION, 0, 0);
+
+    // the drawing code uses the diagram's own frame and colors: borrow them for the paper, then put the screen's back
+    const saved = {
+      color: this.color, backcolor: this.backcolor, pxPerCm: this.pxPerCm, offset: this.offset,
+      cssWidth: this.cssWidth, cssHeight: this.cssHeight, screenBabies: this.screenBabies, hovered: this.hovered
+    };
+    try {
+      this.color = '#000000';
+      this.backcolor = '#ffffff';
+      this.pxPerCm = pxPerCm;
+      this.cssWidth = cssWidth;
+      this.cssHeight = cssHeight;
+      this.offset = { x: margin - b.minX * pxPerCm, y: (cssHeight - widthRoom - b.height * pxPerCm) / 2 - b.minY * pxPerCm };
+      this.hovered = -1;
+      this.screenBabies = this.babies.map(baby => baby.corners.map(this.toScreen));
+      this.drawKnife(ctx);
+      this.drawBabies(ctx);
+    }
+    finally {
+      Object.assign(this, saved);
+    }
+
+    // the bottom that is cut off (the babies are never in it), and turning
+    const visibleHeightPx = Math.round((cssHeight - plan.cropBottomMm / MM_PER_PX) * PRINT_RESOLUTION);
+    let canvas = source;
+    if (plan.rotated) {
+      // 90 degrees clockwise: (x, y) -> (height - y, x); what is past the visible height (the bottom) falls outside the canvas
+      canvas = document.createElement('canvas');
+      canvas.width = visibleHeightPx;
+      canvas.height = source.width;
+      const turned = canvas.getContext('2d')!;
+      turned.translate(visibleHeightPx, 0);
+      turned.rotate(Math.PI / 2);
+      turned.drawImage(source, 0, 0);
+    }
+    else if (plan.cropBottomMm > 0) {
+      canvas = document.createElement('canvas');
+      canvas.width = source.width;
+      canvas.height = visibleHeightPx;
+      canvas.getContext('2d')!.drawImage(source, 0, 0);
+    }
+    return {
+      canvas,
+      widthMm: canvas.width / PRINT_RESOLUTION * MM_PER_PX,
+      heightMm: canvas.height / PRINT_RESOLUTION * MM_PER_PX,
+      rotated: plan.rotated,
+      croppedMm: plan.cropBottomMm,
+      plan
+    };
   }
 
   private scheduleDraw() {

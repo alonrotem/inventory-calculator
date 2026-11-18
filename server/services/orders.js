@@ -612,13 +612,18 @@ async function get_order_details(order_id, currentUserId){
         ch.hr_width  hr_width,
         o.order_notes order_notes,
         ch.order_date original_order_date,
-        ch.wing_id wing_id
+        ch.wing_id wing_id,
+        w.knife_id knife_id,
+        w.split_l1 split_l1,
+        k.name knife_name,
+        k.width_cm knife_width_cm
 
-        from orders o 
+        from orders o
         left join customer_hats ch on o.customer_hat_id=ch.id
         left join customers c on ch.customer_id=c.id
         #left join orders_status os on os.order_id = o.id
         left join wings w on ch.wing_id = w.id
+        left join knives k on w.knife_id = k.id
         left join raw_materials rm_wall on ch.hat_material_id=rm_wall.id
         left join raw_materials rm_crown on ch.crown_material_id=rm_crown.id
         left join raw_materials rm_tails_l on ch.tails_material_id_l=rm_tails_l.id

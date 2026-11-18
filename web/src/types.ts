@@ -594,6 +594,10 @@ export interface OrderDetails {
     hr_width: number;
     order_notes: string;
     babies: WingBaby[];
+    knife_id: number | null;        // the wing's knife (drawn by the wing diagram)
+    knife_name: string | null;
+    knife_width_cm: number | null;
+    split_l1: number;
 }
 
 export enum Status {

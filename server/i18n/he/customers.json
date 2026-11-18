@@ -267,7 +267,10 @@
     "step_cover": "כיסוי",
     "step_band": "תפירה על הרצועה",
     "step_glance": "מבט",
-    "checked": "נבדק {{steps}}"
+    "checked": "נבדק {{steps}}",
+    "diagram_title": "תרשים הכנף",
+    "diagram_ruler": "10 ס״מ",
+    "diagram_failed": "לא ניתן היה להכין את תרשים הכנף, ולכן הוא הושמט"
   },
   "advisor": {
     "title": "יועץ כובעים",
