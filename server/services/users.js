@@ -10,6 +10,7 @@ const email_tempates = require('./email-templates');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { ref } = require('process');
+const { logger } =  require('../logger');
 
 // does what it says
 function getAuthTokenFromHeader(req){
@@ -2410,6 +2411,8 @@ async function admins_count(){
 }
 
 async function getRoles(){
+  logger.info(JSON.stringify(await db.query(
+  `select database() db, @@hostname host, @@port port, @@version version, (select count(*) from roles) roles_count`)));
   return helper.emptyOrRows(db.query(`select id, name from roles`, []));
 }
 

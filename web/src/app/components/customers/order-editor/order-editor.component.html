@@ -171,7 +171,7 @@
         </div><!-- /sheet-page -->
 
         <!-- the page of the wing diagram in real size: only printed (see the styles) -->
-        <div class="diagram-sheet" *ngFor="let page of diagramPages">
+        <div class="diagram-sheet" *ngFor="let page of diagramPages" data-html2canvas-ignore>
             <img [src]="page" alt="">
         </div>
 

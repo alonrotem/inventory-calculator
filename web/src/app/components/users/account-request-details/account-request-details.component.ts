@@ -106,6 +106,7 @@ export class AccountRequestDetailsComponent extends NavigatedMessageComponent im
 
     this.usersService.getRoles().subscribe({
       next: (r: nameIdPair[]) => { 
+        console.log(r);
         this.roles = r
           //capitlalize
           .map(r => {return { id: r.id, name:  r.name ? r.name.charAt(0).toUpperCase() + r.name.substr(1).toLowerCase() : ''  }})

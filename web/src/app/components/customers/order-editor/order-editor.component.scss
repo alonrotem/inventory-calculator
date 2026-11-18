@@ -99,7 +99,7 @@
 }
 
 /*
- * Printing: A4 with 10 mm margins, so the printable area is 190 x 276 mm. Page 1 is the sheet, page 2 is the wing diagram in
+ * Printing: A4 with 10 mm margins, so the printable area is 190 x 276 mm. Page 1 is the sheet, the next ones are the wing diagram in
  * real size (an image of exactly the printable area, see order-diagram-page.ts).
  * body.printing-order is set while printing (beforeprint / afterprint): the rest of the app is out of the way.
  */

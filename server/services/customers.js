@@ -360,6 +360,11 @@ async function canUserAccessThisCustomer(customerId, userId, required_permission
       const permissions_for_all_customers = user_customer_permissions.find(p => p["area"] == 'customers');
       const permissions_for_assigned_customers = user_customer_permissions.find(p => p["area"] == 'customer_resources_by_customer_id');
 
+      //create a new customer, if the user has permissions for it
+      if(customerId <= 0 && permissions_for_all_customers["permissions"].indexOf("C") >= 0){
+        return true;
+      }
+
       //check if the customer is disabled
       const customer_disabled_rec = helper.emptyOrSingle(await db.query(`select is_disabled from customers where id=(?)`, [customerId]));
       //if customer exists, check if it's disabled, and the user cannot access disabled customers

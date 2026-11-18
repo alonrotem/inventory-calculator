@@ -41,6 +41,7 @@ const GUIDE_FONT = 'bold 16px Arial';
 const FONT = '11px Arial';
 const WIDTH_DIMENSION_ROOM = 34;     // px under the knife for its width
 const PRINT_RESOLUTION = 3;          // canvas pixels per CSS pixel when drawing for paper (288 dpi)
+const PRINT_OUTLINE = 5 / MM_PER_PX;   // CSS px: on paper, the outer line around the knife and the babies is 5 mm thick, outside of them (the inner lines stay thin)
 
 /**
  * Draws a wing: its knife, with the babies laid out around it.
@@ -119,6 +120,10 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
   private guideCm = DEFAULT_GUIDE_CM;   // not saved: for looking at the diagram only
   private guideHot = false;             // the mouse is on the guide line, or is dragging it
   private guideDrag = false;
+  /** the width of the lines of the knife and the babies */
+  private lineWidth = 1;
+  /** how far the thick outer line (on paper) reaches outside of the shapes: the lengths and the width are kept clear of it */
+  private outlineExtra = 0;
 
   private resizeObserver?: ResizeObserver;
   private themeSubscription: Subscription;
@@ -382,18 +387,19 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
       return null;
     }
     const b = this.boundsCm();
-    const margin = this.show_texts ? 24 : 4;
+    const margin = (this.show_texts ? 24 : 4) + Math.ceil(PRINT_OUTLINE);
     const extraRight = this.crownLabelRoom();
-    const widthRoom = this.showsWidth() ? WIDTH_DIMENSION_ROOM : 0;
+    const widthRoom = this.showsWidth() ? WIDTH_DIMENSION_ROOM + Math.ceil(PRINT_OUTLINE) : 0;
     const pxPerCm = PX_PER_CM_1TO1;
-    const plan = planPages({
-      widthMm: (b.width * pxPerCm + 2 * margin + extraRight) * MM_PER_PX,
-      heightMm: (b.height * pxPerCm + 2 * margin + widthRoom) * MM_PER_PX,
-      babiesBottomMm: ((b.babiesMaxY - b.minY) * pxPerCm + 2 * margin) * MM_PER_PX
-    }, page.widthMm, page.heightMm);
-
+    // the canvas has whole pixels: plan with the size it really has, or a diagram that just fits a page would come out a fraction of a mm too big
     const cssWidth = Math.ceil(b.width * pxPerCm + 2 * margin + extraRight);
     const cssHeight = Math.ceil(b.height * pxPerCm + 2 * margin + widthRoom);
+    const plan = planPages({
+      widthMm: cssWidth * MM_PER_PX,
+      heightMm: cssHeight * MM_PER_PX,
+      babiesBottomMm: ((b.babiesMaxY - b.minY) * pxPerCm + 2 * margin) * MM_PER_PX
+    }, page.widthMm, page.heightMm, undefined, true);   // always turned 90 degrees to the right
+
     const source = document.createElement('canvas');
     source.width = cssWidth * PRINT_RESOLUTION;
     source.height = cssHeight * PRINT_RESOLUTION;
@@ -405,7 +411,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
     // the drawing code uses the diagram's own frame and colors: borrow them for the paper, then put the screen's back
     const saved = {
       color: this.color, backcolor: this.backcolor, pxPerCm: this.pxPerCm, offset: this.offset,
-      cssWidth: this.cssWidth, cssHeight: this.cssHeight, screenBabies: this.screenBabies, hovered: this.hovered
+      cssWidth: this.cssWidth, cssHeight: this.cssHeight, screenBabies: this.screenBabies, hovered: this.hovered, lineWidth: this.lineWidth, outlineExtra: this.outlineExtra
     };
     try {
       this.color = '#000000';
@@ -415,7 +421,9 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
       this.cssHeight = cssHeight;
       this.offset = { x: margin - b.minX * pxPerCm, y: (cssHeight - widthRoom - b.height * pxPerCm) / 2 - b.minY * pxPerCm };
       this.hovered = -1;
+      this.outlineExtra = PRINT_OUTLINE;
       this.screenBabies = this.babies.map(baby => baby.corners.map(this.toScreen));
+      this.drawOuterLine(ctx);
       this.drawKnife(ctx);
       this.drawBabies(ctx);
     }
@@ -526,7 +534,8 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
     ctx.restore();
   }
 
-  private drawKnife(ctx: CanvasRenderingContext2D) {
+  /** The outline of the knife on the canvas. */
+  private knifePath(): Path2D {
     const nodes = this.knife!.nodes;
     const path = new Path2D();
     const start = this.toScreen(nodes[0].p);
@@ -541,17 +550,46 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
       }
     });
     path.closePath();
+    return path;
+  }
+
+  /**
+   * The thick line around everything (the knife and the babies together) for paper, outside of them: every shape is stroked twice
+   * as thick as the line should be and then filled white, which leaves the outer half of the strokes and nothing between the shapes.
+   */
+  private drawOuterLine(ctx: CanvasRenderingContext2D) {
+    const shapes: Path2D[] = [this.knifePath(), ...this.screenBabies.map(c => {
+      const path = new Path2D();
+      path.moveTo(c[0].x, c[0].y);
+      c.slice(1).forEach(p => path.lineTo(p.x, p.y));
+      path.closePath();
+      return path;
+    })];
+    ctx.save();
+    ctx.strokeStyle = this.color;
+    ctx.lineWidth = 2 * PRINT_OUTLINE;
+    ctx.lineJoin = 'miter';
+    ctx.miterLimit = 3;
+    shapes.forEach(path => ctx.stroke(path));
+    ctx.fillStyle = this.backcolor;
+    shapes.forEach(path => ctx.fill(path));
+    ctx.restore();
+  }
+
+  private drawKnife(ctx: CanvasRenderingContext2D) {
+    const nodes = this.knife!.nodes;
+    const path = this.knifePath();
     ctx.fillStyle = 'rgba(13, 110, 253, 0.08)';
     ctx.fill(path);
     ctx.strokeStyle = this.color;
-    ctx.lineWidth = 1;
+    ctx.lineWidth = this.lineWidth;
     ctx.stroke(path);
 
     // the knife's width: a dimension line under the knife, from L1 to the Crown
     const span = measureSpan(nodes, this.knife!.regions, p => p);
     if (this.showsWidth() && span) {
       const bottom = Math.max(...outlineSamples(nodes).map(p => this.toScreen(p).y));
-      const y = bottom + 14;
+      const y = bottom + 14 + this.outlineExtra;
       const x1 = this.toScreen({ x: span.left, y: 0 }).x, x2 = this.toScreen({ x: span.right, y: 0 }).x;
       ctx.beginPath();
       ctx.moveTo(x1, y);
@@ -561,7 +599,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
         ctx.lineTo(x, y + 5);
       }
       ctx.strokeStyle = this.color;
-      ctx.lineWidth = 1;
+      ctx.lineWidth = this.lineWidth;
       ctx.stroke();
       ctx.font = FONT;
       ctx.textAlign = 'center';
@@ -575,7 +613,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
     ctx.font = FONT;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.lineWidth = 1;
+    ctx.lineWidth = this.lineWidth;
 
     this.babies.forEach((baby, i) => {
       const c = this.screenBabies[i];
@@ -611,7 +649,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
           ctx.fillText(baby.label, center.x, center.y);
         }
         if (!baby.position.startsWith('C') || !this.crownUniform()) {
-          const lengthPos = add(outerMid, mul(norm(sub(outerMid, baseMid)), 10));
+          const lengthPos = add(outerMid, mul(norm(sub(outerMid, baseMid)), 10 + this.outlineExtra));
           ctx.fillStyle = this.color;
           ctx.fillText(String(baby.length), lengthPos.x, lengthPos.y);
         }
@@ -623,7 +661,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
     if (this.show_texts && crownIdx.length && this.crownUniform()) {
       const first = this.screenBabies[crownIdx[0]], last = this.screenBabies[crownIdx[crownIdx.length - 1]];
       const outerMid = lerp(first[1], last[2], 0.5), baseMid = lerp(first[0], last[3], 0.5);
-      const pos = add(outerMid, mul(norm(sub(outerMid, baseMid)), 10));
+      const pos = add(outerMid, mul(norm(sub(outerMid, baseMid)), 10 + this.outlineExtra));
       ctx.fillStyle = this.color;
       ctx.textAlign = 'left';
       const text = String(this.babies[crownIdx[0]].length);
@@ -651,7 +689,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
       ctx.strokeStyle = 'white';
       ctx.lineWidth = 1.5;
       ctx.stroke();
-      ctx.lineWidth = 1;
+      ctx.lineWidth = this.lineWidth;
     }
   }
 

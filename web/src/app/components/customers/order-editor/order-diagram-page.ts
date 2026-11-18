@@ -1,24 +1,23 @@
 import { PrintedDiagram } from '../../wings/wing-diagram/wing-diagram.component';
 import { tileStarts } from '../../wings/wing-diagram/print-fit';
 
-/** The printable area of an A4 page with 10 mm margins, in millimeters, and the caption (title and ruler) at its top. */
-export const DIAGRAM_PAGE = { widthMm: 190, heightMm: 276, captionMm: 14 };
+/** The printable area of an A4 page with 10 mm margins, in millimeters, and the caption (a small title) at its top. */
+export const DIAGRAM_PAGE = { widthMm: 190, heightMm: 276, captionMm: 7 };
 
-/** The ruler of every page: 10 cm of the diagram, which is in real size, so 100 mm on the paper. If it measures less, the page was not printed at 100%. */
-export const RULER_MM = 100;
+/** A diagram this much over a page (or less) still takes that one page: the extra is margin. */
+const SLIVER_MM = 0.6;
 
 const DPI = 300;
 const PX_PER_MM = DPI / 25.4;
 
 export interface DiagramPageTexts {
   title: string;
-  rulerLabel: string;
-  /** the language is written right to left: the title and the ruler swap sides */
+  /** the language is written right to left: the title is written from the right */
   rtl: boolean;
 }
 
 /**
- * The pages of the diagram, each as one image the size of the printable area (190 x 276 mm): a title with a ruler of exactly 10 cm,
+ * The pages of the diagram, each as one image the size of the printable area (190 x 276 mm): a small title,
  * and the diagram under it in real size. Printing shows each image at 190 x 276 mm and the PDF puts it on a page at the same size,
  * so the diagram is 1:1 on paper in both.
  * A diagram that is bigger than one page is cut into pages that overlap by a strip (see OVERLAP_MM): the drawing continues from one
@@ -29,8 +28,10 @@ export function composeDiagramPages(diagram: PrintedDiagram, texts: DiagramPageT
   const pageWidth = DIAGRAM_PAGE.widthMm;
   const pageHeight = DIAGRAM_PAGE.heightMm - DIAGRAM_PAGE.captionMm;
   const overlap = diagram.plan.overlapMm;
-  const xs = tileStarts(diagram.widthMm, pageWidth, overlap);
-  const ys = tileStarts(diagram.heightMm, pageHeight, overlap);
+  // what is a hair over the page (the canvas has whole pixels) is not worth a page that would repeat nearly all of the last one
+  const fits = (length: number, page: number) => length <= page + SLIVER_MM ? Math.min(length, page) : length;
+  const xs = tileStarts(fits(diagram.widthMm, pageWidth), pageWidth, overlap);
+  const ys = tileStarts(fits(diagram.heightMm, pageHeight), pageHeight, overlap);
   const sourcePxPerMm = diagram.canvas.width / diagram.widthMm;
   const total = xs.length * ys.length;
 
@@ -76,34 +77,16 @@ export function composeDiagramPages(diagram: PrintedDiagram, texts: DiagramPageT
   return pages;
 }
 
-/** The title on one side, the ruler on the other. */
+/** The title, small, at the top. */
 function caption(ctx: CanvasRenderingContext2D, canvasWidth: number, title: string, texts: DiagramPageTexts) {
-  const textWidth = (DIAGRAM_PAGE.widthMm - RULER_MM - 6) * PX_PER_MM;
   ctx.fillStyle = '#000000';
   ctx.textBaseline = 'top';
   ctx.direction = texts.rtl ? 'rtl' : 'ltr';
   ctx.textAlign = texts.rtl ? 'right' : 'left';
-  ctx.font = `bold ${4.4 * PX_PER_MM}px Arial`;
-  ctx.fillText(title, texts.rtl ? canvasWidth : 0, 0, textWidth);
-
-  const rulerStart = texts.rtl ? 0 : canvasWidth - RULER_MM * PX_PER_MM;
-  const rulerY = 8 * PX_PER_MM;
-  ctx.strokeStyle = '#000000';
-  ctx.lineWidth = 0.35 * PX_PER_MM;
-  ctx.beginPath();
-  ctx.moveTo(rulerStart, rulerY);
-  ctx.lineTo(rulerStart + RULER_MM * PX_PER_MM, rulerY);
-  for (let cm = 0; cm <= RULER_MM / 10; cm++) {
-    const x = rulerStart + cm * 10 * PX_PER_MM;
-    const tick = (cm === 0 || cm === RULER_MM / 10) ? 3 : 1.8;
-    ctx.moveTo(x, rulerY - tick * PX_PER_MM);
-    ctx.lineTo(x, rulerY + tick * PX_PER_MM);
-  }
-  ctx.stroke();
+  ctx.font = `bold ${3.4 * PX_PER_MM}px Arial`;
+  ctx.fillText(title, texts.rtl ? canvasWidth : 0, 0.8 * PX_PER_MM, canvasWidth);
   ctx.direction = 'ltr';
   ctx.textAlign = 'center';
-  ctx.font = `${3.3 * PX_PER_MM}px Arial`;
-  ctx.fillText(texts.rulerLabel, rulerStart + RULER_MM * PX_PER_MM / 2, rulerY + 4.2 * PX_PER_MM);
 }
 
 /** a line, in millimeters on the page */

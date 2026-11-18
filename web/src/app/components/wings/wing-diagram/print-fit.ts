@@ -53,10 +53,11 @@ function capacity(count: number, page: number, overlap: number): number {
  *  1. upright on one page, when all of it fits;
  *  2. otherwise turned 90 degrees on one page, where the bottom may be cut off as long as all the babies stay
  *     (and as much as fits under them is shown);
+ *  (with forceTurn, always turned: the bottom is cut off as far as the babies allow, then more pages along)
  *  3. otherwise on several pages that overlap: the upright or the turned layout that needs fewer pages
  *     (the babies are never cut off; on a tie the one that cuts less off, then the upright one).
  */
-export function planPages(size: DiagramSize, pageWidthMm: number, pageHeightMm: number, overlap = OVERLAP_MM): PagePlan {
+export function planPages(size: DiagramSize, pageWidthMm: number, pageHeightMm: number, overlap = OVERLAP_MM, forceTurn = false): PagePlan {
   const one = (rotated: boolean, visibleHeight: number): PagePlan => ({
     rotated,
     cropBottomMm: size.heightMm - visibleHeight,
@@ -66,14 +67,14 @@ export function planPages(size: DiagramSize, pageWidthMm: number, pageHeightMm: 
     rows: 1,
     overlapMm: overlap
   });
-  if (size.widthMm <= pageWidthMm && size.heightMm <= pageHeightMm) {
+  if (!forceTurn && size.widthMm <= pageWidthMm && size.heightMm <= pageHeightMm) {
     return one(false, size.heightMm);
   }
-  if (size.widthMm <= pageHeightMm && size.babiesBottomMm <= pageWidthMm) {
+  if (!forceTurn && size.widthMm <= pageHeightMm && size.babiesBottomMm <= pageWidthMm) {
     return one(true, Math.min(size.heightMm, pageWidthMm));
   }
 
-  const candidates: PagePlan[] = [false, true].map(rotated => {
+  const candidates: PagePlan[] = (forceTurn ? [true] : [false, true]).map(rotated => {
     // the height of the diagram is on the page's height when upright, across it when turned
     const heightPage = rotated ? pageWidthMm : pageHeightMm;
     const widthPage = rotated ? pageHeightMm : pageWidthMm;

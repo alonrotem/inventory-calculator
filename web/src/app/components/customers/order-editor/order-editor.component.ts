@@ -163,7 +163,7 @@ export class OrderEditorComponent implements OnInit {
   /**
    * The pages of the wing diagram in real size (1 cm of the knife is 1 cm on paper): the diagram is drawn for paper by the wing
    * diagram component (turned and with its bottom cut off, as far as the babies allow, when that lets it fit one page, see
-   * print-fit.ts) and cut into pages that overlap when it is bigger than one page, each with a title and a ruler
+   * print-fit.ts) and cut into pages that overlap when it is bigger than one page, each with a small title
    * (order-diagram-page.ts). The images are shown by the print styles, and added to the PDF.
    */
   private async drawDiagramPages() {
@@ -181,7 +181,6 @@ export class OrderEditorComponent implements OnInit {
     const t = this.translation;
     const pages = composeDiagramPages(printed, {
       title: `${t.t('customers:order_editor.job_order', { number: '#' + this.orderDetails.id })} - ${t.t('customers:order_editor.diagram_title')}: ${this.orderDetails.wing_name}`,
-      rulerLabel: t.t('customers:order_editor.diagram_ruler'),
       rtl: t.dir === 'rtl'
     });
     this.diagramPageCanvases = pages;
