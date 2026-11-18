@@ -36,6 +36,7 @@ const HIGHLIGHT_TEXT_COLOR = '#212529';
 const DELETE_COLOR = '#dc3545';
 const DELETE_RADIUS = 8;             // px
 const WHEEL_STEP_DELTA = 50;         // wheel delta (px) per length step, so a touchpad doesn't race
+const CROWN_LABEL_ROOM = 12;   // px, extra at the right for the crown's label
 const GUIDE_FONT = 'bold 16px Arial';
 const FONT = '11px Arial';
 const WIDTH_DIMENSION_ROOM = 34;     // px under the knife for its width
@@ -272,6 +273,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
     const { minX, minY, width, height } = this.boundsCm(this.show_texts);
     // room for the lengths and the add buttons, and under the knife for its width
     const margin = (this.show_texts ? 24 : 4) + (this.editable ? 28 : 0);
+    const extraRight = this.crownLabelRoom();
     const widthRoom = this.showsWidth() ? WIDTH_DIMENSION_ROOM : 0;
 
     let available = this.containerWidth;
@@ -279,7 +281,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
     else available *= AUTO_FIT_RATIO;
     if (this.min_width !== null) available = Math.max(available, this.min_width);
     if (this.auto_fit && available > 0) {
-      let fit = (available - 2 * margin) / width;
+      let fit = (available - 2 * margin - extraRight) / width;
       if (this.max_height !== null) {
         fit = Math.min(fit, (this.max_height - 2 * margin - widthRoom) / height);
       }
@@ -290,7 +292,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
       this.pxPerCm = BASE_PX_PER_CM * this.scale;
     }
 
-    this.cssWidth = Math.ceil(width * this.pxPerCm + 2 * margin);
+    this.cssWidth = Math.ceil(width * this.pxPerCm + 2 * margin + extraRight);
     this.cssHeight = Math.ceil(Math.max(height * this.pxPerCm + 2 * margin + widthRoom, this.min_height ?? 0));
     this.offset = {
       x: margin - minX * this.pxPerCm,
@@ -381,15 +383,16 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
     }
     const b = this.boundsCm();
     const margin = this.show_texts ? 24 : 4;
+    const extraRight = this.crownLabelRoom();
     const widthRoom = this.showsWidth() ? WIDTH_DIMENSION_ROOM : 0;
     const pxPerCm = PX_PER_CM_1TO1;
     const plan = planPages({
-      widthMm: (b.width * pxPerCm + 2 * margin) * MM_PER_PX,
+      widthMm: (b.width * pxPerCm + 2 * margin + extraRight) * MM_PER_PX,
       heightMm: (b.height * pxPerCm + 2 * margin + widthRoom) * MM_PER_PX,
       babiesBottomMm: ((b.babiesMaxY - b.minY) * pxPerCm + 2 * margin) * MM_PER_PX
     }, page.widthMm, page.heightMm);
 
-    const cssWidth = Math.ceil(b.width * pxPerCm + 2 * margin);
+    const cssWidth = Math.ceil(b.width * pxPerCm + 2 * margin + extraRight);
     const cssHeight = Math.ceil(b.height * pxPerCm + 2 * margin + widthRoom);
     const source = document.createElement('canvas');
     source.width = cssWidth * PRINT_RESOLUTION;
@@ -623,7 +626,10 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
       const pos = add(outerMid, mul(norm(sub(outerMid, baseMid)), 10));
       ctx.fillStyle = this.color;
       ctx.textAlign = 'left';
-      ctx.fillText((crownIdx.length > 1 ? crownIdx.length + ' × ' : '') + this.babies[crownIdx[0]].length, pos.x - 4, pos.y);
+      const text = String(this.babies[crownIdx[0]].length);
+      // kept inside the canvas: the text is wider than the room that is left beside the crown
+      const x = Math.max(2, Math.min(pos.x - 4, this.cssWidth - ctx.measureText(text).width - 2));
+      ctx.fillText(text, x, pos.y);
       ctx.textAlign = 'center';
     }
 
@@ -647,6 +653,11 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
       ctx.stroke();
       ctx.lineWidth = 1;
     }
+  }
+
+  /** Room beside the crown for its label, the single length of equal crown strips, e.g. "9.5", more than the margin has. */
+  private crownLabelRoom(): number {
+    return this.show_texts && this.crownUniform() && this.babies.some(b => b.position.startsWith('C')) ? CROWN_LABEL_ROOM : 0;
   }
 
   private crownUniform(): boolean {
