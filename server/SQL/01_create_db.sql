@@ -532,6 +532,8 @@ CREATE TABLE  IF NOT EXISTS wings (
     `allow_shortening_babies_in_pairs` boolean default false,
     `angled_crown`	boolean default false,
     `knife_id`	INT NULL,		# the knife drawing (knives table); `knife` keeps its width
+    `top_tilt`	float not null default 0,		# degrees the top baby leans to the right (negative: to the left); 0: straight
+    `top_opening`	float not null default 0,		# degrees each side of the top baby opens outwards, so it widens towards its end (a trapezoid); 0: a rectangle
     PRIMARY KEY (`id`),
     CONSTRAINT fk_wings_knife
       FOREIGN KEY (`knife_id`) REFERENCES knives(`id`)

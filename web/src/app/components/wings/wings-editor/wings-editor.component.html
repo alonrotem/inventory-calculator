@@ -132,12 +132,28 @@
 
         <div class="row">
             <div class="col" #diagram_container>
+                <div class="top-shape">
+                    <label class="top-shape-slider">
+                        <span>{{ 'wings:editor.top_tilt' | t }}</span>
+                        <input type="range" class="form-range" min="-45" max="45" step="1" name="top_tilt" [(ngModel)]="wing!.top_tilt" [attr.aria-label]="'wings:editor.top_tilt' | t" />
+                        <output>{{ wing!.top_tilt ?? 0 }}°</output>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="resetTopShape('top_tilt')" [disabled]="!wing!.top_tilt" [attr.title]="'wings:editor.top_reset' | t" [attr.aria-label]="'wings:editor.top_reset' | t"><fa-icon [icon]="faRotateLeft"></fa-icon></button>
+                    </label>
+                    <label class="top-shape-slider">
+                        <span>{{ 'wings:editor.top_opening' | t }}</span>
+                        <input type="range" class="form-range" min="0" max="30" step="1" name="top_opening" [(ngModel)]="wing!.top_opening" [attr.aria-label]="'wings:editor.top_opening' | t" />
+                        <output>{{ wing!.top_opening ?? 0 }}°</output>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="resetTopShape('top_opening')" [disabled]="!wing!.top_opening" [attr.title]="'wings:editor.top_reset' | t" [attr.aria-label]="'wings:editor.top_reset' | t"><fa-icon [icon]="faRotateLeft"></fa-icon></button>
+                    </label>
+                </div>
                 <app-wing-diagram
                     #diagram 
                         [lefts]="this.wing!.babies | sortbabies | prefix: 'L' : true"
                         [rights]="this.wing!.babies | sortbabies | prefix: 'R' : true"
                         [top_length]="this.wing!.babies | sortbabies | prefix: 'TOP' : true"
                         [split_l1]="this.wing!.split_l1"
+                        [top_tilt]="this.wing!.top_tilt ?? 0"
+                        [top_opening]="this.wing!.top_opening ?? 0"
                         [crown]="this.wing!.babies | sortbabies | prefix: 'C' : true"
                         [knife_id]="wing!.knife_id ?? null"
                         [editable]="true"
@@ -154,6 +170,8 @@
                             [top_length]="this.wing!.babies | sortbabies | prefix: 'TOP' : true"
                             [crown]="this.wing!.babies | sortbabies | prefix: 'C' : true"
                             [split_l1]="this.wing!.split_l1"
+                        [top_tilt]="this.wing!.top_tilt ?? 0"
+                        [top_opening]="this.wing!.top_opening ?? 0"
                             [knife_id]="wing!.knife_id ?? null"
                             [max_width]="100"
                             [show_tooltips]="false"

@@ -188,6 +188,8 @@ export class OrderAdvisorComponent implements OnInit, AfterViewInit, OnChanges {
                 split_l1: wing.splt_l1,
                 crown_width: wing.cr_wdt,
                 angled_crown: wing.a_c,
+                top_tilt: wing.t_tilt,
+                top_opening: wing.t_open,
                 knife: 0,
                 babies: babies,
                 allow_shortening_babies_in_pairs: false,

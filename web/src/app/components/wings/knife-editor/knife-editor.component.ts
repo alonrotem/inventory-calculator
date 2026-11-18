@@ -16,7 +16,7 @@ import { ToastService } from '../../../services/toast.service';
 import { Knife, nameIdPair } from '../../../../types';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 import {
-  KnifeNode, KnifeRegion, KnifeRegions, REGION_INFO, REGION_KEYS, RegionKey, Vec,
+  DEFAULT_GUIDE_CM, GUIDE_COLOR, GUIDE_GRAB_PX, MAX_GUIDE_CM, knifeLeftEdge, snapGuideCm, KnifeNode, KnifeRegion, KnifeRegions, REGION_INFO, REGION_KEYS, RegionKey, Vec,
   add, bakeShape, bezierPoint, dist, indexOfId, isStraight, len, lerp, measureSpan, mul, norm,
   outlineSamples, regionLength, regionSegments, sampleRegion, segment, shortestRegion, splitSegment, sub
 } from './knife-shape';
@@ -28,7 +28,7 @@ import { loadImageFile, loadPdfPage } from './image-source';
 import { PreviewBaby, buildBabyPreview } from './baby-preview';
 
 type Tool = 'edit' | 'mark' | 'straighten';
-type Drag = { kind: 'node' | 'hIn' | 'hOut'; id: number; undoSaved: boolean } | { kind: 'pan'; last: Vec };
+type Drag = { kind: 'node' | 'hIn' | 'hOut'; id: number; undoSaved: boolean } | { kind: 'pan'; last: Vec } | { kind: 'guide' };
 
 const MAX_TRACE_DIM = 2400;   // larger scans are traced on a downscaled copy
 const HIT_RADIUS = 8;         // screen px
@@ -120,6 +120,8 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
   private pan: Vec = { x: 0, y: 0 };
   private cursor: Vec | null = null;
   private drag: Drag | null = null;
+  private guideCm = DEFAULT_GUIDE_CM;   // not saved: for looking at the drawing only
+  private guideHot = false;
   private dpr = 1;
   private ctx!: CanvasRenderingContext2D;
   private resizeObserver!: ResizeObserver;
@@ -1019,6 +1021,10 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       this.drag = { kind: 'pan', last: s };
       return;
     }
+    if (e.button === 0 && this.nearGuide(s)) {
+      this.drag = { kind: 'guide' };
+      return;
+    }
     if (this.tool === 'straighten') {
       const m = this.fromScreen(s);
       if (!this.straightenFirst) {
@@ -1076,7 +1082,14 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     const s = this.eventPoint(e);
     this.cursor = s;
     const drag = this.drag;
-    if (drag?.kind === 'pan') {
+    if (drag?.kind === 'guide') {
+      const guide = this.guide();
+      const unitsPerCm = this.unitsPerCm();
+      if (guide && unitsPerCm) {
+        this.guideCm = snapGuideCm((guide.edgeX - s.x) * unitsPerCm / this.zoom);
+      }
+    }
+    else if (drag?.kind === 'pan') {
       this.pan = add(this.pan, sub(s, drag.last));
       drag.last = s;
     }
@@ -1089,6 +1102,12 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
         }
         this.dragNode(node, drag.kind, this.fromScreen(s));
       }
+    }
+    const hot = drag ? drag.kind === 'guide' : this.nearGuide(s);
+    if (hot != this.guideHot) {
+      this.guideHot = hot;
+      this.editorCanvas.nativeElement.style.cursor = hot ? 'col-resize' : '';
+      this.requestDraw();
     }
     if (drag || this.tool !== 'edit') {
       this.requestDraw();
@@ -1239,6 +1258,11 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     }
     if (!pts.length) return;
     const o = pts.map(this.toOriented);
+    // room for the guide line at its default place
+    const unitsPerCm = this.unitsPerCm();
+    if (unitsPerCm && o.length) {
+      o.push({ x: knifeLeftEdge(this.nodes, this.toOriented) - DEFAULT_GUIDE_CM * unitsPerCm, y: o[0].y });
+    }
     const minX = Math.min(...o.map(p => p.x)), maxX = Math.max(...o.map(p => p.x));
     const minY = Math.min(...o.map(p => p.y)), maxY = Math.max(...o.map(p => p.y));
     const margin = 50;
@@ -1319,6 +1343,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       this.drawBabies(babies);
       this.drawRegions(!babies.length);
       this.drawWidth();
+      this.drawGuide();
       this.drawNodes();
     }
     this.drawToolOverlay();
@@ -1408,6 +1433,55 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
   }
 
   /** Dimension line under the shape, from L1 to the Crown. */
+  /** The red guide line (null when it isn't shown, as the scale in cm is not known yet): its screen x, the knife's left side x, and how far left it can go. */
+  private guide(): { x: number; edgeX: number; maxCm: number } | null {
+    const unitsPerCm = this.unitsPerCm();
+    if (!unitsPerCm || this.nodes.length < 3) return null;
+    const pxPerCm = unitsPerCm ? this.zoom / unitsPerCm : 0;
+    const edgeX = this.pan.x + knifeLeftEdge(this.nodes, this.toOriented) * this.zoom;
+    const maxCm = MAX_GUIDE_CM;
+    this.guideCm = Math.min(Math.max(this.guideCm, 0), maxCm);
+    return { x: edgeX - this.guideCm * pxPerCm, edgeX, maxCm };
+  }
+
+  private nearGuide(s: Vec): boolean {
+    const guide = this.guide();
+    return !!guide && Math.abs(s.x - guide.x) <= GUIDE_GRAB_PX;
+  }
+
+  /** A red dotted vertical line to the left of the knife's left side, over the whole height, to see which babies cross it. It can be dragged. */
+  private drawGuide() {
+    const guide = this.guide();
+    if (!guide) return;
+    const ctx = this.ctx;
+    const height = this.editorCanvas.nativeElement.height / this.dpr;
+    const width = this.editorCanvas.nativeElement.width / this.dpr;
+    const x = Math.round(guide.x) + 0.5;
+    ctx.save();
+    ctx.strokeStyle = GUIDE_COLOR;
+    ctx.fillStyle = GUIDE_COLOR;
+    ctx.lineWidth = this.guideHot ? 2 : 1;
+    ctx.setLineDash([2, 3]);
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, height);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font = '12px Arial';
+    ctx.textBaseline = 'top';
+    ctx.textAlign = 'center';
+    const text = this.translation.t('common:units.cm', { value: this.guideCm });
+    const half = ctx.measureText(text).width / 2;
+    const center = Math.min(Math.max(x, half + 2), width - half - 2);
+    ctx.globalAlpha = 0.85;
+    ctx.fillStyle = this.backcolor;
+    ctx.fillRect(center - half - 2, 1, 2 * half + 4, 16);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = GUIDE_COLOR;
+    ctx.fillText(text, center, 3);
+    ctx.restore();
+  }
+
   private drawWidth() {
     const span = measureSpan(this.nodes, this.regions, this.toOriented);
     if (!span) return;

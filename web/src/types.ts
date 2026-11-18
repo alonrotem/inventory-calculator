@@ -166,6 +166,8 @@ export interface Wing {
     allow_shortening_babies_in_pairs: boolean;
     crown_width: number;
     split_l1: number;
+    top_tilt?: number;          // degrees the top baby leans to the right (negative: left); 0 (or none): straight
+    top_opening?: number;       // degrees each side of the top baby opens outwards (a trapezoid); 0 (or none): a rectangle
     angled_crown: boolean;
     babies: WingBaby[];
     customers: BasicCustomerInfo[];
@@ -598,6 +600,8 @@ export interface OrderDetails {
     knife_name: string | null;
     knife_width_cm: number | null;
     split_l1: number;
+    top_tilt: number;
+    top_opening: number;
 }
 
 export enum Status {
@@ -667,6 +671,8 @@ export interface ShortWingsInfo {
     a_c: boolean;       //angled crown
     splt_l1: number;    //split L1 baby to 1-4 parts
     cr_wdt: number;     //crown width
+    t_tilt: number;     //top tilt, degrees
+    t_open: number;     //top opening, degrees
 }
 
 export interface OrderAdvisorHatsSuggestion {

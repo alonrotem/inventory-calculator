@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { WingDiagramComponent } from './wing-diagram.component';
 import { MM_PER_PX, tileStarts } from './print-fit';
+import { knifeLeftEdge } from '../knife-editor/knife-shape';
 import { DIAGRAM_PAGE, composeDiagramPages } from '../../customers/order-editor/order-diagram-page';
 
 describe('WingDiagramComponent for paper', () => {
@@ -21,6 +22,63 @@ describe('WingDiagramComponent for paper', () => {
     return component;
   }
   const pagesOf = (plan: { cols: number; rows: number }) => plan.cols * plan.rows;
+  it('marks 3.5 cm to the left of the knife left side with a red dotted line over the whole height, and the line can be moved', async () => {
+    const component = await diagram();
+    const canvas = (component as any).canvasRef.nativeElement as HTMLCanvasElement;
+    const dpr = window.devicePixelRatio || 1;
+    const ctx = canvas.getContext('2d')!;
+    const left = knifeLeftEdge((component as any).knife.nodes, (p: { x: number; y: number }) => p);
+    const redRows = (cm: number) => {
+      const x = Math.round((component as any).toScreen({ x: left - cm, y: 0 }).x) * dpr;
+      const data = ctx.getImageData(Math.floor(x) - 1, 0, 3, canvas.height).data;
+      let rows = 0;
+      for (let y = 0; y < canvas.height; y++) {
+        for (let i = 0; i < 3; i++) {
+          const o = (y * 3 + i) * 4;
+          if (data[o] > 180 && data[o + 1] < 110 && data[o + 2] < 110 && data[o + 3] > 150) { rows++; break; }
+        }
+      }
+      return rows;
+    };
+    // dotted: a good part of the rows are red, from the top to the bottom
+    expect(redRows(3.5)).toBeGreaterThan(canvas.height / 4);
+
+    (component as any).guideCm = 4.5;
+    component.Rebuild();
+    expect(redRows(4.5)).toBeGreaterThan(canvas.height / 4);
+    expect(redRows(3.5)).toBeLessThan(canvas.height / 10);
+
+    // never past the knife's left side, nor out of the canvas
+    (component as any).guideCm = -2;
+    component.Rebuild();
+    expect((component as any).guideCm).toBe(0);
+    (component as any).guideCm = 1000;
+    component.Rebuild();
+    expect((component as any).guideCm).toBeLessThanOrEqual(6);
+    expect((component as any).guide().x).toBeGreaterThanOrEqual(0);
+  });
+
+  it('starts at 3.5 cm even when no baby reaches that far left, and is dragged with the mouse', async () => {
+    const component = await diagram();
+    component.lefts = [];
+    component.Rebuild();
+    const canvas = (component as any).canvasRef.nativeElement as HTMLCanvasElement;
+    expect((component as any).guide().maxCm).toBeGreaterThanOrEqual(5.99);
+    expect((component as any).guideCm).toBe(3.5);
+
+    const rect = canvas.getBoundingClientRect();
+    const at = (type: string, x: number) => canvas.dispatchEvent(new MouseEvent(type, { clientX: rect.left + x, clientY: rect.top + 40, bubbles: true, button: 0 }));
+    const x = (component as any).guide().x;
+    at('mousemove', x + 2);                       // on the line (a couple of px off)
+    expect(canvas.style.cursor).toBe('col-resize');
+    canvas.dispatchEvent(new PointerEvent('pointerdown', { clientX: rect.left + x, clientY: rect.top + 40, bubbles: true, button: 0 }));
+    // the browser sends no mouse events while a cancelled pointerdown is held: only pointer events
+    canvas.dispatchEvent(new PointerEvent('pointermove', { clientX: rect.left + (component as any).guide().edgeX - 4.6 * (component as any).pxPerCm, clientY: rect.top + 40, bubbles: true }));
+    expect((component as any).guideCm).toBeCloseTo(4.5, 1);
+    canvas.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+    canvas.dispatchEvent(new PointerEvent('pointermove', { clientX: rect.left, clientY: rect.top + 40, bubbles: true }));
+    expect((component as any).guideCm).toBeCloseTo(4.5, 1);   // not following the mouse any more
+  });
 
   it('draws in real size on a page that is big enough: black on white, upright, on one page', async () => {
     const component = await diagram();

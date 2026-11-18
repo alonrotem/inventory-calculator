@@ -48,6 +48,8 @@ export class OrderEditorComponent implements OnInit {
     /*-*/ knife_name: null,
     /*-*/ knife_width_cm: null,
     /*-*/ split_l1: 1,
+    /*-*/ top_tilt: 0,
+    /*-*/ top_opening: 0,
     /*-*/ white_hair_notes: '',
     /*-*/ white_hair: false,
     /*-*/ h_material_l: '',

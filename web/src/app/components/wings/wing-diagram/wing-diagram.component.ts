@@ -3,7 +3,7 @@ import { Subscription } from 'rxjs';
 import { GlobalsService } from '../../../services/globals.service';
 import { KnivesService } from '../../../services/knives.service';
 import { Knife } from '../../../../types';
-import { KnifeRegion, KnifeShape, Vec, add, dist, isStraight, lerp, measureSpan, mul, norm, outlineSamples, segment, sub } from '../knife-editor/knife-shape';
+import { DEFAULT_GUIDE_CM, GUIDE_COLOR, GUIDE_GRAB_PX, MAX_GUIDE_CM, knifeLeftEdge, snapGuideCm, KnifeRegion, KnifeShape, Vec, add, dist, isStraight, lerp, measureSpan, mul, norm, outlineSamples, segment, sub } from '../knife-editor/knife-shape';
 import { PreviewBaby, buildWingBabies, regionAnchor } from '../knife-editor/baby-preview';
 import { DEFAULT_KNIFE } from './default-knife';
 import { WingBabyEdit } from './wing-baby-edit';
@@ -67,6 +67,8 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
   @Input() top_length: number[] = [];     // [length], or empty when there is no top baby
   @Input() crown: number[] = [];          // lengths in cm, C1 -> Cn (the split crown)
   @Input() split_l1 = 1;
+  @Input() top_tilt = 0;                  // degrees the top baby leans to the right (negative: left)
+  @Input() top_opening = 0;               // degrees each side of the top baby opens outwards (a trapezoid)
   @Input() knife_id: number | null = null;
   @Input() auto_fit = true;               // fit the container's width; otherwise drawn by `scale`
   @Input() scale = 1;                     // 1 = 15px per cm, when not auto fitting
@@ -112,6 +114,9 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
   private mouse: { offset: Vec; client: Vec } | null = null;
   private wheelDelta = 0;
   private drawQueued = false;
+  private guideCm = DEFAULT_GUIDE_CM;   // not saved: for looking at the diagram only
+  private guideHot = false;             // the mouse is on the guide line, or is dragging it
+  private guideDrag = false;
 
   private resizeObserver?: ResizeObserver;
   private themeSubscription: Subscription;
@@ -134,7 +139,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
     }
     // the hosts pass the babies through impure pipes, so new arrays arrive on every change detection
     const key = JSON.stringify([
-      this.lefts, this.rights, this.top_length, this.crown, this.split_l1, this.auto_fit, this.scale, this.show_texts,
+      this.lefts, this.rights, this.top_length, this.crown, this.split_l1, this.top_tilt, this.top_opening, this.auto_fit, this.scale, this.show_texts,
       this.editable, this.min_width, this.max_width, this.min_height, this.max_height
     ]);
     if (key != this.inputsKey) {
@@ -151,6 +156,11 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
         this.removeListeners.push(() => canvas.removeEventListener(type, handler, options));
       };
       listen('mousemove', (e: MouseEvent) => this.mouseMove(e));
+      listen('pointerdown', (e: PointerEvent) => this.pointerDown(e));
+      // a cancelled pointerdown (to keep the text from being selected) stops the mouse events until the button is released: drag with pointer events
+      listen('pointermove', (e: PointerEvent) => this.pointerMove(e));
+      listen('pointerup', () => this.guideDrag = false);
+      listen('pointercancel', () => this.guideDrag = false);
       listen('mouseleave', () => this.mouseLeave());
       listen('click', () => this.click());
       listen('wheel', (e: WheelEvent) => this.wheel(e), { passive: false });
@@ -216,7 +226,9 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
       lefts: this.lefts ?? [],
       rights: this.rights ?? [],
       top: this.top_length?.[0] || null,
-      crown: this.crown ?? []
+      crown: this.crown ?? [],
+      topTilt: this.top_tilt || 0,
+      topOpening: this.top_opening || 0
     }) : [];
     this.layout();
   }
@@ -226,8 +238,12 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
   private toScreen = (p: Vec): Vec => ({ x: this.offset.x + p.x * this.pxPerCm, y: this.offset.y + p.y * this.pxPerCm });
 
   /** The bounds of the knife and its babies, in cm (the knife must be loaded). */
-  private boundsCm() {
+  private boundsCm(forGuide = false) {
     const pts = [...outlineSamples(this.knife!.nodes), ...this.babies.flatMap(b => b.corners)];
+    // on the screen there is room for the guide line, wherever it is dragged to
+    if (forGuide) {
+      pts.push({ x: knifeLeftEdge(this.knife!.nodes, p => p) - MAX_GUIDE_CM, y: pts[0].y });
+    }
     const minX = Math.min(...pts.map(p => p.x)), maxX = Math.max(...pts.map(p => p.x));
     const minY = Math.min(...pts.map(p => p.y)), maxY = Math.max(...pts.map(p => p.y));
     const babyYs = this.babies.flatMap(b => b.corners.map(p => p.y));
@@ -252,7 +268,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
       return;
     }
 
-    const { minX, minY, width, height } = this.boundsCm();
+    const { minX, minY, width, height } = this.boundsCm(this.show_texts);
     // room for the lengths and the add buttons, and under the knife for its width
     const margin = (this.show_texts ? 24 : 4) + (this.editable ? 28 : 0);
     const widthRoom = this.showsWidth() ? WIDTH_DIMENSION_ROOM : 0;
@@ -457,6 +473,52 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
     }
     this.drawKnife(ctx);
     this.drawBabies(ctx);
+    if (this.show_texts) {
+      this.drawGuide(ctx);
+    }
+  }
+
+  /** The red guide line (null when it isn't shown): its screen x, the knife's left side x, and how far left it can go. */
+  private guide(): { x: number; edgeX: number; maxCm: number } | null {
+    if (!this.knife || !this.show_texts || !(this.pxPerCm > 0)) {
+      return null;
+    }
+    const edgeX = this.toScreen({ x: knifeLeftEdge(this.knife.nodes, p => p), y: 0 }).x;
+    const maxCm = Math.min(MAX_GUIDE_CM, Math.max(0, (edgeX - GUIDE_GRAB_PX) / this.pxPerCm));   // and stays inside the canvas
+    this.guideCm = Math.min(Math.max(this.guideCm, 0), maxCm);   // (the canvas may be narrower than the range)
+    return { x: edgeX - this.guideCm * this.pxPerCm, edgeX, maxCm };
+  }
+
+  /** A red dotted vertical line to the left of the knife's left side, over the whole height, to see which babies cross it. */
+  private drawGuide(ctx: CanvasRenderingContext2D) {
+    const guide = this.guide();
+    if (!guide) {
+      return;
+    }
+    const x = Math.round(guide.x) + 0.5;
+    ctx.save();
+    ctx.strokeStyle = GUIDE_COLOR;
+    ctx.fillStyle = GUIDE_COLOR;
+    ctx.lineWidth = this.guideHot ? 2 : 1;
+    ctx.setLineDash([2, 3]);
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, this.cssHeight);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font = FONT;
+    ctx.textBaseline = 'top';
+    const text = this.translation.t('common:units.cm', { value: this.guideCm });
+    const half = ctx.measureText(text).width / 2;
+    const center = Math.min(Math.max(x, half + 2), this.cssWidth - half - 2);
+    ctx.textAlign = 'center';
+    ctx.globalAlpha = 0.85;
+    ctx.fillStyle = this.backcolor;
+    ctx.fillRect(center - half - 2, 1, 2 * half + 4, 16);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = GUIDE_COLOR;
+    ctx.fillText(text, center, 3);
+    ctx.restore();
   }
 
   private drawKnife(ctx: CanvasRenderingContext2D) {
@@ -626,23 +688,57 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
 
   private mouseMove(e: MouseEvent) {
     this.mouse = { offset: { x: e.offsetX, y: e.offsetY }, client: { x: e.clientX, y: e.clientY } };
-    this.updateHover();
+    if (!this.guideDrag) {
+      this.updateHover();
+    }
+  }
+
+  private pointerMove(e: PointerEvent) {
+    if (!this.guideDrag) {
+      return;
+    }
+    const guide = this.guide();
+    if (guide) {
+      this.guideCm = snapGuideCm((guide.edgeX - e.offsetX) / this.pxPerCm, guide.maxCm);
+      this.scheduleDraw();
+    }
+  }
+
+  private pointerDown(e: PointerEvent) {
+    if (e.button == 0 && this.guideHot) {
+      this.guideDrag = true;
+      try {
+        this.canvasRef.nativeElement.setPointerCapture(e.pointerId);   // keeps following the mouse past the canvas' edge
+      }
+      catch { /* not needed to drag inside the canvas */ }
+      e.preventDefault();
+    }
+  }
+
+  private nearGuide(x: number): boolean {
+    const guide = this.guide();
+    return !!guide && Math.abs(x - guide.x) <= GUIDE_GRAB_PX;
   }
 
   private mouseLeave() {
+    if (this.guideDrag) {
+      return;   // still dragging the guide line past the edge
+    }
     this.mouse = null;
     this.wheelDelta = 0;
     this.updateHover();
   }
 
   private updateHover() {
-    const previous = [this.hovered, this.onDelete];
-    this.hovered = (this.mouse && this.highlight_mouseover_baby) ? this.babyAt(this.mouse.offset) : -1;
+    const previous = [this.hovered, this.onDelete, this.guideHot];
+    this.guideHot = !!this.mouse && this.nearGuide(this.mouse.offset.x);
+    // the guide line is in front of the babies
+    this.hovered = (this.mouse && this.highlight_mouseover_baby && !this.guideHot) ? this.babyAt(this.mouse.offset) : -1;
     this.onDelete = this.hovered >= 0 && this.canDelete(this.hovered) &&
       dist(this.deletePosition(this.hovered), this.mouse!.offset) <= DELETE_RADIUS;
-    this.canvasRef.nativeElement.style.cursor = this.hovered >= 0 ? 'pointer' : '';
+    this.canvasRef.nativeElement.style.cursor = this.guideHot ? 'col-resize' : this.hovered >= 0 ? 'pointer' : '';
     this.updateTooltip();
-    if (previous[0] != this.hovered || previous[1] != this.onDelete) {
+    if (previous[0] != this.hovered || previous[1] != this.onDelete || previous[2] != this.guideHot) {
       this.scheduleDraw();
     }
   }
@@ -686,7 +782,16 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
     const baby = this.babies[this.hovered];
     const length = this.clampLength(baby.length + direction * this.baby_length_step);
     if (length != baby.length) {
+      // the diagram changes size with the baby: keep the page where it is, so the baby stays under the mouse
+      const { scrollX, scrollY } = window;
+      const keepScroll = () => {
+        if (Math.abs(window.scrollY - scrollY) > 1 || Math.abs(window.scrollX - scrollX) > 1) {
+          window.scrollTo(scrollX, scrollY);
+        }
+      };
       this.ngZone.run(() => this.babyEdited.emit({ action: 'length', position: baby.position, length }));
+      keepScroll();
+      requestAnimationFrame(keepScroll);
     }
   }
 

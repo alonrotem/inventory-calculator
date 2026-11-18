@@ -614,7 +614,7 @@ async function get_order_details(order_id, currentUserId){
         ch.order_date original_order_date,
         ch.wing_id wing_id,
         w.knife_id knife_id,
-        w.split_l1 split_l1,
+        w.split_l1 split_l1, w.top_tilt top_tilt, w.top_opening top_opening,
         k.name knife_name,
         k.width_cm knife_width_cm
 

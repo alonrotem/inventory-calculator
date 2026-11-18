@@ -381,4 +381,8 @@ where not exists (
 CALL add_column_if_not_exists('wings', 'knife_id', 'INT NULL');
 call add_fk('wings', 'fk_wings_knife', 'knife_id', 'knives', 'id', false);
 
+# The shape of the top baby: its tilt and how much it opens (degrees); 0 and 0 is a plain rectangle
+CALL add_column_if_not_exists('wings', 'top_tilt', 'float not null default 0');
+CALL add_column_if_not_exists('wings', 'top_opening', 'float not null default 0');
+
 select "Migrations done", CURRENT_TIMESTAMP;

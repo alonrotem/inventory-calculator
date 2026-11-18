@@ -1,3 +1,8 @@
+:host {
+    /* the diagram changes size while a baby is resized with the mouse wheel: the browser must not scroll the page to follow what is below it */
+    overflow-anchor: none;
+}
+
 .transparent_text {
     color: transparent;
 }
@@ -74,4 +79,26 @@ h3 {
     padding: 30px;
     border-radius: var(--bs-border-radius);
     margin-bottom: 30px;
+}
+.top-shape {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 32px;
+    margin-bottom: 8px;
+}
+
+.top-shape-slider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 240px;
+}
+
+.top-shape-slider input {
+    flex: 1;
+}
+
+.top-shape-slider output {
+    min-width: 3em;
+    text-align: end;
 }

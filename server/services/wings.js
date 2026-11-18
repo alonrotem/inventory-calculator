@@ -7,7 +7,7 @@ const { logger } = require('../logger')
 
 async function getSingle(id){
     const rows = await db.query(
-      `select id, name, knife, knife_id, split_l1, crown_width, allow_shortening_babies_in_pairs from wings where id=${id}` //width 5 - 11
+      `select id, name, knife, knife_id, split_l1, crown_width, top_tilt, top_opening, allow_shortening_babies_in_pairs from wings where id=${id}` //width 5 - 11
     );
     const wing = helper.emptyOrSingle(rows);
     if(!helper.isEmptyObj(wing)) {
@@ -37,7 +37,7 @@ from wings_babies
 
 async function getSingleWingByName(name){
   const rows = await db.query(
-    `select id, name, knife, knife_id, split_l1, crown_width, allow_shortening_babies_in_pairs from wings where name=(?)`, [name]
+    `select id, name, knife, knife_id, split_l1, crown_width, top_tilt, top_opening, allow_shortening_babies_in_pairs from wings where name=(?)`, [name]
   );
   const data = helper.emptyOrSingle(rows);
   //console.log(helper.isEmptyObj(data));
@@ -132,7 +132,7 @@ async function getAllNonCustomerWingsAndBabies(wing_id_filter) {
       left join wings_babies wb on wb.parent_wing_id=w.id
       where ch.customer_id is null ${wing_filter}
       order by w.id, wb.position`);*/
-      `select w.id w_id, w.name w_n, w.split_l1 splt_l1, w.crown_width cr_wdt, wb.id b_id, wb.position p, wb.length l, w.angled_crown a_c
+      `select w.id w_id, w.name w_n, w.split_l1 splt_l1, w.crown_width cr_wdt, wb.id b_id, wb.position p, wb.length l, w.angled_crown a_c, w.top_tilt t_tilt, w.top_opening t_open
         from wings w 
         inner join wings_babies wb on wb.parent_wing_id=w.id
         where
@@ -168,12 +168,12 @@ async function save(wing, active_connection=null){
       wing.babies.forEach(b => b.id = 0);
     }
     const result = await db.transaction_query(
-      `INSERT INTO wings (id, name, knife, knife_id, allow_shortening_babies_in_pairs, split_l1, crown_width)
-        VALUES ((?), (?), (?), (?), (?), (?), (?)) as new_wing
+      `INSERT INTO wings (id, name, knife, knife_id, allow_shortening_babies_in_pairs, split_l1, crown_width, top_tilt, top_opening)
+        VALUES ((?), (?), (?), (?), (?), (?), (?), (?), (?)) as new_wing
         ON DUPLICATE KEY UPDATE
         name=new_wing.name, knife=new_wing.knife, knife_id=new_wing.knife_id, allow_shortening_babies_in_pairs=new_wing.allow_shortening_babies_in_pairs,
-        split_l1=new_wing.split_l1, crown_width=new_wing.crown_width`,
-        [ wing.id, wing.name, wing.knife, wing.knife_id || null, wing.allow_shortening_babies_in_pairs, wing.split_l1, wing.crown_width ],
+        split_l1=new_wing.split_l1, crown_width=new_wing.crown_width, top_tilt=new_wing.top_tilt, top_opening=new_wing.top_opening`,
+        [ wing.id, wing.name, wing.knife, wing.knife_id || null, wing.allow_shortening_babies_in_pairs, wing.split_l1, wing.crown_width, wing.top_tilt || 0, wing.top_opening || 0 ],
         active_connection
     );
 

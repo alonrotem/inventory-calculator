@@ -545,6 +545,8 @@
           [top_length]="(this.customerHat.wing)? (this.customerHat.wing.babies | sortbabies | prefix: 'TOP' : true) : []"
           [crown]="(this.customerHat.wing)? (this.customerHat.wing.babies | sortbabies | prefix: 'C' : true) : []"
           [split_l1]="(this.customerHat.wing)? (this.customerHat.wing.split_l1) : 1"
+          [top_tilt]="(this.customerHat.wing)? (this.customerHat.wing.top_tilt ?? 0) : 0"
+          [top_opening]="(this.customerHat.wing)? (this.customerHat.wing.top_opening ?? 0) : 0"
           [knife_id]="(this.customerHat.wing)? (this.customerHat.wing.knife_id ?? null) : null"
           (babyClicked)="diagram_baby_clicked($event)"
       />

@@ -211,6 +211,27 @@ export function measureSpan(nodes: KnifeNode[], regions: KnifeRegions, orient: (
   };
 }
 
+/**
+ * The red dotted guide line on the diagrams: a vertical line to the left of the knife's left edge, over the whole height, that can be
+ * dragged in steps; it shows its distance from that edge. Only for display, never saved.
+ */
+export const DEFAULT_GUIDE_CM = 3.5;
+/** How far to the left it can be dragged; the diagrams leave room for it. */
+export const MAX_GUIDE_CM = 6;
+/** The guide line moves in steps of this many cm. */
+export const GUIDE_STEP_CM = 0.5;
+
+/** The distance dragged to, in whole steps and within the range. */
+export const snapGuideCm = (cm: number, max = MAX_GUIDE_CM) =>
+  Math.min(max, Math.max(0, Math.round(cm / GUIDE_STEP_CM) * GUIDE_STEP_CM));
+
+/** The x of the knife's left edge (its leftmost point), after `orient`: where the guide line's distance is measured from. */
+export const knifeLeftEdge = (nodes: KnifeNode[], orient: (p: Vec) => Vec): number =>
+  Math.min(...outlineSamples(nodes).map(p => orient(p).x));
+/** How close (px) the mouse has to be to grab the guide line. */
+export const GUIDE_GRAB_PX = 6;
+export const GUIDE_COLOR = '#dc3545';
+
 const round4 = (v: number) => Math.round(v * 10000) / 10000;
 
 /**

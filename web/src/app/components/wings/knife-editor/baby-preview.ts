@@ -3,7 +3,8 @@
 // Lefts, Top and Rights form one fan around the top of the knife:
 //  - L1 sits on the riser of the step; its bottom side continues the step's ledge
 //  - L1..Ln fan out from the ledge's direction up to the Top's direction
-//  - Top: one baby, parallel sides, pointing out of the middle of the Top region
+//  - Top: one baby pointing out of the middle of the Top region: parallel sides, unless the wing tilts it (topTilt) or
+//    opens it (topOpening, a trapezoid); the Lefts and Rights then fan towards the Top's side next to them
 //  - R1 (next to the Crown) .. Rn (next to the Top) fan from the Crown's direction up to the Top's
 //  - Crown: one baby split into strips, all parallel; C1 is the strip farthest from the Rights
 
@@ -21,6 +22,8 @@ export interface WingBabiesSpec {
   rights: number[];      // R1 -> Rn
   top: number | null;    // null or 0: no top baby
   crown: number[];       // C1 -> Cn
+  topTilt?: number;      // degrees the Top leans to the right (negative: left); default 0
+  topOpening?: number;   // degrees each side of the Top opens outwards, so it widens towards its end; default 0
 }
 
 export interface PreviewBaby {
@@ -45,6 +48,9 @@ interface Boundary { p: Vec; normal: Vec; }
 const outward = (t: Vec): Vec => ({ x: t.y, y: -t.x });
 const angleOf = (v: Vec) => Math.atan2(v.y, v.x);
 const direction = (a: number): Vec => ({ x: Math.cos(a), y: Math.sin(a) });
+const dotVec = (a: Vec, b: Vec) => a.x * b.x + a.y * b.y;
+/** A direction turned by `degrees` (clockwise on the screen, where y runs down). */
+const turn = (v: Vec, degrees: number): Vec => direction(angleOf(v) + degrees * Math.PI / 180);
 
 function lerpAngle(a: number, b: number, t: number): number {
   let d = b - a;
@@ -163,11 +169,24 @@ export function buildWingBabies(nodes: KnifeNode[], regions: KnifeRegions, units
     return [];
   }
 
-  // Top
-  const topDir = topPts[1].normal;
+  // Top: tilted as a whole, and its two sides open away from each other. The Lefts and Rights fan towards the side next to them.
+  const topDir = turn(topPts[1].normal, spec.topTilt ?? 0);
+  const topSpan = sub(topPts[2].p, topPts[0].p);
+  const topOpening = spec.topOpening ?? 0;
+  const opened = (sign: number) => {
+    const turned = turn(topDir, topOpening);
+    // turning one way moves the direction towards the other end of the base, so the first side takes the other turn
+    return sign * dotVec(turned, topSpan) < sign * dotVec(topDir, topSpan) ? turned : turn(topDir, -topOpening);
+  };
+  const topDirA = opened(1), topDirB = opened(-1);   // at topPts[0], at topPts[2]
   if (spec.top) {
-    addBaby('TOP', 'Top', spec.top, topPts[0].p, topPts[2].p, topDir, topDir);
+    addBaby('TOP', 'Top', spec.top, topPts[0].p, topPts[2].p, topDirA, topDirB);
   }
+  // the side of the Top next to the Lefts (the one nearer the Lefts' line)
+  const nearLeftsLine = (p: Vec) => Math.min(dist(p, leftsLine[0]), dist(p, leftsLine[leftsLine.length - 1]));
+  const aIsNextToLefts = nearLeftsLine(topPts[0].p) <= nearLeftsLine(topPts[2].p);
+  const topDirNextToLefts = aIsNextToLefts ? topDirA : topDirB;
+  const topDirNextToRights = aIsNextToLefts ? topDirB : topDirA;
 
   // L1 sits in the step (a mirrored L): its base is the riser, its bottom continues the ledge
   const leftCount = spec.lefts.length;
@@ -175,7 +194,7 @@ export function buildWingBabies(nodes: KnifeNode[], regions: KnifeRegions, units
   const step = leftCount ? findStep(nodes, l1, leftsLine) : null;
   if (step) {
     // L1..Ln share one fan from the ledge to the Top
-    const leftDirs = fan(step.ledgeDir, topDir, leftSlots);
+    const leftDirs = fan(step.ledgeDir, topDirNextToLefts, leftSlots);
     addBaby('L1', 'L1', spec.lefts[0], step.corner, step.riserTop, leftDirs[0], leftDirs[1]);
     const leftPts = divideRegion(nodes, lefts, leftSlots - 1, step.riserTop);
     for (let i = 0; i < Math.min(leftCount - 1, leftPts.length - 1); i++) {
@@ -188,7 +207,7 @@ export function buildWingBabies(nodes: KnifeNode[], regions: KnifeRegions, units
   const crownDir = crownPts[1].normal;
   if (rightCount) {
     const rightSlots = Math.max(rightCount, MIN_SIDE_SLOTS);
-    const rightDirs = fan(crownDir, topDir, rightSlots);
+    const rightDirs = fan(crownDir, topDirNextToRights, rightSlots);
     const rightPts = divideRegion(nodes, rights, rightSlots, crownPts[1].p);
     for (let i = 0; i < Math.min(rightCount, rightPts.length - 1); i++) {
       addBaby('R' + (i + 1), 'R' + (i + 1), spec.rights[i], rightPts[i].p, rightPts[i + 1].p, rightDirs[i], rightDirs[i + 1]);

@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, viewChild, ViewChild, inject } from '@angular/core';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
-import { faArrowLeft, faArrowUp, faEraser, faL, faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faArrowUp, faEraser, faL, faRotateLeft, faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { KnifeListItem, Wing, WingBaby, WingsListItem } from '../../../../types';
 import { FormsModule, NgForm } from '@angular/forms';
 import { WingsService } from '../../../services/wings.service';
@@ -57,6 +57,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   faTimesCircle:IconDefinition = faTimesCircle;
   faArrowUp: IconDefinition = faArrowUp;
   faEraser: IconDefinition = faEraser;
+  faRotateLeft: IconDefinition = faRotateLeft;
   private title_key: TranslationKey = 'wings:editor.title_create';
   /** the title in the language in use: it follows a language change */
   get title(): string { return this.translation.t(this.title_key); }
@@ -631,6 +632,12 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
       this.diagram.pan.y = 0;
       this.diagram.Rebuild();
     }*/
+  }
+
+  /** Back to a plain rectangle: no tilt, or no opening. */
+  resetTopShape(field: 'top_tilt' | 'top_opening') {
+    this.wing![field] = 0;
+    this.wingForm.form.markAsDirty();
   }
 }
 
