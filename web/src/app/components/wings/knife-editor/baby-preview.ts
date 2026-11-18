@@ -14,6 +14,8 @@ export interface BabyPreviewOptions {
   lefts: number;       // including L1
   rights: number;
   crownSplit: number;
+  /** which way is horizontal, to the left, in the coordinates of the nodes (the editor's view may be turned); default (-1, 0) */
+  horizontalLeft?: Vec;
 }
 
 /** The babies of a wing, lengths in cm. */
@@ -24,6 +26,7 @@ export interface WingBabiesSpec {
   crown: number[];       // C1 -> Cn
   topTilt?: number;      // degrees the Top leans to the right (negative: left); default 0
   topOpening?: number;   // degrees each side of the Top opens outwards, so it widens towards its end; default 0
+  horizontalLeft?: Vec;  // which way is horizontal, to the left, in the coordinates of the nodes; default (-1, 0)
 }
 
 export interface PreviewBaby {
@@ -100,7 +103,7 @@ function directionBeyond(nodes: KnifeNode[], region: KnifeRegion, endId: number)
  * The step L1 sits in. L1 may be marked as the whole L (outer end of the ledge to the top of the riser)
  * or as the riser alone; in that case the ledge is the outline edge just below it.
  */
-function findStep(nodes: KnifeNode[], l1: KnifeRegion, leftsLine: Vec[]): { corner: Vec; riserTop: Vec; ledgeDir: Vec } | null {
+function findStep(nodes: KnifeNode[], l1: KnifeRegion, leftsLine: Vec[], horizontal: Vec): { corner: Vec; riserTop: Vec; ledgeDir: Vec } | null {
   const line = regionPolyline(nodes, l1);
   if (line.length < 2) {
     return null;
@@ -128,8 +131,11 @@ function findStep(nodes: KnifeNode[], l1: KnifeRegion, leftsLine: Vec[]): { corn
     return { corner, riserTop, ledgeDir: norm(sub(lower, corner)) };
   }
 
-  // riser only
-  const ledgeDir = directionBeyond(nodes, l1, upperIsTo ? l1.from : l1.to) ?? divideRegion(nodes, l1, 2)[1].normal;
+  // riser only (L1 is just a line, no slit): L1 goes out horizontally, unless the line itself is horizontal, which would leave it flat
+  const flat = chordLength < 1e-9 || Math.abs(chord.x * horizontal.y - chord.y * horizontal.x) / chordLength < 0.2;
+  const ledgeDir = flat
+    ? directionBeyond(nodes, l1, upperIsTo ? l1.from : l1.to) ?? divideRegion(nodes, l1, 2)[1].normal
+    : horizontal;
   return { corner: lower, riserTop, ledgeDir };
 }
 
@@ -147,7 +153,8 @@ export function buildBabyPreview(nodes: KnifeNode[], regions: KnifeRegions, unit
     lefts: Array.from({ length: leftCount }, (_, i) => graded(LEFT_LENGTHS, i, leftCount)),
     rights: Array.from({ length: rightCount }, (_, i) => graded(RIGHT_LENGTHS, i, rightCount)),
     top: TOP_LENGTH,
-    crown: Array(Math.max(1, opts.crownSplit)).fill(CROWN_LENGTH)
+    crown: Array(Math.max(1, opts.crownSplit)).fill(CROWN_LENGTH),
+    horizontalLeft: opts.horizontalLeft
   });
 }
 
@@ -191,7 +198,7 @@ export function buildWingBabies(nodes: KnifeNode[], regions: KnifeRegions, units
   // L1 sits in the step (a mirrored L): its base is the riser, its bottom continues the ledge
   const leftCount = spec.lefts.length;
   const leftSlots = Math.max(leftCount, MIN_SIDE_SLOTS);
-  const step = leftCount ? findStep(nodes, l1, leftsLine) : null;
+  const step = leftCount ? findStep(nodes, l1, leftsLine, spec.horizontalLeft ?? { x: -1, y: 0 }) : null;
   if (step) {
     // L1..Ln share one fan from the ledge to the Top
     const leftDirs = fan(step.ledgeDir, topDirNextToLefts, leftSlots);

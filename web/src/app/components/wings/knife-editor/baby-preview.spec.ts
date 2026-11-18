@@ -45,3 +45,32 @@ describe('the shape of the top baby', () => {
     expect(side(last(after, 'R1'), 0, 1)).toBeCloseTo(side(last(before, 'R1'), 0, 1), 6);
   });
 });
+
+describe('L1 on a knife without a slit', () => {
+  const spec = { lefts: [6, 8], rights: [6], top: 10, crown: [10] };
+  // L1 is just the riser, a line without the ledge of the step
+  const line = { ...DEFAULT_KNIFE.regions, l1: { from: 1, to: 2 } };
+  const l1Dir = (horizontalLeft?: { x: number; y: number }) => {
+    const l1 = buildWingBabies(DEFAULT_KNIFE.nodes, line, 1, { ...spec, horizontalLeft }).find(b => b.position == 'L1')!;
+    return { x: l1.corners[1].x - l1.corners[0].x, y: l1.corners[1].y - l1.corners[0].y };
+  };
+
+  it('is horizontal, to the left', () => {
+    const d = l1Dir();
+    expect(d.y).toBeCloseTo(0, 6);
+    expect(d.x).toBeLessThan(0);
+  });
+
+  it('is horizontal in the view when the view is turned: it follows the direction given', () => {
+    const d = l1Dir({ x: -0.6, y: 0.8 });   // the view's left, in the nodes' coordinates
+    const length = Math.hypot(d.x, d.y);
+    expect(d.x / length).toBeCloseTo(-0.6, 6);
+    expect(d.y / length).toBeCloseTo(0.8, 6);
+  });
+
+  it('keeps the ledge direction when L1 has the step (an L)', () => {
+    const l1 = buildWingBabies(DEFAULT_KNIFE.nodes, DEFAULT_KNIFE.regions, 1, spec).find(b => b.position == 'L1')!;
+    expect(l1.corners[1].y - l1.corners[0].y).toBeCloseTo(0, 6);   // the default ledge is horizontal too
+    expect(l1.corners[0].x).toBeCloseTo(DEFAULT_KNIFE.nodes[1].p.x, 6);   // and L1 starts at the inner corner of the step
+  });
+});
