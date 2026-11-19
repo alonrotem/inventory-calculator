@@ -1,7 +1,20 @@
 
+<!-- a picture of an item: an SVG outline or an image -->
+<ng-template #picture let-preview let-size="size">
+    @if (preview.d) {
+        <svg class="picker_picture picker_picture_{{ size }}" [attr.viewBox]="preview.viewBox" preserveAspectRatio="xMidYMid meet"><path [attr.d]="preview.d" /></svg>
+    }
+    @else if (preview.imageUrl) {
+        <img class="picker_picture picker_picture_{{ size }}" [src]="preview.imageUrl" alt="">
+    }
+</ng-template>
+
 <div class="picked-items-container">
     @for (item of pickedItems; track item.id) {
         <div class="picked-item" [attr.disabled]="disabled">
+            @if (pickedPreview(item); as preview) {
+                <ng-container *ngTemplateOutlet="picture; context: { $implicit: preview, size: 'small' }"></ng-container>
+            }
             {{ pickedLabel(item) }}
             <button class="btn" (click)="removeItem(item.id)" [disabled]="disabled"><fa-icon [icon]="faX"></fa-icon><br/></button>
         </div>
@@ -18,8 +31,16 @@
                 bindLabel="name"
                 bindValue="id"
                 (change)="itemPicked($event)"
+                (close)="hoverItem(null)"
                 [placeholder]="placeholder">
-                <ng-template ng-option-tmp let-item="item">{{ itemLabel(item) }}</ng-template>
+                <ng-template ng-option-tmp let-item="item">
+                    <div class="option_row" (mouseenter)="hoverItem(item, $event)" (mouseleave)="hoverItem(null)">
+                        @if (itemPreview(item); as preview) {
+                            <ng-container *ngTemplateOutlet="picture; context: { $implicit: preview, size: 'small' }"></ng-container>
+                        }
+                        <span>{{ itemLabel(item) }}</span>
+                    </div>
+                </ng-template>
                 <ng-template ng-label-tmp let-item="item">{{ itemLabel(item) }}</ng-template>
             </ng-select>
 
@@ -27,3 +48,11 @@
         </div>
     </div>
 </div>
+
+<!-- the floating preview of the item under the mouse in the dropdown -->
+@if (hoveredItem && itemPreview(hoveredItem); as preview) {
+    <div class="hover_preview" [style.left.px]="hoverPosition.left" [style.top.px]="hoverPosition.top">
+        <ng-container *ngTemplateOutlet="picture; context: { $implicit: preview, size: 'large' }"></ng-container>
+        <div class="hover_preview_label">{{ itemLabel(hoveredItem) }}</div>
+    </div>
+}

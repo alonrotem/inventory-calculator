@@ -97,6 +97,7 @@
     "regions": {
       "title": "4. Regions",
       "clear": "Clear",
+      "clear_all": "Clear all regions",
       "mark": "Mark",
       "remark": "Re-mark",
       "help": "Click where the region starts on the outline, then where it ends. For L1, mark the step: from the outer end of its ledge to the top of its riser. Lefts and Rights are filled in automatically once L1, Top and Crown are marked."
@@ -159,6 +160,7 @@
       "mark_start": "{{region}}: click where it starts on the outline.",
       "mark_end": "{{region}}: now click where it ends.",
       "marked": "{{region}} marked.",
+      "top_too_wide": "The Top can't be wider than {{max}} cm (that is {{width}} cm), so it ends at {{max}} cm.",
       "min_points": "The outline needs at least 3 points.",
       "point_deleted": "Point deleted.",
       "point_deleted_regions": "Point deleted. Cleared regions that used it: {{regions, list}}",

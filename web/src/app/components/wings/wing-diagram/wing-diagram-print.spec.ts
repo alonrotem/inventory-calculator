@@ -80,6 +80,18 @@ describe('WingDiagramComponent for paper', () => {
     expect((component as any).guideCm).toBeCloseTo(4.5, 1);   // not following the mouse any more
   });
 
+  it('writes the width of each baby that is not a crown strip, between its outer corners', async () => {
+    const component = await diagram();
+    const texts: string[] = [];
+    spyOn(CanvasRenderingContext2D.prototype, 'fillText').and.callFake((text: string) => { texts.push(text); });
+    const babies = (component as any).babies as { position: string; corners: { x: number; y: number }[] }[];
+    const widthOf = (b: { corners: { x: number; y: number }[] }) => (Math.round(Math.hypot(b.corners[1].x - b.corners[2].x, b.corners[1].y - b.corners[2].y) * 10) / 10).toFixed(1);
+    component.renderForPrint({ widthMm: 600, heightMm: 800 });
+    for (const baby of babies.filter(b => !b.position.startsWith('C'))) {
+      expect(texts).toContain(widthOf(baby));
+    }
+  });
+
   it('always turns it 90 degrees to the right, in real size, even on a page that would hold it upright', async () => {
     const component = await diagram();
     const printed = component.renderForPrint({ widthMm: 600, heightMm: 800 })!;

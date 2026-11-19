@@ -195,6 +195,9 @@
                                 (click)="startMark(key)">{{ regions[key] ? ('knives:editor.regions.remark' | t) : ('knives:editor.regions.mark' | t) }}</button>
                         </li>
                     }
+                    <li class="list-group-item py-1 text-end">
+                        <button class="btn btn-sm btn-outline-danger py-0" [disabled]="!hasRegions()" (click)="clearAllRegions()">{{ 'knives:editor.regions.clear_all' | t }}</button>
+                    </li>
                 </ul>
                 <div class="card-body pt-2 small text-body-secondary">
                     {{ 'knives:editor.regions.help' | t }}

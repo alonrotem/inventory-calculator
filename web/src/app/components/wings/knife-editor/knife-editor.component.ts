@@ -16,7 +16,7 @@ import { ToastService } from '../../../services/toast.service';
 import { Knife, nameIdPair } from '../../../../types';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 import {
-  KnifeNode, KnifeRegion, KnifeRegions, REGION_INFO, REGION_KEYS, RegionKey, Vec,
+  MAX_TOP_WIDTH_CM, pointAlong, cloneNodes, KnifeNode, KnifeRegion, KnifeRegions, REGION_INFO, REGION_KEYS, RegionKey, Vec,
   add, bakeShape, bezierPoint, dist, indexOfId, isStraight, len, lerp, measureSpan, mul, norm,
   outlineSamples, regionLength, regionSegments, sampleRegion, segment, shortestRegion, splitSegment, sub
 } from './knife-shape';
@@ -602,6 +602,18 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     this.requestDraw();
   }
 
+  hasRegions(): boolean {
+    return REGION_KEYS.some(k => this.regions[k]);
+  }
+
+  clearAllRegions() {
+    if (!this.hasRegions()) return;
+    this.saveUndo();
+    this.cancelTool();
+    this.regions = {};
+    this.requestDraw();
+  }
+
   clearRegion(key: RegionKey) {
     this.saveUndo();
     delete this.regions[key];
@@ -610,7 +622,17 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
 
   private completeMark(firstId: number, secondId: number) {
     const key = this.markKey!;
-    this.regions[key] = shortestRegion(this.nodes, firstId, secondId);
+    const region = shortestRegion(this.nodes, firstId, secondId);
+    const unitsPerCm = this.unitsPerCm();
+    const width = unitsPerCm ? regionLength(this.nodes, region) / unitsPerCm : 0;
+    if (key === 'top' && width > MAX_TOP_WIDTH_CM + 0.01) {
+      // not marked: the Top stays as it was
+      this.status = this.translation.t('knives:editor.status.top_too_wide', { max: MAX_TOP_WIDTH_CM, width: Math.round(width * 10) / 10 });
+      this.toastService.showError(this.status);
+      this.cancelTool();
+      return;
+    }
+    this.regions[key] = region;
     this.deriveRegions();
     this.status = this.translation.t('knives:editor.status.marked', { region: this.regionLabel(key) });
     this.cancelTool();
@@ -1041,7 +1063,9 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       return;
     }
     if (this.tool === 'mark') {
-      const id = this.pickOrInsertNode(s);
+      // the Top is marked up to its longest (3 cm) where the click is further
+      const end = this.markEnd(s);
+      const id = end?.limit ? this.insertAt(end.limit) : this.pickOrInsertNode(s);
       if (id === null) {
         this.drag = { kind: 'pan', last: s };
         return;
@@ -1053,6 +1077,11 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
       }
       else if (id !== this.markFirstId) {
         this.completeMark(this.markFirstId, id);
+        if (end?.limit) {
+          // it is marked up to 3 cm, and the user is told why it is not where they clicked
+          this.status = this.translation.t('knives:editor.status.top_too_wide', { max: MAX_TOP_WIDTH_CM, width: Math.round(end.requestedCm * 100) / 100 });
+          this.toastService.showError(this.status);
+        }
       }
       this.requestDraw();
       return;
@@ -1226,6 +1255,42 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
   }
 
   /** Id of the node under the cursor, or of a new node inserted on the outline there. */
+  /** A node at a place on the outline (a segment and t along it), inserted unless it is where a node already is. */
+  private insertAt(at: { index: number; t: number }): number {
+    const n = this.nodes.length;
+    if (at.t <= 1e-6) return this.nodes[at.index].id;
+    if (at.t >= 1 - 1e-6) return this.nodes[(at.index + 1) % n].id;
+    this.saveUndo();
+    return splitSegment(this.nodes, at.index, at.t, this.nextId++).id;
+  }
+
+  /**
+   * While marking a region, with the first point set: where a click at `s` would end it, and how far that is from the first point along
+   * the outline, in cm. The Top can't be longer than MAX_TOP_WIDTH_CM: then `limit` is the place on the outline at that length, and it
+   * is the point and the length that count. Null when there is no first point, nothing is under the mouse or the scale isn't known.
+   */
+  private markEnd(s: Vec): { point: Vec; cm: number; requestedCm: number; limit: { index: number; t: number } | null } | null {
+    const first = this.markFirstId;
+    const unitsPerCm = this.unitsPerCm();
+    if (first === null || !this.markKey || !unitsPerCm) return null;
+    const node = this.hitNode(s);
+    const hit = node ? null : this.hitSegment(s);
+    if (!node && (!hit || hit.t <= 0 || hit.t >= 1)) return null;
+    const copy = cloneNodes(this.nodes);
+    const endId = node ? node.id : splitSegment(copy, hit!.index, hit!.t, -1).id;
+    if (endId === first) return null;
+    const region = shortestRegion(copy, first, endId);
+    const cm = regionLength(copy, region) / unitsPerCm;
+    const point = node ? node.p : hit!.point;
+    if (this.markKey === 'top' && cm > MAX_TOP_WIDTH_CM + 1e-6) {
+      const limit = pointAlong(this.nodes, first, region.from === first, MAX_TOP_WIDTH_CM * unitsPerCm);
+      if (limit) {
+        return { point: limit.point, cm: MAX_TOP_WIDTH_CM, requestedCm: cm, limit };
+      }
+    }
+    return { point, cm, requestedCm: cm, limit: null };
+  }
+
   private pickOrInsertNode(s: Vec): number | null {
     const node = this.hitNode(s);
     if (node) return node.id;
@@ -1504,8 +1569,9 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     }
     if (this.tool === 'mark' && this.markKey && this.cursor) {
       // preview where the click would land on the outline
+      const end = this.markEnd(this.cursor);
       const node = this.hitNode(this.cursor);
-      const point = node ? node.p : this.hitSegment(this.cursor)?.point;
+      const point = end ? end.point : node ? node.p : this.hitSegment(this.cursor)?.point;
       if (point) {
         const s = this.toScreen(point);
         ctx.strokeStyle = REGION_INFO[this.markKey].color;
@@ -1513,6 +1579,23 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
         ctx.beginPath();
         ctx.arc(s.x, s.y, 7, 0, 2 * Math.PI);
         ctx.stroke();
+        if (end) {
+          // the length from the first point, along the outline, next to the mouse
+          const text = this.translation.t('common:units.cm_fixed', { value: end.cm });
+          ctx.save();
+          ctx.font = 'bold 14px Arial';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+          const x = this.cursor.x + 16, y = this.cursor.y - 16, w = ctx.measureText(text).width;
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+          ctx.fillRect(x - 4, y - 11, w + 8, 22);
+          ctx.strokeStyle = REGION_INFO[this.markKey].color;
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x - 4, y - 11, w + 8, 22);
+          ctx.fillStyle = '#212529';
+          ctx.fillText(text, x, y);
+          ctx.restore();
+        }
       }
     }
   }

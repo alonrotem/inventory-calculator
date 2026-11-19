@@ -160,6 +160,31 @@ export function shortestRegion(nodes: KnifeNode[], idA: number, idB: number): Kn
   return regionLength(nodes, forward) <= regionLength(nodes, backward) ? forward : backward;
 }
 
+/**
+ * The point `distance` along the outline from node `startId`, going forward or backward around it: which segment it is on, how far
+ * along it (t, from the segment's first node) and where. Null when the distance is more than the whole outline.
+ */
+export function pointAlong(nodes: KnifeNode[], startId: number, forward: boolean, distance: number): { index: number; t: number; point: Vec } | null {
+  const n = nodes.length, start = indexOfId(nodes, startId);
+  if (start < 0 || distance < 0) return null;
+  let left = distance;
+  for (let k = 0; k < n; k++) {
+    const i = forward ? (start + k) % n : (start - 1 - k + n) % n;
+    const pts = forward ? sampleSegment(nodes, i) : [...sampleSegment(nodes, i)].reverse();
+    const m = pts.length - 1;
+    for (let j = 1; j <= m; j++) {
+      const d = dist(pts[j - 1], pts[j]);
+      if (left <= d) {
+        const f = d ? left / d : 0;
+        const u = (j - 1 + f) / m;
+        return { index: i, t: forward ? u : 1 - u, point: lerp(pts[j - 1], pts[j], f) };
+      }
+      left -= d;
+    }
+  }
+  return null;
+}
+
 /** Splits segment i at t, inserting a new node after nodes[i]. The curve shape is preserved. */
 export function splitSegment(nodes: KnifeNode[], i: number, t: number, id: number): KnifeNode {
   const a = nodes[i], b = nodes[(i + 1) % nodes.length];
@@ -215,6 +240,8 @@ export function measureSpan(nodes: KnifeNode[], regions: KnifeRegions, orient: (
  * The red dotted guide line on the diagrams: a vertical line to the left of the knife's left edge, over the whole height, that can be
  * dragged in steps; it shows its distance from that edge. Only for display, never saved.
  */
+/** The Top region can't be wider than this, in cm (its length along the outline). */
+export const MAX_TOP_WIDTH_CM = 3;
 export const DEFAULT_GUIDE_CM = 3.5;
 /** How far to the left it can be dragged; the diagrams leave room for it. */
 export const MAX_GUIDE_CM = 6;

@@ -1,6 +1,7 @@
 <app-multi-picker
     [items]="knives"
     [itemLabel]="knifeLabel"
+    [itemPreview]="knifePreview"
     [pickedItems]="pickedKnives"
     (pickedItemsChange)="pickedKnivesChange.emit($event)"
     (Change)="Change.emit()"

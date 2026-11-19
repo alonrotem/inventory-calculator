@@ -39,6 +39,7 @@ const WHEEL_STEP_DELTA = 50;         // wheel delta (px) per length step, so a t
 const CROWN_LABEL_ROOM = 12;   // px, extra at the right for the crown's label
 const GUIDE_FONT = 'bold 16px Arial';
 const FONT = '11px Arial';
+const WIDTH_FONT = '10px Arial';   // the width of a baby, smaller than its label
 const WIDTH_DIMENSION_ROOM = 34;     // px under the knife for its width
 const PRINT_RESOLUTION = 3;          // canvas pixels per CSS pixel when drawing for paper (288 dpi)
 const PRINT_OUTLINE = 5 / MM_PER_PX;   // CSS px: on paper, the outer line around the knife and the babies is 5 mm thick, outside of them (the inner lines stay thin)
@@ -425,6 +426,7 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
       this.screenBabies = this.babies.map(baby => baby.corners.map(this.toScreen));
       this.drawOuterLine(ctx);
       this.drawKnife(ctx);
+      this.drawKnifeInnerLine(ctx);
       this.drawBabies(ctx);
     }
     finally {
@@ -576,6 +578,19 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
     ctx.restore();
   }
 
+  /** On paper, the knife's own line is thick too, inwards: the knife keeps its size and shape. */
+  private drawKnifeInnerLine(ctx: CanvasRenderingContext2D) {
+    const path = this.knifePath();
+    ctx.save();
+    ctx.clip(path);
+    ctx.strokeStyle = this.color;
+    ctx.lineWidth = 2 * PRINT_OUTLINE;   // only the inner half is left by the clip
+    ctx.lineJoin = 'miter';
+    ctx.miterLimit = 3;
+    ctx.stroke(path);
+    ctx.restore();
+  }
+
   private drawKnife(ctx: CanvasRenderingContext2D) {
     const nodes = this.knife!.nodes;
     const path = this.knifePath();
@@ -647,6 +662,12 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
           const center = mul(c.reduce((a, b) => add(a, b), { x: 0, y: 0 }), 1 / 4);
           ctx.fillStyle = hovered ? HIGHLIGHT_TEXT_COLOR : this.color;
           ctx.fillText(baby.label, center.x, center.y);
+          // the width between the two outer corners, inside the baby near its outer end (the more babies, the narrower they are)
+          ctx.font = WIDTH_FONT;
+          ctx.fillStyle = this.color;
+          const widthPos = lerp(center, outerMid, 0.6);
+          ctx.fillText(this.babyWidthText(baby), widthPos.x, widthPos.y);
+          ctx.font = FONT;
         }
         if (!baby.position.startsWith('C') || !this.crownUniform()) {
           const lengthPos = add(outerMid, mul(norm(sub(outerMid, baseMid)), 10 + this.outlineExtra));
@@ -691,6 +712,16 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
       ctx.stroke();
       ctx.lineWidth = this.lineWidth;
     }
+  }
+
+  /** The width of a baby (not a crown strip) between its two outer corners, away from the knife, in cm with a decimal. */
+  private babyWidthText(baby: PreviewBaby): string {
+    return this.babyWidthCm(baby).toFixed(1);
+  }
+
+  /** The width of a baby between its two outer corners, in cm to a decimal. */
+  private babyWidthCm(baby: PreviewBaby): number {
+    return Math.round(dist(baby.corners[1], baby.corners[2]) * 10) / 10;
   }
 
   /** Room beside the crown for its label, the single length of equal crown strips, e.g. "9.5", more than the margin has. */
@@ -888,6 +919,10 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
     }
     const split = (baby.position == 'L1' && this.split_l1 > 1) ? ' x' + this.split_l1 : '';
     let html = `<strong>${title}</strong>${split}<br/>${this.translation.t('common:units.cm', { value: baby.length })}`;
+    if (!baby.position.startsWith('C')) {
+      // the same width as the one written on the baby
+      html += `<br/>${this.translation.t('wings:diagram.tip_width', { value: this.translation.t('common:units.cm_fixed', { value: this.babyWidthCm(baby) }) })}`;
+    }
     if (this.editable) {
       html += `<div style="font-size: 10px; opacity: 0.7;">${this.onDelete ? this.translation.t('wings:diagram.tip_remove') : this.translation.t('wings:diagram.tip_edit')}</div>`;
     }
