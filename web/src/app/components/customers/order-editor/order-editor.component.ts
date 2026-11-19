@@ -88,6 +88,8 @@ export class OrderEditorComponent implements OnInit {
   diagramPages: string[] = [];
   private diagramPageCanvases: HTMLCanvasElement[] = [];
   private diagramQueue: Promise<void> = Promise.resolve();
+  /** Whether the printout and the PDF have the thick outline around the diagram (the user's choice, before printing). */
+  thickOutline: boolean = true;
 
   constructor(
     private ordersService: OrdersService,
@@ -174,7 +176,7 @@ export class OrderEditorComponent implements OnInit {
     if (!diagram || this.orderDetails.id <= 0 || !(await diagram.whenReady())) {
       return;
     }
-    const printed = diagram.renderForPrint({ widthMm: DIAGRAM_PAGE.widthMm, heightMm: DIAGRAM_PAGE.heightMm - DIAGRAM_PAGE.captionMm });
+    const printed = diagram.renderForPrint({ widthMm: DIAGRAM_PAGE.widthMm, heightMm: DIAGRAM_PAGE.heightMm - DIAGRAM_PAGE.captionMm }, this.thickOutline);
     if (!printed) {
       return;
     }

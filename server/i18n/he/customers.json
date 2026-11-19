@@ -270,6 +270,7 @@
     "checked": "נבדק {{steps}}",
     "diagram_title": "תרשים הכנף",
     "diagram_ruler": "10 ס״מ",
+    "thick_outline": "קו מתאר עבה בהדפסה וב-PDF",
     "diagram_failed": "לא ניתן היה להכין את תרשים הכנף, ולכן הוא הושמט"
   },
   "advisor": {

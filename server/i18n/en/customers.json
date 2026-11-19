@@ -267,6 +267,7 @@
     "checked": "Checked {{steps}}",
     "diagram_title": "Wing diagram",
     "diagram_ruler": "10 cm",
+    "thick_outline": "Thick outline on the printout and PDF",
     "diagram_failed": "The wing diagram could not be prepared, so it is left out"
   },
   "advisor": {

@@ -455,6 +455,7 @@ export type TranslationKey =
   | 'customers:order_editor.step_h'
   | 'customers:order_editor.step_second_r'
   | 'customers:order_editor.step_sew'
+  | 'customers:order_editor.thick_outline'
   | 'customers:order_editor.urgent'
   | 'customers:order_editor.wings'
   | 'customers:order_status.cancelled'

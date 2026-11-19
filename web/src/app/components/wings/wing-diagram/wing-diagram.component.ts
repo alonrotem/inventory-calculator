@@ -42,6 +42,14 @@ const FONT = '11px Arial';
 const WIDTH_FONT = '10px Arial';   // the width of a baby, smaller than its label
 const WIDTH_DIMENSION_ROOM = 34;     // px under the knife for its width
 const PRINT_RESOLUTION = 3;          // canvas pixels per CSS pixel when drawing for paper (288 dpi)
+/** The distance from a point to the segment a-b. */
+function distToSegment(p: Vec, a: Vec, b: Vec): number {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const len2 = dx * dx + dy * dy;
+  const t = len2 ? Math.min(1, Math.max(0, ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2)) : 0;
+  return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+}
+
 const PRINT_OUTLINE = 5 / MM_PER_PX;   // CSS px: on paper, the outer line around the knife and the babies is 5 mm thick, outside of them (the inner lines stay thin)
 
 /**
@@ -383,14 +391,15 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
    * lets it fit a page; when it does not fit one page, the plan (see planPages) says how many pages it takes.
    * The live diagram is not touched. Null while the knife is not loaded.
    */
-  renderForPrint(page: { widthMm: number; heightMm: number }): PrintedDiagram | null {
+  renderForPrint(page: { widthMm: number; heightMm: number }, thickOutline = true): PrintedDiagram | null {
     if (!this.knife) {
       return null;
     }
+    const outline = thickOutline ? PRINT_OUTLINE : 0;
     const b = this.boundsCm();
-    const margin = (this.show_texts ? 24 : 4) + Math.ceil(PRINT_OUTLINE);
+    const margin = (this.show_texts ? 24 : 4) + Math.ceil(outline);
     const extraRight = this.crownLabelRoom();
-    const widthRoom = this.showsWidth() ? WIDTH_DIMENSION_ROOM + Math.ceil(PRINT_OUTLINE) : 0;
+    const widthRoom = this.showsWidth() ? WIDTH_DIMENSION_ROOM + Math.ceil(outline) : 0;
     const pxPerCm = PX_PER_CM_1TO1;
     // the canvas has whole pixels: plan with the size it really has, or a diagram that just fits a page would come out a fraction of a mm too big
     const cssWidth = Math.ceil(b.width * pxPerCm + 2 * margin + extraRight);
@@ -422,11 +431,15 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
       this.cssHeight = cssHeight;
       this.offset = { x: margin - b.minX * pxPerCm, y: (cssHeight - widthRoom - b.height * pxPerCm) / 2 - b.minY * pxPerCm };
       this.hovered = -1;
-      this.outlineExtra = PRINT_OUTLINE;
+      this.outlineExtra = outline;
       this.screenBabies = this.babies.map(baby => baby.corners.map(this.toScreen));
-      this.drawOuterLine(ctx);
+      if (outline) {
+        this.drawOuterLine(ctx);
+      }
       this.drawKnife(ctx);
-      this.drawKnifeInnerLine(ctx);
+      if (outline) {
+        this.drawKnifeThickLine(ctx);
+      }
       this.drawBabies(ctx);
     }
     finally {
@@ -556,38 +569,131 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   /**
-   * The thick line around everything (the knife and the babies together) for paper, outside of them: every shape is stroked twice
-   * as thick as the line should be and then filled white, which leaves the outer half of the strokes and nothing between the shapes.
+   * The thick line around the babies for paper, outside of them: every shape is stroked twice as thick as the line should be and
+   * then filled white, which leaves the outer half of the strokes and nothing between the shapes. (The knife is filled white too, to
+   * hide the babies' strokes inside it, but it has no outer line of its own: see drawKnifeThickLine.)
    */
   private drawOuterLine(ctx: CanvasRenderingContext2D) {
-    const shapes: Path2D[] = [this.knifePath(), ...this.screenBabies.map(c => {
+    const babies: Path2D[] = this.screenBabies.map(c => {
       const path = new Path2D();
       path.moveTo(c[0].x, c[0].y);
       c.slice(1).forEach(p => path.lineTo(p.x, p.y));
       path.closePath();
       return path;
-    })];
+    });
     ctx.save();
     ctx.strokeStyle = this.color;
-    ctx.lineWidth = 2 * PRINT_OUTLINE;
+    ctx.lineWidth = 2 * this.outlineExtra;
     ctx.lineJoin = 'miter';
     ctx.miterLimit = 3;
-    shapes.forEach(path => ctx.stroke(path));
+    babies.forEach(path => ctx.stroke(path));
     ctx.fillStyle = this.backcolor;
-    shapes.forEach(path => ctx.fill(path));
+    [this.knifePath(), ...babies].forEach(path => ctx.fill(path));
     ctx.restore();
   }
 
-  /** On paper, the knife's own line is thick too, inwards: the knife keeps its size and shape. */
-  private drawKnifeInnerLine(ctx: CanvasRenderingContext2D) {
-    const path = this.knifePath();
+  /**
+   * On paper, the knife's line is thick (inwards only: the thin line stays, the knife keeps its size and shape) only where the babies touch it
+   * and 1 cm further on each side. The rest of the knife keeps the standard line.
+   */
+  private drawKnifeThickLine(ctx: CanvasRenderingContext2D) {
+    // the knife's line in small steps, so that the places where it is thick can start and end anywhere on it
+    const samples = outlineSamples(this.knife!.nodes).map(this.toScreen);
+    const points: Vec[] = [];
+    samples.forEach((p, i) => {
+      const q = samples[(i + 1) % samples.length];
+      const steps = Math.max(1, Math.ceil(dist(p, q) / 2));
+      for (let k = 0; k < steps; k++) {
+        points.push(lerp(p, q, k / steps));
+      }
+    });
+    const n = points.length;
+    if (n < 2) {
+      return;
+    }
+    // where the babies touch it: on or within a few px of a baby
+    const near = (p: Vec, c: Vec[]) => c.some((a, i) => distToSegment(p, a, c[(i + 1) % c.length]) <= 3);
+    const touching = points.map(p => this.screenBabies.some(c => near(p, c)));
+    if (!touching.some(t => t)) {
+      return;
+    }
+    // 1 cm further along the line on each side (the line is closed). When the line turns (a corner or a bend of 30 degrees) within
+    // 3 cm, the 1 cm is counted from the turn: it goes on to the edge after it
+    const marked = touching.slice();
+    for (const step of [1, n - 1]) {
+      touching.forEach((t, i) => {
+        if (!t || touching[(i + step) % n]) {
+          return;   // only from where the touching part ends
+        }
+        // the way the line goes (after the first few px, where it may still be turning away from the baby), and where it has turned
+        // by 30 degrees (a corner or a bend) from it
+        const w = 6;
+        let h0: Vec | null = null;
+        let travelled = 0, j = i, limit = this.pxPerCm;
+        const walk: number[] = [];
+        let bendAt = -1;
+        for (let k = 0; k < n && travelled < 4 * this.pxPerCm; k++) {
+          const next = (j + step) % n;
+          travelled += dist(points[j], points[next]);
+          walk.push(next);
+          const h = sub(points[(next + step * w) % n], points[next]);
+          if (k === 2 * w) {
+            h0 = h;
+          }
+          if (h0 && bendAt < 0 && travelled < 3 * this.pxPerCm) {
+            const cos = (h0.x * h.x + h0.y * h.y) / ((Math.hypot(h0.x, h0.y) * Math.hypot(h.x, h.y)) || 1);
+            if (cos < Math.cos(30 * Math.PI / 180)) {
+              bendAt = travelled;
+            }
+          }
+          j = next;
+        }
+        if (bendAt >= 0) {
+          limit = bendAt + this.pxPerCm;
+        }
+        // mark what is within the limit
+        let at = 0;
+        walk.forEach((p, k) => {
+          at += dist(points[k ? walk[k - 1] : i], points[p]);
+          if (at <= limit) {
+            marked[p] = true;
+          }
+        });
+      });
+    }
+    // one continuous line for each stretch (so that its corners are joined), starting where a stretch starts
+    const first = marked.findIndex((m, i) => m && !marked[(i + n - 1) % n]);
     ctx.save();
-    ctx.clip(path);
+    ctx.clip(this.knifePath());   // only inside the knife: the thin line stays where it is and the thick line extends it inwards
     ctx.strokeStyle = this.color;
-    ctx.lineWidth = 2 * PRINT_OUTLINE;   // only the inner half is left by the clip
+    ctx.lineWidth = 2 * this.outlineExtra;   // the inner half is what is left, as thick as the outer line
     ctx.lineJoin = 'miter';
     ctx.miterLimit = 3;
-    ctx.stroke(path);
+    ctx.lineCap = 'butt';
+    ctx.beginPath();
+    if (first < 0) {
+      // the whole line
+      points.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
+      ctx.closePath();
+    }
+    else {
+      for (let k = 0; k < n; k++) {
+        const i = (first + k) % n;
+        if (!marked[i]) {
+          continue;
+        }
+        if (!marked[(i + n - 1) % n]) {
+          ctx.moveTo(points[i].x, points[i].y);
+        }
+        else {
+          ctx.lineTo(points[i].x, points[i].y);
+        }
+        if (!marked[(i + 1) % n]) {
+          ctx.lineTo(points[(i + 1) % n].x, points[(i + 1) % n].y);   // up to the end of the stretch
+        }
+      }
+    }
+    ctx.stroke();
     ctx.restore();
   }
 

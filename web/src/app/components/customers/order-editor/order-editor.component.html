@@ -7,6 +7,7 @@
                 <button class="btn btn-warning" (click)="goToCustomersList()"><fa-icon [icon]="faArrowLeft"></fa-icon></button>
                 <button class="btn btn-secondary" (click)="print()"><span class="icon-printer"></span> {{ 'customers:order_editor.print' | t }}</button>
                 <button class="btn btn-secondary" (click)="exportPdf()"><span class="icon-file-pdf"></span> PDF</button>
+                <label class="form-check-label ms-2"><input type="checkbox" class="form-check-input" [checked]="thickOutline" (change)="thickOutline = $any($event.target).checked"> {{ 'customers:order_editor.thick_outline' | t }}</label>
                 <button class="btn btn-success" *ngIf="unsaved_changes"><fa-icon [icon]="faSave"></fa-icon></button>
             </span>
             <span class="order-status-area">
