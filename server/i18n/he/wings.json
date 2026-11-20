@@ -66,6 +66,8 @@
     "top_tilt": "הטיית העליון",
     "top_opening": "פתיחת העליון",
     "top_reset": "איפוס ל-0",
+    "undo": "ביטול",
+    "redo": "ביצוע מחדש",
     "left_babies": "תינוקות שמאל",
     "right_babies": "תינוקות ימין",
     "split_before": "פיצול תינוק L1 ל־",

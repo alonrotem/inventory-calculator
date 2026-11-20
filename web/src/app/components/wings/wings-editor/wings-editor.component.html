@@ -132,6 +132,10 @@
 
         <div class="row">
             <div class="col" #diagram_container>
+                <div class="mb-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm me-1" [disabled]="!canUndo" (click)="undo()" title="Ctrl+Z"><fa-icon [icon]="faRotateLeft"></fa-icon> {{ 'wings:editor.undo' | t }}</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="!canRedo" (click)="redo()" title="Ctrl+Y"><fa-icon [icon]="faRotateRight"></fa-icon> {{ 'wings:editor.redo' | t }}</button>
+                </div>
                 <div class="top-shape">
                     <label class="top-shape-slider">
                         <span>{{ 'wings:editor.top_tilt' | t }}</span>

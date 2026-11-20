@@ -25,6 +25,13 @@
     }
 }
 
+// over the top corner of the canvas, opposite the zoom buttons
+.knife_history {
+    position: absolute;
+    top: 8px;
+    inset-inline-start: 8px;
+}
+
 .knife_zoom {
     position: absolute;
     top: 8px;

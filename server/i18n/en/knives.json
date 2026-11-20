@@ -81,6 +81,7 @@
     "outline": {
       "title": "3. Outline",
       "undo": "Undo",
+      "redo": "Redo",
       "show_points": "Show points",
       "selected_smooth": "Selected point: smooth",
       "selected_corner": "Selected point: corner",

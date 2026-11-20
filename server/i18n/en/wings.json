@@ -63,6 +63,8 @@
     "top_tilt": "Top tilt",
     "top_opening": "Top opening",
     "top_reset": "Reset to 0",
+    "undo": "Undo",
+    "redo": "Redo",
     "left_babies": "Left babies",
     "right_babies": "Right babies",
     "split_before": "Split L1 baby into",

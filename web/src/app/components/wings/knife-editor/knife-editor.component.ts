@@ -126,6 +126,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
   private redrawPending = false;
   private viewFitted = false;
   private undoStack: string[] = [];
+  private redoStack: string[] = [];
   private themeSubscription: Subscription;
 
   color = '';
@@ -264,6 +265,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     this.widthCm = null;
     this.showBabies = false;
     this.undoStack = [];
+    this.redoStack = [];
     this.cancelTool();
     this.zoom = 1;
     this.pan = { x: 0, y: 0 };
@@ -291,6 +293,9 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
 
   /** A knife was just imported: remember it as the state to revert to. */
   private markImported() {
+    // undo goes back to this point and no further (not into a knife that was replaced)
+    this.undoStack = [];
+    this.redoStack = [];
     this.dirty = false;
     this.initialState = this.snapshotState();
   }
@@ -319,6 +324,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     this.name = state.name;
     this.selectedId = null;
     this.undoStack = [];
+    this.redoStack = [];
     this.cancelTool();
     this.dirty = false;
     this.status = this.translation.t('knives:editor.status.reverted');
@@ -732,6 +738,18 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
   undo() {
     const snapshot = this.undoStack.pop();
     if (!snapshot) return;
+    this.redoStack.push(JSON.stringify({ nodes: this.nodes, regions: this.regions }));
+    this.applySnapshot(snapshot);
+  }
+
+  redo() {
+    const snapshot = this.redoStack.pop();
+    if (!snapshot) return;
+    this.undoStack.push(JSON.stringify({ nodes: this.nodes, regions: this.regions }));
+    this.applySnapshot(snapshot);
+  }
+
+  private applySnapshot(snapshot: string) {
     const state = JSON.parse(snapshot);
     this.nodes = state.nodes;
     this.regions = state.regions;
@@ -744,6 +762,7 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     // every edit of the outline or regions goes through here
     this.dirty = true;
     this.undoStack.push(JSON.stringify({ nodes: this.nodes, regions: this.regions }));
+    this.redoStack = [];
     if (this.undoStack.length > MAX_UNDO) {
       this.undoStack.shift();
     }
@@ -751,6 +770,10 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
 
   get canUndo(): boolean {
     return this.undoStack.length > 0;
+  }
+
+  get canRedo(): boolean {
+    return this.redoStack.length > 0;
   }
 
   cancelTool() {
@@ -1165,7 +1188,16 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
       e.preventDefault();
-      this.undo();
+      if (e.shiftKey) {
+        this.redo();
+      }
+      else {
+        this.undo();
+      }
+    }
+    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+      e.preventDefault();
+      this.redo();
     }
     else if (e.key === 'Delete' || e.key === 'Backspace') {
       if (this.selectedId !== null) {

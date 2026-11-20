@@ -82,6 +82,7 @@
     "outline": {
       "title": "3. קו מתאר",
       "undo": "ביטול פעולה",
+      "redo": "ביצוע מחדש",
       "show_points": "הצגת נקודות",
       "selected_smooth": "הנקודה הנבחרת: חלקה",
       "selected_corner": "הנקודה הנבחרת: פינה",

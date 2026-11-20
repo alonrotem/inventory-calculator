@@ -149,7 +149,6 @@
             <div class="card mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span>{{ 'knives:editor.outline.title' | t }}</span>
-                    <button class="btn btn-sm btn-outline-secondary py-0" [disabled]="!canUndo" (click)="undo()" title="Ctrl+Z">{{ 'knives:editor.outline.undo' | t }}</button>
                 </div>
                 <div class="card-body">
                     <div class="form-check small mb-2">
@@ -273,6 +272,10 @@
                     (dblclick)="onDoubleClick($event)"
                     (wheel)="onWheel($event)"
                     (contextmenu)="$event.preventDefault()"></canvas>
+                <div class="knife_history btn-group btn-group-sm">
+                    <button class="btn btn-light border" [disabled]="!canUndo" (click)="undo()" title="Ctrl+Z">{{ 'knives:editor.outline.undo' | t }}</button>
+                    <button class="btn btn-light border" [disabled]="!canRedo" (click)="redo()" title="Ctrl+Y">{{ 'knives:editor.outline.redo' | t }}</button>
+                </div>
                 <div class="knife_zoom btn-group-vertical btn-group-sm">
                     <button class="btn btn-light border" (click)="zoomBy(1.25)" [attr.title]="'knives:editor.zoom_in' | t">+</button>
                     <button class="btn btn-light border" (click)="zoomBy(0.8)" [attr.title]="'knives:editor.zoom_out' | t">−</button>

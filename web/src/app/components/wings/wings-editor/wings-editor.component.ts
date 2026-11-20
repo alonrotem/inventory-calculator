@@ -1,6 +1,6 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, viewChild, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DoCheck, ElementRef, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, viewChild, ViewChild, inject } from '@angular/core';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
-import { faArrowLeft, faArrowUp, faEraser, faL, faRotateLeft, faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faArrowUp, faEraser, faL, faRotateLeft, faRotateRight, faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { KnifeListItem, Wing, WingBaby, WingsListItem } from '../../../../types';
 import { FormsModule, NgForm } from '@angular/forms';
 import { WingsService } from '../../../services/wings.service';
@@ -47,7 +47,7 @@ import { TranslationKey } from '../../../i18n/translation-keys';
   changeDetection: ChangeDetectionStrategy.OnPush*/
   
 })
-export class WingsEditorComponent extends NavigatedMessageComponent implements OnInit, AfterViewInit,/*, OnDestroy*/ HasUnsavedChanges, OnChanges {
+export class WingsEditorComponent extends NavigatedMessageComponent implements OnInit, AfterViewInit,/*, OnDestroy*/ HasUnsavedChanges, OnChanges, DoCheck {
   private translation = inject(TranslationService);
 
 
@@ -56,6 +56,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
   faArrowLeft:IconDefinition = faArrowLeft;
   faTimesCircle:IconDefinition = faTimesCircle;
   faArrowUp: IconDefinition = faArrowUp;
+  faRotateRight: IconDefinition = faRotateRight;
   faEraser: IconDefinition = faEraser;
   faRotateLeft: IconDefinition = faRotateLeft;
   private title_key: TranslationKey = 'wings:editor.title_create';
@@ -111,6 +112,13 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
 
   // for opening the unsave changes dialog
   private confirmResult: boolean | null = null;
+
+  // undo / redo: the wing as text, before each change (a burst of quick changes, like typing the name or dragging a slider, is one step)
+  private undoStack: string[] = [];
+  private redoStack: string[] = [];
+  private currentSnapshot: string | null = null;     // the wing as it is now
+  private loadedSnapshot: string | null = null;      // the wing as it was loaded: undoing back to it leaves the form unchanged
+  private lastChangeAt = 0;
 
   constructor(
     private wingsService: WingsService, 
@@ -224,7 +232,7 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
         {
           next: (wing: Wing) => {
             wing.name = current_wing_name;
-            this.loadWing(wing);
+            this.loadWing(wing, false);   // a change that can be undone
           },
           error: (error) => {
             console.log(error);
@@ -274,8 +282,11 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
     })
   }
 
-  loadWing(wing: Wing){
+  loadWing(wing: Wing, startHistory: boolean = true){
     this.wing = wing;
+    if(startHistory){
+      this.startHistory();
+    }
     this.unedited_wing = {...this.wing, babies: [...(this.wing && this.wing.babies ? this.wing.babies : []) ] };
     let crownBabies = (this.wing && this.wing.babies) ? this.wing.babies.filter((b) => b.position.startsWith("C")) : [];
     this.crown_units = crownBabies.length;
@@ -632,6 +643,115 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
       this.diagram.pan.y = 0;
       this.diagram.Rebuild();
     }*/
+  }
+
+  /** The wing as it is now is where undo ends: the history starts here. */
+  private startHistory() {
+    this.undoStack = [];
+    this.redoStack = [];
+    this.currentSnapshot = JSON.stringify(this.wing);
+    this.loadedSnapshot = this.currentSnapshot;
+    this.lastChangeAt = 0;
+  }
+
+  ngDoCheck(): void {
+    this.recordChange();
+  }
+
+  /** Notices that the wing changed (by whatever control) and keeps the state before it for undo. */
+  private recordChange() {
+    if(!this.wing){
+      return;
+    }
+    const now = JSON.stringify(this.wing);
+    if(this.currentSnapshot === null){
+      this.currentSnapshot = now;
+      this.loadedSnapshot = now;
+      return;
+    }
+    if(now === this.currentSnapshot){
+      return;
+    }
+    const at = Date.now();
+    if(at - this.lastChangeAt > 500 || this.undoStack.length == 0){
+      this.undoStack.push(this.currentSnapshot);
+      if(this.undoStack.length > 100){
+        this.undoStack.shift();
+      }
+    }
+    this.lastChangeAt = at;
+    this.currentSnapshot = now;
+    this.redoStack = [];
+  }
+
+  get canUndo(): boolean {
+    return this.undoStack.length > 0;
+  }
+
+  get canRedo(): boolean {
+    return this.redoStack.length > 0;
+  }
+
+  undo() {
+    this.recordChange();
+    const previous = this.undoStack.pop();
+    if(previous !== undefined && this.currentSnapshot !== null){
+      this.redoStack.push(this.currentSnapshot);
+      this.restore(previous);
+    }
+  }
+
+  redo() {
+    this.recordChange();
+    const next = this.redoStack.pop();
+    if(next !== undefined && this.currentSnapshot !== null){
+      this.undoStack.push(this.currentSnapshot);
+      this.restore(next);
+    }
+  }
+
+  private restore(snapshot: string) {
+    this.wing = JSON.parse(snapshot);
+    this.currentSnapshot = snapshot;
+    this.lastChangeAt = 0;
+    this.crown_units = this.wing.babies.filter(b => b.position.startsWith("C")).length;
+    if(this.crown_size){
+      this.crown_size.nativeElement.value = this.crown_units;
+    }
+    this.calculate_total_wing_height();
+    this.updateKnifeOptions();
+    if(snapshot === this.loadedSnapshot){
+      this.wingForm.form.markAsPristine();
+    }
+    else {
+      this.wingForm.form.markAsDirty();
+    }
+  }
+
+  /** Ctrl+Z undoes, Ctrl+Y or Ctrl+Shift+Z redoes (the text fields keep their own undo). */
+  @HostListener('window:keydown', ['$event'])
+  onKeyDown(e: KeyboardEvent) {
+    if(!(e.ctrlKey || e.metaKey) || e.altKey){
+      return;
+    }
+    const key = e.key.toLowerCase();
+    if(key !== 'z' && key !== 'y'){
+      return;
+    }
+    const target = e.target as HTMLElement;
+    const inputType = (target as HTMLInputElement)?.type;
+    const typing = target?.tagName === 'TEXTAREA' || target?.tagName === 'SELECT' || target?.isContentEditable
+      || (target?.tagName === 'INPUT' && !['range', 'checkbox', 'radio', 'button'].includes(inputType));
+    if(typing || document.querySelector('.modal.show')){
+      return;
+    }
+    e.preventDefault();
+    if(key === 'y' || e.shiftKey){
+      this.redo();
+    }
+    else {
+      this.undo();
+    }
   }
 
   /** Back to a plain rectangle: no tilt, or no opening. */
