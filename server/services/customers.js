@@ -5,6 +5,7 @@ const transaction_history = require('./transaction_history');
 const users = require('./users');
 const { raw } = require('mysql2');
 const { logger } = require('../logger');
+const { buildListQuery } = require('./list-query');
 
 async function getSingle(id, currentUserId){
 
@@ -145,7 +146,16 @@ async function getDemoCustomerForUserId(user_id, active_connection=null){
   }      
 }
 
-async function getMultiple(page = 1, perPage=0, currentUserId){
+// the columns of the list that can be sorted and filtered: the aliases of the select (the list is grouped, so it is filtered with HAVING)
+const LIST_COLUMNS = {
+  name: { sql: 'name', type: 'text' },
+  business_name: { sql: 'business_name', type: 'text' },
+  bank_count: { sql: 'bank_count', type: 'number' },
+  allocation_count: { sql: 'allocation_count', type: 'number' }
+};
+
+// `list` (optional): { sort_column, sort_direction, filter_column, filter_expression }, see list-query.js
+async function getMultiple(page = 1, perPage=0, currentUserId, list = {}){
   //if the user is a demo customer, return only the demo customer assigned to him (there should be only one)
   const user = await users.getSingle(currentUserId);
   if(user && !helper.isEmptyObj(user) && user.is_demo_customer){
@@ -184,10 +194,9 @@ async function getMultiple(page = 1, perPage=0, currentUserId){
     const offset = helper.getOffset(page, perPage);
     subset = `LIMIT ${offset},${perPage}`
   }
-  const rows = await db.query(
-
-  //New query: retrieve only the customers assigned to the current user, by their role(s)
-  `WITH user_permissions AS (
+  // only the customers that the current user can see, by their role(s)
+  const { where: having, params: filter_params, orderBy } = buildListQuery(list, LIST_COLUMNS, 'c.id', 'HAVING');
+  const permissions = `WITH user_permissions AS (
     select 
       rp.area,
       rp.permissions
@@ -196,8 +205,8 @@ async function getMultiple(page = 1, perPage=0, currentUserId){
     JOIN roles r ON r.id = ur.role_id
     JOIN role_permissions rp ON rp.role_id = r.id
     WHERE u.id = (?)
-  )
-  SELECT DISTINCT c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.created_at, c.updated_at, c.created_by, c.updated_by, c.is_demo_customer,
+  )`;
+  const visible_customers = `SELECT DISTINCT c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.created_at, c.updated_at, c.created_by, c.updated_by, c.is_demo_customer,
   c.is_disabled,
   COUNT(cb.customer_id) AS bank_count,
           COALESCE(SUM(work_allocations.allocation_count), 0) AS allocation_count
@@ -242,58 +251,17 @@ async function getMultiple(page = 1, perPage=0, currentUserId){
           AND permissions LIKE '%R%'
       )
     )
-    GROUP BY c.id ${subset};`,
-    [currentUserId, currentUserId]);
+    GROUP BY c.id ${having}`;
+  const rows = await db.query(
+    `${permissions}
+    ${visible_customers}
+    ${orderBy} ${subset};`,
+    [currentUserId, currentUserId, ...filter_params]);
 
-  //New query: count only the customers assigned to the current user, by their role(s)
   const total = await db.query(
-    `WITH user_permissions AS (
-      select 
-        rp.area,
-        rp.permissions
-      FROM users u
-      JOIN user_roles ur ON ur.user_id = u.id
-      JOIN roles r ON r.id = ur.role_id
-      JOIN role_permissions rp ON rp.role_id = r.id
-      WHERE u.id=(?)
-    )
-    SELECT count(DISTINCT c.id) count
-    FROM customers c
-    LEFT JOIN user_customers uc ON uc.customer_id = c.id AND uc.user_id=(?)
-    WHERE 
-      -- Must have 'R' permission on 'customers' area
-      (
-        -- Case 1: Has 'customers' R but NO 'customer_resources_by_customer_id' R
-        -- Return all customers
-        (
-          NOT EXISTS (
-            SELECT 1 FROM user_permissions
-            WHERE area = 'customer_resources_by_customer_id'
-              AND permissions LIKE '%R%'
-          )
-        )
-        OR
-        -- Case 2: Has both 'customers' R AND 'customer_resources_by_customer_id' R
-        -- Return only linked customers
-        (
-          EXISTS (
-            SELECT 1 FROM user_permissions
-            WHERE area = 'customer_resources_by_customer_id'
-              AND permissions LIKE '%R%'
-          )
-          AND uc.user_id IS NOT NULL
-        )
-      )
-      -- Disabled customers are visible only to users with 'R' on 'customers_advanced_features'
-      AND (
-        c.is_disabled = 0
-        OR EXISTS (
-          SELECT 1 FROM user_permissions
-          WHERE area = 'customers_advanced_features'
-            AND permissions LIKE '%R%'
-        )
-      );`,
-    [currentUserId, currentUserId]
+    `${permissions}
+    SELECT count(*) count FROM (${visible_customers}) AS filtered_list;`,
+    [currentUserId, currentUserId, ...filter_params]
   );
   const total_records = total[0].count;
 

@@ -12,14 +12,29 @@
 
   <div class="infotitle" [hidden]="loading || this.rawMaterials.length <= 0">{{ 'raw_materials:list.total' | t: { count: totalRecords } }}</div>
 
+  <!-- filter: by one column, or by all of them -->
+  <div class="raw_filter d-flex align-items-center gap-2 mb-2" [hidden]="loading || (this.rawMaterials.length <= 0 && !filterActive)">
+    <select class="form-select form-select-sm raw_filter_column" [value]="filterColumn" (change)="filterColumnChanged($any($event.target).value); filter_text.focus()">
+      <option value="">{{ 'raw_materials:list.filter_all' | t }}</option>
+      <option value="name">{{ 'raw_materials:list.col_name' | t }}</option>
+      <option value="total_quantity">{{ 'raw_materials:list.col_total' | t }}</option>
+      <option value="last_purchase">{{ 'raw_materials:list.col_last_purchase' | t }}</option>
+      <option value="last_update_by">{{ 'raw_materials:list.col_last_update_by' | t }}</option>
+    </select>
+    <input #filter_text type="search" class="form-control form-control-sm raw_filter_text" [value]="filterText" (input)="filterTextChanged($any($event.target).value)" [attr.placeholder]="'raw_materials:list.filter_placeholder' | t">
+    @if (filterActive) {
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearFilter()" [attr.title]="'raw_materials:list.filter_clear' | t">✕</button>
+    }
+  </div>
+
   <div [hidden]="loading || this.rawMaterials.length == 0">
 <table class="table table-responsive table-striped table-hover">
     <thead>
       <tr>
-        <th scope="col">{{ 'raw_materials:list.col_name' | t }}</th>
-        <th scope="col">{{ 'raw_materials:list.col_total' | t }}</th>
-        <th scope="col">{{ 'raw_materials:list.col_last_purchase' | t }}</th>
-        <th scope="col">{{ 'raw_materials:list.col_last_update_by' | t }}</th>
+        <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('name')" (click)="sortBy('name')">{{ 'raw_materials:list.col_name' | t }} {{ sortIndicator('name') }}</th>
+        <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('total_quantity')" (click)="sortBy('total_quantity')">{{ 'raw_materials:list.col_total' | t }} {{ sortIndicator('total_quantity') }}</th>
+        <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('last_purchase')" (click)="sortBy('last_purchase')">{{ 'raw_materials:list.col_last_purchase' | t }} {{ sortIndicator('last_purchase') }}</th>
+        <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('last_update_by')" (click)="sortBy('last_update_by')">{{ 'raw_materials:list.col_last_update_by' | t }} {{ sortIndicator('last_update_by') }}</th>
       </tr>
     </thead>
     <tbody>
@@ -56,7 +71,9 @@
   <app-paginator #paginator [pages]=4  (onPageChange)="pageChange($event)" />
 </div>
 
-  <div [hidden]="loading || this.rawMaterials.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
+  <div [hidden]="loading || this.rawMaterials.length > 0 || !filterActive" class="text-center my-4">{{ 'raw_materials:list.no_matches' | t }}</div>
+
+  <div [hidden]="loading || this.rawMaterials.length > 0 || filterActive" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
     {{ 'raw_materials:list.empty' | t }}<br/>
 {{ 'raw_materials:list.empty_hint' | t }}
   </div>

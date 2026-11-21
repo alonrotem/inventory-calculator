@@ -10,7 +10,11 @@
     "col_last_update_by": "Last update by",
     "left": "({{quantity}} left)",
     "empty": "No raw materials added.",
-    "empty_hint": "Please add some by clicking the + button above."
+    "empty_hint": "Please add some by clicking the + button above.",
+    "filter_placeholder": "Filter…",
+    "filter_all": "All columns",
+    "filter_clear": "Clear the filter",
+    "no_matches": "No raw materials match the filter."
   },
   "history": {
     "title": "Transaction history",

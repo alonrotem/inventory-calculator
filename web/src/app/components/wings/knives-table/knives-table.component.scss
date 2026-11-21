@@ -32,3 +32,17 @@ h1 {
         vector-effect: non-scaling-stroke;   // 1px whatever the knife's size in cm
     }
 }
+
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.knives_filter_column {
+    width: auto;
+}
+
+.knives_filter_text {
+    max-width: 260px;
+}

@@ -20,7 +20,11 @@
     "width": "Width",
     "empty": "No knives added.",
     "empty_hint": "Please add some by clicking the + button above.",
-    "load_failed": "Could not load the knives"
+    "load_failed": "Could not load the knives",
+    "filter_placeholder": "Filter…",
+    "filter_all": "All columns",
+    "filter_clear": "Clear the filter",
+    "no_matches": "No knives match the filter."
   },
   "details": {
     "title": "Edit Knife",

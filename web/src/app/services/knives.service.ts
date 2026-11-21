@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { Observable } from 'rxjs';
-import { Knife, KnivesList, PaginationParams } from '../../types';
+import { Knife, KnivesList, ListParams } from '../../types';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -18,7 +18,7 @@ export class KnivesService {
   };
 
   // with_shape: include each knife's drawing (data), e.g. for thumbnails
-  getKnives = (params: PaginationParams, with_shape: boolean = false): Observable<KnivesList> => {
+  getKnives = (params: ListParams, with_shape: boolean = false): Observable<KnivesList> => {
     return this.apiService.get(`${environment.serverUrl}/knives/`, {
       params: with_shape ? { ...params, with_shape: true } : params,
       responseType: 'json'

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { lastValueFrom, Observable, of } from 'rxjs';
-import { PaginationParams, Wing, ShortWingsInfo, WingsList, WingsListItem, WingBaby,  } from '../../types';
+import { ListParams, Wing, ShortWingsInfo, WingsList, WingsListItem, WingBaby,  } from '../../types';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -25,16 +25,17 @@ export class WingsService {
     });
   };
 
-  getWings = (params: PaginationParams): Observable<WingsList> => {
+  getWings = (params: ListParams): Observable<WingsList> => {
     return this.apiService.get(`${environment.serverUrl}/wings/`, {
       params,
       responseType: 'json'
     });
   };
 
-  getWings_for_customer = (customerID: number, customerWingsOnly: boolean=false): Observable<WingsList> => {
+  // sorting and filtering (see ListParams) can be asked for here too; the customer's wings are all returned, not paged
+  getWings_for_customer = (customerID: number, customerWingsOnly: boolean=false, list: Partial<ListParams> = {}): Observable<WingsList> => {
     return this.apiService.get(`${environment.serverUrl}/wings/customer/${customerID}`, {
-      params: { customerWingsOnly },
+      params: { customerWingsOnly, sort_column: list.sort_column, sort_direction: list.sort_direction, filter_column: list.filter_column, filter_expression: list.filter_expression },
       responseType: 'json'
     });
   };

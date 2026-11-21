@@ -12,7 +12,11 @@
     "disabled": "Disabled",
     "demo": "DEMO",
     "empty": "No customers available.",
-    "back_to_list": "Back to customers list"
+    "back_to_list": "Back to customers list",
+    "filter_placeholder": "Filter…",
+    "filter_all": "All columns",
+    "filter_clear": "Clear the filter",
+    "no_matches": "No customers match the filter."
   },
   "picker": {
     "add": "+ Add customer",

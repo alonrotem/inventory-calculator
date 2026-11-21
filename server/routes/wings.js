@@ -7,9 +7,9 @@ const auth_request = require('../middleware/auth_request');
 router.get('/', 
   auth_request([{requiredArea:'wings', requiredPermission:'R'}, {requiredArea:'wings_through_orders', requiredPermission:'R'}]),
   async function(req, res, next) {
-  logger.info(`get /wings/ page=${req.query.page}, perPage=${req.query.perPage}`);
+  logger.info(`get /wings/ page=${req.query.page}, perPage=${req.query.perPage}, sort=${req.query.sort_column} ${req.query.sort_direction}, filter=${req.query.filter_column} ${req.query.filter_expression}`);
   try {
-    const response = await wings.getMultiple(req.query.page, req.query.perPage);
+    const response = await wings.getMultiple(req.query.page, req.query.perPage, undefined, false, req.query);
     logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
     res.json(response);
   } 
@@ -69,7 +69,7 @@ router.get('/',
     auth_request([{requiredArea:'wings', requiredPermission:'R'}, {requiredArea: 'wings_through_orders', requiredPermission:'R'}]),
     logger.info(`get /wings/customer/${req.params.id}`);
     try {
-      const response = await wings.getWingsForCustomer(req.params.id, req.query.customerWingsOnly === 'true');
+      const response = await wings.getWingsForCustomer(req.params.id, req.query.customerWingsOnly === 'true', req.query);
       logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
       res.json(response);
     } 

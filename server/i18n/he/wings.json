@@ -9,7 +9,11 @@
     "col_knife": "סכין",
     "col_babies": "תינוקות",
     "empty": "לא נוספו כנפיים.",
-    "empty_hint": "אפשר להוסיף בלחיצה על כפתור ה־+ שלמעלה."
+    "empty_hint": "אפשר להוסיף בלחיצה על כפתור ה־+ שלמעלה.",
+    "filter_placeholder": "סינון…",
+    "filter_all": "כל העמודות",
+    "filter_clear": "ניקוי הסינון",
+    "no_matches": "אין כנפיים שמתאימות לסינון."
   },
   "babies_table": {
     "count_one": "תינוק {{count, number}}",

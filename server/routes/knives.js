@@ -12,9 +12,9 @@ const auth_request = require('../middleware/auth_request');
     with_shape=true adds each knife's drawing (data), e.g. for thumbnails
 */
 router.get('/', auth_request([{ requiredArea: 'knives', requiredPermission: 'R' }]), async function(req, res, next) {
-  logger.info(`get /knives/ page=${req.query.page}, perPage=${req.query.perPage}, with_shape=${req.query.with_shape}`);
+  logger.info(`get /knives/ page=${req.query.page}, perPage=${req.query.perPage}, with_shape=${req.query.with_shape}, sort=${req.query.sort_column} ${req.query.sort_direction}, filter=${req.query.filter_column} ${req.query.filter_expression}`);
   try {
-    const response = await knives.getMultiple(req.query.page, req.query.perPage, req.query.with_shape === 'true');
+    const response = await knives.getMultiple(req.query.page, req.query.perPage, req.query.with_shape === 'true', req.query);
     logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
     res.json(response);
   }

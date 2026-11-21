@@ -4,6 +4,7 @@ const helper = require('../helper');
 const config = require('../config');
 const { raw } = require('mysql2');
 const { logger } = require('../logger')
+const { buildListQuery } = require('./list-query');
 
 async function getSingle(id){
     const rows = await db.query(
@@ -53,7 +54,19 @@ async function getSingleWingByName(name){
   return data;
 }
 
-async function getMultiple(page = 1, perPage, customer_id, customer_wings_only=false) {
+// the columns of the list that can be sorted and filtered (the list is grouped, so it is filtered with HAVING)
+const LIST_COLUMNS = {
+  name: { sql: 'w.name', type: 'text' },
+  customer_name: { sql: 'customer_name', type: 'text' },
+  knife: { sql: 'w.knife', type: 'number' },
+  Left: { sql: '`Left`', type: 'number' },
+  Right: { sql: '`Right`', type: 'number' },
+  Top: { sql: '`Top`', type: 'number' },
+  Crown: { sql: '`Crown`', type: 'number' }
+};
+
+// `list` (optional): { sort_column, sort_direction, filter_column, filter_expression }, see list-query.js
+async function getMultiple(page = 1, perPage, customer_id, customer_wings_only=false, list = {}) {
   let subset =  '';
   if(page && perPage && page > 0 && perPage > 0)
   {
@@ -70,8 +83,8 @@ async function getMultiple(page = 1, perPage, customer_id, customer_wings_only=f
     }
   }
 
-  const rows = await db.query(
-    `SELECT
+  const { where: having, params, orderBy } = buildListQuery(list, LIST_COLUMNS, 'w.name', 'HAVING');
+  const wings_select = `SELECT
         w.id, w.name,
         EXISTS (SELECT 1 FROM wings_customers wc2 WHERE wc2.wing_id = w.id) AS is_customer_wing,
         w.knife, w.split_l1, crown_width,
@@ -91,16 +104,16 @@ async function getMultiple(page = 1, perPage, customer_id, customer_wings_only=f
     WHERE w.id NOT IN (SELECT wing_id FROM customer_hats ch)
      ${customer_filter}
     GROUP BY w.id, w.name, w.knife, w.split_l1, crown_width
-    order by w.name ${subset};`
+    ${having}`;
+  const rows = await db.query(
+    `${wings_select}
+    ${orderBy} ${subset};`,
+    params
   );
 
   const total = await db.query(
-    `SELECT COUNT(DISTINCT w.id) AS count
-      FROM wings w
-      LEFT JOIN wings_customers wc ON wc.wing_id = w.id
-      LEFT JOIN customers c ON c.id = wc.customer_id
-      WHERE w.id NOT IN (SELECT wing_id FROM customer_hats ch) 
-      ${customer_filter}`
+    `SELECT COUNT(*) AS count FROM (${wings_select}) AS filtered_list`,
+    params
   );
 
   const total_records = total[0].count;
@@ -114,8 +127,8 @@ async function getMultiple(page = 1, perPage, customer_id, customer_wings_only=f
   }
 }
 
-async function getWingsForCustomer(customerId, customer_wings_only=false) {
-  return await getMultiple(undefined, 0, customerId, customer_wings_only);
+async function getWingsForCustomer(customerId, customer_wings_only=false, list = {}) {
+  return await getMultiple(undefined, 0, customerId, customer_wings_only, list);
 }
 
 //column names are shortened, to reduce traffic

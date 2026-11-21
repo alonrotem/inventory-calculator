@@ -6,6 +6,7 @@ const config = require('../config');
 const customers = require('./customers');
 const transaction_history = require('./transaction_history');
 const { raw } = require('mysql2');
+const { buildListQuery } = require('./list-query');
 
 async function getSingle(id){
     const rows = await db.query(
@@ -48,18 +49,24 @@ async function getSingle(id){
     return raw_material;
 }
 
-async function getMultiple(page = 1, perPage){
+// the columns of the list that can be sorted and filtered: the aliases of the select (the list is grouped, so it is filtered with HAVING)
+const LIST_COLUMNS = {
+  name: { sql: 'name', type: 'text' },
+  total_quantity: { sql: 'total_quantity', type: 'number' },
+  last_purchase: { sql: "DATE_FORMAT(last_purchase, '%Y-%m-%d')", type: 'text' },
+  last_update_by: { sql: 'last_update_by', type: 'text' }
+};
+
+// `list` (optional): { sort_column, sort_direction, filter_column, filter_expression }, see list-query.js
+async function getMultiple(page = 1, perPage, list = {}){
   let subset =  '';
-  //console.log("page -> " + page);
-  //console.log("perPage -> " + perPage);
-  //console.log("(page && perPage) -> " + (page && perPage));  
   if(page && perPage && page > 0 && perPage > 0)
   {
     const offset = helper.getOffset(page, perPage);
     subset = `LIMIT ${offset},${perPage}`
   }
-  const rows = await db.query(
-    `WITH latest_purchases AS (
+  const { where: having, params, orderBy } = buildListQuery(list, LIST_COLUMNS, 'last_purchase DESC', 'HAVING');
+  const latest = `WITH latest_purchases AS (
         SELECT 
             rmp.*,
             ROW_NUMBER() OVER (
@@ -67,8 +74,8 @@ async function getMultiple(page = 1, perPage){
                 ORDER BY rmp.purchased_at DESC, rmp.id DESC
             ) AS rn
         FROM raw_material_purchases rmp
-    )
-    SELECT 
+    )`;
+  const list_select = `SELECT 
         rm.id,
         rm.name,
         rm.color,
@@ -86,10 +93,17 @@ async function getMultiple(page = 1, perPage){
         ON u.id = lp.updated_by
     GROUP BY 
         rm.id, rm.name, rm.color, lp.quantity_units, u.firstname, u.lastname
-    ORDER BY last_purchase DESC ${subset}`
+    ${having}`;
+  const rows = await db.query(
+    `${latest}
+    ${list_select}
+    ${orderBy} ${subset}`,
+    params
   );
   const total = await db.query(
-    `SELECT count(*) as count FROM raw_materials`
+    `${latest}
+    SELECT count(*) as count FROM (${list_select}) AS filtered_list`,
+    params
   );
   const total_records = total[0].count;
   /*

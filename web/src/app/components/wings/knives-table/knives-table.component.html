@@ -12,13 +12,26 @@
 
   <div class="infotitle" [hidden]="loading || this.knives.length <= 0">{{ 'knives:list.total' | t: { count: totalRecords } }}</div>
 
+  <!-- filter: by one column, or by all of them -->
+  <div class="knives_filter d-flex align-items-center gap-2 mb-2" [hidden]="loading || (this.knives.length <= 0 && !filterActive)">
+    <select class="form-select form-select-sm knives_filter_column" [value]="filterColumn" (change)="filterColumnChanged($any($event.target).value); filter_text.focus()">
+      <option value="">{{ 'knives:list.filter_all' | t }}</option>
+      <option value="name">{{ 'knives:list.name' | t }}</option>
+      <option value="width_cm">{{ 'knives:list.width' | t }}</option>
+    </select>
+    <input #filter_text type="search" class="form-control form-control-sm knives_filter_text" [value]="filterText" (input)="filterTextChanged($any($event.target).value)" [attr.placeholder]="'knives:list.filter_placeholder' | t">
+    @if (filterActive) {
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearFilter()" [attr.title]="'knives:list.filter_clear' | t">✕</button>
+    }
+  </div>
+
   <div [hidden]="loading || this.knives.length == 0">
   <table class="table table-responsive table-striped table-hover">
     <thead>
       <tr>
         <th scope="col" class="knife_thumbnail_col"></th>
-        <th scope="col">{{ 'knives:list.name' | t }}</th>
-        <th scope="col">{{ 'knives:list.width' | t }}</th>
+        <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('name')" (click)="sortBy('name')">{{ 'knives:list.name' | t }} {{ sortIndicator('name') }}</th>
+        <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('width_cm')" (click)="sortBy('width_cm')">{{ 'knives:list.width' | t }} {{ sortIndicator('width_cm') }}</th>
       </tr>
     </thead>
     <tbody>
@@ -34,7 +47,7 @@
           }
         </td>
         <td>{{ knife.name }}</td>
-        <td>{{ 'common:units.cm' | t: { value: knife.width_cm } }}</td>
+        <td>{{ 'common:units.cm_1' | t: { value: knife.width_cm } }}</td>
       </tr>
     </tbody>
   </table>
@@ -42,7 +55,9 @@
   <app-paginator #paginator [pages]=4  (onPageChange)="pageChange($event)" />
   </div>
 
-  <div [hidden]="loading || this.knives.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
+  <div [hidden]="loading || this.knives.length > 0 || !filterActive" class="text-center my-4">{{ 'knives:list.no_matches' | t }}</div>
+
+  <div [hidden]="loading || this.knives.length > 0 || filterActive" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
     {{ 'knives:list.empty' | t }}<br/>
     {{ 'knives:list.empty_hint' | t }}
   </div>

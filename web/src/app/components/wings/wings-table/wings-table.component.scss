@@ -30,3 +30,16 @@ h1 {
 .infotitle {
     margin: 1px 0px 6px 0px;
 }
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.wings_filter_column {
+    width: auto;
+}
+
+.wings_filter_text {
+    max-width: 260px;
+}

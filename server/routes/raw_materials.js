@@ -12,9 +12,9 @@ const auth_request = require('../middleware/auth_request');
         http://localhost:3000/raw_materials/
 */
 router.get('/', auth_request([{ requiredArea: 'raw_materials', requiredPermission: 'R' }]), async function(req, res, next) {
-  logger.info(`get /raw_materials/ page=${req.query.page}, perPage=${req.query.perPage}`);
+  logger.info(`get /raw_materials/ page=${req.query.page}, perPage=${req.query.perPage}, sort=${req.query.sort_column} ${req.query.sort_direction}, filter=${req.query.filter_column} ${req.query.filter_expression}`);
   try {
-    const response = await raw_materials.getMultiple(req.query.page, req.query.perPage);
+    const response = await raw_materials.getMultiple(req.query.page, req.query.perPage, req.query);
     logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
     res.json(response);
   } 

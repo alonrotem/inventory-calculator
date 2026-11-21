@@ -13,7 +13,11 @@
     "disabled": "מושבת",
     "demo": "הדגמה",
     "empty": "אין לקוחות.",
-    "back_to_list": "חזרה לרשימת הלקוחות"
+    "back_to_list": "חזרה לרשימת הלקוחות",
+    "filter_placeholder": "סינון…",
+    "filter_all": "כל העמודות",
+    "filter_clear": "ניקוי הסינון",
+    "no_matches": "אין לקוחות שמתאימים לסינון."
   },
   "picker": {
     "add": "+ הוספת לקוח",

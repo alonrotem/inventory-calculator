@@ -62,3 +62,16 @@ h1 {
     border-radius: 6px;
     margin-inline-start: 2px;
 }
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.customers_filter_column {
+    width: auto;
+}
+
+.customers_filter_text {
+    max-width: 260px;
+}

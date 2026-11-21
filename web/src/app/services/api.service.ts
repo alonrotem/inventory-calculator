@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { catchError, from, mergeMap, Observable, throwError } from 'rxjs';
-import { Options } from '../../types';
+import { GetOptions, Options } from '../../types';
 
 @Injectable({
   providedIn: 'root'
@@ -12,8 +12,13 @@ export class ApiService {
     private httpClient: HttpClient
   ) { }
 
-  get<T>(url: string, options: Options): Observable<T>{
-    return this.httpClient.get<T>(url, options) as Observable<T>;
+  get<T>(url: string, options: GetOptions): Observable<T>{
+    // params that are not set (e.g. no sorting or filtering of a list) are not sent
+    const params = options.params;
+    if (params && !(params instanceof HttpParams)) {
+      options = { ...options, params: Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined)) as Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>> };
+    }
+    return this.httpClient.get<T>(url, options as any) as Observable<T>;
   }
 
   get_file(url: string): Observable<HttpResponse<Blob>> {

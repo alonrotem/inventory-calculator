@@ -20,6 +20,13 @@ export interface Options {
     } | boolean;
 }
 
+/** The options of a GET: its params can have values that are not set (undefined), which are not sent (e.g. no sorting or filtering of a list). */
+export interface GetOptions extends Omit<Options, 'params'> {
+    params?: HttpParams | {
+        [param: string]: string | number | boolean | undefined | ReadonlyArray<string | number | boolean>;
+    };
+}
+
 export interface RawMaterialListItem {
     id: number;
     name: string;
@@ -220,10 +227,18 @@ export interface HatBasicInfo {
 }
 */
 
-export interface PaginationParams {
-    [key:string]: string | number | boolean | ReadonlyArray<string | number | boolean>;
+/**
+ * What a list page asks the server for: a page of the list, optionally sorted and filtered (by the server, before paging).
+ * Only the columns that the server allows for that list can be used (see server/services/list-query.js).
+ */
+export interface ListParams {
+    [key:string]: string | number | boolean | undefined | ReadonlyArray<string | number | boolean>;
     page: number;
     perPage: number;
+    sort_column?: string;
+    sort_direction?: 'asc' | 'desc';       // ascending when left out
+    filter_column?: string;                // the column the filter is about; all columns when left out
+    filter_expression?: string;            // text: contained in the column; number columns: a number, or >5, <=10 ...
 }
 
 export interface Country {

@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
-import { WingsList, WingsListItem } from '../../../../types';
+import { ListParams, WingsList, WingsListItem } from '../../../../types';
 import { PaginatorComponent } from '../../common/paginator/paginator.component';
 import { faArrowsRotate, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { WingsService } from '../../../services/wings.service';
@@ -14,6 +14,7 @@ import { SettingsService } from '../../../services/settings.service';
 import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
 import { Observable } from 'rxjs';
 import { TranslatePipe } from '../../../i18n/translate.pipe';
+import { loadListSort, saveListSort } from '../../../utils/list-sort-storage';
 
 @Component({
   selector: 'app-wings-table',
@@ -62,11 +63,36 @@ export class WingsTableComponent extends NavigatedMessageComponent implements On
     }
   }
 
+  // sorting and filtering (by the server, before paging)
+  // the sort the list was left with is kept, so that it opens the same way next time
+  private static readonly SORT_KEY = 'wings';
+  private static readonly SORT_COLUMNS = ['name', 'knife', 'Left', 'Right', 'Top', 'Crown'];
+  sortColumn?: string = loadListSort(WingsTableComponent.SORT_KEY, WingsTableComponent.SORT_COLUMNS)?.column;
+  sortDirection: 'asc' | 'desc' = loadListSort(WingsTableComponent.SORT_KEY, WingsTableComponent.SORT_COLUMNS)?.direction ?? 'asc';
+  filterColumn: string = '';        // '' : all columns
+  filterText: string = '';
+  private filterTimer: ReturnType<typeof setTimeout> | undefined;
+
+  get filterActive(): boolean {
+    return this.filterText.trim() !== '';
+  }
+
   getWings (page: number){
     console.log(`Getting wings for page ${page} with customerId=${this.customerId} and showOnlyCustomerWings=${this.showOnlyCustomerWings}`);
+    const list: ListParams = { page: page, perPage: this.rowsPerPage };
+    if (this.sortColumn) {
+      list.sort_column = this.sortColumn;
+      list.sort_direction = this.sortDirection;
+    }
+    if (this.filterActive) {
+      list.filter_expression = this.filterText.trim();
+      if (this.filterColumn) {
+        list.filter_column = this.filterColumn;
+      }
+    }
     const wlist: Observable<WingsList> = (this.customerId === null) ?
-      this.wingsService.getWings({ page: page, perPage:this.rowsPerPage }):
-      this.wingsService.getWings_for_customer(this.customerId, this.showOnlyCustomerWings);
+      this.wingsService.getWings(list):
+      this.wingsService.getWings_for_customer(this.customerId, this.showOnlyCustomerWings, list);
 
     wlist.subscribe(
       {
@@ -86,6 +112,47 @@ export class WingsTableComponent extends NavigatedMessageComponent implements On
 
   async ngOnInit() {
 
+  }
+
+  /** A column header was clicked: sort by it, ascending; again: descending. */
+  sortBy(column: string) {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    }
+    else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    saveListSort(WingsTableComponent.SORT_KEY, { column: this.sortColumn, direction: this.sortDirection });
+    this.getWings(1);
+  }
+
+  sortIndicator(column: string): string {
+    return this.sortColumn === column ? (this.sortDirection === 'asc' ? '▲' : '▼') : '';
+  }
+
+  ariaSort(column: string): 'ascending' | 'descending' | 'none' {
+    return this.sortColumn === column ? (this.sortDirection === 'asc' ? 'ascending' : 'descending') : 'none';
+  }
+
+  /** The filter text was typed: the list is asked for after a short pause in typing. */
+  filterTextChanged(text: string) {
+    this.filterText = text;
+    clearTimeout(this.filterTimer);
+    this.filterTimer = setTimeout(() => this.getWings(1), 300);
+  }
+
+  filterColumnChanged(column: string) {
+    this.filterColumn = column;
+    if (this.filterActive) {
+      this.getWings(1);
+    }
+  }
+
+  clearFilter() {
+    clearTimeout(this.filterTimer);
+    this.filterText = '';
+    this.getWings(1);
   }
 
   pageChange (page: number) {

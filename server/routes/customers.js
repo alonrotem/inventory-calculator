@@ -15,8 +15,8 @@ router.get('/',
   auth_request([{requiredArea:'customers', requiredPermission:'R'}, {requiredArea:'customer_resources_by_customer_id', requiredPermission:'R'}]), 
   async function(req, res, next) {
   try {
-    logger.info(`get /customers/ page=${req.query.page}, perPage=${req.query.perPage}`);
-    let response = await customers.getMultiple(req.query.page, req.query.perPage, req["auth_token"].id);
+    logger.info(`get /customers/ page=${req.query.page}, perPage=${req.query.perPage}, sort=${req.query.sort_column} ${req.query.sort_direction}, filter=${req.query.filter_column} ${req.query.filter_expression}`);
+    let response = await customers.getMultiple(req.query.page, req.query.perPage, req["auth_token"].id, req.query);
     logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
     res.json(response);
   } 

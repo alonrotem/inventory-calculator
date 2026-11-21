@@ -1,6 +1,7 @@
 const db = require('./db');
 const helper = require('../helper');
 const i18n = require('./i18n');
+const { buildListQuery } = require('./list-query');
 
 // A knife is { id, name, width_cm, data }: `name` (unique) and `width_cm` have their own columns,
 // `data` holds the drawing (size_cm, nodes, regions) as JSON.
@@ -18,19 +19,29 @@ async function getSingle(id){
   return helper.emptyOrSingle(rows);
 }
 
-// for lists: without the drawing data, unless with_shape (e.g. for thumbnails)
-async function getMultiple(page = 1, perPage, with_shape = false){
+// the columns of the list that can be sorted and filtered
+const LIST_COLUMNS = {
+  name: { sql: 'name', type: 'text' },
+  width_cm: { sql: 'width_cm', type: 'number' }
+};
+
+// for lists: without the drawing data, unless with_shape (e.g. for thumbnails).
+// `list` (optional): { sort_column, sort_direction, filter_column, filter_expression }, see list-query.js
+async function getMultiple(page = 1, perPage, with_shape = false, list = {}){
   let subset = '';
   if(page && perPage && page > 0 && perPage > 0)
   {
     const offset = helper.getOffset(page, perPage);
     subset = `LIMIT ${offset},${perPage}`
   }
+  const { where, params, orderBy } = buildListQuery(list, LIST_COLUMNS, 'name');
   const rows = await db.query(
-    `SELECT id, name, width_cm${with_shape? ', data' : ''} FROM knives ORDER BY name ${subset}`
+    `SELECT id, name, width_cm${with_shape? ', data' : ''} FROM knives ${where} ${orderBy} ${subset}`,
+    params
   );
   const total = await db.query(
-    `SELECT count(*) as count FROM knives`
+    `SELECT count(*) as count FROM knives ${where}`,
+    params
   );
   const total_records = total[0].count;
   const total_pages = (perPage > 0)? Math.ceil(total_records / perPage) : 1;

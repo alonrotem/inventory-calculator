@@ -1,5 +1,5 @@
 import { Component, inject, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { BasicUserInfoStatus, Customer, CustomerListItem, Customers } from '../../../../types';
+import { BasicUserInfoStatus, Customer, CustomerListItem, Customers, ListParams } from '../../../../types';
 import { AsyncPipe, DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { PaginatorComponent } from "../../common/paginator/paginator.component";
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -24,6 +24,7 @@ import { UsersService } from '../../../services/users.service';
 import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
 import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { TranslationService } from '../../../i18n/translation.service';
+import { loadListSort, saveListSort } from '../../../utils/list-sort-storage';
 
 @Component({
   selector: 'app-customers-table',
@@ -63,11 +64,36 @@ export class CustomersTableComponent extends NavigatedMessageComponent implement
 
   user$ = this.usersService.user$;
 
+  // sorting and filtering (by the server, before paging)
+  // the sort the list was left with is kept, so that it opens the same way next time
+  private static readonly SORT_KEY = 'customers';
+  private static readonly SORT_COLUMNS = ['name', 'business_name', 'bank_count', 'allocation_count'];
+  sortColumn?: string = loadListSort(CustomersTableComponent.SORT_KEY, CustomersTableComponent.SORT_COLUMNS)?.column;
+  sortDirection: 'asc' | 'desc' = loadListSort(CustomersTableComponent.SORT_KEY, CustomersTableComponent.SORT_COLUMNS)?.direction ?? 'asc';
+  filterColumn: string = '';        // '' : all columns
+  filterText: string = '';
+  private filterTimer: ReturnType<typeof setTimeout> | undefined;
+
+  get filterActive(): boolean {
+    return this.filterText.trim() !== '';
+  }
+
   getCustomers(page: number){
-    this.customersService.getCustomers({ 
-      page: page, 
+    const list: ListParams = {
+      page: page,
       perPage: ((this.paged)? this.rowsPerPage : -1)
-    }).subscribe(
+    };
+    if (this.sortColumn) {
+      list.sort_column = this.sortColumn;
+      list.sort_direction = this.sortDirection;
+    }
+    if (this.filterActive) {
+      list.filter_expression = this.filterText.trim();
+      if (this.filterColumn) {
+        list.filter_column = this.filterColumn;
+      }
+    }
+    this.customersService.getCustomers(list).subscribe(
     {
       next: (customers: Customers) => {
         this.loading = false;
@@ -88,6 +114,47 @@ export class CustomersTableComponent extends NavigatedMessageComponent implement
 
     this.getCustomers(1);
     history.replaceState({}, location.href);
+  }
+
+  /** A column header was clicked: sort by it, ascending; again: descending. */
+  sortBy(column: string) {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    }
+    else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    saveListSort(CustomersTableComponent.SORT_KEY, { column: this.sortColumn, direction: this.sortDirection });
+    this.getCustomers(1);
+  }
+
+  sortIndicator(column: string): string {
+    return this.sortColumn === column ? (this.sortDirection === 'asc' ? '▲' : '▼') : '';
+  }
+
+  ariaSort(column: string): 'ascending' | 'descending' | 'none' {
+    return this.sortColumn === column ? (this.sortDirection === 'asc' ? 'ascending' : 'descending') : 'none';
+  }
+
+  /** The filter text was typed: the list is asked for after a short pause in typing. */
+  filterTextChanged(text: string) {
+    this.filterText = text;
+    clearTimeout(this.filterTimer);
+    this.filterTimer = setTimeout(() => this.getCustomers(1), 300);
+  }
+
+  filterColumnChanged(column: string) {
+    this.filterColumn = column;
+    if (this.filterActive) {
+      this.getCustomers(1);
+    }
+  }
+
+  clearFilter() {
+    clearTimeout(this.filterTimer);
+    this.filterText = '';
+    this.getCustomers(1);
   }
 
   pageChange (page: number) {

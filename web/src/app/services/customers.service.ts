@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { Observable } from 'rxjs';
-import { Customers, Customer, PaginationParams  } from '../../types';
+import { Customers, Customer, ListParams  } from '../../types';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -23,7 +23,7 @@ export class CustomersService {
     });
   };
 
-  getCustomers = (params: PaginationParams): Observable<Customers> => {
+  getCustomers = (params: ListParams): Observable<Customers> => {
     return this.apiService.get(`${environment.serverUrl}/customers/`, {
       params,
       responseType: 'json'

@@ -12,14 +12,29 @@
 
   <div class="infotitle" [hidden]="loading || this.customers.length <= 0">{{ 'customers:list.total' | t: { count: totalRecords } }}</div>
 
+  <!-- filter: by one column, or by all of them -->
+  <div class="customers_filter d-flex align-items-center gap-2 mb-2" [hidden]="loading || (this.customers.length <= 0 && !filterActive)">
+    <select class="form-select form-select-sm customers_filter_column" [value]="filterColumn" (change)="filterColumnChanged($any($event.target).value); filter_text.focus()">
+      <option value="">{{ 'customers:list.filter_all' | t }}</option>
+      <option value="name">{{ 'customers:list.name' | t }}</option>
+      <option value="business_name">{{ 'customers:list.business_name' | t }}</option>
+      <option value="bank_count">{{ 'customers:list.raw_material_banks' | t }}</option>
+      <option value="allocation_count">{{ 'customers:list.work_allocations' | t }}</option>
+    </select>
+    <input #filter_text type="search" class="form-control form-control-sm customers_filter_text" [value]="filterText" (input)="filterTextChanged($any($event.target).value)" [attr.placeholder]="'customers:list.filter_placeholder' | t">
+    @if (filterActive) {
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearFilter()" [attr.title]="'customers:list.filter_clear' | t">✕</button>
+    }
+  </div>
+
   <div [hidden]="loading || this.customers.length == 0">
 <table class="table table-responsive table-striped table-hover">
     <thead>
       <tr>
-        <th scope="col">{{ 'customers:list.name' | t }}</th>
-        <th scope="col">{{ 'customers:list.business_name' | t }}</th>
-        <th scope="col" class="text-center">{{ 'customers:list.raw_material_banks' | t }}</th>
-        <th scope="col" class="text-center">{{ 'customers:list.work_allocations' | t }}</th>
+        <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('name')" (click)="sortBy('name')">{{ 'customers:list.name' | t }} {{ sortIndicator('name') }}</th>
+        <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('business_name')" (click)="sortBy('business_name')">{{ 'customers:list.business_name' | t }} {{ sortIndicator('business_name') }}</th>
+        <th scope="col" class="text-center sortable" [attr.aria-sort]="ariaSort('bank_count')" (click)="sortBy('bank_count')">{{ 'customers:list.raw_material_banks' | t }} {{ sortIndicator('bank_count') }}</th>
+        <th scope="col" class="text-center sortable" [attr.aria-sort]="ariaSort('allocation_count')" (click)="sortBy('allocation_count')">{{ 'customers:list.work_allocations' | t }} {{ sortIndicator('allocation_count') }}</th>
         <td scope="col" class="text-center">{{ 'customers:list.orders' | t }}</td>
       </tr>
     </thead>
@@ -44,7 +59,9 @@
   <app-paginator #paginator [pages]=4  (onPageChange)="pageChange($event)" />
 </div>
 
-  <div [hidden]="loading || this.customers.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
+  <div [hidden]="loading || this.customers.length > 0 || !filterActive" class="text-center my-4">{{ 'customers:list.no_matches' | t }}</div>
+
+  <div [hidden]="loading || this.customers.length > 0 || filterActive" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
     {{ 'customers:list.empty' | t }}
   </div>
 </div>

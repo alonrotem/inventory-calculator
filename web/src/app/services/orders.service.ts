@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
-import { CustomerHat, Order, OrderDetails, OrderListItem, OrdersList, PaginationParams } from '../../types';
+import { CustomerHat, Order, OrderDetails, OrderListItem, OrdersList, ListParams } from '../../types';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -15,7 +15,7 @@ export class OrdersService {
     return this.apiService.put(`${environment.serverUrl}/orders/`, customerHat, { });
   };
 
-  getOrders = (params: PaginationParams, customer_id: number): Observable<OrdersList> => {
+  getOrders = (params: ListParams, customer_id: number): Observable<OrdersList> => {
     if(customer_id > 0)
       params["customer_id"] = customer_id;
     

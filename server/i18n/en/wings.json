@@ -8,7 +8,11 @@
     "col_knife": "Knife",
     "col_babies": "Babies",
     "empty": "No wings added.",
-    "empty_hint": "Please add some by clicking the + button above."
+    "empty_hint": "Please add some by clicking the + button above.",
+    "filter_placeholder": "Filter…",
+    "filter_all": "All columns",
+    "filter_clear": "Clear the filter",
+    "no_matches": "No wings match the filter."
   },
   "babies_table": {
     "count_one": "{{count, number}} baby",

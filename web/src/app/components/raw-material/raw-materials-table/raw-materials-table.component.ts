@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { RawMaterialsService } from '../../../services/raw-materials.service';
-import { RawMaterial, RawMaterialListItem, RawMaterials } from '../../../../types';
+import { ListParams, RawMaterial, RawMaterialListItem, RawMaterials } from '../../../../types';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { PaginatorComponent } from "../../common/paginator/paginator.component";
 import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
@@ -19,6 +19,7 @@ import { SettingsService } from '../../../services/settings.service';
 import { firstValueFrom } from 'rxjs';
 import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
 import { TranslatePipe, TranslateQuantityPipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
+import { loadListSort, saveListSort } from '../../../utils/list-sort-storage';
 
 @Component({
     selector: 'app-raw-materials-table',
@@ -55,9 +56,34 @@ export class RawMaterialsTableComponent extends NavigatedMessageComponent implem
   
   selectedCar: number=1;
 
+  // sorting and filtering (by the server, before paging)
+  // the sort the list was left with is kept, so that it opens the same way next time
+  private static readonly SORT_KEY = 'raw_materials';
+  private static readonly SORT_COLUMNS = ['name', 'total_quantity', 'last_purchase', 'last_update_by'];
+  sortColumn?: string = loadListSort(RawMaterialsTableComponent.SORT_KEY, RawMaterialsTableComponent.SORT_COLUMNS)?.column;
+  sortDirection: 'asc' | 'desc' = loadListSort(RawMaterialsTableComponent.SORT_KEY, RawMaterialsTableComponent.SORT_COLUMNS)?.direction ?? 'asc';
+  filterColumn: string = '';        // '' : all columns
+  filterText: string = '';
+  private filterTimer: ReturnType<typeof setTimeout> | undefined;
+
+  get filterActive(): boolean {
+    return this.filterText.trim() !== '';
+  }
+
   getRawMaterials(page: number){
     //console.log("this.rowsPerPage: " + this.rowsPerPage);
-    this.rawMaterialsService.getRawMaterials({ page: page, perPage:this.rowsPerPage }).subscribe(
+    const list: ListParams = { page: page, perPage: this.rowsPerPage };
+    if (this.sortColumn) {
+      list.sort_column = this.sortColumn;
+      list.sort_direction = this.sortDirection;
+    }
+    if (this.filterActive) {
+      list.filter_expression = this.filterText.trim();
+      if (this.filterColumn) {
+        list.filter_column = this.filterColumn;
+      }
+    }
+    this.rawMaterialsService.getRawMaterials(list).subscribe(
     {
       next: (rawMaterials: RawMaterials) => {
         this.loading = false;
@@ -86,6 +112,47 @@ export class RawMaterialsTableComponent extends NavigatedMessageComponent implem
       next:(data) => { this.getRawMaterials(this.current_page); },
       error:(error) => { console.log(error); }
     });
+  }
+
+  /** A column header was clicked: sort by it, ascending; again: descending. */
+  sortBy(column: string) {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    }
+    else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    saveListSort(RawMaterialsTableComponent.SORT_KEY, { column: this.sortColumn, direction: this.sortDirection });
+    this.getRawMaterials(1);
+  }
+
+  sortIndicator(column: string): string {
+    return this.sortColumn === column ? (this.sortDirection === 'asc' ? '▲' : '▼') : '';
+  }
+
+  ariaSort(column: string): 'ascending' | 'descending' | 'none' {
+    return this.sortColumn === column ? (this.sortDirection === 'asc' ? 'ascending' : 'descending') : 'none';
+  }
+
+  /** The filter text was typed: the list is asked for after a short pause in typing. */
+  filterTextChanged(text: string) {
+    this.filterText = text;
+    clearTimeout(this.filterTimer);
+    this.filterTimer = setTimeout(() => this.getRawMaterials(1), 300);
+  }
+
+  filterColumnChanged(column: string) {
+    this.filterColumn = column;
+    if (this.filterActive) {
+      this.getRawMaterials(1);
+    }
+  }
+
+  clearFilter() {
+    clearTimeout(this.filterTimer);
+    this.filterText = '';
+    this.getRawMaterials(1);
   }
 
   pageChange (page: number) {

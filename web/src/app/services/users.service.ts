@@ -4,7 +4,7 @@ import { BehaviorSubject, catchError, firstValueFrom, from, InteropObservable, m
 import { environment } from '../../environments/environment';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { AccountInviteDetails, AccountInviteList, AccountInviteListItem, AccountRequestDetails, AccountRequestInfo, AccountRequestListItem, AccountsRequestList, BasicUserInfoStatus, GeoCoordinates, LoginInfo, nameIdPair, PaginationParams, RefreshResponse, SignInData, SignInResponse, UpdateProfile, UserDetails, UserListItem, UserProfile, UsersList } from '../../types';
+import { AccountInviteDetails, AccountInviteList, AccountInviteListItem, AccountRequestDetails, AccountRequestInfo, AccountRequestListItem, AccountsRequestList, BasicUserInfoStatus, GeoCoordinates, LoginInfo, nameIdPair, ListParams, RefreshResponse, SignInData, SignInResponse, UpdateProfile, UserDetails, UserListItem, UserProfile, UsersList } from '../../types';
 import { RuntimeService } from './runtime.service';
 
 export interface AreaPermission {
@@ -64,7 +64,7 @@ constructor(private apiService: ApiService, private runtimeService: RuntimeServi
     return localStorage.getItem("access_token");
   }
 
-  getUsers = (params: PaginationParams): Observable<UsersList> => {
+  getUsers = (params: ListParams): Observable<UsersList> => {
     return this.apiService.get(`${environment.serverUrl}/users/`, {
       params,
       responseType: 'json',
@@ -199,7 +199,7 @@ constructor(private apiService: ApiService, private runtimeService: RuntimeServi
     return this.apiService.post(`${environment.serverUrl}/users/invite_user`, invitation, { responseType: 'json' });
   }
 
-  getInvitations(params: PaginationParams): Observable<AccountInviteList> {
+  getInvitations(params: ListParams): Observable<AccountInviteList> {
     return this.apiService.get(`${environment.serverUrl}/users/invitations`, { responseType: 'json', params, withCredentials: true });
   }
 
@@ -227,7 +227,7 @@ constructor(private apiService: ApiService, private runtimeService: RuntimeServi
     return this.apiService.post(`${environment.serverUrl}/users/request_account`, account_request, { responseType: 'json', withCredentials: true });
   }
 
-  getAccountRequests(params: PaginationParams): Observable<AccountsRequestList>{
+  getAccountRequests(params: ListParams): Observable<AccountsRequestList>{
     return this.apiService.get(`${environment.serverUrl}/users/account_requets`, { responseType: 'json', params, withCredentials: true });
   }
 
