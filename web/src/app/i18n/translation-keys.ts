@@ -1265,6 +1265,7 @@ export type TranslationKey =
   | 'wings:diagram.add_right'
   | 'wings:diagram.add_top'
   | 'wings:diagram.knife_width'
+  | 'wings:diagram.net_height'
   | 'wings:diagram.tip_crown'
   | 'wings:diagram.tip_edit'
   | 'wings:diagram.tip_remove'

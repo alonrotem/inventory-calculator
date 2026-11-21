@@ -40,7 +40,7 @@ const CROWN_LABEL_ROOM = 12;   // px, extra at the right for the crown's label
 const GUIDE_FONT = 'bold 16px Arial';
 const FONT = '11px Arial';
 const WIDTH_FONT = '10px Arial';   // the width of a baby, smaller than its label
-const WIDTH_DIMENSION_ROOM = 34;     // px under the knife for its width
+const WIDTH_DIMENSION_ROOM = 34;    // px under the knife for its width
 const PRINT_RESOLUTION = 3;          // canvas pixels per CSS pixel when drawing for paper (288 dpi)
 /** The distance from a point to the segment a-b. */
 function distToSegment(p: Vec, a: Vec, b: Vec): number {
@@ -546,7 +546,41 @@ export class WingDiagramComponent implements AfterViewInit, OnChanges, OnDestroy
     ctx.globalAlpha = 1;
     ctx.fillStyle = GUIDE_COLOR;
     ctx.fillText(text, center, middle);
+
+    // the net height, at the same height as that label, just right of the knife's right side (on the canvas, so it adds nothing to its size)
+    const net = this.netHeightText(this.netHeightCm());
+    if (net) {
+      const samples = outlineSamples(this.knife!.nodes).map(this.toScreen);
+      let edge = -Infinity;   // the knife's right edge on that row
+      samples.forEach((p, i) => {
+        const q = samples[(i + 1) % samples.length];
+        if ((p.y - middle) * (q.y - middle) <= 0 && p.y !== q.y) {
+          edge = Math.max(edge, p.x + (q.x - p.x) * (middle - p.y) / (q.y - p.y));
+        }
+      });
+      if (edge > -Infinity) {
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        const width = ctx.measureText(net).width;
+        ctx.fillText(net, Math.max(2, Math.min(edge + 12, this.cssWidth - width - 4)), middle);
+      }
+    }
     ctx.restore();
+  }
+
+  /** The net height in cm: the guide's distance from the knife + the knife's width + the longest crown baby (null: the knife's width isn't known). */
+  private netHeightCm(): number | null {
+    if (!this.knifeWidth) {
+      return null;
+    }
+    return this.guideCm + this.knifeWidth + Math.max(0, ...(this.crown ?? []));
+  }
+
+  private netHeightText(cm: number | null): string | null {
+    if (cm === null || !this.show_texts) {
+      return null;
+    }
+    return this.translation.t('wings:diagram.net_height', { value: this.translation.t('common:units.cm_fixed', { value: cm }) });
   }
 
   /** The outline of the knife on the canvas. */

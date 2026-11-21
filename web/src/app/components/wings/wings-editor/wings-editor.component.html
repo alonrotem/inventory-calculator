@@ -18,7 +18,7 @@
   [btnCancelClass]="'d-none'"
   [modalSize]="'l'">
     <app-crown-editor 
-        [crown_babies]="(this.wing && this.wing.babies) ? this.wing.babies : [] | sortbabies | prefix: 'C'"
+        [crown_babies]="((this.wing && this.wing.babies) ? this.wing.babies : []) | sortbabies | prefix: 'C'"
         (crown_babiesChanged)="onCrownBabiesChanged($event)"
         [wing_id]="(this.wing && this.wing.id) ? this.wing.id : 0"
         [crown_width]="(this.wing && this.wing.crown_width) ? this.wing.crown_width : 0"
@@ -64,6 +64,8 @@
             <div class="col d-flex flex-row">
                 
                 <button class="btn btn-danger me-3" (click)="reset_wing()"><fa-icon [icon]="faEraser"></fa-icon> {{ 'customers:calc.reset' | t }}</button>
+
+                <button type="button" class="btn btn-success me-3" *ngIf="!show_titles_buttons" (click)="saveRequested.emit()"><fa-icon [icon]="faSave"></fa-icon> {{ 'common:actions.save' | t }}</button>
 
                 <div class="dropdown" *ngIf="show_titles_buttons">
                     <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">

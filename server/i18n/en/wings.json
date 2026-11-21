@@ -95,6 +95,7 @@
     "tip_crown": "Crown ({{n}})",
     "tip_remove": "Click to remove",
     "tip_edit": "Scroll to resize, click to edit",
-    "tip_width": "Width: {{value}}"
+    "tip_width": "Width: {{value}}",
+    "net_height": "Net height: {{value}}"
   }
 }

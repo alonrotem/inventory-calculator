@@ -154,6 +154,7 @@
         [stretch_width]="true"
         [show_titles_buttons]="false"
         [show_only_custom_knives]="!customer.is_demo_customer"
+        (saveRequested)="advanced_wing_editor_dialog.onConfirm()"
     />
 </app-modal-dialog>
 

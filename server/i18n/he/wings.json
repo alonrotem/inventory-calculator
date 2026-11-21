@@ -98,6 +98,7 @@
     "tip_crown": "כתר ({{n}})",
     "tip_remove": "לחצו כדי להסיר",
     "tip_edit": "גללו כדי לשנות גודל, לחצו כדי לערוך",
-    "tip_width": "רוחב: {{value}}"
+    "tip_width": "רוחב: {{value}}",
+    "net_height": "גובה נטו: {{value}}"
   }
 }

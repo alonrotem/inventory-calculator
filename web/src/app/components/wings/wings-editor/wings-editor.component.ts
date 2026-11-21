@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, DoCheck, ElementRef, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, viewChild, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DoCheck, ElementRef, EventEmitter, HostListener, Input, Output, OnChanges, OnDestroy, OnInit, SimpleChanges, viewChild, ViewChild, inject } from '@angular/core';
 import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/confirmation-dialog.component';
 import { faArrowLeft, faArrowUp, faEraser, faL, faRotateLeft, faRotateRight, faSave, faTimesCircle, faTrashAlt, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { KnifeListItem, Wing, WingBaby, WingsListItem } from '../../../../types';
@@ -94,6 +94,8 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
     id: 0, name: '', knife: 0, allow_shortening_babies_in_pairs: false,
     crown_width: 0, split_l1: 1, angled_crown: false, babies: [], customers: []
   };
+  /** The save button next to Reset (shown when the titles and buttons are off, i.e. in a dialog) was clicked: the dialog confirms and saves. */
+  @Output() saveRequested = new EventEmitter<void>();
   @Input() stretch_width: boolean = false;
   @Input() show_titles_buttons: boolean = true;
   @Input() show_only_custom_knives: boolean = false;

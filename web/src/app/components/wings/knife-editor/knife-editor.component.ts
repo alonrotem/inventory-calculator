@@ -826,6 +826,8 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     }
     if (this.missingRegions.length) {
       this.status = this.translation.t('knives:editor.status.missing_regions', { regions: this.missingRegions });
+      this.toastService.showError(this.status);
+      document.getElementById('knife_regions_card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return null;
     }
     const measured = this.measuredWidth();
