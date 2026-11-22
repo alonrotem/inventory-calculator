@@ -83,7 +83,9 @@
       "disable_text": "Are you sure you want to disable this customer, {{name}}?",
       "disable_note": "Users will not be able to access it",
       "disable_yes": "Disable",
-      "disable_no": "Don't disable"
+      "disable_no": "Don't disable",
+      "disable_message": "Message for the users of this customer (optional)",
+      "disable_message_hint": "They will see it when they sign in."
     }
   },
   "bank": {

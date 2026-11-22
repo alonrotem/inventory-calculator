@@ -381,6 +381,7 @@ CREATE TABLE  IF NOT EXISTS `customers` (
     `default_mayler_width`	FLOAT null,
     `default_num_of_wings_per_hat` INT null,
     `is_disabled`		BOOL not null default false,
+    `disabled_customer_message` VARCHAR(1000) NULL,
     
     `address`			varchar(255) NULL,
 	`created_at`    	DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,

@@ -199,7 +199,9 @@
     "signup": "הרשמה",
     "logged_out": "התנתקתם בהצלחה",
     "profile": "הפרופיל שלי",
-    "logout": "התנתקות"
+    "logout": "התנתקות",
+    "disabled_customer_title": "הודעה לגבי החשבון שלך",
+    "disabled_customer_line": "הלקוח {{name}} הושבת"
   },
   "verify": {
     "title": "אימות החשבון",

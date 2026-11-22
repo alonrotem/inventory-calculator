@@ -30,6 +30,7 @@ import { WingsTableComponent } from "../../wings/wings-table/wings-table.compone
 import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
 import { TranslationService } from '../../../i18n/translation.service';
 import { TranslationKey } from '../../../i18n/translation-keys';
+import { ModalDialogComponent } from '../../common/modal-dialog/modal-dialog.component';
 
 @Component({
   selector: 'app-customer-editor',
@@ -37,7 +38,7 @@ import { TranslationKey } from '../../../i18n/translation-keys';
   imports: [TranslateEnumPipe, RouterModule, FormsModule, NgSelectModule, DateStrPipe,
     FaIconComponent, NgIf, NgFor, ConfirmationDialogComponent, AutocompleteLibModule,
     CustomerBanksTableComponent, HatsCalculatorDialogComponent,
-    UnsavedChangesDialogComponent, HasPermissionPipe, AsyncPipe, KnifePickerComponent, SaveChangesButtonComponent, NumericInputDirective, WingsTableComponent, DecimalPipe, TranslatePipe],
+    UnsavedChangesDialogComponent, ModalDialogComponent, HasPermissionPipe, AsyncPipe, KnifePickerComponent, SaveChangesButtonComponent, NumericInputDirective, WingsTableComponent, DecimalPipe, TranslatePipe],
   templateUrl: './customer-editor.component.html',
   styleUrl: './customer-editor.component.scss'
 })
@@ -110,6 +111,9 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
   @ViewChild("customerName", { read: ElementRef }) customerName! :ElementRef;
   @ViewChild('customer_form') customer_form!: NgForm;
   @ViewChild('delete_confirmation') delete_confirmation!: ConfirmationDialogComponent;
+  @ViewChild('disable_customer_dialog') disable_customer_dialog!: ModalDialogComponent;
+  // the message typed in the dialog that asks to disable the customer
+  disable_message: string = '';
   @ViewChild('unsaved_changes_dialog') unsaved_changes_dialog!: UnsavedChangesDialogComponent;
   @ViewChild('hats_calculator') hats_calculator!: HatsCalculatorDialogComponent;
   @ViewChild("btn_save", { read: ElementRef }) btn_save!: ElementRef;
@@ -468,21 +472,22 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
     this.customerItem.default_num_of_wings_per_hat = checked ? this.default_num_of_wings_per_hat : null;
   }
 
-  async verify_customer_cancellation() {
+  /** The disable switch was changed: disabling asks to confirm (with a message for the customer's users); enabling clears the message. */
+  verify_customer_cancellation() {
     if(!this.customerItem.is_disabled) {
+      this.customerItem.disabled_customer_message = null;
       return;
     }
-    const confirmed = await this.delete_confirmation.open_with_message({
-      modalText: this.translation.t('customers:editor.dialogs.disable_text', { name: this.customerItem.name }) + '<br/>' + this.translation.t('customers:editor.dialogs.disable_note'),
-      modalTitle: this.translation.t('customers:editor.dialogs.disable_title'),
-      btnYesIcon: this.faTimesCircle,
-      btnYesText: this.translation.t('customers:editor.dialogs.disable_yes'),
-      btnNoText: this.translation.t('customers:editor.dialogs.disable_no'),
-      btnYesClass: "btn-danger",
-      dialogIcon: this.faTriangleExclamation
-    });
-    if(!confirmed) {
-      this.customerItem.is_disabled = false;
-    }
+    this.disable_message = this.customerItem.disabled_customer_message ?? '';
+    this.disable_customer_dialog.open();
+  }
+
+  disable_confirmed() {
+    this.customerItem.disabled_customer_message = this.disable_message.trim() || null;
+    this.customer_form.form.markAsDirty();
+  }
+
+  disable_cancelled() {
+    this.customerItem.is_disabled = false;
   }
 }

@@ -1304,6 +1304,30 @@ async function cleanup_expired_tokens(user_id=0, active_connection=null){
   }    
 }
 
+// The messages that a customer-role user is shown when signing in: those left by an administrator
+// on the disabled customers the user is associated with. Never stops the sign-in (e.g. if the column was not added yet).
+async function getDisabledCustomerMessages(user_id, role_names){
+  try {
+    if(!(role_names ?? []).some(r => String(r).toLowerCase() == 'customer')){
+      return [];
+    }
+    const rows = await db.query(
+      `select c.name as customer_name, c.disabled_customer_message as message
+        from user_customers uc
+        inner join customers c on c.id = uc.customer_id
+        where uc.user_id=(?) and c.is_disabled=1 and c.is_demo_customer=0
+          and c.disabled_customer_message is not null and trim(c.disabled_customer_message) <> ''
+        order by c.name`,
+      [user_id]
+    );
+    return helper.emptyOrRows(rows);
+  }
+  catch(error){
+    logger.error(`Could not get the disabled customer messages of user ${user_id}: ${error.message}`);
+    return [];
+  }
+}
+
 // sign in a user into the system
 async function signin(
   username_or_email, password, rememberme, ipaddress, 
@@ -1396,8 +1420,11 @@ async function signin(
       await db.transaction_commit(active_connection);
     }
 
+    // messages for the user about the disabled customers they are associated with
+    const disabled_customer_messages = await getDisabledCustomerMessages(user.id, userInfo["roles"]);
+
     // send sign-in notification?
-    return { access_token, refresh_token, refresh_token_expiration_date, userInfo };
+    return { access_token, refresh_token, refresh_token_expiration_date, userInfo, disabled_customer_messages };
   }
   catch(error){
     if(self_executing) {

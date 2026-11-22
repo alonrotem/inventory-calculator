@@ -370,6 +370,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
 
     this.length_editor.crown_babies_quantity_changed.subscribe((new_length: number) => this.crown_babies_quantity_changed(new_length));
     this.wingsService.getWings_for_customer(customer_id).subscribe(wingsListInfo => {
+      console.log("wingsListInfo: ", wingsListInfo);
       this.wings = wingsListInfo.data.sort((w1:WingsListItem, w2:WingsListItem) => {
         //this.console.log(w1.name);
         const w1_len = w1.name.match(/[^\d]*(\d*)[^\d]*/);
@@ -738,7 +739,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       
     }
     this.update_customer(this.customer);
-    this.margins_changed();
+    //this.margins_changed();
     this.update_table_instructions();
     this.calculateVisibleCrown();      
   }
@@ -911,7 +912,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     }
     this.is_wall_materiail_tentative = !material.has_banks_for_current_customer
     this.is_hat_tentative = (this.is_wall_materiail_tentative || this.is_crown_materiail_tentative);
-    this.margins_changed();
+    //this.margins_changed();
     this.update_table_instructions();
     this.calculateVisibleCrown();  
   }
@@ -928,7 +929,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       this.customerHat.shorten_crown_by = 0;
     }
     this.is_hat_tentative = (this.is_wall_materiail_tentative || this.is_crown_materiail_tentative);
-    this.margins_changed();
+    //this.margins_changed();
     this.update_table_instructions();
     this.calculateVisibleCrown();  
   }
@@ -943,7 +944,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.customerHat.shorten_crown_by = 0;
     this.is_crown_materiail_tentative = !material.has_banks_for_current_customer;
     this.is_hat_tentative = (this.is_wall_materiail_tentative || this.is_crown_materiail_tentative);
-    this.margins_changed();
+    //this.margins_changed();
     this.update_table_instructions();
     this.calculateVisibleCrown();
   }
@@ -1004,7 +1005,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.customerHat.shorten_top_by = 0;
     this.customerHat.shorten_crown_by = 0;
     this.is_hat_tentative = (this.is_wall_materiail_tentative || this.is_crown_materiail_tentative);
-    this.margins_changed();
+    //this.margins_changed();
     this.update_table_instructions();
     this.calculateVisibleCrown();
   }

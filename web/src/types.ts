@@ -145,7 +145,9 @@ export interface Baby {
 
 export interface WingsListItem {
     id: number;
-    knife: number;
+    knife_id: number | null;        // the wing's knife (knives table); the old `knife` width is not used any more
+    knife_name: string | null;
+    knife_width: number | null;     // cm
     name: string;
     Left: number;
     Top: number;
@@ -372,6 +374,7 @@ export class Point {
     default_mayler_width: number | null;
     default_num_of_wings_per_hat: number | null;
     is_disabled: boolean;
+    disabled_customer_message?: string | null;   // shown to the customer's users when they sign in, while it is disabled
 
     banks: Customer_Bank[];
     banks_baby_allocations: Customer_Bank_Baby_Allocation[];
@@ -743,9 +746,16 @@ export interface SignInUserInfo {
 }
 */
 
+/** A message left by an administrator for the users of a disabled customer, shown when they sign in. */
+export interface DisabledCustomerMessage {
+    customer_name: string;
+    message: string;
+}
+
 export interface SignInResponse {
-    access_token: string; 
-    userInfo: BasicUserInfoStatus
+    access_token: string;
+    userInfo: BasicUserInfoStatus;
+    disabled_customer_messages?: DisabledCustomerMessage[];
 }
 
 export interface UserListItem {

@@ -58,7 +58,8 @@ async function getSingleWingByName(name){
 const LIST_COLUMNS = {
   name: { sql: 'w.name', type: 'text' },
   customer_name: { sql: 'customer_name', type: 'text' },
-  knife: { sql: 'w.knife', type: 'number' },
+  knife: { sql: 'knife_name', type: 'text' },
+  knife_width: { sql: 'knife_width', type: 'number' },
   Left: { sql: '`Left`', type: 'number' },
   Right: { sql: '`Right`', type: 'number' },
   Top: { sql: '`Top`', type: 'number' },
@@ -76,18 +77,20 @@ async function getMultiple(page = 1, perPage, customer_id, customer_wings_only=f
   let customer_filter = '';
   if(customer_id && customer_id > 0) {
     if(customer_wings_only){
-      customer_filter = `and (wc.customer_id=${customer_id})`;
+      customer_filter = `and (wc.customer_id=${customer_id}) `;
     }
     else {
-      customer_filter = `and (wc.customer_id is null or wc.customer_id=${customer_id})`;
+      customer_filter = `and (wc.customer_id is null or wc.customer_id=${customer_id}) `;
     }
+    customer_filter += `and (w.knife_id in (select knife from customer_knives where customer_id=${customer_id})) `;
   }
 
   const { where: having, params, orderBy } = buildListQuery(list, LIST_COLUMNS, 'w.name', 'HAVING');
   const wings_select = `SELECT
         w.id, w.name,
         EXISTS (SELECT 1 FROM wings_customers wc2 WHERE wc2.wing_id = w.id) AS is_customer_wing,
-        w.knife, w.split_l1, crown_width,
+        w.knife_id, k.name AS knife_name, k.width_cm AS knife_width,
+        w.split_l1, crown_width,
         GROUP_CONCAT(DISTINCT c.id) AS customer_id,
         GROUP_CONCAT(DISTINCT c.name ORDER BY c.name SEPARATOR ', ') AS customer_name,
         (SELECT COUNT(*) FROM wings_babies wb
@@ -101,9 +104,10 @@ async function getMultiple(page = 1, perPage, customer_id, customer_wings_only=f
     FROM wings w
     LEFT JOIN wings_customers wc ON wc.wing_id = w.id
     LEFT JOIN customers c ON c.id = wc.customer_id
+    LEFT JOIN knives k ON k.id = w.knife_id
     WHERE w.id NOT IN (SELECT wing_id FROM customer_hats ch)
      ${customer_filter}
-    GROUP BY w.id, w.name, w.knife, w.split_l1, crown_width
+    GROUP BY w.id, w.name, w.knife_id, k.name, k.width_cm, w.split_l1, crown_width
     ${having}`;
   const rows = await db.query(
     `${wings_select}

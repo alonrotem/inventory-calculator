@@ -23,7 +23,7 @@ async function getSingle(id, currentUserId){
     `select 
       c.id, c.name, c.business_name, c.email, c.phone, c.tax_id, c.notes, c.customer_code, c.order_seq_number,
         c.created_at, c.updated_at, c.created_by, c.updated_by, c.is_demo_customer,
-        c.default_mayler_width, default_num_of_wings_per_hat, is_disabled        
+        c.default_mayler_width, default_num_of_wings_per_hat, is_disabled, c.disabled_customer_message
         ${advanced_fields}
      from customers c where c.id=(?);`, [id]);
   
@@ -429,6 +429,10 @@ async function save(customer, currentUserId, active_connection=null){
 
     columns.push("is_disabled");
     values.push(helper.var_to_bool(customer.is_disabled));
+
+    // the message for the customer's users while it is disabled (none when it is not)
+    columns.push("disabled_customer_message");
+    values.push(helper.var_to_bool(customer.is_disabled) ? ((customer.disabled_customer_message ?? '').trim() || null) : null);
   }
 
   const result = await db.transaction_query(`

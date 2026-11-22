@@ -3,6 +3,8 @@ import { ListParams, WingsList, WingsListItem } from '../../../../types';
 import { PaginatorComponent } from '../../common/paginator/paginator.component';
 import { faArrowsRotate, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { WingsService } from '../../../services/wings.service';
+import { KnivesService } from '../../../services/knives.service';
+import { knifeSvgOutline } from '../knife-editor/knife-render';
 import { DateStrPipe } from "../../../utils/pipes/date_pipe";
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
@@ -42,6 +44,7 @@ export class WingsTableComponent extends NavigatedMessageComponent implements On
 
   constructor(
     private wingsService: WingsService, 
+    private knivesService: KnivesService,
     private settingsService: SettingsService,
     router: Router, 
     stateService: StateService,
@@ -77,6 +80,8 @@ export class WingsTableComponent extends NavigatedMessageComponent implements On
     return this.filterText.trim() !== '';
   }
 
+  thumbnails: Record<number, { d: string; viewBox: string } | null> = {};
+
   getWings (page: number){
     console.log(`Getting wings for page ${page} with customerId=${this.customerId} and showOnlyCustomerWings=${this.showOnlyCustomerWings}`);
     const list: ListParams = { page: page, perPage: this.rowsPerPage };
@@ -111,7 +116,11 @@ export class WingsTableComponent extends NavigatedMessageComponent implements On
   }
 
   async ngOnInit() {
-
+    // the pictures of the knives' shapes (by knife id), for the knife column
+    this.knivesService.getKnives({ page: 0, perPage: 0 }, true).subscribe({
+      next: knives => this.thumbnails = Object.fromEntries(knives.data.map(k => [k.id, knifeSvgOutline(k)])),
+      error: () => { }
+    });
   }
 
   /** A column header was clicked: sort by it, ascending; again: descending. */

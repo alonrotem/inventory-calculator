@@ -197,7 +197,9 @@
     "signup": "Sign up",
     "logged_out": "Logged out successfully",
     "profile": "My profile",
-    "logout": "Log out"
+    "logout": "Log out",
+    "disabled_customer_title": "A message about your account",
+    "disabled_customer_line": "Customer {{name}} has been disabled"
   },
   "verify": {
     "title": "Verify your account",

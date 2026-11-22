@@ -84,7 +84,9 @@
       "disable_text": "בטוחים שברצונכם להשבית את הלקוח {{name}}?",
       "disable_note": "משתמשים לא יוכלו לגשת אליו",
       "disable_yes": "השבתה",
-      "disable_no": "לא להשבית"
+      "disable_no": "לא להשבית",
+      "disable_message": "הודעה למשתמשי הלקוח הזה (לא חובה)",
+      "disable_message_hint": "המשתמשים יראו אותה כשיתחברו."
     }
   },
   "bank": {

@@ -6,6 +6,7 @@
     "total_other": "Total: {{count, number}} wings",
     "col_name": "Name",
     "col_knife": "Knife",
+    "col_knife_width": "Knife width",
     "col_babies": "Babies",
     "empty": "No wings added.",
     "empty_hint": "Please add some by clicking the + button above.",

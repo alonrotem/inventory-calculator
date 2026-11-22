@@ -7,6 +7,7 @@
     "total_other": "סה״כ: {{count, number}} כנפיים",
     "col_name": "שם",
     "col_knife": "סכין",
+    "col_knife_width": "רוחב הסכין",
     "col_babies": "תינוקות",
     "empty": "לא נוספו כנפיים.",
     "empty_hint": "אפשר להוסיף בלחיצה על כפתור ה־+ שלמעלה.",

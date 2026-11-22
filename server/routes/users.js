@@ -280,7 +280,7 @@ router.post('/signin', async function(req, res, next) {
   logger.debug(`Body: ${ JSON.stringify(req.body) }`);
 
   try {
-    const { access_token, refresh_token, refresh_token_expiration_date, userInfo } = 
+    const { access_token, refresh_token, refresh_token_expiration_date, userInfo, disabled_customer_messages } = 
       await users.signin(req.body.username_or_email, req.body.password, req.body.remember, req.ip, 
         req.body.origin_geolocation, req.body.origin_city, req.body.origin_country, req.body.origin_os, req.body.origin_browser,
         req.cookies);
@@ -296,7 +296,7 @@ router.post('/signin', async function(req, res, next) {
       expires: refresh_token_expiration_date,
     });
 
-    response = { access_token, userInfo };
+    response = { access_token, userInfo, disabled_customer_messages };
 
     logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
     res.status(200).send( response );

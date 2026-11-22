@@ -9,7 +9,25 @@
   (confirm)="forgot_Password_confirmed($event)"
   />
 
-<app-modal-dialog 
+<!-- a message for the users of a disabled customer, left by an administrator -->
+<app-modal-dialog
+  #disabled_customer_notice
+  [preventDismiss]="true"
+  [modalTitle]="'users:auth.disabled_customer_title' | t"
+  [btnSaveText]="'common:actions.close' | t"
+  [btnSaveClass]="'btn-warning'"
+  [btnCancelClass]="'d-none'"
+  (confirm)="continue_after_signin()"
+  (cancel)="continue_after_signin()">
+  @for (notice of disabled_customer_messages; track $index) {
+    <div [class.mt-3]="!$first">
+      <div class="fw-bold">{{ 'users:auth.disabled_customer_line' | t: { name: notice.customer_name } }}</div>
+      <div style="white-space: pre-line;">{{ notice.message }}</div>
+    </div>
+  }
+</app-modal-dialog>
+
+<app-modal-dialog
   #request_account_dialog 
   [modalSize]="'lg'" 
   (confirm)="request_account()" 

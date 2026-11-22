@@ -4,7 +4,7 @@ import { BehaviorSubject, catchError, firstValueFrom, from, InteropObservable, m
 import { environment } from '../../environments/environment';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { AccountInviteDetails, AccountInviteList, AccountInviteListItem, AccountRequestDetails, AccountRequestInfo, AccountRequestListItem, AccountsRequestList, BasicUserInfoStatus, GeoCoordinates, LoginInfo, nameIdPair, ListParams, RefreshResponse, SignInData, SignInResponse, UpdateProfile, UserDetails, UserListItem, UserProfile, UsersList } from '../../types';
+import { AccountInviteDetails, AccountInviteList, AccountInviteListItem, AccountRequestDetails, AccountRequestInfo, AccountRequestListItem, AccountsRequestList, BasicUserInfoStatus, DisabledCustomerMessage, GeoCoordinates, LoginInfo, nameIdPair, ListParams, RefreshResponse, SignInData, SignInResponse, UpdateProfile, UserDetails, UserListItem, UserProfile, UsersList } from '../../types';
 import { RuntimeService } from './runtime.service';
 
 export interface AreaPermission {
@@ -144,6 +144,9 @@ constructor(private apiService: ApiService, private runtimeService: RuntimeServi
     )
   }
   */
+  /** The messages about disabled customers that came with the last sign in (the sign in page shows them before going on). */
+  signInMessages: DisabledCustomerMessage[] = [];
+
   signIn(signinData: SignInData): Observable<BasicUserInfoStatus> {
     return from((async () => {
       // Get location data first
@@ -188,6 +191,7 @@ constructor(private apiService: ApiService, private runtimeService: RuntimeServi
       
       console.log("signin response");
       console.dir(response);
+      this.signInMessages = response.disabled_customer_messages ?? [];
       this.setAccessToken(response.access_token);
       this.setUser(response.userInfo);
       

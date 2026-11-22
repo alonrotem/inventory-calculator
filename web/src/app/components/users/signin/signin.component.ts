@@ -6,7 +6,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { IconDefinition } from '@fortawesome/fontawesome-common-types';
 import { faArrowsRotate, faEnvelopeCircleCheck, faRightToBracket } from '@fortawesome/free-solid-svg-icons';
 import { ActivatedRoute, Route, Router } from '@angular/router';
-import { BasicUserInfoStatus, SignInData } from '../../../../types';
+import { BasicUserInfoStatus, DisabledCustomerMessage, SignInData } from '../../../../types';
 import { PromptDialogComponent } from "../../common/prompt-dialog/prompt-dialog.component";
 import { ToastService } from '../../../services/toast.service';
 import { RequestAccountComponent } from "../request-account/request-account.component";
@@ -49,6 +49,9 @@ export class SignInComponent extends NavigatedMessageComponent implements OnInit
   @ViewChild('request_account_dialog') request_account_dialog!: ModalDialogComponent;
   @ViewChild('request_account_form') request_account_form!: RequestAccountComponent;
   @ViewChild('request_sent') request_sent!: ModalDialogComponent;
+  @ViewChild('disabled_customer_notice') disabled_customer_notice!: ModalDialogComponent;
+  // the messages about disabled customers, shown before going on after signing in
+  disabled_customer_messages: DisabledCustomerMessage[] = [];
   goto_url: string = "";
 
   constructor(private usersService: UsersService, router: Router, route: ActivatedRoute, toastService: ToastService, stateService: StateService) {
@@ -129,6 +132,11 @@ export class SignInComponent extends NavigatedMessageComponent implements OnInit
     }
   }
 
+continue_after_signin() {
+    console.log("going to " + this.goto_url)
+    this.router.navigateByUrl(this.goto_url);
+  }
+
 signin() {
     this.error = "";
     this.signin_form.form.markAllAsTouched();
@@ -140,8 +148,14 @@ signin() {
         next:(data) => { 
           console.dir(data);
           this.signing_in = false;
-          console.log("going to " + this.goto_url)
-          this.router.navigateByUrl(this.goto_url);
+          // a user of a disabled customer first reads the message left for them
+          this.disabled_customer_messages = this.usersService.signInMessages;
+          if(this.disabled_customer_messages.length > 0){
+            this.disabled_customer_notice.open();
+          }
+          else {
+            this.continue_after_signin();
+          }
         },
         error:(response) => { 
           this.error = response.error.message;

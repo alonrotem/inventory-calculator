@@ -1,6 +1,34 @@
 <app-confirmation-dialog 
     #delete_confirmation />
 
+<!-- disabling a customer: the same "are you sure", with a message for the customer's users -->
+<app-modal-dialog
+    #disable_customer_dialog
+    [preventDismiss]="true"
+    [modalTitle]="'customers:editor.dialogs.disable_title' | t"
+    [btnSaveText]="'customers:editor.dialogs.disable_yes' | t"
+    [btnSaveIcon]="faTimesCircle"
+    [btnSaveClass]="'btn-danger'"
+    [btnCancelText]="'customers:editor.dialogs.disable_no' | t"
+    (confirm)="disable_confirmed()"
+    (cancel)="disable_cancelled()">
+    <div>
+        <fa-icon [icon]="faTriangleExclamation" class="text-warning me-2"></fa-icon>
+        {{ 'customers:editor.dialogs.disable_text' | t: { name: customerItem.name } }}
+        <br/>
+        {{ 'customers:editor.dialogs.disable_note' | t }}
+        <br/><br/>
+        <div class="form-floating">
+            <textarea class="form-control" style="height: 110px" maxlength="1000" id="disable_customer_message" name="disable_customer_message"
+                [placeholder]="'customers:editor.dialogs.disable_message' | t"
+                [(ngModel)]="disable_message" [ngModelOptions]="{ standalone: true }"
+                (keyup.enter)="$event.stopPropagation()"></textarea>
+            <label for="disable_customer_message">{{ 'customers:editor.dialogs.disable_message' | t }}</label>
+        </div>
+        <div class="small text-secondary mt-1">{{ 'customers:editor.dialogs.disable_message_hint' | t }}</div>
+    </div>
+</app-modal-dialog>
+
 <app-unsaved-changes-dialog #unsaved_changes_dialog></app-unsaved-changes-dialog>
 
 <app-hats-calculator-dialog #hats_calculator />

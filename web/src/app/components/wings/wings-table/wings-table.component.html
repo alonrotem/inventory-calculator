@@ -19,6 +19,7 @@
       <option value="">{{ 'wings:list.filter_all' | t }}</option>
       <option value="name">{{ 'wings:list.col_name' | t }}</option>
       <option value="knife">{{ 'wings:list.col_knife' | t }}</option>
+      <option value="knife_width">{{ 'wings:list.col_knife_width' | t }}</option>
       <option value="Left">{{ 'wings:editor.left_babies' | t }}</option>
       <option value="Right">{{ 'wings:editor.right_babies' | t }}</option>
       <option value="Top">{{ 'wings:editor.top' | t }}</option>
@@ -49,7 +50,16 @@
         routerLink="/templates/wings/editor" 
         [queryParams]="{ id: wing.id, c_id: customerId }" role="button">
         <td class="text-nowrap {{wing.is_customer_wing?'text-primary':''}}">{{ wing.name }}{{ wing.customer_name ? ' ('+ wing.customer_name +')' : '' }}</td>
-        <td><span class="icon-knife"></span> {{ wing.knife | number: '1.1-1' }} cm</td>
+        <td>
+          <div class="d-flex align-items-center gap-2">
+            @if (thumbnails[wing.knife_id ?? 0]; as thumbnail) {
+              <svg class="knife_thumbnail" [attr.viewBox]="thumbnail.viewBox" preserveAspectRatio="xMidYMid meet"><path [attr.d]="thumbnail.d" /></svg>
+            }
+            @if (wing.knife_name) {
+              <span>{{ wing.knife_name }} - {{ 'common:units.cm_1' | t: { value: wing.knife_width } }}</span>
+            }
+          </div>
+        </td>
         <td><span class="icon-feather-wing"></span> L ({{ wing.Left }})</td>
         <td><span class="icon-feather-wing-r"></span> R ({{ wing.Right }})</td>
         <td><span class="icon-top"></span> T ({{ wing.Top }})</td>

@@ -385,4 +385,6 @@ call add_fk('wings', 'fk_wings_knife', 'knife_id', 'knives', 'id', false);
 CALL add_column_if_not_exists('wings', 'top_tilt', 'float not null default 0');
 CALL add_column_if_not_exists('wings', 'top_opening', 'float not null default 0');
 
+CALL add_column_if_not_exists('customers', 'disabled_customer_message', 'VARCHAR(1000) NULL');
+
 select "Migrations done", CURRENT_TIMESTAMP;

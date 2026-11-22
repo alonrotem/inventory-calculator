@@ -43,3 +43,17 @@ h1 {
 .wings_filter_text {
     max-width: 260px;
 }
+
+.knife_thumbnail {
+    display: block;
+    flex-shrink: 0;
+    width: 56px;
+    height: 40px;
+
+    path {
+        fill: rgba(13, 110, 253, 0.12);
+        stroke: currentColor;
+        stroke-width: 1px;
+        vector-effect: non-scaling-stroke;   // 1px whatever the knife's size in cm
+    }
+}
