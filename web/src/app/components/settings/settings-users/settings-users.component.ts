@@ -6,7 +6,7 @@ import { SettingsService } from '../../../services/settings.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { StateService } from '../../../services/state.service';
 import { ToastService } from '../../../services/toast.service';
-import { UserListItem, UsersList } from '../../../../types';
+import { UserListItem, UsersList, ListParams } from '../../../../types';
 import { PaginatorComponent } from '../../common/paginator/paginator.component';
 import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
@@ -17,6 +17,7 @@ import { faEnvelope, faFlask } from '@fortawesome/free-solid-svg-icons';
 import { ModalDialogComponent } from "../../common/modal-dialog/modal-dialog.component";
 import { SettingsUserInviteFormComponent } from "../settings-user-invite-form/settings-user-invite-form.component";
 import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
+import { loadListSort, saveListSort } from '../../../utils/list-sort-storage';
 
 @Component({
   selector: 'app-settings-users',
@@ -61,9 +62,80 @@ export class SettingsUsersComponent extends NavigatedMessageComponent implements
     this.getUsers(page);
   }
 
+  // sorting and filtering (by the server, before paging)
+  // the sort the list was left with is kept, so that it opens the same way next time
+  private static readonly SORT_KEY = 'users';
+  private static readonly SORT_COLUMNS = ['name', 'email', 'role', 'status', 'registered_at'];
+  sortColumn?: string = loadListSort(SettingsUsersComponent.SORT_KEY, SettingsUsersComponent.SORT_COLUMNS)?.column;
+  sortDirection: 'asc' | 'desc' = loadListSort(SettingsUsersComponent.SORT_KEY, SettingsUsersComponent.SORT_COLUMNS)?.direction ?? 'asc';
+  filterColumn: string = '';        // '' : all columns
+  filterText: string = '';
+  private filterTimer: ReturnType<typeof setTimeout> | undefined;
+
+  get filterActive(): boolean {
+    return this.filterText.trim() !== '';
+  }
+
+  /** The list's sorting and filtering, for the server. */
+  private listParams(page: number, perPage: number): ListParams {
+    const list: ListParams = { page: page, perPage: perPage };
+    if (this.sortColumn) {
+      list.sort_column = this.sortColumn;
+      list.sort_direction = this.sortDirection;
+    }
+    if (this.filterActive) {
+      list.filter_expression = this.filterText.trim();
+      if (this.filterColumn) {
+        list.filter_column = this.filterColumn;
+      }
+    }
+    return list;
+  }
+
+  /** A column header was clicked: sort by it, ascending; again: descending. */
+  sortBy(column: string) {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    }
+    else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    saveListSort(SettingsUsersComponent.SORT_KEY, { column: this.sortColumn, direction: this.sortDirection });
+    this.getUsers(1);
+  }
+
+  sortIndicator(column: string): string {
+    return this.sortColumn === column ? (this.sortDirection === 'asc' ? '▲' : '▼') : '';
+  }
+
+  ariaSort(column: string): 'ascending' | 'descending' | 'none' {
+    return this.sortColumn === column ? (this.sortDirection === 'asc' ? 'ascending' : 'descending') : 'none';
+  }
+
+  /** The filter text was typed: the list is asked for after a short pause in typing. */
+  filterTextChanged(text: string) {
+    this.filterText = text;
+    clearTimeout(this.filterTimer);
+    this.filterTimer = setTimeout(() => this.getUsers(1), 300);
+  }
+
+  filterColumnChanged(column: string) {
+    this.filterColumn = column;
+    if (this.filterActive) {
+      this.getUsers(1);
+    }
+  }
+
+  clearFilter() {
+    clearTimeout(this.filterTimer);
+    this.filterText = '';
+    this.getUsers(1);
+  }
+
   getUsers(page: number){
     //console.log("this.rowsPerPage: " + this.rowsPerPage);
-    this.usersService.getUsers({ page: page, perPage:this.rowsPerPage }).subscribe(
+    this.usersService.getUsers(this.listParams(page, this.rowsPerPage)).subscribe(
     {
       next: (users: UsersList) => {
         this.loading = false;

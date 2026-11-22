@@ -87,7 +87,7 @@
 <div *ngIf="(banks_baby_allocation_type_filter === null || banks_baby_allocation_type_filter === Bank_Allocation_Type.babies)"> 
  <ng-container *ngFor="let bank_allocation of banks_baby_allocations | filter: 'customer_bank_id' : bank.id | filter: 'allocation_type' : 'babies'">
  <hr  style="margin: 30px 0px;" />
- <div class="allocation-area">
+ <div class="allocation-area" [class.allocation-selected]="selectable_allocatoin && bank_allocation.id == selected_allocation_id">
       <div>
         <strong><span class="icon-babies" style="margin-inline-end:10px;"></span>{{ 'customers:bank.babies_allocation' | t: { label: (bank_allocation.id <= 0 ? ('customers:bank.unsaved_allocation' | t) : ('#' + bank_allocation.id)) } }}</strong>
           <div>{{ 'customers:bank.allocation_summary' | t: { quantity: bank_allocation.quantity, units: (raw_material_quantity_units | tenum: 'common:quantity_units.'), cut: ((babies | filter: "allocation_id" : bank_allocation.id) | sum: 'quantity') } }}</div>
@@ -115,7 +115,11 @@
               {{ 'common:actions.delete' | t }}
             </button>
           </span>
-          <button *ngIf="selectable_allocatoin" class="btn btn-info btn-select-this" (click)="select_allocation(bank_allocation)">
+          <span *ngIf="selectable_allocatoin && bank_allocation.id == selected_allocation_id" class="allocation-selected-badge">
+            <fa-icon [icon]="faCheck"></fa-icon>
+            {{ 'customers:bank.selected' | t }}
+          </span>
+          <button *ngIf="selectable_allocatoin && bank_allocation.id != selected_allocation_id" class="btn btn-info btn-select-this" (click)="select_allocation(bank_allocation)">
             <fa-icon [icon]="faCheck"></fa-icon>
             {{ 'customers:bank.select_this' | t }}
           </button>
@@ -213,7 +217,7 @@
 <ng-container *ngFor="let bank_allocation of banks_baby_allocations | filter: 'customer_bank_id' : bank.id | filter: 'allocation_type' : 'tails'">
 <!-- from here -->
  <hr  style="margin: 30px 0px;" />
- <div class="allocation-area">
+ <div class="allocation-area" [class.allocation-selected]="selectable_allocatoin && bank_allocation.id == selected_allocation_id">
       <div>
         <strong><span class="icon-tails" style="margin-inline-end:10px;"></span>{{ 'customers:bank.tails_allocation' | t: { label: (bank_allocation.id <= 0 ? ('customers:bank.unsaved_allocation' | t) : ('#' + bank_allocation.id)) } }}</strong>
         {{ 'customers:bank.quantity_units' | t: { quantity: bank_allocation.quantity, units: (raw_material_quantity_units | tenum: 'common:quantity_units.') } }}
@@ -241,7 +245,11 @@
               {{ 'common:actions.delete' | t }}
             </button>
           </span>
-          <button *ngIf="selectable_allocatoin" class="btn btn-info btn-select-this" style="padding-block: 0px 1px; padding-inline: 5px 11px; margin-inline-start: 10px;" (click)="select_allocation(bank_allocation)">
+          <span *ngIf="selectable_allocatoin && bank_allocation.id == selected_allocation_id" class="allocation-selected-badge">
+            <fa-icon [icon]="faCheck"></fa-icon>
+            {{ 'customers:bank.selected' | t }}
+          </span>
+          <button *ngIf="selectable_allocatoin && bank_allocation.id != selected_allocation_id" class="btn btn-info btn-select-this" style="padding-block: 0px 1px; padding-inline: 5px 11px; margin-inline-start: 10px;" (click)="select_allocation(bank_allocation)">
             <fa-icon [icon]="faCheck"></fa-icon>
             {{ 'customers:bank.select_this' | t }}
           </button>

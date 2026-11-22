@@ -28,7 +28,8 @@ function columnCondition(column, expression) {
 
 /**
  * @param query            the request's query: sort_column, sort_direction ('asc' | 'desc'), filter_column, filter_expression
- * @param columns          { name: { sql, type: 'text' | 'number' } }: the columns that can be sorted and filtered
+ * @param columns          { name: { sql, type: 'text' | 'number', sort? } }: the columns that can be sorted and filtered (`sort`: what it is
+ *                         sorted by when that is not `sql`, e.g. a date that is filtered as text)
  * @param defaultSortSql   what the list is sorted by when no (known) sort column is asked for
  * @param clause           'WHERE', or 'HAVING' for a list of grouped rows, whose columns can be aggregates or aliases of the select
  * @returns { where, params, orderBy }: SQL parts ('' when there is none; `where` starts with the clause) and the values for the ? in it
@@ -41,7 +42,7 @@ function buildListQuery(query, columns, defaultSortSql, clause = 'WHERE') {
   if (sort) {
     const direction = String(query.sort_direction).toLowerCase() === 'desc' ? 'DESC' : 'ASC';
     // the default order breaks ties, so that pages do not shift between requests
-    orderBy = `ORDER BY ${sort.sql} ${direction}, ${defaultSortSql}`;
+    orderBy = `ORDER BY ${sort.sort ?? sort.sql} ${direction}, ${defaultSortSql}`;
   }
 
   const expression = typeof query?.filter_expression === 'string' ? query.filter_expression.trim() : '';

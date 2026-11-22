@@ -26,16 +26,33 @@
 
   <div class="infotitle mt-4" [hidden]="loading || this.invitations.length <= 0">{{ 'users:invites.total' | t: { count: totalRecords } }}</div>
 
+  <!-- filter: by one column, or by all of them -->
+  <div class="list_filter d-flex align-items-center gap-2 mb-2" [hidden]="loading || (this.invitations.length <= 0 && !filterActive)">
+    <select class="form-select form-select-sm list_filter_column" [value]="filterColumn" (change)="filterColumnChanged($any($event.target).value); filter_text.focus()">
+      <option value="">{{ 'users:list.filter_all' | t }}</option>
+      <option value="name">{{ 'users:fields.name' | t }}</option>
+      <option value="email">{{ 'users:fields.email' | t }}</option>
+      <option value="role">{{ 'users:list.col_role' | t }}</option>
+      <option value="invite_status">{{ 'users:list.col_status' | t }}</option>
+      <option value="sent_date">{{ 'users:invites.col_sent' | t }}</option>
+      <option value="last_update">{{ 'users:invites.col_last_update' | t }}</option>
+    </select>
+    <input #filter_text type="search" class="form-control form-control-sm list_filter_text" [value]="filterText" (input)="filterTextChanged($any($event.target).value)" [attr.placeholder]="'users:list.filter_placeholder' | t">
+    @if (filterActive) {
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearFilter()" [attr.title]="'users:list.filter_clear' | t">✕</button>
+    }
+  </div>
+
   <div [hidden]="loading || this.invitations.length == 0">
     <table class="table table-responsive table-striped table-hover">
         <thead>
         <tr>
-            <th scope="col">{{ 'users:fields.name' | t }}</th>
-            <th scope="col">{{ 'users:fields.email' | t }}</th>
-            <th scope="col">{{ 'users:list.col_role' | t }}</th>
-            <th scope="col">{{ 'users:list.col_status' | t }}</th>
-            <th scope="col">{{ 'users:invites.col_sent' | t }}</th>
-            <th scope="col">{{ 'users:invites.col_last_update' | t }}</th>
+            <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('name')" (click)="sortBy('name')">{{ 'users:fields.name' | t }} {{ sortIndicator('name') }}</th>
+            <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('email')" (click)="sortBy('email')">{{ 'users:fields.email' | t }} {{ sortIndicator('email') }}</th>
+            <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('role')" (click)="sortBy('role')">{{ 'users:list.col_role' | t }} {{ sortIndicator('role') }}</th>
+            <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('invite_status')" (click)="sortBy('invite_status')">{{ 'users:list.col_status' | t }} {{ sortIndicator('invite_status') }}</th>
+            <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('sent_date')" (click)="sortBy('sent_date')">{{ 'users:invites.col_sent' | t }} {{ sortIndicator('sent_date') }}</th>
+            <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('last_update')" (click)="sortBy('last_update')">{{ 'users:invites.col_last_update' | t }} {{ sortIndicator('last_update') }}</th>
         </tr>
         </thead>
         <tbody>
@@ -60,7 +77,9 @@
     <app-paginator #paginator [pages]=4  (onPageChange)="pageChange($event)" />
     </div>
 
-    <div [hidden]="loading || this.invitations.length > 0" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
+    <div [hidden]="loading || this.invitations.length > 0 || !filterActive" class="text-center my-4">{{ 'users:invites.no_matches' | t }}</div>
+
+  <div [hidden]="loading || this.invitations.length > 0 || filterActive" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
         {{ 'users:invites.empty' | t }}<br/>
 {{ 'users:invites.empty_hint' | t }}
     </div>

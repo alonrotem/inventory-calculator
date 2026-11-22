@@ -105,6 +105,7 @@
     "available": "{{count, number}} available.",
     "merge": "Merge",
     "select_this": "Select this",
+    "selected": "Selected",
     "merge_blocked": "Cannot merge this allocation\n(some babies in pending orders)",
     "merge_tooltip": "Merge this allocation to another one",
     "delete_blocked": "Cannot delete this allocation\n(some babies in pending orders)",

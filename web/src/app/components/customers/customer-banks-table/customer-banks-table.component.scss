@@ -45,6 +45,25 @@
     border: 1px solid black;
 }
 
+/* the allocation that is the selected one */
+.allocation-area.allocation-selected {
+    /* the theme's own subtle green, so that it is soft in the light theme and dark in the dark one, with the normal text color on it */
+    background-color: var(--bs-success-bg-subtle);
+    color: var(--bs-body-color);
+    border: 2px solid var(--bs-success);
+    box-shadow: 0 0 0 3px rgba(var(--bs-success-rgb), 0.2);
+}
+
+.allocation-selected-badge {
+    display: inline-block;
+    padding: 1px 12px 2px 12px;
+    margin-inline-end: 15px;
+    border-radius: 5px;
+    background-color: #198754;
+    color: white;
+    font-weight: bold;
+}
+
 .tails_editor, .tails_editor_form {
     margin: 20px 0px;
 }

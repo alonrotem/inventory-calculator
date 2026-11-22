@@ -176,7 +176,7 @@
     <!--/Top buttons row -->
 
     <!-- Row for choosing a wing design-->
-    <div class="row">
+    <div class="row" *ngIf="!customer.is_demo_customer">
       <div class="col">
         <div style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; border: 1px solid; border-radius: 10px; margin: 20px 0px;padding: 20px;">
         <div style="margin-inline-end: 10px;">

@@ -64,7 +64,11 @@
     "col_status": "Status",
     "col_registered": "Registered at",
     "empty": "No users found.",
-    "empty_hint": "Send an invite, or ask the user to send a request."
+    "empty_hint": "Send an invite, or ask the user to send a request.",
+    "filter_placeholder": "Filter…",
+    "filter_all": "All columns",
+    "filter_clear": "Clear the filter",
+    "no_matches": "No users match the filter."
   },
   "invites": {
     "title": "User invites",
@@ -74,7 +78,8 @@
     "col_sent": "Sent",
     "col_last_update": "Last update",
     "empty": "No invitations found.",
-    "empty_hint": "Send an invite to new users in the system."
+    "empty_hint": "Send an invite to new users in the system.",
+    "no_matches": "No invitations match the filter."
   },
   "invite_form": {
     "title": "Invite a new user",
@@ -334,6 +339,7 @@
     "delete_text": "Are you sure you want to delete this request?",
     "delete_title": "Delete request?",
     "deleted": "Request deleted successfully",
-    "declined": "Request declined successfully"
+    "declined": "Request declined successfully",
+    "no_matches": "No account requests match the filter."
   }
 }

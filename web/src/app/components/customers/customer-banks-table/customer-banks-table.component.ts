@@ -100,6 +100,8 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   @Input() raw_material_quantity_units: string = "";
   @Input() collapsed_babies_lists: boolean = true;
   @Input() selectable_allocatoin: boolean = false; 
+  /** The allocation that is the selected one (when picking): it is highlighted and has no "select" button. */
+  @Input() selected_allocation_id: number | null = null;
   @Output() bank_changed = new EventEmitter<void>();
   @Output() allocation_selected = new EventEmitter<Customer_Bank_Baby_Allocation>();
   @Output() babies_picker_open = new EventEmitter<void>();

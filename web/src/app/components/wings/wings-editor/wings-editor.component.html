@@ -111,10 +111,31 @@
                     [placeholder]="'wings:editor.pick_knife' | t"
                     [ngModel]="wing!.knife_id"
                     (change)="knifeChanged($event)"
+                    (close)="hoverKnife(null)"
                     [clearable]="false">
-                    <ng-template ng-label-tmp let-item="item">{{ item.name }} - {{ 'common:units.cm_fixed' | t: { value: item.width_cm } }}</ng-template>
-                    <ng-template ng-option-tmp let-item="item">{{ item.name }} - {{ 'common:units.cm_fixed' | t: { value: item.width_cm } }}</ng-template>
+                    <ng-template ng-label-tmp let-item="item">
+                        <div class="knife_option">
+                            @if (knifeShapes[item.id]; as shape) {
+                                <svg class="knife_picture knife_picture_small" [attr.viewBox]="shape.viewBox" preserveAspectRatio="xMidYMid meet"><path [attr.d]="shape.d" /></svg>
+                            }
+                            <span>{{ item.name }} - {{ 'common:units.cm_fixed' | t: { value: item.width_cm } }}</span>
+                        </div>
+                    </ng-template>
+                    <ng-template ng-option-tmp let-item="item">
+                        <div class="knife_option" (mouseenter)="hoverKnife(item, $event)" (mouseleave)="hoverKnife(null)">
+                            @if (knifeShapes[item.id]; as shape) {
+                                <svg class="knife_picture knife_picture_small" [attr.viewBox]="shape.viewBox" preserveAspectRatio="xMidYMid meet"><path [attr.d]="shape.d" /></svg>
+                            }
+                            <span>{{ item.name }} - {{ 'common:units.cm_fixed' | t: { value: item.width_cm } }}</span>
+                        </div>
+                    </ng-template>
                 </ng-select>
+                @if (hoveredKnife && knifeShapes[hoveredKnife.id]; as shape) {
+                    <div class="knife_hover_preview" [style.left.px]="hoverPosition.left" [style.top.px]="hoverPosition.top">
+                        <svg class="knife_picture knife_picture_large" [attr.viewBox]="shape.viewBox" preserveAspectRatio="xMidYMid meet"><path [attr.d]="shape.d" /></svg>
+                        <div class="knife_hover_label">{{ hoveredKnife.name }} - {{ 'common:units.cm_fixed' | t: { value: hoveredKnife.width_cm } }}</div>
+                    </div>
+                }
                  <div class="d-flex align-items-center" style="margin-top:15px;">
                     <span class="icon-wing-size" style="font-size: 40px; margin-inline-end: 15px;"></span>{{ 'wings:editor.total_height' | t: { height: ('common:units.cm_1' | t: { value: total_wing_height }) } }}
                  </div>

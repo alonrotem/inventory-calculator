@@ -31,3 +31,16 @@
 .status-sent {
     color: var(--bs-warning);
 }
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.list_filter_column {
+    width: auto;
+}
+
+.list_filter_text {
+    max-width: 260px;
+}

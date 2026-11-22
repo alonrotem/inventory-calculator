@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require("path");
 const config = require('../config');
 const email = require("./email");
+const { buildListQuery } = require('./list-query');
 //const customers = require("./customers");
 const email_tempates = require('./email-templates');
 const bcrypt = require("bcrypt");
@@ -1501,25 +1502,35 @@ async function request_account(accountRequestInfo, active_connection=null){
   }
 }
 
-async function get_account_requests(page = 1, perPage){
+// the columns of the account requests list that can be sorted and filtered
+const ACCOUNT_REQUESTS_COLUMNS = {
+  name: { sql: "CONCAT(firstname, ' ', lastname)", type: 'text' },
+  email: { sql: 'email', type: 'text' },
+  request_date: { sql: "DATE_FORMAT(request_date, '%Y-%m-%d')", sort: 'request_date', type: 'text' },
+  request_status: { sql: 'request_status', type: 'text' }
+};
+
+// `list` (optional): { sort_column, sort_direction, filter_column, filter_expression }, see list-query.js
+async function get_account_requests(page = 1, perPage, list = {}){
   let subset =  '';
-  //console.log("page -> " + page);
-  //console.log("perPage -> " + perPage);
-  //console.log("(page && perPage) -> " + (page && perPage));  
   if(page && perPage && page > 0 && perPage > 0)
   {
     const offset = helper.getOffset(page, perPage);
     subset = `LIMIT ${offset},${perPage}`
   }
+  const { where, params, orderBy } = buildListQuery(list, ACCOUNT_REQUESTS_COLUMNS, 'request_date DESC');
   const rows = await db.query(
-    `select 
-      id, firstname, lastname, email, request_date, request_status 
-    from 
-      account_requests 
-    order by request_date desc ${subset}`
+    `select
+      id, firstname, lastname, email, request_date, request_status
+    from
+      account_requests
+    ${where}
+    ${orderBy} ${subset}`,
+    params
   );
   const total = await db.query(
-    `SELECT count(*) as count FROM account_requests`
+    `SELECT count(*) as count FROM account_requests ${where}`,
+    params
   );
   const total_records = total[0].count;
   /*
@@ -2036,7 +2047,18 @@ async function updateInvitation(inviteDetails, active_connection=null){
   }     
 }
 
-async function getInvitations(page, perPage){
+// the columns of the invitations list that can be sorted and filtered
+const INVITATIONS_COLUMNS = {
+  name: { sql: "CONCAT(ai.firstname, ' ', ai.lastname)", type: 'text' },
+  email: { sql: 'ai.email', type: 'text' },
+  role: { sql: 'r.name', type: 'text' },
+  invite_status: { sql: 'ai.invite_status', type: 'text' },
+  sent_date: { sql: "DATE_FORMAT(ai.sent_date, '%Y-%m-%d')", sort: 'ai.sent_date', type: 'text' },
+  last_update: { sql: "DATE_FORMAT(ai.last_update, '%Y-%m-%d')", sort: 'ai.last_update', type: 'text' }
+};
+
+// `list` (optional): { sort_column, sort_direction, filter_column, filter_expression }, see list-query.js
+async function getInvitations(page, perPage, list = {}){
   let subset =  '';
   if(page && perPage && page > 0 && perPage > 0)
   {
@@ -2044,13 +2066,17 @@ async function getInvitations(page, perPage){
     subset = `LIMIT ${offset},${perPage}`
   }
 
+  const { where, params, orderBy } = buildListQuery(list, INVITATIONS_COLUMNS, 'ai.id');
   const rows = await db.query(
     `select ai.id, ai.firstname, ai.lastname, ai.email, ai.invite_status, ai.sent_date, ai.last_update, r.name as role, ai.is_demo_customer
-      from account_invites ai left join roles r on r.id=ai.account_role_id 
-    ${subset}`
+      from account_invites ai left join roles r on r.id=ai.account_role_id
+    ${where}
+    ${orderBy} ${subset}`,
+    params
   );
   const total = await db.query(
-    `SELECT count(*) as count FROM account_invites`
+    `SELECT count(*) as count FROM account_invites ai left join roles r on r.id=ai.account_role_id ${where}`,
+    params
   );
   const total_records = total[0].count;
 
@@ -2416,27 +2442,41 @@ async function getRoles(){
   return helper.emptyOrRows(db.query(`select id, name from roles`, []));
 }
 
-async function getMultiple(page = 1, perPage) {
+// the columns of the users list that can be sorted and filtered
+const USER_STATUS_SQL = `case
+        when u.is_disabled then "disabled"
+        when u.is_verified then "verified"
+        else "pending"
+      end`;
+const USERS_COLUMNS = {
+  name: { sql: "CONCAT(u.firstname, ' ', u.lastname)", type: 'text' },
+  email: { sql: 'u.email', type: 'text' },
+  role: { sql: 'r.name', type: 'text' },
+  status: { sql: USER_STATUS_SQL, type: 'text' },
+  registered_at: { sql: "DATE_FORMAT(u.created_at, '%Y-%m-%d')", sort: 'u.created_at', type: 'text' }
+};
+
+// `list` (optional): { sort_column, sort_direction, filter_column, filter_expression }, see list-query.js
+async function getMultiple(page = 1, perPage, list = {}) {
   let subset =  '';
-  //console.log("page -> " + page);
-  //console.log("perPage -> " + perPage);
-  //console.log("(page && perPage) -> " + (page && perPage));  
   if(page && perPage && page > 0 && perPage > 0)
   {
     const offset = helper.getOffset(page, perPage);
     subset = `LIMIT ${offset},${perPage}`
   }
+  const { where, params, orderBy } = buildListQuery(list, USERS_COLUMNS, 'u.id');
   const rows = await db.query(
     `select u.id, u.firstname, u.lastname, u.username, u.email, u.photo_url, r.name role, u.created_at registered_at, u.is_demo_customer,
-      case
-        when u.is_disabled then "disabled"
-        when u.is_verified then "verified"
-        else "pending"
-      end status
-      from users u left join user_roles ur on ur.user_id=u.id left join roles r on r.id=ur.role_id ${subset}`
+      ${USER_STATUS_SQL} status
+      from users u left join user_roles ur on ur.user_id=u.id left join roles r on r.id=ur.role_id
+      ${where}
+      ${orderBy} ${subset}`,
+    params
   );
+  // counted over the same rows as the list (a user with several roles is in it once for each)
   const total = await db.query(
-    `SELECT count(*) as count FROM users`
+    `SELECT count(*) as count FROM users u left join user_roles ur on ur.user_id=u.id left join roles r on r.id=ur.role_id ${where}`,
+    params
   );
   const total_records = total[0].count;
   /*

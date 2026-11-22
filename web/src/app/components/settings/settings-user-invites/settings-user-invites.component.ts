@@ -12,10 +12,11 @@ import { SettingsService } from '../../../services/settings.service';
 import { StateService } from '../../../services/state.service';
 import { ToastService } from '../../../services/toast.service';
 import { UsersService } from '../../../services/users.service';
-import { AccountInviteList, AccountInviteListItem } from '../../../../types';
+import { AccountInviteList, AccountInviteListItem, ListParams } from '../../../../types';
 import { DateStrPipe } from '../../../utils/pipes/date_pipe';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { TranslatePipe, TranslateEnumPipe } from '../../../i18n/translate.pipe';
+import { loadListSort, saveListSort } from '../../../utils/list-sort-storage';
 
 @Component({
   selector: 'app-settings-user-invites',
@@ -58,9 +59,80 @@ export class SettingsUserInvitesComponent extends NavigatedMessageComponent impl
     this.getInvitations(page);
   }
 
+  // sorting and filtering (by the server, before paging)
+  // the sort the list was left with is kept, so that it opens the same way next time
+  private static readonly SORT_KEY = 'user_invites';
+  private static readonly SORT_COLUMNS = ['name', 'email', 'role', 'invite_status', 'sent_date', 'last_update'];
+  sortColumn?: string = loadListSort(SettingsUserInvitesComponent.SORT_KEY, SettingsUserInvitesComponent.SORT_COLUMNS)?.column;
+  sortDirection: 'asc' | 'desc' = loadListSort(SettingsUserInvitesComponent.SORT_KEY, SettingsUserInvitesComponent.SORT_COLUMNS)?.direction ?? 'asc';
+  filterColumn: string = '';        // '' : all columns
+  filterText: string = '';
+  private filterTimer: ReturnType<typeof setTimeout> | undefined;
+
+  get filterActive(): boolean {
+    return this.filterText.trim() !== '';
+  }
+
+  /** The list's sorting and filtering, for the server. */
+  private listParams(page: number, perPage: number): ListParams {
+    const list: ListParams = { page: page, perPage: perPage };
+    if (this.sortColumn) {
+      list.sort_column = this.sortColumn;
+      list.sort_direction = this.sortDirection;
+    }
+    if (this.filterActive) {
+      list.filter_expression = this.filterText.trim();
+      if (this.filterColumn) {
+        list.filter_column = this.filterColumn;
+      }
+    }
+    return list;
+  }
+
+  /** A column header was clicked: sort by it, ascending; again: descending. */
+  sortBy(column: string) {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    }
+    else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    saveListSort(SettingsUserInvitesComponent.SORT_KEY, { column: this.sortColumn, direction: this.sortDirection });
+    this.getInvitations(1);
+  }
+
+  sortIndicator(column: string): string {
+    return this.sortColumn === column ? (this.sortDirection === 'asc' ? '▲' : '▼') : '';
+  }
+
+  ariaSort(column: string): 'ascending' | 'descending' | 'none' {
+    return this.sortColumn === column ? (this.sortDirection === 'asc' ? 'ascending' : 'descending') : 'none';
+  }
+
+  /** The filter text was typed: the list is asked for after a short pause in typing. */
+  filterTextChanged(text: string) {
+    this.filterText = text;
+    clearTimeout(this.filterTimer);
+    this.filterTimer = setTimeout(() => this.getInvitations(1), 300);
+  }
+
+  filterColumnChanged(column: string) {
+    this.filterColumn = column;
+    if (this.filterActive) {
+      this.getInvitations(1);
+    }
+  }
+
+  clearFilter() {
+    clearTimeout(this.filterTimer);
+    this.filterText = '';
+    this.getInvitations(1);
+  }
+
   getInvitations(page: number){
     //console.log("this.rowsPerPage: " + this.rowsPerPage);
-    this.usersService.getInvitations({ page: page, perPage:this.rowsPerPage }).subscribe(
+    this.usersService.getInvitations(this.listParams(page, this.rowsPerPage)).subscribe(
     {
       next: (invitations: AccountInviteList) => {
         console.dir(invitations);

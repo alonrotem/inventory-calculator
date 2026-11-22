@@ -30,6 +30,7 @@ import { FilterPipe } from "../../../utils/pipes/filter-pipe";
 import { LengthPipe } from '../../../utils/pipes/length-pipe';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { KnivesService } from '../../../services/knives.service';
+import { knifeSvgOutline } from '../knife-editor/knife-render';
 import { CustomersService } from '../../../services/customers.service';
 import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { TranslationService } from '../../../i18n/translation.service';
@@ -150,9 +151,10 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
 
   ngOnInit(): void {
     this.customer_id = Number(this.activatedRoute.snapshot.queryParamMap.get('c_id'));
-    this.knivesService.getKnives({ page: 0, perPage: 0 }).subscribe({
+    this.knivesService.getKnives({ page: 0, perPage: 0 }, true).subscribe({   // with the shapes, for the pictures in the selector
       next: (knives) => {
         this.allKnives = knives.data;
+        this.knifeShapes = Object.fromEntries(knives.data.map(k => [k.id, knifeSvgOutline(k)]));
         this.updateKnifeOptions();
       },
       error: () => {}
@@ -556,6 +558,29 @@ export class WingsEditorComponent extends NavigatedMessageComponent implements O
       this.wing.knife_id = knife.id;
       this.wing.knife = knife.width_cm;
       this.babies_length_clicked();
+    }
+  }
+
+  // the knives' pictures in the selector: small in the list and the selection, larger beside the list under the mouse
+  knifeShapes: Record<number, { d: string; viewBox: string } | null> = {};
+  hoveredKnife: KnifeListItem | null = null;
+  hoverPosition: { left: number; top: number } = { left: 0, top: 0 };
+
+  /** The mouse is on a knife of the list, or left it (knife null, no event). */
+  hoverKnife(knife: KnifeListItem | null, event?: MouseEvent) {
+    this.hoveredKnife = knife;
+    if (knife && event) {
+      // beside the list, so it doesn't cover it; on the other side when there is no room
+      const option = event.currentTarget as HTMLElement;
+      const panel = (option.closest('.ng-dropdown-panel') as HTMLElement | null)?.getBoundingClientRect() ?? option.getBoundingClientRect();
+      const row = option.getBoundingClientRect();
+      const width = 240, height = 180, gap = 8;
+      let left = panel.right + gap;
+      if (left + width > window.innerWidth - 4) {
+        left = Math.max(4, panel.left - gap - width);
+      }
+      const top = Math.min(Math.max(4, row.top + row.height / 2 - height / 2), Math.max(4, window.innerHeight - height - 4));
+      this.hoverPosition = { left, top };
     }
   }
 

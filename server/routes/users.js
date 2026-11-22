@@ -14,9 +14,9 @@ const upload = multer({ storage: memoryStorage });
 
 // Get all users (paged)
 router.get('/', auth_request([{ requiredArea: 'user_management', requiredPermission: 'R' }]), async function(req, res, next) {
-  logger.info(`get /users/ page=${req.query.page}, perPage=${req.query.perPage}`);
+  logger.info(`get /users/ page=${req.query.page}, perPage=${req.query.perPage}, sort=${req.query.sort_column} ${req.query.sort_direction}, filter=${req.query.filter_column} ${req.query.filter_expression}`);
   try {
-    const response = await users.getMultiple(req.query.page, req.query.perPage);
+    const response = await users.getMultiple(req.query.page, req.query.perPage, req.query);
     logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
     res.json(response);
   } 
@@ -41,9 +41,9 @@ router.delete('/:id', auth_request([{ requiredArea: 'user_management', requiredP
 
 //get user invitations (paged)
 router.get('/invitations', auth_request([{ requiredArea: 'user_management', requiredPermission: 'R' }]), async function(req, res, next) {
-  logger.info(`get /users/invitations page=${req.query.page}, perPage=${req.query.perPage}`);
+  logger.info(`get /users/invitations page=${req.query.page}, perPage=${req.query.perPage}, sort=${req.query.sort_column} ${req.query.sort_direction}, filter=${req.query.filter_column} ${req.query.filter_expression}`);
   try {
-    const response = await users.getInvitations(req.query.page, req.query.perPage);
+    const response = await users.getInvitations(req.query.page, req.query.perPage, req.query);
     logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
     res.json(response);
   } 
@@ -547,9 +547,9 @@ router.post('/request_account', async function(req, res, next) {
 });
 
 router.get('/account_requets', auth_request([{ requiredArea: 'user_management', requiredPermission: 'R' }]), async function(req, res, next) {
-  logger.info(`get /users/account_requets/ page=${req.query.page}, perPage=${req.query.perPage}`);
+  logger.info(`get /users/account_requets/ page=${req.query.page}, perPage=${req.query.perPage}, sort=${req.query.sort_column} ${req.query.sort_direction}, filter=${req.query.filter_column} ${req.query.filter_expression}`);
   try {
-    const response = await users.get_account_requests(req.query.page, req.query.perPage);
+    const response = await users.get_account_requests(req.query.page, req.query.perPage, req.query);
     logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
     res.json(response);
   } 
