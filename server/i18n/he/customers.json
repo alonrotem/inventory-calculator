@@ -404,6 +404,8 @@
     "same_as_l": "להשתמש באותה הקצאה כמו זנבות L",
     "number_of_wings": "מספר כנפיים:",
     "loading_wing": "טוען כנף",
+    "demo_wing": "כנף לדוגמה",
+    "choose_wing_first": "יש לבחור קודם כנף כדי לראות את התרשים שלה.",
     "based_on": "מבוסס על קוטר {{diameter}}\" ורוחב כתר {{crown}}",
     "advanced_edit": "עריכה מתקדמת",
     "tweaks": "התאמות לכובע:",

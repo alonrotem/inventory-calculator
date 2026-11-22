@@ -5,6 +5,7 @@ import { WingsService } from '../../../services/wings.service';
 import { Bank_Allocation_Type, Customer, Customer_Bank_Baby_Allocation, CustomerHat, RawMaterialBasicDetails, Status, Wing, WingBaby, WingsListItem } from '../../../../types';
 import { DecimalPipe, formatDate, JsonPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { WingDiagramComponent } from '../../wings/wing-diagram/wing-diagram.component';
+import { WingBabyEdit, applyBabyEdit } from '../../wings/wing-diagram/wing-baby-edit';
 import { PrefixPipe } from '../../../utils/pipes/prefix-pipe';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
 import { Lightbox, LightboxModule } from 'ngx-lightbox';
@@ -180,6 +181,9 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   inch_to_cm: number = 2.54;
   cm_to_inch: number = 0.393701;
 
+  // the id of the dummy wing a demo customer plays with: it exists only on the page (it is never saved), and is positive so that the page treats it as a selected wing
+  static readonly DEMO_WING_ID = 2147483647;
+  demo_wing_knife: number = 8;
   min_knife:number = 4;
   max_knife:number = 12.5;
   knife_steps: number = 0.5;
@@ -465,6 +469,11 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         if(this.customer.default_num_of_wings_per_hat)
           this.customerHat.wing_quantity = this.customer.default_num_of_wings_per_hat;
 
+        // a demo customer has no knife or wings of their own: an empty wing to play with
+        if(this.customer.is_demo_customer && this.customerHat.wing.id <= 0){
+          this.load_demo_wing();
+        }
+
         this.rawMaterialsService.getRawMaterialBasicDetails(id).subscribe({
           next: (names)=> {
             this.raw_material_names = names;
@@ -587,7 +596,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       //const C1 = this.customerHat.wing.babies.find(b => b.position.toUpperCase() == "C1");
       const longest_crown_baby = this.customerHat.wing.babies
         .filter(c => c.position.toUpperCase().startsWith("C"))
-        .reduce((a, b) => (b.length > a.length ? b : a));
+        .reduce<WingBaby | undefined>((a, b) => (a && a.length >= b.length ? a : b), undefined);
       this.customerHat.crown_visible = (longest_crown_baby) ? longest_crown_baby.length : 0;
       this.customerHat.crown_length = (longest_crown_baby)? longest_crown_baby.length : 0;
     }
@@ -816,6 +825,66 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         //this.recauculate_overdraft_tails();
       });
     }
+  }
+
+  /** Without a wing there is nothing to show, so a customer who has to choose one is told to choose it first (a demo customer has the dummy wing). */
+  get choose_wing_first(): boolean {
+    return !this.customer.is_demo_customer && (!this.customerHat.wing || this.customerHat.wing.id <= 0);
+  }
+
+  /** An empty dummy wing (with a knife width), so that a demo customer can add babies and play with all the page's calculations. */
+  private load_demo_wing() {
+    const wing: Wing = {
+      id: SingleHatCalculatorComponent.DEMO_WING_ID,
+      name: '',
+      knife: this.demo_wing_knife,
+      allow_shortening_babies_in_pairs: false,
+      crown_width: 2,
+      split_l1: 1,
+      angled_crown: false,
+      babies: [],
+      customers: []
+    };
+    this.hat_babies = [];
+    this.selected_wing_name = this.translation.t('customers:calc.demo_wing');
+    this.customerHat.wing = wing;
+    this.customerHat.wing.name = this.generate_unique_hat_name();
+    this.wing_original = JSON.parse(JSON.stringify(wing));
+    this.wing_unchanged = JSON.parse(JSON.stringify(wing));
+    this.crown_width_original = wing.crown_width;
+    this.is_wing_customized = false;
+    this.customerHat.original_wing_name = this.selected_wing_name;
+    if(this.advisor){
+      this.advisor.wing = wing;
+    }
+    this.diagram?.setColors(this.globalsService.currentTheme());
+
+    this.aggregateHatBabiesAndMatchingAllocations();
+    this.update_table_instructions();
+    this.order_amount = Math.min(this.total_num_of_possible_hats, 10);
+    this.recalculate_hat_size();
+    this.calculateVisibleCrown();
+    this.calculate_wings_per_hat();
+  }
+
+  /** A baby was added, removed or resized on the diagram (with the mouse wheel): the same as when its length is edited in the dialog. */
+  diagram_baby_edited(edit: WingBabyEdit){
+    const wing = this.customerHat.wing;
+    if(!wing){
+      return;
+    }
+    wing.babies = applyBabyEdit(wing.babies, edit, wing.id);
+    // the wing without the shortening of the top and crown follows, as when a length is edited
+    this.wing_unchanged.babies = applyBabyEdit(this.wing_unchanged.babies, edit, this.wing_unchanged.id);
+    if(edit.position.toUpperCase() == "TOP"){
+      this.customerHat.shorten_top_by = 0;
+    }
+    this.check_for_wing_changes();
+    this.aggregateHatBabiesAndMatchingAllocations();
+    this.order_amount = Math.min(this.total_num_of_possible_hats, 10);
+    this.update_table_instructions();
+    this.recalculate_hat_size();
+    this.calculateVisibleCrown();
   }
 
   wing_cleared(){
@@ -1105,7 +1174,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         const L1 = this.customerHat.wing.babies.find(b => b.position.toUpperCase() == "L1");
         const longest_crown_baby = this.customerHat.wing.babies
           .filter(c => c.position.toUpperCase().startsWith("C"))
-          .reduce((a, b) => (b.length > a.length ? b : a));
+          .reduce<WingBaby | undefined>((a, b) => (a && a.length >= b.length ? a : b), undefined);
         const L1_len = (L1) ? L1.length : 0;
         const longest_crown_baby_length = (longest_crown_baby) ? longest_crown_baby.length : 0;
         this.wing_total_height += (L1_len + longest_crown_baby_length);
@@ -1134,7 +1203,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         const L1 = this.customerHat.wing.babies.find(b => b.position.toUpperCase() == "L1");
         const longest_crown_baby = this.customerHat.wing.babies
           .filter(c => c.position.toUpperCase().startsWith("C"))
-          .reduce((a, b) => (b.length > a.length ? b : a));
+          .reduce<WingBaby | undefined>((a, b) => (a && a.length >= b.length ? a : b), undefined);
         const L1_len = (L1) ? L1.length : 0;
         const longest_crown_baby_length = (longest_crown_baby) ? longest_crown_baby.length : 0;
         this.wing_knife -= (L1_len + longest_crown_baby_length);

@@ -392,6 +392,8 @@
     "same_as_l": "Use the same allocation as L tails",
     "number_of_wings": "Number of wings:",
     "loading_wing": "Loading wing",
+    "demo_wing": "Demo wing",
+    "choose_wing_first": "Please choose a wing first, to see its diagram.",
     "based_on": "Based on diameter {{diameter}}\" and crown width {{crown}}",
     "advanced_edit": "Advanced edit",
     "tweaks": "Hat tweaks:",

@@ -535,6 +535,11 @@
    <!-- Diagram area -->
   <div class="col-12 col-md-8">
     <div class="diagram-container">
+      <div *ngIf="choose_wing_first" class="text-warning text-center pt-5 pb-5">
+        {{ 'customers:calc.choose_wing_first' | t }}
+      </div>
+      <!-- hidden, not removed, until a wing is chosen: the page draws on the diagram when the wing loads -->
+      <div [hidden]="choose_wing_first">
       <div class="advanced-edit-wing">
         <button class="btn btn-primary" (click)="open_wing_editor()"><span class="icon-feather-wing"></span> {{ 'customers:calc.advanced_edit' | t }}</button>
       </div>
@@ -549,8 +554,11 @@
           [top_tilt]="(this.customerHat.wing)? (this.customerHat.wing.top_tilt ?? 0) : 0"
           [top_opening]="(this.customerHat.wing)? (this.customerHat.wing.top_opening ?? 0) : 0"
           [knife_id]="(this.customerHat.wing)? (this.customerHat.wing.knife_id ?? null) : null"
+          [editable]="true"
           (babyClicked)="diagram_baby_clicked($event)"
+          (babyEdited)="diagram_baby_edited($event)"
       />
+      </div>
       </div>
       <div>
   </div>
