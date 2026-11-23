@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const transaction_history = require('../services/transaction_history');
 const { logger } =  require('../logger');
-const auth_request = require('../middleware/auth_request');
+const { auth_request } = require('../middleware/auth_request');
 
 router.post('/', 
   auth_request([{requiredArea:'raw_materials', requiredPermission:'U'}]),

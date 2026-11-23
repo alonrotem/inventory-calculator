@@ -3,10 +3,10 @@ const express = require('express');
 const router = express.Router();
 const orders = require('../services/orders');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+//const path = require('path');
+//const fs = require('fs');
 const { logger } =  require('../logger');
-const auth_request = require('../middleware/auth_request');
+const { auth_request } = require('../middleware/auth_request');
 
   router.put('/', 
     auth_request([{requiredArea:'orders', requiredPermission:'R'}, {requiredArea:'orders_resources_by_customer_id', requiredPermission:'R'}]), 

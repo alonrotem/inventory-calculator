@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const users = require('../services/users');
-const auth_request = require('../middleware/auth_request');
+const { auth_request, parseAuthToken } = require('../middleware/auth_request');
 const { logger } =  require('../logger');
 const jwt = require("jsonwebtoken");
 const multer = require('multer');
@@ -119,9 +119,16 @@ router.delete('/invitation/:id', auth_request([{ requiredArea: 'user_management'
 });
 
 // Get a user by ID
-router.get('/details/:id', auth_request([{ requiredArea: 'user_management', requiredPermission: 'R' }]),  async function(req, res, next) {
+router.get('/details/:id', async function(req, res, next) {
   logger.info(`get /users/details/${req.params.id}`);
   try {
+    //check if the current user is asking for their own details.
+    //If not, check permissions.
+    const user_token = await parseAuthToken(req);
+    if(user_token.id != req.params.id){
+      await auth_request([{ requiredArea: 'user_management', requiredPermission: 'R' }]);
+    }
+
     const response = await users.getSingle(req.params.id);
     logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
     res.json(response);

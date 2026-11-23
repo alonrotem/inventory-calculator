@@ -12,20 +12,10 @@ const jwt = require('jsonwebtoken');
  */
 //const authenticateRequest = async (req, res, next) => {
 //auth_request([{ requiredArea: '', requiredPermission: '' }])
-const authenticateRequest = (requiredPermissions) => {
+const auth_request = (requiredPermissions) => {
     return async (req, res, next) => {    
         try {
-            let token = "";
-                if(req.headers && req.headers.authorization && req.headers.authorization.indexOf("Bearer ") == 0) {
-                const bearer = req.headers.authorization.split(" ");
-                if(bearer.length > 1) {
-                    token = bearer[1];
-                }
-            }
-            if(!token){
-                return res.status(401).send({ message: req.t('server:auth.no_session') });
-            }
-            const auth_token = await jwt.verify(token, process.env.AUTH_TOKEN_SECRET);
+            const auth_token = await parseAuthToken(req);
             req["auth_token"] = auth_token;
 
             if (!await users.doesUserHavePermissions(auth_token.id, requiredPermissions)) {
@@ -66,4 +56,21 @@ const authenticateRequest_with_params = async(throw_error) => {
 };
 */
 
-module.exports = authenticateRequest;
+const parseAuthToken = async (req) => {
+    let token = "";
+        if(req.headers && req.headers.authorization && req.headers.authorization.indexOf("Bearer ") == 0) {
+        const bearer = req.headers.authorization.split(" ");
+        if(bearer.length > 1) {
+            token = bearer[1];
+        }
+    }
+    if(!token){
+        return res.status(401).send({ message: req.t('server:auth.no_session') });
+    }
+    return await jwt.verify(token, process.env.AUTH_TOKEN_SECRET);
+}
+
+module.exports = { 
+    auth_request,
+    parseAuthToken
+};

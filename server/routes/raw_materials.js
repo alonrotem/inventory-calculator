@@ -3,7 +3,7 @@ const router = express.Router();
 const raw_materials = require('../services/raw_materials');
 const { logger } =  require('../logger');
 const users = require('../services/users');
-const auth_request = require('../middleware/auth_request');
+const { auth_request } = require('../middleware/auth_request');
 
 /* GET raw materials */
 /* curl -i -X GET \

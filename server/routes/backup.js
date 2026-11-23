@@ -9,7 +9,7 @@ const config = require('../config');
 const path = require('path');
 const fs = require("fs");
 const { logger } =  require('../logger');
-const auth_request = require('../middleware/auth_request');
+const { auth_request } = require('../middleware/auth_request');
 
 // Set up multer for file upload (store in memory or disk)
 const storage = multer.memoryStorage(); // Store file in memory buffer

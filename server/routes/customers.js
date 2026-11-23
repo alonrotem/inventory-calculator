@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const customers = require('../services/customers');
 const { logger } =  require('../logger');
-const auth_request = require('../middleware/auth_request');
+const { auth_request } = require('../middleware/auth_request');
 
 /* GET customers */
 /* curl -i -X GET \

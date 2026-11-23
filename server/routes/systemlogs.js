@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const JSZip = require("jszip");
 const systemlogs = require('../services/systemlogs');
-const auth_request = require('../middleware/auth_request');
+const { auth_request } = require('../middleware/auth_request');
 
 router.get('/', auth_request([{requiredArea:'system_logs', requiredPermission:'R'} ]), async function(req, res, next) {
     try {

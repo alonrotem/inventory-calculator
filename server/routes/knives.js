@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const knives = require('../services/knives');
 const { logger } =  require('../logger');
-const auth_request = require('../middleware/auth_request');
+const { auth_request } = require('../middleware/auth_request');
 
 /* GET knives (names and ids, for lists) */
 /* curl -i -X GET \

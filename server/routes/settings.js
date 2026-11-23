@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const settings = require('../services/settings');
 const { logger } =  require('../logger');
-const auth_request = require('../middleware/auth_request');
+const { auth_request } = require('../middleware/auth_request');
 
   //using post in order to receive a list of keys to get (optional)
   /*
