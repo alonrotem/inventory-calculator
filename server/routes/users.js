@@ -125,6 +125,9 @@ router.get('/details/:id', async function(req, res, next) {
     //check if the current user is asking for their own details.
     //If not, check permissions.
     const user_token = await parseAuthToken(req);
+    if(!auth_request){
+      return res.status(401).send({ message: req.t('server:auth.unauthorized') });
+    }
     if(user_token.id != req.params.id){
       await auth_request([{ requiredArea: 'user_management', requiredPermission: 'R' }]);
     }

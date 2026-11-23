@@ -16,10 +16,15 @@ const auth_request = (requiredPermissions) => {
     return async (req, res, next) => {    
         try {
             const auth_token = await parseAuthToken(req);
-            req["auth_token"] = auth_token;
+            if(!auth_token){
+                res.status(401).send({ message: req.t('server:auth.no_session') });
+            }
+            else {
+                req["auth_token"] = auth_token;
 
-            if (!await users.doesUserHavePermissions(auth_token.id, requiredPermissions)) {
-                return res.status(403).json({ error: req.t('server:auth.forbidden') });
+                if (!await users.doesUserHavePermissions(auth_token.id, requiredPermissions)) {
+                    return res.status(403).json({ error: req.t('server:auth.forbidden') });
+                }
             }
             next();
         }
@@ -65,7 +70,7 @@ const parseAuthToken = async (req) => {
         }
     }
     if(!token){
-        return res.status(401).send({ message: req.t('server:auth.no_session') });
+        return null;
     }
     return await jwt.verify(token, process.env.AUTH_TOKEN_SECRET);
 }
