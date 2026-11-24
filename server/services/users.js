@@ -873,7 +873,7 @@ async function finalize_accepted_invitation(invitation_info, invitation_code, ac
       `
       select ai.*, u.firstname inviter_firstname, u.email inviter_email from account_invites ai
         inner join users u on ai.inviter_user_id = u.id
-      where ai.account_creation_code=(?) and ai.id=(?) and ai.request_status='sent'`, [invitation_code, invitation_info["id"]]));
+      where ai.account_creation_code=(?) and ai.id=(?) and ai.invite_status='sent'`, [invitation_code, invitation_info["id"]]));
     if(helper.isEmptyObj(invitation_rec)){
       throw i18n.fail('server:users.invalid_invitation_code');
     }
