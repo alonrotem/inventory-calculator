@@ -221,11 +221,21 @@ router.post('/reset-password', async function(req, res, next) {
   logger.info(`post /users/reset-password`);
   logger.debug(`Body: ${ JSON.stringify(req.body) }`);
   try {
+    let user_id = -1;
+    const user_record = await users.getUserRecord_by_pending_verification_code(req.body.code);
+    if(!user_record || !user_record.id){
+      return res.status(400).send({ message: req.t('server:users.invalid_code') });
+    }
+    else {
+      user_id = user_record.id;
+    }
+
     const response  = await users.reset_password(req.body.code, req.body.password, req.body.sign_out_from_all);
     
     if(req.body.sign_out_from_all){
+      const login_ids = (await users.get_logins(null, [user_id])).map(login => login.id);
       let refresh_token = req.cookies.refresh_token;
-      await users.clear_logins([], refresh_token);
+      await users.clear_logins(login_ids, refresh_token, user_id);
       await users.logout(refresh_token);
       res.clearCookie('refresh_token');
     }

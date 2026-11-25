@@ -557,7 +557,7 @@ async function reset_password(code, password, sign_out_from_all, active_connecti
       throw i18n.fail('server:users.password_and_code_required');
     }
 
-    const user_rec = helper.emptyOrSingle(await db.query(`select * from users where pending_verfication_code=(?)`, [ /*helper.decBase64(*/code/*)*/ ]));
+    const user_rec = await getUserRecord_by_pending_verification_code(code); //helper.emptyOrSingle(await db.query(`select * from users where pending_verfication_code=(?)`, [ /*helper.decBase64(*/code/*)*/ ]));
     if(helper.isEmptyObj(user_rec)){
       throw i18n.fail('server:users.invalid_code');
     }
@@ -1002,7 +1002,7 @@ async function saveUserProfile(updateProfileInfo, photo_url, active_connection=n
     //first try to find the user by sent id. if no such user is found, it may be an id of an invitation.
     //we'll have to first find the invitation, realize it (i.e. create the user), then update it accordingly
     existing_user = updateProfileInfo["profile_code"]?
-      helper.emptyOrSingle(await db.query(`select * from users where pending_verfication_code=(?) limit 1`, [updateProfileInfo["profile_code"]])) :
+      await getUserRecord_by_pending_verification_code(updateProfileInfo["profile_code"]) :
       helper.emptyOrSingle(await db.query(`select * from users where id=(?) limit 1`, [updateProfileInfo["id"]]));
     
     if(helper.isEmptyObj(existing_user)){
@@ -1236,20 +1236,24 @@ async function fetch_user_info_by_invitation_code(invitation_code){
   };    
 }
 
+async function getUserRecord_by_pending_verification_code(verification_code){
+  return helper.emptyOrSingle(await db.query(
+    'select * from users where pending_verfication_code=(?) limit 1', 
+    [ verification_code ]));
+}
+
 //will get the base user profile by pending verification code. Either in the users table, or a pending user invitation
 async function getUserProfile_by_code(verification_code){
 
-  const code = verification_code; //helper.decBase64(verification_code);
+  //const code = verification_code; //helper.decBase64(verification_code);
 
-  const user_rec = helper.emptyOrSingle(await db.query(
-    'select * from users where pending_verfication_code=(?)', 
-    [ code ]));
+  const user_rec = await getUserRecord_by_pending_verification_code(verification_code);
   
   if(!helper.isEmptyObj(user_rec)) {
-    return await fetch_user_info_for_account(user_rec, code);
+    return await fetch_user_info_for_account(user_rec, verification_code);
   }
   else {
-    return await fetch_user_info_by_invitation_code(code);
+    return await fetch_user_info_by_invitation_code(verification_code);
   }
 }
 
@@ -2183,16 +2187,26 @@ async function get_logins(users_refresh_token, user_ids, active_connection=null)
     }
 
     await cleanup_expired_tokens(0, active_connection);
-    if(users_refresh_token && (!user_ids || user_ids.length <= 0 || user_ids.filter(id => id > 0).length == 0)) {
-      const curr_user = helper.emptyOrSingle(await db.query(
-        `select * from users where id=(
-          select user_id from logins  where refresh_token=(?) limit 1)`,
-        [ users_refresh_token ]));
-
+    if(users_refresh_token  || (user_ids && user_ids.length > 0 && user_ids.filter(id => id > 0).length > 0)) {
+      let curr_user = {};
+      if(users_refresh_token) {
+        curr_user = helper.emptyOrSingle(await db.query(
+          `select * from users where id=(
+            select user_id from logins  where refresh_token=(?) limit 1)`,
+          [ users_refresh_token ]));
+          
+          if(!helper.isEmptyObj(curr_user)) {
+            user_ids = [curr_user["id"]];
+          }
+      }
+      if(user_ids && user_ids.length > 0 && user_ids.filter(id => id > 0).length > 0) {
+        curr_user = helper.emptyOrSingle(await db.query(
+          `select * from users where id in (?)`,
+          user_ids.filter(id => id > 0)));
+      }
       if(helper.isEmptyObj(curr_user)) {
         throw i18n.fail('server:users.not_found');
       }          
-      user_ids = [curr_user["id"]];
 
       if(curr_user["is_verified"] == 0){
         throw i18n.fail('server:users.not_verified_check_mail');
@@ -2285,10 +2299,17 @@ async function clear_logins(login_ids, users_refresh_token, current_user_id, act
     const logins_of_other_users = (login_users.indexOf(user => user != current_user_id)) >= 0;
     const user_can_logout_others = await doesUserHavePermissions(current_user_id, [{ requiredArea: 'user_management', requiredPermission: 'U' }]);
     
+    // option 1: the current user has the rights to log other users out, and there are other user login ids
+    //  if there is a token, include it in the query
     if(!logins_of_other_users || user_can_logout_others){
         let placeholder = login_ids.map(id => "?").join(",");
-        const params = login_ids.concat(users_refresh_token);
-        await db.transaction_query(`delete from logins where id in (${placeholder})  and refresh_token<>(?)`, params, active_connection);
+        let params = login_ids;
+        let refresh_token_filter = '';
+        if(users_refresh_token){
+          params = params.concat(users_refresh_token);
+          refresh_token_filter = 'and refresh_token<>(?)';
+        }
+        await db.transaction_query(`delete from logins where id in (${placeholder}) ${refresh_token_filter}`, params, active_connection);
     }
     else {
       throw i18n.fail('server:users.no_permission_logout');
@@ -2297,13 +2318,22 @@ async function clear_logins(login_ids, users_refresh_token, current_user_id, act
    //No IDs specified
    else {
     //go by the refresh token to identify the current login
-    if(!users_refresh_token){
-      throw i18n.fail('server:users.no_refresh_token');
+    //if(!users_refresh_token){
+    //  throw i18n.fail('server:users.no_refresh_token');
+    //}
+
+    // option 2: get all the current user logins
+    //  if there is a refresh token, include it in the query
+    let refresh_token_filter = '';
+    let params = [current_user_id];
+    if(users_refresh_token){
+      params = params.concat(users_refresh_token);
+      refresh_token_filter = 'and refresh_token<>(?)';
     }
 
     await db.transaction_query(
-      `delete from logins where user_id=(?) and refresh_token<>(?)`,
-      [ current_user_id, refresh_tokens ], 
+      `delete from logins where user_id=(?) ${ refresh_token_filter }`,
+      [ current_user_id, users_refresh_token ], 
       active_connection);
    }
 
@@ -2921,6 +2951,7 @@ module.exports = {
   sendUserRegistrationVerificationCode,
   getRoles,
   manual_add_user_temp,
+  getUserRecord_by_pending_verification_code,
 
   //email change workflow
   verifyNewUserEmailCode,

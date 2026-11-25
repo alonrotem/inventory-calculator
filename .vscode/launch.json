@@ -7,12 +7,22 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Debug server (Windows)",
             "skipFiles": [
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}\\server\\index.js"//,
             //"args": ["--env-file=${workspaceFolder}\\server\\.env"]
-        }
+        },
+       {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug server (Linux)",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/server/index.js"//,
+            //"args": ["--env-file=${workspaceFolder}\\server\\.env"]
+        }        
     ]
 }
