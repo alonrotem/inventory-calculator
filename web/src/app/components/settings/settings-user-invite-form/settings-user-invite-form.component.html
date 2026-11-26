@@ -30,7 +30,7 @@
             #input_firstname="ngModel" 
             name="input_firstname" 
             [required]="true"
-            [pattern]="'^[a-zA-Z\\s\\-_]*$'">
+            [pattern]="'^[a-zA-Z\\u0400-\\u04FF\\u0590-\\u05FF\\s\\-_]*$'">
             <label for="input_firstname">{{ 'users:fields.first_name' | t }} <span class="text-danger">*</span></label>
         </div> 
         <div class="text-danger" *ngIf="input_firstname.invalid && (input_firstname.touched || input_firstname.dirty)" > 
@@ -50,7 +50,7 @@
             #input_lastname="ngModel" 
             name="input_lastname" 
             [required]="true"
-            [pattern]="'^[a-zA-Z\\s\\-]*$'">
+            [pattern]="'^[a-zA-Z\\u0400-\\u04FF\\u0590-\\u05FF\\s\\-]*$'">
             <label for="input_lastname">{{ 'users:fields.last_name' | t }} <span class="text-danger">*</span></label>
         </div> 
         <div class="text-danger" *ngIf="input_lastname.invalid && (input_lastname.touched || input_lastname.dirty)" > 

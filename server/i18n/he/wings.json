@@ -8,7 +8,7 @@
     "col_name": "שם",
     "col_knife": "סכין",
     "col_knife_width": "רוחב הסכין",
-    "col_babies": "תינוקות",
+    "col_babies": "בייביז",
     "empty": "לא נוספו כנפיים.",
     "empty_hint": "אפשר להוסיף בלחיצה על כפתור ה־+ שלמעלה.",
     "filter_placeholder": "סינון…",
@@ -17,31 +17,31 @@
     "no_matches": "אין כנפיים שמתאימות לסינון."
   },
   "babies_table": {
-    "count_one": "תינוק {{count, number}}",
-    "count_two": "{{count, number}} תינוקות",
-    "count_other": "{{count, number}} תינוקות",
+    "count_one": "בייבי {{count, number}}",
+    "count_two": "{{count, number}} בייביז",
+    "count_other": "{{count, number}} בייביז",
     "col_length": "אורך",
     "col_remove": "הסרה",
     "insert": "+ הוספה כאן",
     "delete_title": "מחיקת {{position}} ({{length}})",
-    "append": "לחצו כדי להוסיף תינוקות:"
+    "append": "לחצו כדי להוסיף בייביז:"
   },
   "crown_editor": {
     "total_width": "רוחב כולל של הכתר:",
-    "common_length": "אורך משותף לכל תינוקות הכתר",
-    "all_babies": "אורך לכל התינוקות:",
-    "individual": "אורך נפרד לכל תינוק",
-    "individual_hint": "קבעו את האורך של כל תינוק בכתר בנפרד",
-    "add_baby": "+ הוספת תינוק",
-    "max_babies_one": "* בכתר יכול להיות לכל היותר תינוק {{count, number}}",
-    "max_babies_two": "* בכתר יכולים להיות לכל היותר {{count, number}} תינוקות",
-    "max_babies_other": "* בכתר יכולים להיות לכל היותר {{count, number}} תינוקות"
+    "common_length": "אורך משותף לכל בייביז הכתר",
+    "all_babies": "אורך לכל הבייביז:",
+    "individual": "אורך נפרד לכל בייבי",
+    "individual_hint": "קבעו את האורך של כל בייבי בכתר בנפרד",
+    "add_baby": "+ הוספת בייבי",
+    "max_babies_one": "* בכתר יכול להיות לכל היותר בייבי {{count, number}}",
+    "max_babies_two": "* בכתר יכולים להיות לכל היותר {{count, number}} בייביז",
+    "max_babies_other": "* בכתר יכולים להיות לכל היותר {{count, number}} בייביז"
   },
   "length_modal": {
-    "crown_count": "בחרו את מספר תינוקות הכתר"
+    "crown_count": "בחרו את מספר בייביז הכתר"
   },
   "length_picker": {
-    "title": "בחרו אורך תינוק:",
+    "title": "בחרו אורך בייבי:",
     "invalid": "נא לבחור אורך"
   },
   "baby_editor": {
@@ -52,7 +52,7 @@
     "maximum": "מקסימום: {{count, number}}",
     "not_enough": "אין מספיק יחידות זמינות. מקסימום של {{available, number}} + {{before, number}} = {{max, number}}",
     "hit_enter": "(לחצו Enter כדי לשלוח ולעבור לבא)",
-    "none_available": "אין יחידות זמינות בהקצאה הזאת כדי להוסיף עוד תינוקות"
+    "none_available": "אין יחידות זמינות בהקצאה הזאת כדי להוסיף עוד בייביז"
   },
   "editor": {
     "title_create": "יצירת כנף",
@@ -65,7 +65,7 @@
     "select_knife": "בחרו את הסכין לכנף הזאת:",
     "pick_knife": "בחירת סכין",
     "total_height": "גובה הכנף הכולל: {{height}}",
-    "shorten_pairs": "לאפשר קיצור תינוקות של הכנף הזאת בזוגות (לחומרים נבחרים)",
+    "shorten_pairs": "לאפשר קיצור בייביז של הכנף הזאת בזוגות (לחומרים נבחרים)",
     "preview": "תצוגה מקדימה של הכנף",
     "preview_title": "לחצו כדי לראות את הכנף",
     "top_tilt": "הטיית העליון",
@@ -73,9 +73,9 @@
     "top_reset": "איפוס ל-0",
     "undo": "ביטול",
     "redo": "ביצוע מחדש",
-    "left_babies": "תינוקות שמאל",
-    "right_babies": "תינוקות ימין",
-    "split_before": "פיצול תינוק L1 ל־",
+    "left_babies": "בייביז שמאל",
+    "right_babies": "בייביז ימין",
+    "split_before": "פיצול בייבי L1 ל־",
     "split_after": "חלקים",
     "top": "עליון",
     "crown": "כתר",
@@ -85,7 +85,7 @@
     "delete": "מחיקת כנף",
     "dialogs": {
       "override_title": "לדרוס את נתוני הכנף הנוכחית?",
-      "override_text": "בטוחים שברצונכם להעתיק את נתוני התינוקות מהכנף {{name}}? הפעולה תדרוס את כל נתוני הכנף הנוכחית.",
+      "override_text": "בטוחים שברצונכם להעתיק את נתוני הבייביז מהכנף {{name}}? הפעולה תדרוס את כל נתוני הכנף הנוכחית.",
       "override_yes": "דריסה",
       "reset_title": "לאפס את נתוני הכנף?",
       "reset_text": "בטוחים שברצונכם למחוק את כל נתוני הכנף?",
@@ -98,7 +98,7 @@
     "knife_width": "רוחב הסכין: {{value}}",
     "add_left": "הוספת L{{n}}",
     "add_right": "הוספת R{{n}}",
-    "add_crown": "הוספת תינוק לכתר",
+    "add_crown": "הוספת בייבי לכתר",
     "add_top": "הוספת עליון",
     "tip_crown": "כתר ({{n}})",
     "tip_remove": "לחצו כדי להסיר",

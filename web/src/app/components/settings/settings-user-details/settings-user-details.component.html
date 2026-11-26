@@ -90,7 +90,7 @@
                             <div class="input-group">
                                 <div class="form-floating">
                                     <input type="text" 
-                                        id="user_lastname" class="form-control" placeholder="0" [(ngModel)]="user.lastname" name="user_lastname" #user_lastname="ngModel"  [required]="true" [pattern]="'^[a-zA-Z][a-zA-Z\\-_]*$'">
+                                        id="user_lastname" class="form-control" placeholder="0" [(ngModel)]="user.lastname" name="user_lastname" #user_lastname="ngModel"  [required]="true" [pattern]="'^[a-zA-Z\\u0400-\\u04FF\\u0590-\\u05FF\\s\\-_]*$'">
                                     <label for="user_lastname">{{ 'users:fields.last_name' | t }}<span class="text-danger">*</span></label>
                                 </div>
                             </div>

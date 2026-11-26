@@ -451,7 +451,7 @@ function invitation_accepted_admin_notification(admin_firstname,  requester_firs
         <p></p>
         <p style="direction: ltr !important; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
             Account invitation to ${ requester_firstname } ${ requester_lastname } (${ requester_email }) was accepted, and a new account was created.<br/>
-            You can see the account invitation details in <a href='${server_address}/settings/user_invite/id=${invitation_id}'>this link</a>, and the created user profile in <a href='${server_address}/settings/user-details?id=${created_user_id}'>this link</a>.
+            You can see the account invitation details in <a href='${server_address}/settings/user_invite/?id=${invitation_id}'>this link</a>, and the created user profile in <a href='${server_address}/settings/user-details?id=${created_user_id}'>this link</a>.
         </p>
         <p></p>
         <p style="direction: ltr !important; font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">

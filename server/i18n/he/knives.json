@@ -33,7 +33,7 @@
     "back_to_list": "חזרה לסכינים",
     "name": "שם",
     "advanced_edit": "עריכה מתקדמת",
-    "preview_babies": "תצוגה מקדימה עם תינוקות",
+    "preview_babies": "תצוגה מקדימה עם בייביז",
     "save_knife": "שמירת הסכין",
     "delete_knife": "מחיקת הסכין",
     "delete_title": "אישור מחיקה",
@@ -116,13 +116,13 @@
       "measure_hint": "יש לסמן את L1 ואת הכתר כדי למדוד את הרוחב."
     },
     "preview": {
-      "title": "6. תצוגה מקדימה של תינוקות",
+      "title": "6. תצוגה מקדימה של בייביז",
       "lefts": "צד שמאל",
       "rights": "צד ימין",
       "including_l1": "כולל L1",
       "crown_split": "חלוקת הכתר",
-      "show": "הצגת תינוקות",
-      "hide": "הסתרת תינוקות",
+      "show": "הצגת בייביז",
+      "hide": "הסתרת בייביז",
       "sample_note": "אורכים לדוגמה בלבד: L 6→9.5, R 5.5→9, עליון וכתר 10 ס״מ."
     },
     "back": "חזרה",
@@ -181,8 +181,8 @@
       "delete_failed": "לא ניתן למחוק את הסכין: {{reason}}",
       "loaded": "נטען: {{name}}",
       "read_failed": "לא ניתן לקרוא את {{name}}: {{reason}}",
-      "preview_missing_regions": "יש לסמן את כל האזורים כדי לראות תינוקות. חסרים: {{regions, list}}",
-      "preview_need_width": "יש להזין את רוחב הסכין כדי לראות תינוקות."
+      "preview_missing_regions": "יש לסמן את כל האזורים כדי לראות בייביז. חסרים: {{regions, list}}",
+      "preview_need_width": "יש להזין את רוחב הסכין כדי לראות בייביז."
     },
     "blocked": {
       "load_first": "יש לטעון קודם סכין.",
