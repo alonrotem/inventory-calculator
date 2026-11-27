@@ -13,46 +13,40 @@
   </div>
   <div *ngIf="!loading && history_records && history_records.length > 0">
     <div class="mb-3">
-      {{ 'raw_materials:history.for_material' | t }} <strong>{{ raw_material_name }}</strong>
+      <span *ngIf="kind == 'raw_material'">{{ 'raw_materials:history.for_material' | t }}</span>
+      <span *ngIf="kind == 'purchase'">{{ 'raw_materials:history.for_purchase' | t }}</span>
+      <span *ngIf="kind == 'bank'">{{ 'raw_materials:history.for_bank' | t }}</span>
+      <span *ngIf="kind == 'allocation'">{{ 'raw_materials:history.for_allocation' | t }}</span>
+      <strong>{{ raw_material_name }}</strong>
+      <strong *ngIf="entity_label && entity_label != raw_material_name"> - {{ entity_label }}</strong>
     </div>
     <table class="table table-light">
         <thead>
           <tr>
             <th scope="col">{{ 'raw_materials:history.col_date' | t }}</th>
             <th scope="col">{{ 'raw_materials:history.col_action' | t }}</th>
-            <th scope="col">{{ 'raw_materials:history.col_quantity' | t }}</th>
-            <th scope="col">{{ 'raw_materials:history.col_remaining' | t }}</th>
+            <th scope="col">{{ 'raw_materials:history.col_from_to' | t }}</th>
+            <th scope="col" class="text-end">{{ 'raw_materials:history.col_quantity' | t }}</th>
+            <th scope="col" class="text-end">{{ 'raw_materials:history.col_balance' | t }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let record of history_records; index as i">
+          <tr *ngFor="let record of history_records">
             <td>{{ record.date | dateStr }}</td>
-            <td [ngSwitch]="record.transaction_type">
-              <span *ngSwitchCase="'raw_material_purchase'">
-                <span *ngIf="record.transaction_quantity >= 0">{{ 'raw_materials:history.purchase' | t }}</span>
-                <span *ngIf="record.transaction_quantity < 0">{{ 'raw_materials:history.reduction' | t }}</span>
-                
-              </span>
-              <span *ngSwitchCase="'to_customer_bank'">
-                <span *ngIf="record.transaction_quantity >= 0">{{ 'raw_materials:history.to_bank' | t }}</span>
-                <span *ngIf="record.transaction_quantity < 0">{{ 'raw_materials:history.from_bank' | t }}</span>
-                <strong style="margin-inline-start:5px;">{{ record.customer_name }}</strong>
-              </span>
-              <span *ngSwitchCase="'deleted_customer_bank'">
-                {{ 'raw_materials:history.deleted_bank_named' | t }} <strong>{{ record.customer_name }}</strong>
-              </span>
+            <td>
+              {{ action_label(record) }}
+              <div class="small text-muted" *ngIf="detail_label(record)">{{ detail_label(record) }}</div>
+              <div class="small text-muted" *ngIf="record.note">{{ record.note }}</div>
             </td>
-            <td [ngSwitch]="record.transaction_type" class="text-end">
-              <span *ngSwitchCase="'raw_material_purchase'" class="text-success">
-                <span *ngIf="record.transaction_quantity >= 0">+</span>{{ record.transaction_quantity | tquantity: raw_material_units }}
-              </span>
-              <span *ngSwitchCase="'to_customer_bank'">
-                <span class="text-danger" *ngIf="record.transaction_quantity >= 0">-{{ record.transaction_quantity | tquantity: raw_material_units }}</span>
-                <span class="text-success" *ngIf="record.transaction_quantity < 0">+{{ Math.abs(record.transaction_quantity) | tquantity: raw_material_units }}</span>
-              </span>
-              <span *ngSwitchCase="'deleted_customer_bank'" class="text-success">+{{ record.transaction_quantity | tquantity: raw_material_units }}</span>
+            <td>
+              <span class="small text-muted">{{ (record.direction == 'in' ? 'raw_materials:history.from' : 'raw_materials:history.to') | t }}</span>
+              {{ other_label(record) }}
             </td>
-            <td class="text-end">{{ record.cur_raw_material_quantity | tquantity: raw_material_units }}</td>
+            <td class="text-end">
+              <span *ngIf="record.direction == 'in'" class="text-success">+{{ quantity_label(record) }}</span>
+              <span *ngIf="record.direction == 'out'" class="text-danger">-{{ quantity_label(record) }}</span>
+            </td>
+            <td class="text-end">{{ quantity_label(record, record.balance_after) }}</td>
           </tr>
         </tbody>
       </table>

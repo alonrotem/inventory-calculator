@@ -11,7 +11,7 @@
   [is_demo_customer]="customer.is_demo_customer"
 />
 
-<app-bank-history-dialog 
+<app-raw-material-history-dialog 
   #history_dialog 
 />
 
@@ -93,6 +93,9 @@
           <div>{{ 'customers:bank.allocation_summary' | t: { quantity: bank_allocation.quantity, units: (raw_material_quantity_units | tenum: 'common:quantity_units.'), cut: ((babies | filter: "allocation_id" : bank_allocation.id) | sum: 'quantity') } }}</div>
           <div *ngIf="customer_banks_babies_reduce_from_allocation">{{ 'customers:bank.available' | t: { count: (bank_allocation.quantity - ((babies | filter: "allocation_id" : bank_allocation.id) | sum: 'quantity')) } }}</div>
         <div class="allocation-action-buttons">
+          <button *ngIf="bank_allocation.id > 0 && !customer.is_demo_customer" class="btn btn-outline-secondary" (click)="openAllocationHistoryDialog(bank_allocation.id)" [attr.title]="'customers:bank.history' | t">
+            <span class="icon-history"></span>
+          </button>
           <button class="btn btn-warning" (click)="open_allocation_dialog(bank_allocation.id)">
             <fa-icon [icon]="faPencil"></fa-icon>
             {{ 'common:actions.edit' | t }}
@@ -222,6 +225,9 @@
         <strong><span class="icon-tails" style="margin-inline-end:10px;"></span>{{ 'customers:bank.tails_allocation' | t: { label: (bank_allocation.id <= 0 ? ('customers:bank.unsaved_allocation' | t) : ('#' + bank_allocation.id)) } }}</strong>
         {{ 'customers:bank.quantity_units' | t: { quantity: bank_allocation.quantity, units: (raw_material_quantity_units | tenum: 'common:quantity_units.') } }}
         <div>
+          <button *ngIf="bank_allocation.id > 0 && !customer.is_demo_customer" class="btn btn-outline-secondary" (click)="openAllocationHistoryDialog(bank_allocation.id)" [attr.title]="'customers:bank.history' | t">
+            <span class="icon-history"></span>
+          </button>
           <button class="btn btn-warning" style="padding-block: 0px 1px; padding-inline: 5px 11px; margin-inline-start: 10px;" (click)="open_allocation_dialog(bank_allocation.id)">
             <fa-icon [icon]="faPencil"></fa-icon>
             {{ 'common:actions.edit' | t }}

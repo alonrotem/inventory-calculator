@@ -466,32 +466,58 @@ CREATE TABLE  IF NOT EXISTS `allocation_babies`
   FOREIGN KEY (`allocation_id`) REFERENCES customer_banks_allocations(`id`) ON DELETE CASCADE
 );
 
+# The material ledger: every row is ONE movement of material from a source to a destination.
+# purchase <-> bank <-> allocation -> hat_order (babies/tails), and external <-> purchase (bought/removed).
+# Written by the server (services/transaction_history.js) when the material changes. Rows are never deleted,
+# and have no foreign keys: the ids stay after the purchase/bank/allocation they refer to is deleted.
 CREATE TABLE  IF NOT EXISTS transaction_history (
 	`id`            	INT NOT NULL auto_increment,
     `date`    			DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `added_by` INT,
-    `transaction_quantity`     float NOT NULL,
+    `transaction_quantity`     DECIMAL(15,2) NOT NULL,		# always positive; the direction is from -> to
     `transaction_type`	ENUM(
-		'raw_material_purchase', 
-        'to_customer_bank', 
-        'deleted_customer_bank',
-        'customer_bank_allocate_to_Work',
-        'customer_bank_allocation_deleted',
-        'customer_bank_allocation_merged'
-	) NOT NULL,
-    
-    # involved banks in this transaction:
+        'purchase_created', 'purchase_topped_up', 'purchase_reduced', 'purchase_deleted',
+        'bank_created', 'bank_topped_up', 'bank_reduced', 'bank_deleted',
+        'allocation_created', 'allocation_topped_up', 'allocation_reduced', 'allocation_deleted',
+        'babies_to_order', 'babies_from_order', 'tails_to_order', 'tails_from_order',
+        -- legacy values, kept for records which could not be converted
+        'raw_material_purchase', 'to_customer_bank', 'deleted_customer_bank',
+        'customer_bank_allocate_to_Work', 'customer_bank_allocation_deleted', 'customer_bank_allocation_merged'
+    ) NOT NULL,
+    `quantity_units`	ENUM('kg', 'units', 'babies', 'tails') NULL,
+
+    # the movement: from -> to ('external' is outside the system: bought, or removed)
+    `from_type`			ENUM('external', 'purchase', 'bank', 'allocation', 'hat_order') NULL,
+    `from_id`			INT NULL,
+    `to_type`			ENUM('external', 'purchase', 'bank', 'allocation', 'hat_order') NULL,
+    `to_id`				INT NULL,
+
+    # the whole chain the movement belongs to, so it can be queried from any starting point:
 	`raw_material_id` 	INT,
+    `purchase_id`		INT NULL,
     `customer_id` 		INT,
     `customer_bank_id` 	INT,
     `allocation_id` INT,
-		
-	# track keeping on quantities at the time of this transaction:
+    `customer_hat_id`	INT NULL,		# the order, when babies/tails go to (or come back from) an order
+
+    `balance_after`		DECIMAL(15,2) NULL,		# what is left in the destination (the source for removals) after the movement
+    `detail`			JSON NULL,		# e.g. the babies lengths and counts of an order
+    `reverses_id`		INT NULL,		# the movement this one undoes
+    `note`				VARCHAR(255) NULL,
+
+	# legacy (before the ledger): quantities at the time of the transaction
     `cur_raw_material_quantity` float,
     `cur_customer_bank_quantity` float,
     `cur_banks_babies_allocation_quantity` float,
         
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    INDEX `idx_th_purchase` (`purchase_id`),
+    INDEX `idx_th_bank` (`customer_bank_id`),
+    INDEX `idx_th_allocation` (`allocation_id`),
+    INDEX `idx_th_hat` (`customer_hat_id`),
+    INDEX `idx_th_raw_material` (`raw_material_id`),
+    INDEX `idx_th_from` (`from_type`, `from_id`),
+    INDEX `idx_th_to` (`to_type`, `to_id`)
 );
 /*
 ALTER TABLE

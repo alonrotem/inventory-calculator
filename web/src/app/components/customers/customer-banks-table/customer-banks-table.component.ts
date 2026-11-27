@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnInit, Output, QueryList, SimpleChanges, viewChild, ViewChild, ViewChildren, inject } from '@angular/core';
-import { Baby, Customer, Allocation_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, HistoryReportRecord, TransactionRecord, TransactionType, Wing, ShortWingsInfo, Bank_Allocation_Type, BasicUserInfoStatus } from '../../../../types';
+import { Baby, Customer, Allocation_Baby, Customer_Bank, Customer_Bank_Baby_Allocation, Wing, ShortWingsInfo, Bank_Allocation_Type, BasicUserInfoStatus } from '../../../../types';
 import { RouterModule } from '@angular/router';
 import { AsyncPipe, DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { FilterPipe } from '../../../utils/pipes/filter-pipe';
@@ -9,7 +9,7 @@ import { ConfirmationDialogComponent } from '../../common/confirmation-dialog/co
 import { BankAllocationDialogComponent } from '../bank-allocation-dialog/bank-allocation-dialog.component';
 import { BabyEditorDialogComponent } from '../../babies/baby-editor-dialog/baby-editor-dialog.component';
 import { SortPipe } from '../../../utils/pipes/sort-pipe';
-import { BankHistoryDialogComponent } from '../bank-history-dialog/bank-history-dialog.component';
+import { RawMaterialHistoryDialogComponent } from '../../raw-material/raw-material-history-dialog/raw-material-history-dialog.component';
 import { WingsService } from '../../../services/wings.service';
 import { AllocationPickerComponent } from '../allocation-picker/allocation-picker.component';
 import { SumPipe } from '../../../utils/pipes/sum-pipe';
@@ -32,7 +32,7 @@ import { TranslationService } from '../../../i18n/translation.service';
   standalone: true,
   imports: [TranslatePipe, TranslateEnumPipe, RouterModule, NgFor, FilterPipe, NgIf, FaIconComponent, NgClass,
     DecimalPipe, ConfirmationDialogComponent, BankAllocationDialogComponent,
-    BabyEditorDialogComponent, SortPipe, BankHistoryDialogComponent, AllocationPickerComponent,
+    BabyEditorDialogComponent, SortPipe, RawMaterialHistoryDialogComponent, AllocationPickerComponent,
     SumPipe, OrderAdvisorComponent, FormsModule, NumericInputDirective, AsyncPipe, HasPermissionPipe],
   templateUrl: './customer-banks-table.component.html',
   styleUrl: './customer-banks-table.component.scss'
@@ -59,7 +59,6 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
     quantity: 0,
     remaining_quantity: 0,
     raw_material_quantity_units: '',
-    transaction_history: [],
     raw_material_color: '',
     allow_shortening_babies_in_pairs: false,
     is_material_usable_for_h_material: true,
@@ -87,7 +86,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   //Saving the original data in order to be able to reset changes
   unchanged_bank: Customer_Bank = {
     raw_material_name: '', raw_material_quantity_units: '', id: 0, pre_save_id: 0,
-    customer_id: 0, raw_material_id: 0, quantity: 0, remaining_quantity: 0, transaction_history: [],
+    customer_id: 0, raw_material_id: 0, quantity: 0, remaining_quantity: 0,
     raw_material_color: '',
     allow_shortening_babies_in_pairs: false,
     is_material_usable_for_h_material: true,
@@ -117,7 +116,7 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
   //@ViewChild('save_before_select') save_before_select!: ConfirmationDialogComponent;
   @ViewChild('allocation_dialog') allocation_dialog!: BankAllocationDialogComponent;
   @ViewChild('babies_picker') babies_picker!: BabyEditorDialogComponent;
-  @ViewChild('history_dialog') history_dialog! : BankHistoryDialogComponent;
+  @ViewChild('history_dialog') history_dialog! : RawMaterialHistoryDialogComponent;
   @ViewChild('allocation_picker') allocation_picker! : AllocationPickerComponent;
   @ViewChildren('order_advisor') order_advisors!: QueryList<OrderAdvisorComponent>;
   faTriangleExclamation: IconDefinition = faTriangleExclamation;
@@ -324,43 +323,10 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
         deleted = true;
       }
     }
-    //transaction history: add a "deleted" record, if the allocation is not new (id >= 0)
-    //and remove all other history transactions pending (for add/change)
-    if(!this.bank.transaction_history) {
-      //console.log("!!! RESETTING !!!");
-      this.bank.transaction_history = [];
-    }
 
-    //Remove its records of other pending transaction actions (added changed allocation)
-    let allocation_transaction_index = 0;
-    do {
-      allocation_transaction_index = this.bank.transaction_history.findIndex(a => a.allocation_id == allocationId);
-      if(allocation_transaction_index >= 0) {
-        this.bank.transaction_history.splice(allocation_transaction_index, 1);
-        //console.log("removing transaction record");
-      }
-      deleted = true;  
-    } while (allocation_transaction_index >= 0);
-
+    // (the material history of the deletion is recorded by the server, when the customer is saved)
     let allocation_index = this.banks_baby_allocations.findIndex(a => a.id == allocationId);
     if(allocation_index >= 0){
-      //if the allocation id is already persisted (id >= 0), push the notification it's deleted
-      if(allocationId >= 0) {
-        this.bank.transaction_history.push({
-          id: 0,
-          date: new Date(),
-          added_by: 1,
-          transaction_quantity: this.banks_baby_allocations[allocation_index].quantity,
-          transaction_type: TransactionType.customer_bank_allocation_deleted,
-          raw_material_id: this.bank.raw_material_id,
-          customer_id: this.bank.customer_id,
-          customer_bank_id: this.bank.id,
-          allocation_id:  this.banks_baby_allocations[allocation_index].id,
-          cur_raw_material_quantity: 0,
-          cur_customer_bank_quantity: (this.bank.remaining_quantity + this.banks_baby_allocations[allocation_index].quantity),
-          cur_banks_babies_allocation_quantity: 0
-        });
-      }
       //deleting
       this.banks_baby_allocations.splice(allocation_index, 1);
       if(this.tails_allocation_in_this_bank && allocationId == this.tails_allocation_in_this_bank.id){
@@ -369,7 +335,6 @@ export class CustomerBanksTableComponent implements OnInit, AfterViewInit, OnCha
       deleted = true;
     }
 
-    //console.dir(this.bank.transaction_history);
     if(deleted) {
       this.bank_changed.emit();
       this.recalculateBank();
@@ -432,47 +397,12 @@ recalculateBank(){
   }
 
   allocation_dialog_closed(currentQuantity: number, allocationType: Bank_Allocation_Type) {
-    let other_allocations_sum = this.banks_baby_allocations.filter(alloc => alloc.customer_bank_id == this.bank.id && alloc.id != this.pendingAllocationIdAction)
-      .reduce((acc, alloc) => acc + alloc.quantity, 0);
-    //console.log("other_allocations_sum " + other_allocations_sum);
-    //console.log("remaing: (this.bank.quantity: " + this.bank.quantity +" - other_allocations_sum: " + other_allocations_sum + " - currentQuantity: " + currentQuantity + " = " + 
-    //  (this.bank.quantity - other_allocations_sum - currentQuantity))
+    // (the material history of the change is recorded by the server, when the customer is saved)
     let allocation = this.banks_baby_allocations.find(a => a.id == this.pendingAllocationIdAction);
-    if(!this.bank.transaction_history) {
-      //console.log("!!! RESETTING !!!");
-      this.bank.transaction_history = [];
-    }
-    let pushNewTransationRecord = false;
-    let transactionrec = this.bank.transaction_history.find(rec => rec.allocation_id == this.pendingAllocationIdAction);
-    if(!transactionrec) {
-      transactionrec = {
-        id: 0,
-        date: new Date(),
-        added_by: 1,
-        transaction_quantity: 0,
-        transaction_type: TransactionType.customer_bank_allocate_to_Work,
-        raw_material_id: this.bank.raw_material_id,
-        customer_id: this.bank.customer_id,
-        customer_bank_id: this.bank.id,
-        allocation_id: 0,
-        cur_raw_material_quantity: -1,
-        cur_customer_bank_quantity: currentQuantity,
-        cur_banks_babies_allocation_quantity: 0
-      };
-      pushNewTransationRecord = true;
-    }
-    else {
-      console.log("transaction found, to fix");
-    }
     if(allocation){
-
-      //let directionFactor = (transactionrec.allocation_id  allocation.id);
-      //console.log("allocation found, to fix");
-      transactionrec.transaction_quantity = (allocation.id < 0) ? allocation.quantity : (currentQuantity - allocation.quantity);
-      transactionrec.allocation_id = allocation.id;
+      const quantity_change = (allocation.id < 0) ? allocation.quantity : (currentQuantity - allocation.quantity);
       allocation.quantity = currentQuantity;
-      allocation.remaining_quantity += transactionrec.transaction_quantity;
-      allocation.allocation_type =  allocationType;
+      allocation.remaining_quantity += quantity_change;
       allocation.allocation_type = allocationType;
     }
     else {
@@ -486,15 +416,8 @@ recalculateBank(){
         tails_quantity: 0,
         tails_in_orders: 0
       });
-      transactionrec.transaction_quantity = currentQuantity;
-      transactionrec.allocation_id = this.newAllocationIdCounter;
       this.newAllocationIdCounter--;
     }
-    transactionrec.cur_customer_bank_quantity = (this.bank.quantity - other_allocations_sum - currentQuantity);
-    if(pushNewTransationRecord) {
-      this.bank.transaction_history.push(transactionrec);
-    }
-    //console.dir(this.bank.transaction_history);
     this.pendingAllocationIdAction = -999;
     this.bank_changed.emit();
     this.recalculateBank();
@@ -637,10 +560,14 @@ recalculateBank(){
     this.unsaved_changes = true;
   }
   
+  // the flow of material of the bank: to/from its purchase, and to/from its allocations
   openHistoryDialog(){
-    this.history_dialog.raw_material_name = this.bank.raw_material_name;
-    this.history_dialog.raw_material_id = this.bank.raw_material_id;
-    this.history_dialog.open(this.bank.id);
+    this.history_dialog.open_flow('bank', this.bank.id, this.bank.raw_material_name, this.customer.name);
+  }
+
+  // the flow of material of an allocation: to/from its bank, and to the orders (babies and tails)
+  openAllocationHistoryDialog(allocation_id: number){
+    this.history_dialog.open_flow('allocation', allocation_id, this.bank.raw_material_name, '#' + allocation_id);
   }
 
   openAllocationMergeDialog(sourceAllocationId: number){

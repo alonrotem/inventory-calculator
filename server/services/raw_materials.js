@@ -180,6 +180,27 @@ async function sync_raw_material_purchases(rawMaterial, raw_material_id, current
   const purchase_ids_to_keep = purchases.filter(p => p.id > 0).map(p => p.id);
   const bank_ids_to_keep = banks.filter(b => b.id > 0).map(b => b.id);
 
+  // The material ledger: what is about to be deleted gives its material back first
+  // (a deleted purchase takes its banks with it, and leaves the system)
+  const doomed_purchases = helper.emptyOrRows(await db.transaction_query(
+    `SELECT id FROM raw_material_purchases WHERE raw_material_id = (?)` + ((purchase_ids_to_keep.length > 0)? ` AND id NOT IN (?)` : ``),
+    (purchase_ids_to_keep.length > 0)? [raw_material_id, purchase_ids_to_keep] : [raw_material_id],
+    active_connection
+  )).map(p => p.id);
+  for(const doomed_purchase_id of doomed_purchases){
+    await transaction_history.release_purchase(active_connection, doomed_purchase_id, currentUserId);
+  }
+  const doomed_banks = helper.emptyOrRows(await db.transaction_query(
+    `SELECT cb.id FROM customer_banks cb
+      JOIN raw_material_purchases rmp ON rmp.id = cb.raw_material_purchase_id
+      WHERE rmp.raw_material_id = (?)` + ((doomed_purchases.length > 0)? ` AND rmp.id NOT IN (?)` : ``) + ((bank_ids_to_keep.length > 0)? ` AND cb.id NOT IN (?)` : ``),
+    [raw_material_id].concat((doomed_purchases.length > 0)? [doomed_purchases] : [], (bank_ids_to_keep.length > 0)? [bank_ids_to_keep] : []),
+    active_connection
+  )).map(b => b.id);
+  for(const doomed_bank_id of doomed_banks){
+    await transaction_history.release_bank(active_connection, doomed_bank_id, currentUserId);
+  }
+
   // 1. banks which are no longer in the collection
   const banks_deletion = await db.transaction_query(
     `DELETE cb FROM customer_banks cb
@@ -209,6 +230,7 @@ async function sync_raw_material_purchases(rawMaterial, raw_material_id, current
   let customers_created = 0;
   for(const purchase of purchases){
     const is_new_purchase = purchase.id <= 0;
+    const purchase_before = await transaction_history.snapshot_purchase(active_connection, purchase.id);
     const purchase_result = await db.transaction_query(
       `INSERT INTO raw_material_purchases
         (id, raw_material_id, purchased_at, purchase_quantity, remaining_quantity, quantity_units,
@@ -248,6 +270,9 @@ async function sync_raw_material_purchases(rawMaterial, raw_material_id, current
     );
     purchases_saved++;
     const purchase_db_id = (is_new_purchase)? purchase_result.insertId : purchase.id;
+    await transaction_history.track_purchase(
+      active_connection, purchase_before, purchase_db_id,
+      { quantity: purchase.purchase_quantity, remaining: purchase.remaining_quantity }, currentUserId);
 
     // banks are linked to the purchase by the id it had on the client (negative/0 for a new purchase)
     const purchase_banks = banks.filter(b => b.raw_material_purchase_id == purchase.id);
@@ -263,7 +288,8 @@ async function sync_raw_material_purchases(rawMaterial, raw_material_id, current
         customer_id = new_customer.insertId;
         customers_created += new_customer.affectedRows;
       }
-      await db.transaction_query(
+      const bank_before = await transaction_history.snapshot_bank(active_connection, bank.id);
+      const bank_result = await db.transaction_query(
         `INSERT INTO customer_banks
           (id, customer_id, raw_material_purchase_id, quantity, remaining_quantity, quantity_units, quantity_in_kg)
         VALUES
@@ -287,11 +313,12 @@ async function sync_raw_material_purchases(rawMaterial, raw_material_id, current
         ],
         active_connection
       );
+      await transaction_history.track_bank(
+        active_connection, bank_before, (bank.id > 0)? bank.id : bank_result.insertId,
+        { purchase_id: purchase_db_id, quantity: bank.quantity, remaining: bank.remaining_quantity }, currentUserId);
       banks_saved++;
     }
   }
-
-  // TODO: track records of who changed what (purchases/banks), once the history meta-functions exist
 
   const deleted_purchases = purchases_deletion.affectedRows;
   const deleted_banks = banks_deletion.affectedRows + orphan_banks_deletion.affectedRows;
@@ -358,21 +385,6 @@ async function save_material(rawMaterial, currentUserId, active_connection=null)
 
   let raw_material_recordid = (isNew)? result.insertId : rawMaterial.id;
 
-  /*
-  // TRACK RECORDS SHOULD BE UPDATED
-  if(rawMaterial.transaction_record) {
-    rawMaterial.transaction_record.raw_material_id = raw_material_recordid;
-    await transaction_history.create_history_record(rawMaterial.transaction_record, active_connection);
-  }
-  if(rawMaterial.deleted_bank_records) {
-    for(let r = 0; r < rawMaterial.deleted_bank_records.length; r++){
-      rawMaterial.deleted_bank_records[r].raw_material_id = raw_material_recordid;
-      //console.dir(rawMaterial.deleted_bank_records[r]);
-      await transaction_history.create_history_record(rawMaterial.deleted_bank_records[r], active_connection);
-    }
-  }
-  */
-
     let message = '';
     //console.log("New material ID: " + result.insertId + " ("+ rawMaterial.name +")");
     
@@ -407,7 +419,7 @@ async function save_material(rawMaterial, currentUserId, active_connection=null)
 }
 
 
-async function remove(id, active_connection=null){
+async function remove(id, currentUserId=null, active_connection=null){
   //check if there is an active connection called from another function, or this call is a standalone
   let self_executing = false;
   if(!active_connection) {
@@ -415,8 +427,12 @@ async function remove(id, active_connection=null){
     self_executing = true;
   }
   try {
-    const result0 = await db.transaction_query(`DELETE from transaction_history where raw_material_id=${id};`, [], active_connection);
-    const result1 = await db.transaction_query(`DELETE from customer_banks where raw_material_id=${id};`, [], active_connection);
+    // the ledger keeps its records; the material of the purchases (and their banks) leaves the system.
+    // The banks are deleted with their purchases, which are deleted with the raw material (cascade)
+    const purchases = helper.emptyOrRows(await db.transaction_query(`SELECT id FROM raw_material_purchases WHERE raw_material_id=(?)`, [id], active_connection));
+    for(const purchase of purchases){
+      await transaction_history.release_purchase(active_connection, purchase.id, currentUserId);
+    }
     const result2 = await db.transaction_query(`DELETE FROM raw_materials WHERE id=${id}`, [], active_connection);
   
     let message = '';

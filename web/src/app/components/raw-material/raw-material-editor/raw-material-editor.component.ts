@@ -70,8 +70,6 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     updated_by: 0,
     created_at: new Date(),
     customer_banks: [],
-    transaction_record: null,
-    deleted_bank_records: [],
     color: '',
     allow_shortening_babies_in_pairs: false,
     is_usable_for_h_material: false,
@@ -138,7 +136,6 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     remaining_quantity: 0,
     quantity_units: '',
     quantity_in_kg: 0,
-    transaction_record: null,
     bank_in_use: false
   };
   new_purchase_counter = -1;
@@ -634,6 +631,11 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
     this.history_dialog.open(this.rawMaterialItem);
   }
 
+  // the flow of material of a purchase: bought/removed, and to/from its customer banks
+  openPurchaseHistoryDialog(purchase: RawMaterialPurchase) {
+    this.history_dialog.open_flow('purchase', purchase.id, this.rawMaterialItem.name, purchase.vendor_name || ('#' + purchase.id));
+  }
+
   // focus_customer: also scroll to the customer autocomplete, focus it, and drop its list down
   // bank_id: once the editor is open, also start editing that bank
   open_purchase_editor(purchase_id = 0, focus_customer = false, bank_id = 0) {
@@ -809,7 +811,6 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
         remaining_quantity: 0,
         quantity_units: '',
         quantity_in_kg: 0,
-        transaction_record: null,
         bank_in_use: false
       };
     }
@@ -960,7 +961,6 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
       remaining_quantity: 0,
       quantity_units: '',
       quantity_in_kg: 0,
-      transaction_record: null,
       bank_in_use: false
     }    
 
@@ -1007,7 +1007,6 @@ export class RawMaterialEditorComponent extends NavigatedMessageComponent implem
             remaining_quantity: 0,
             quantity_units: 'units',
             quantity_in_kg: 0,
-            transaction_record: null,
             bank_in_use: false
           };
           this.rawMaterialItem.customer_banks.push(bank);

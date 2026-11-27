@@ -252,4 +252,33 @@ BEGIN
 END$$
 DELIMITER ;
 
+#--------------------------------------------------------
+# Add an index if it doesn't exist (MySQL has no CREATE INDEX IF NOT EXISTS)
+# p_columns: the column list, e.g. '`from_type`, `from_id`'
+#--------------------------------------------------------
+DROP PROCEDURE IF EXISTS add_index_if_not_exists;
+DELIMITER $$
+CREATE PROCEDURE add_index_if_not_exists (
+    IN p_table_name VARCHAR(64),
+    IN p_index_name VARCHAR(64),
+    IN p_columns VARCHAR(255)
+)
+BEGIN
+    DECLARE idx_exists INT DEFAULT 0;
+
+    SELECT COUNT(*) INTO idx_exists
+    FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = p_table_name
+      AND INDEX_NAME = p_index_name;
+
+    IF idx_exists = 0 THEN
+        SET @sql = CONCAT('ALTER TABLE `', p_table_name, '` ADD INDEX `', p_index_name, '` (', p_columns, ')');
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    END IF;
+END$$
+DELIMITER ;
+
 select "Migration functions done", CURRENT_TIMESTAMP;

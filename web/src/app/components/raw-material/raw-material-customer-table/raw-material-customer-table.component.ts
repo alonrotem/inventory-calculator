@@ -172,7 +172,6 @@ export class RawMaterialCustomerTableComponent implements AfterViewInit, OnChang
         remaining_quantity: 0,
         quantity_units: 'units',
         quantity_in_kg: 0,
-        transaction_record: null
       };
     }
     this.bank_editor.currentRawMaterialRemainingQuantity = (this.parent_raw_material?.remaining_quantity)? this.parent_raw_material?.remaining_quantity : 0;

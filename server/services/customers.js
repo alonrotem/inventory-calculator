@@ -447,7 +447,7 @@ async function save(customer, currentUserId, active_connection=null){
   
 
     customer.id = (isNew)? result.insertId : customer.id;
-    let bank_ids_info = await sync_customer_banks(customer, active_connection);
+    let bank_ids_info = await sync_customer_banks(customer, active_connection, currentUserId);
 
     await db.transaction_query(`delete from customer_knives where customer_id=(?);`, [customer.id], active_connection);
     if(customer.knives && customer.knives.length > 0){
@@ -516,7 +516,7 @@ async function save(customer, currentUserId, active_connection=null){
 
 //makes sure to delete all the banks, allocations and babies
 //by where_rule (customer id, bank ides etc)
-async function delete_all_customer_banks(where_rule, force=false, active_connection=null){
+async function delete_all_customer_banks(where_rule, force=false, active_connection=null, user_id=null){
   //check if there is an active connection called from another function, or this call is a standalone
   let self_executing = false;
   if(!active_connection) {
@@ -532,6 +532,9 @@ async function delete_all_customer_banks(where_rule, force=false, active_connect
       return;
     }
   
+    // the material ledger: the banks (and their allocations) give their material back before they are deleted
+    await transaction_history.release_banks_where(active_connection, where_rule, user_id);
+
     const delete1 = await db.transaction_query(
       `delete from allocation_babies
       where allocation_id in 
@@ -570,7 +573,7 @@ async function delete_all_customer_banks(where_rule, force=false, active_connect
   }
 }
 
-async function save_customer_bank (customer, bank_id, active_connection){
+async function save_customer_bank (customer, bank_id, active_connection, user_id=null){
   //check if there is an active connection called from another function, or this call is a standalone
 
   let pre_save_bank_id = {
@@ -602,6 +605,19 @@ async function save_customer_bank (customer, bank_id, active_connection){
       return;
     }
 
+    //--- THE MATERIAL LEDGER: allocations of this bank which are not in the customer anymore give their material back
+    if(bank.id > 0) {
+      const kept_allocation_ids = customer.banks_baby_allocations.filter(a => a.id > 0 && a.customer_bank_id == bank_id).map(a => a.id);
+      const removed_allocations = await db.transaction_query(
+        `select id from customer_banks_allocations where customer_bank_id=(?)` + ((kept_allocation_ids.length > 0)? ` and id not in (?)` : ``),
+        (kept_allocation_ids.length > 0)? [bank.id, kept_allocation_ids] : [bank.id],
+        active_connection);
+      for(const removed of helper.emptyOrRows(removed_allocations)) {
+        await transaction_history.release_allocation(active_connection, removed.id, user_id);
+      }
+    }
+    const bank_before = await transaction_history.snapshot_bank(active_connection, bank.id);
+
     //--- SAVE THE BANK -------------------------
     //placeholder for the original bank id (may be <=0), and the new id created after an insert
     let original_bank_id = bank.id;
@@ -630,6 +646,9 @@ async function save_customer_bank (customer, bank_id, active_connection){
       active_connection);
     new_bank_id = (new_bank_id <= 0)? bank_result.insertId : new_bank_id;
     pre_save_bank_id.bank_ids.post_save_id = new_bank_id;
+    await transaction_history.track_bank(
+      active_connection, bank_before, new_bank_id,
+      { purchase_id: bank.raw_material_purchase_id, quantity: bank.quantity, remaining: bank.remaining_quantity }, user_id);
     //---/SAVE THE BANK -------------------------
 
     //--- SAVE ALLOCATIONS OF THIS BANK -------------------------
@@ -697,6 +716,7 @@ async function save_customer_bank (customer, bank_id, active_connection){
         pre_save_id: original_allocation_id,
         post_save_id: original_allocation_id
       };
+      const allocation_before = await transaction_history.snapshot_allocation(active_connection, allocation.id);
 
       // create/update the allocation
       const allocation_result = await db.transaction_query(
@@ -726,20 +746,9 @@ async function save_customer_bank (customer, bank_id, active_connection){
       allocation_id.post_save_id = new_allocation_id;
       pre_save_bank_id.allocation_ids.push(allocation_id);
 
-      //save transaction records for this allocation
-      if(bank.transaction_history && bank.transaction_history.length > 0){
-        //console.log("FOUND " + bank.transaction_history.length +" TRANSACTIONS TO SAVE");
-        //console.log("original allocation id: " + original_allocation_id);
-        //console.log("new allocation id: " + new_allocation_id);
-        let filtered_recs = bank.transaction_history.filter(alloc => alloc.allocation_id == original_allocation_id);
-        //console.log("filtered_recs " + filtered_recs.length);
-        //console.dir(bank.transaction_history);
-        bank.transaction_history.filter(alloc => alloc.allocation_id == original_allocation_id).forEach(async record => {
-          record.allocation_id = new_allocation_id;
-          //console.log(record);
-          await transaction_history.create_history_record(record);
-        });
-      }
+      await transaction_history.track_allocation(
+        active_connection, allocation_before, new_allocation_id,
+        { quantity: allocation.quantity, remaining: allocation.remaining_quantity }, user_id);
 
       //find babies which are by the old (or new) allocation id and save them
       let babies_to_save = customer.babies.filter(b => b.allocation_id == original_allocation_id);
@@ -769,17 +778,8 @@ async function save_customer_bank (customer, bank_id, active_connection){
           active_connection);
       }
     }
-    //save transaction records for deleted allocations
-    if(bank.transaction_history && bank.transaction_history.length > 0){
-      bank.transaction_history.filter(rec => rec.transaction_type=='customer_bank_allocation_deleted').forEach(
-        async transaction => {
-            await transaction_history.create_history_record(transaction, active_connection);
-          }
-      );
-
-      if(self_executing) {
-        await db.transaction_commit(active_connection);
-      }
+    if(self_executing) {
+      await db.transaction_commit(active_connection);
     }
 
     return pre_save_bank_id;
@@ -797,7 +797,7 @@ async function save_customer_bank (customer, bank_id, active_connection){
   }    
 }
 
-async function sync_customer_banks(customer, active_connection){
+async function sync_customer_banks(customer, active_connection, user_id=null){
   let bank_save_ids = {
     bank_ids: [],
     allocation_ids: []
@@ -813,7 +813,7 @@ async function sync_customer_banks(customer, active_connection){
   try {
     //Customer object with no banks: make sure there are no banks in the DB
     if (customer.banks.length == 0) {
-      await delete_all_customer_banks(`where customer_id=${customer.id}`, false, active_connection);
+      await delete_all_customer_banks(`where customer_id=${customer.id}`, false, active_connection, user_id);
       return "";
     }
 
@@ -825,7 +825,7 @@ async function sync_customer_banks(customer, active_connection){
       let bank_ids_to_keep = existing_banks.map(bank => bank.id).join(",");
       if(bank_ids_to_keep.length > 0) {
         //remove irrelevant ones
-        await delete_all_customer_banks(`where customer_id=${customer.id} and id not in (${bank_ids_to_keep})`, false, active_connection);
+        await delete_all_customer_banks(`where customer_id=${customer.id} and id not in (${bank_ids_to_keep})`, false, active_connection, user_id);
       }
     }
     for(bank of customer.banks){
@@ -860,7 +860,7 @@ async function sync_customer_banks(customer, active_connection){
           active_connection);
           bank.raw_material_purchase_id = purchase.insertId;
       }
-      let ids_info = await save_customer_bank(customer, bank.id, active_connection);
+      let ids_info = await save_customer_bank(customer, bank.id, active_connection, user_id);
       if(ids_info) {
         if(ids_info.bank_ids){
           bank_save_ids.bank_ids.push(ids_info.bank_ids);
@@ -932,7 +932,8 @@ async function remove(id, currentUserId, active_connection=null){
     const del_orders  = await db.transaction_query(`delete from orders where customer_hat_id in (${customer_hat_ids_select})`, [], active_connection);
     const del_customer_hats  = await db.transaction_query(`delete ${customer_hat_id_selector}`,  [], active_connection);
 
-    const del_customer_transactions = await db.transaction_query(`DELETE from transaction_history where customer_id=${id}`,  [], active_connection);
+    // the material ledger keeps its records: the customer's banks give their material back to their purchases
+    await transaction_history.release_banks_where(active_connection, `where customer_id = ${id}`, currentUserId);
     const del_babies_result = await db.transaction_query(`DELETE ${babies_select}`, [], active_connection);
     const del_banks_allocations_result = await db.transaction_query(`DELETE ${customer_banks_allocation_select}`, [], active_connection);
     const del_banksresult = await db.transaction_query(`DELETE ${customer_banks_select}`, [], active_connection);
@@ -1045,11 +1046,6 @@ async function sync_banks_for_raw_material(banks, raw_material_id, active_connec
           active_connection
         );
         let bank_id = (bank.id == 0)? result.insertId : bank.id;
-        if(bank.transaction_record){
-          bank.transaction_record.raw_material_id = raw_material_id;
-          bank.transaction_record.customer_bank_id = bank_id;
-          await transaction_history.create_history_record(bank.transaction_record);
-        }
         banks_updated++;
       }); 
     }
@@ -1085,12 +1081,6 @@ async function sync_banks_for_raw_material(banks, raw_material_id, active_connec
         );
         banks_updated += (add_banks_for_new.affectedRows);
         let bank_id = (banks_with_new_customers[i].id == 0)? add_banks_for_new.insertId : banks_with_new_customers[i].id;
-        if(banks_with_new_customers[i].transaction_record){
-          banks_with_new_customers[i].transaction_record.raw_material_id = raw_material_id;
-          banks_with_new_customers[i].transaction_record.customer_bank_id = bank_id;
-          banks_with_new_customers[i].transaction_record.customer_id = new_customer_id;
-          await transaction_history.create_history_record(banks_with_new_customers[i].transaction_record);
-        }
       }
     }
     if(banks_updated > 0) {
@@ -1213,7 +1203,12 @@ async function moveBabiesToOrder(
 
     if(self_executing) {
       await db.transaction_commit(active_connection);
-    }    
+    }
+    // what moved from the allocations to the order, for the material ledger
+    return {
+      wall: wall_babies_lengths_and_count_for_the_hat.map(b => ({ length: b.length, count: Number(b.count) })),
+      crown: crown_babies_lengths_and_count_for_the_hat.map(b => ({ length: b.length, count: Number(b.count) }))
+    };
   }
   catch(error){
     if(self_executing) {

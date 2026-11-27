@@ -116,7 +116,7 @@ curl -i -X DELETE \
 router.delete('/:id', auth_request([{ requiredArea: 'raw_materials', requiredPermission: 'D' }]), async function(req, res, next) {
   logger.info(`delete /raw_materials/${req.params.id}`);
   try {
-    const response = await raw_materials.remove(req.params.id);
+    const response = await raw_materials.remove(req.params.id, req["auth_token"].id);
     logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
     res.json(response);
   } 

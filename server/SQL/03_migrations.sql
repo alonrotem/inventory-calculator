@@ -389,4 +389,127 @@ CALL add_column_if_not_exists('customers', 'disabled_customer_message', 'VARCHAR
 
 CALL add_column_if_not_exists('knives', 'allow_for_demo_customers', 'BOOLEAN NOT NULL DEFAULT FALSE');
 
+-- ========= TRANSACTION HISTORY AS A MATERIAL LEDGER ==================
+-- Every row is one movement of material: from (external/purchase/bank/allocation/hat_order) to the same set.
+-- Old records are converted below, and are recognized by from_type IS NULL.
+CALL convert_column_type('transaction_history', 'transaction_quantity', 'DECIMAL(15,2) NOT NULL');
+CALL convert_column_type('transaction_history', 'transaction_type', "ENUM(
+        'purchase_created', 'purchase_topped_up', 'purchase_reduced', 'purchase_deleted',
+        'bank_created', 'bank_topped_up', 'bank_reduced', 'bank_deleted',
+        'allocation_created', 'allocation_topped_up', 'allocation_reduced', 'allocation_deleted',
+        'babies_to_order', 'babies_from_order', 'tails_to_order', 'tails_from_order',
+        'raw_material_purchase', 'to_customer_bank', 'deleted_customer_bank',
+        'customer_bank_allocate_to_Work', 'customer_bank_allocation_deleted', 'customer_bank_allocation_merged'
+    ) NOT NULL");
+
+CALL add_column_if_not_exists('transaction_history', 'quantity_units', "ENUM('kg', 'units', 'babies', 'tails') NULL");
+CALL add_column_if_not_exists('transaction_history', 'from_type', "ENUM('external', 'purchase', 'bank', 'allocation', 'hat_order') NULL");
+CALL add_column_if_not_exists('transaction_history', 'from_id', 'INT NULL');
+CALL add_column_if_not_exists('transaction_history', 'to_type', "ENUM('external', 'purchase', 'bank', 'allocation', 'hat_order') NULL");
+CALL add_column_if_not_exists('transaction_history', 'to_id', 'INT NULL');
+CALL add_column_if_not_exists('transaction_history', 'purchase_id', 'INT NULL');
+CALL add_column_if_not_exists('transaction_history', 'customer_hat_id', 'INT NULL');
+CALL add_column_if_not_exists('transaction_history', 'balance_after', 'DECIMAL(15,2) NULL');
+CALL add_column_if_not_exists('transaction_history', 'detail', 'JSON NULL');
+CALL add_column_if_not_exists('transaction_history', 'reverses_id', 'INT NULL');
+CALL add_column_if_not_exists('transaction_history', 'note', 'VARCHAR(255) NULL');
+
+CALL add_index_if_not_exists('transaction_history', 'idx_th_purchase', '`purchase_id`');
+CALL add_index_if_not_exists('transaction_history', 'idx_th_bank', '`customer_bank_id`');
+CALL add_index_if_not_exists('transaction_history', 'idx_th_allocation', '`allocation_id`');
+CALL add_index_if_not_exists('transaction_history', 'idx_th_hat', '`customer_hat_id`');
+CALL add_index_if_not_exists('transaction_history', 'idx_th_raw_material', '`raw_material_id`');
+CALL add_index_if_not_exists('transaction_history', 'idx_th_from', '`from_type`, `from_id`');
+CALL add_index_if_not_exists('transaction_history', 'idx_th_to', '`to_type`, `to_id`');
+
+-- Convert the old records (only the ones not converted yet: from_type IS NULL).
+-- The purchase of an old record: the one of its bank, otherwise the first purchase of its material
+-- (the old records were made when a material had a single purchase).
+UPDATE transaction_history th
+JOIN customer_banks cb ON cb.id = th.customer_bank_id
+SET th.purchase_id = cb.raw_material_purchase_id
+WHERE th.from_type IS NULL AND th.purchase_id IS NULL;
+
+UPDATE transaction_history th
+JOIN (SELECT raw_material_id, MIN(id) AS purchase_id FROM raw_material_purchases GROUP BY raw_material_id) p
+  ON p.raw_material_id = th.raw_material_id
+SET th.purchase_id = p.purchase_id
+WHERE th.from_type IS NULL AND th.purchase_id IS NULL;
+
+UPDATE transaction_history th
+LEFT JOIN raw_material_purchases p ON p.id = th.purchase_id
+SET th.quantity_units = COALESCE(p.quantity_units, 'units')
+WHERE th.from_type IS NULL AND th.quantity_units IS NULL;
+
+-- The columns are set in this order on purpose: the direction and type are decided by the sign of the
+-- old quantity, which is made positive (ABS) last.
+
+-- purchase: + bought/added (external -> purchase), - removed (purchase -> external)
+UPDATE transaction_history th
+LEFT JOIN (
+  SELECT MIN(id) AS first_id FROM transaction_history
+  WHERE from_type IS NULL AND transaction_type = 'raw_material_purchase' GROUP BY raw_material_id
+) f ON f.first_id = th.id
+SET th.from_type = IF(th.transaction_quantity >= 0, 'external', 'purchase'),
+    th.from_id = IF(th.transaction_quantity >= 0, NULL, th.purchase_id),
+    th.to_type = IF(th.transaction_quantity >= 0, 'purchase', 'external'),
+    th.to_id = IF(th.transaction_quantity >= 0, th.purchase_id, NULL),
+    th.transaction_type = IF(th.transaction_quantity < 0, 'purchase_reduced', IF(f.first_id IS NOT NULL, 'purchase_created', 'purchase_topped_up')),
+    th.transaction_quantity = ABS(th.transaction_quantity)
+WHERE th.from_type IS NULL AND th.transaction_type = 'raw_material_purchase';
+
+-- to a customer bank: + purchase -> bank, - bank -> purchase
+UPDATE transaction_history th
+LEFT JOIN (
+  SELECT MIN(id) AS first_id FROM transaction_history
+  WHERE from_type IS NULL AND transaction_type = 'to_customer_bank' GROUP BY customer_bank_id
+) f ON f.first_id = th.id
+SET th.from_type = IF(th.transaction_quantity >= 0, 'purchase', 'bank'),
+    th.from_id = IF(th.transaction_quantity >= 0, th.purchase_id, th.customer_bank_id),
+    th.to_type = IF(th.transaction_quantity >= 0, 'bank', 'purchase'),
+    th.to_id = IF(th.transaction_quantity >= 0, th.customer_bank_id, th.purchase_id),
+    th.transaction_type = IF(th.transaction_quantity < 0, 'bank_reduced', IF(f.first_id IS NOT NULL, 'bank_created', 'bank_topped_up')),
+    th.transaction_quantity = ABS(th.transaction_quantity)
+WHERE th.from_type IS NULL AND th.transaction_type = 'to_customer_bank';
+
+-- a deleted bank: its material went back to the purchase
+UPDATE transaction_history th
+SET th.from_type = 'bank', th.from_id = th.customer_bank_id,
+    th.to_type = 'purchase', th.to_id = th.purchase_id,
+    th.transaction_type = 'bank_deleted',
+    th.transaction_quantity = ABS(th.transaction_quantity)
+WHERE th.from_type IS NULL AND th.transaction_type = 'deleted_customer_bank';
+
+-- to an allocation ("allocate to work", and merged): + bank -> allocation, - allocation -> bank
+UPDATE transaction_history th
+LEFT JOIN (
+  SELECT MIN(id) AS first_id FROM transaction_history
+  WHERE from_type IS NULL AND transaction_type IN ('customer_bank_allocate_to_Work', 'customer_bank_allocation_merged') GROUP BY allocation_id
+) f ON f.first_id = th.id
+SET th.from_type = IF(th.transaction_quantity >= 0, 'bank', 'allocation'),
+    th.from_id = IF(th.transaction_quantity >= 0, th.customer_bank_id, th.allocation_id),
+    th.to_type = IF(th.transaction_quantity >= 0, 'allocation', 'bank'),
+    th.to_id = IF(th.transaction_quantity >= 0, th.allocation_id, th.customer_bank_id),
+    th.transaction_type = IF(th.transaction_quantity < 0, 'allocation_reduced', IF(f.first_id IS NOT NULL, 'allocation_created', 'allocation_topped_up')),
+    th.transaction_quantity = ABS(th.transaction_quantity)
+WHERE th.from_type IS NULL AND th.transaction_type IN ('customer_bank_allocate_to_Work', 'customer_bank_allocation_merged');
+
+-- a deleted allocation: its material went back to the bank
+UPDATE transaction_history th
+SET th.from_type = 'allocation', th.from_id = th.allocation_id,
+    th.to_type = 'bank', th.to_id = th.customer_bank_id,
+    th.transaction_type = 'allocation_deleted',
+    th.transaction_quantity = ABS(th.transaction_quantity)
+WHERE th.from_type IS NULL AND th.transaction_type = 'customer_bank_allocation_deleted';
+
+-- the balance after the movement of the old records, where it was recorded
+UPDATE transaction_history th
+SET th.balance_after = CASE
+      WHEN th.to_type = 'purchase' OR th.from_type = 'purchase' THEN th.cur_raw_material_quantity
+      WHEN th.to_type = 'bank' OR th.from_type = 'bank' THEN th.cur_customer_bank_quantity
+      ELSE th.cur_banks_babies_allocation_quantity END
+WHERE th.balance_after IS NULL AND th.from_type IS NOT NULL
+  AND (th.cur_raw_material_quantity IS NOT NULL OR th.cur_customer_bank_quantity IS NOT NULL);
+-- =========/ TRANSACTION HISTORY AS A MATERIAL LEDGER ==================
+
 select "Migrations done", CURRENT_TIMESTAMP;

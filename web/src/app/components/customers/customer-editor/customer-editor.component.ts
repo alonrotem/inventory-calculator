@@ -243,7 +243,6 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
       quantity: 1000000,
       remaining_quantity: 1000000,
       raw_material_purchase_id: 0,
-      transaction_history: []
     });
     this.new_banks_added = true;
   }

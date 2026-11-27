@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const wings = require('./wings');
 const customers = require('./customers');
+const transaction_history = require('./transaction_history');
 const { logger } = require("../logger");
 
 async function can_user_access_customer_orders(user_id, customer_id, required_permission_level){
@@ -64,6 +65,7 @@ async function create(customerHat, currentUserId, active_connection=null){
     let wing_id = -1;
     let hat_id = -1;
     let order_id = -1;
+    let babies_moved = null;   // what moved from the allocations to the order, for the material ledger
 
     let total_num_of_hats = 0;
     let total_num_of_wings = 0;
@@ -105,7 +107,7 @@ async function create(customerHat, currentUserId, active_connection=null){
 
         //reduce the material from the customer's banks
         if(!is_tentative){
-            await customers.moveBabiesToOrder(
+            babies_moved = await customers.moveBabiesToOrder(
                 wing_id,
                 total_num_of_wings,
                 customerHat.wall_allocation_id,
@@ -217,6 +219,26 @@ async function create(customerHat, currentUserId, active_connection=null){
         active_connection
     );
     hat_id = (customerHat.id == 0)? hat_save.insertId : customerHat.id;
+
+    // the material ledger: the babies and tails which moved from their allocations to this order
+    if(!is_tentative){
+        await transaction_history.track_babies_to_order(active_connection, {
+            allocation_id: customerHat.wall_allocation_id, customer_hat_id: hat_id,
+            babies: babies_moved?.wall, user: currentUserId, wing_id
+        });
+        await transaction_history.track_babies_to_order(active_connection, {
+            allocation_id: customerHat.crown_allocation_id, customer_hat_id: hat_id,
+            babies: babies_moved?.crown, user: currentUserId, wing_id
+        });
+        await transaction_history.track_tails_to_order(active_connection, {
+            allocation_id: customerHat.tails_allocation_id_r, customer_hat_id: hat_id,
+            count: (total_num_of_wings/2) - overdraft_r, user: currentUserId, side: 'r'
+        });
+        await transaction_history.track_tails_to_order(active_connection, {
+            allocation_id: customerHat.tails_allocation_id_l, customer_hat_id: hat_id,
+            count: (total_num_of_wings/2) - overdraft_l, user: currentUserId, side: 'l'
+        });
+    }
 
     let order_seq_id = 1;
     const order_seq_number_rec_query = await db.query(`

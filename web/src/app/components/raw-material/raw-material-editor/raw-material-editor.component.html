@@ -333,6 +333,7 @@
                             {{ purchase.purchased_at | dateStr}}
                         </td>
                         <td class="text-center" (click)="$event.stopPropagation()">
+                            <span *ngIf="purchase.id > 0" class="icon-history" style="cursor:pointer; margin-inline-end: 10px;" (click)="openPurchaseHistoryDialog(purchase)" [attr.title]="'customers:bank.history' | t"></span>
                             <span *ngIf="!is_purchase_in_use(purchase.id)" class="text-danger" style="cursor:pointer;" (click)="delete_purchase(purchase.id)">
                                 <fa-icon [icon]="faTrashAlt"></fa-icon>
                             </span>

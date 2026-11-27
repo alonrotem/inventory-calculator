@@ -79,8 +79,6 @@ export interface RawMaterial {
     updated_by: number;
     allow_shortening_babies_in_pairs: boolean;
     customer_banks: RawMaterialCustomerBank[];
-    transaction_record: TransactionRecord | null;
-    deleted_bank_records: TransactionRecord[];
     purchases: RawMaterialPurchase[];
 }
 
@@ -118,7 +116,6 @@ export interface RawMaterialCustomerBank {
     remaining_quantity: number;
     quantity_units: string;
     quantity_in_kg: number;
-    transaction_record: TransactionRecord | null;
     bank_in_use: boolean;
 }
 
@@ -127,7 +124,6 @@ export interface CustomerBanksBabies {
     customer_bank_id: number;
 	quantity: number;
     remaining_quantity: number;
-    transaction_record: TransactionRecord | null;
 }
 
 export interface Baby {
@@ -417,7 +413,6 @@ export interface Customer_Bank {
     quantity: number;
     remaining_quantity: number;
     raw_material_purchase_id: number;
-    transaction_history: TransactionRecord[];
 }
 
 export enum Bank_Allocation_Type {
@@ -470,53 +465,61 @@ export interface Customers {
 }
 
 export enum TransactionType {
-    raw_material_purchase = "raw_material_purchase",
-    to_customer_bank = "to_customer_bank",
-    customer_bank_allocate_to_Work = "customer_bank_allocate_to_Work",
-    customer_bank_allocation_deleted = "customer_bank_allocation_deleted",
-    deleted_customer_bank = "deleted_customer_bank"
+    purchase_created = "purchase_created",
+    purchase_topped_up = "purchase_topped_up",
+    purchase_reduced = "purchase_reduced",
+    purchase_deleted = "purchase_deleted",
+    bank_created = "bank_created",
+    bank_topped_up = "bank_topped_up",
+    bank_reduced = "bank_reduced",
+    bank_deleted = "bank_deleted",
+    allocation_created = "allocation_created",
+    allocation_topped_up = "allocation_topped_up",
+    allocation_reduced = "allocation_reduced",
+    allocation_deleted = "allocation_deleted",
+    babies_to_order = "babies_to_order",
+    babies_from_order = "babies_from_order",
+    tails_to_order = "tails_to_order",
+    tails_from_order = "tails_from_order"
 }
 
-// for saving action transactions
-export interface TransactionRecord {
-	id: number;
-    date: Date;
-    added_by: number;
-    transaction_quantity: number;
-    transaction_type: TransactionType;
-    
-    // involved banks in this transaction:
-	raw_material_id: number;
-    customer_id: number;
-    customer_bank_id: number;
-    allocation_id: number;
-		
-	// track keeping on quantities at the time of this transaction:
-    cur_raw_material_quantity: number;
-    cur_customer_bank_quantity: number;
-    cur_banks_babies_allocation_quantity: number;
-}
+// The material ledger (transaction_history): every record is one movement of material, from a source to a destination.
+// 'external' is outside of the system (bought, removed); 'hat_order' is an order (babies and tails go to it).
+export type LedgerPlace = 'external' | 'purchase' | 'bank' | 'allocation' | 'hat_order';
+export type FlowKind = 'raw_material' | 'purchase' | 'bank' | 'allocation';
 
-//for history record reports
+// A movement, as seen from the entity whose history is opened (direction: 'in' / 'out')
 export interface HistoryReportRecord {
     id: number;
-    
-    raw_material_name: string;
-    customer_name: string;
-    transaction_type: TransactionType; 
-    
-    transaction_quantity: number;
+    date: Date;
+    added_by: number;
+    added_by_name: string;
+
+    transaction_type: TransactionType;
+    transaction_quantity: number;       // always positive
+    quantity_units: 'kg' | 'units' | 'babies' | 'tails' | null;
+    balance_after: number | null;       // what is left in the destination after the movement
+    detail: { wing_id?: number | null, babies?: { length: number, count: number }[], side?: string } | null;
+    note: string | null;
+    reverses_id: number | null;
+
+    from_type: LedgerPlace;
+    from_id: number | null;
+    to_type: LedgerPlace;
+    to_id: number | null;
+    direction: 'in' | 'out';
+    other_type: LedgerPlace;            // who is on the other side of the movement
+    other_id: number | null;
+
     raw_material_id: number;
+    purchase_id: number | null;
     customer_id: number;
     customer_bank_id: number;
     allocation_id: number;
+    customer_hat_id: number | null;
+    raw_material_name: string;
+    customer_name: string;
     allocation_type: Bank_Allocation_Type;
-    cur_raw_material_quantity: number;
-    cur_customer_bank_quantity: number;
-    cur_banks_babies_allocation_quantity: number;
-
-    date: Date;
-    added_by: number;
 }
 
 export interface nameIdPair {
