@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, OnInit, ViewChild, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UnsavedChangesDialogComponent } from "../../common/unsaved-changes-dialog/unsaved-changes-dialog.component";
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
 import { PageLoadingComponent } from "../../common/page-loading/page-loading.component";
@@ -13,7 +14,7 @@ import { environment } from '../../../../environments/environment';
 import { faAddressCard, faSave, faArrowsRotate, faTriangleExclamation, faTrash, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { nameIdPair, UserDetails } from '../../../../types';
 import { HasUnsavedChanges } from '../../../guards/unsaved-changes-guard';
-import { firstValueFrom, Observable } from 'rxjs';
+import { filter, firstValueFrom, Observable } from 'rxjs';
 import { UnsavedNavigationConfirmationService } from '../../../services/unsaved-navigation-confirmation.service';
 import { ActivePage, UserTabsComponent } from "../user-tabs/user-tabs.component";
 import { ActivatedRoute, Router } from '@angular/router';
@@ -92,13 +93,17 @@ export class SettingsUserDetailsComponent extends NavigatedMessageComponent impl
     super(toastService, stateService, router, activatedRoute);
   }
 
+  private destroyRef = inject(DestroyRef);
+
   async ngOnInit() {
     const roles = await firstValueFrom(this.usersService.getRoles());
     this.roles = roles;
 
     if(this.activatedRoute.snapshot.queryParamMap.has('id')) {
       const id = Number(this.activatedRoute.snapshot.queryParamMap.get('id'));
-      this.usersService.user$.subscribe({ next: (loggedInUser)=> { 
+      // reloaded when the signed-in user changes, but not when there is none (signing out): the details can't be asked for then.
+      // The subscription ends with the page, so that it does not go on loading details after leaving it.
+      this.usersService.user$.pipe(filter(loggedInUser => !!loggedInUser), takeUntilDestroyed(this.destroyRef)).subscribe({ next: (loggedInUser)=> {
         if(loggedInUser && loggedInUser.id == id) { this.isThisYou = true; }
         this.loadUserDetails(id);
       } });
@@ -125,7 +130,7 @@ export class SettingsUserDetailsComponent extends NavigatedMessageComponent impl
         this.unsaved_changes = false;
       },
       error: (error: any) => {
-        this.toastService.showError(error.error.message);
+        this.toastService.showError(error?.error?.message ?? error?.message);
         this.loading = false;
       }
     });
@@ -197,7 +202,7 @@ export class SettingsUserDetailsComponent extends NavigatedMessageComponent impl
       },
       error: (error) => {
         console.dir(error);
-        this.toastService.showError(error.error.message);
+        this.toastService.showError(error?.error?.message ?? error?.message);
         this.sending_account_verification = false;
       }
     });    
@@ -276,7 +281,7 @@ export class SettingsUserDetailsComponent extends NavigatedMessageComponent impl
           this.saving = false;
         },
         error: (error: any) => {
-          this.toastService.showError(error.error.message);
+          this.toastService.showError(error?.error?.message ?? error?.message);
           this.saving = false;
         }
       });

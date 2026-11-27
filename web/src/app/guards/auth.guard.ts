@@ -15,6 +15,10 @@ export const authGuard: CanActivateFn = (route, state) => {
   if (currentUser && currentUser.id > 0) {
     const can_go =  usersService.does_user_have_access_to_area(currentUser, route.data["permissions"]);
     if(!can_go){
+      // just signed in, and the page asked for before is not for this user: the home page instead of "forbidden"
+      if(router.getCurrentNavigation()?.extras.state?.['after_signin']){
+        return router.createUrlTree(['/']);
+      }
       router.navigate(['forbidden'], { skipLocationChange: true });
     }
     else 

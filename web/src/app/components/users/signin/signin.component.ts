@@ -73,7 +73,7 @@ export class SignInComponent extends NavigatedMessageComponent implements OnInit
         console.log("caught status in signin");
         console.dir(userInfo);
         console.log("sign in auto navigate to " + this.goto_url);
-        this.router.navigateByUrl(this.goto_url);
+        this.router.navigateByUrl(this.goto_url, { state: { after_signin: true } });   // after_signin: a page this user is not allowed in leads to the home page
       }
     },
     error: (error: any)=> {
@@ -134,7 +134,7 @@ export class SignInComponent extends NavigatedMessageComponent implements OnInit
 
 continue_after_signin() {
     console.log("going to " + this.goto_url)
-    this.router.navigateByUrl(this.goto_url);
+    this.router.navigateByUrl(this.goto_url, { state: { after_signin: true } });   // after_signin: a page this user is not allowed in leads to the home page
   }
 
 signin() {

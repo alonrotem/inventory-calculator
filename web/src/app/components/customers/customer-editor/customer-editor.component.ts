@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, ElementRef, inject, OnInit,QueryList,ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, inject, OnInit,QueryList,ViewChild, ViewChildren } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsyncPipe, DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { Customer, Allocation_Baby, TransactionType, nameIdPair, RawMaterialBasicDetails } from '../../../../types';
 import { Router, RouterModule } from '@angular/router';
@@ -120,6 +121,8 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
   @ViewChild("raw_material_select") raw_material_select!: NgSelectComponent;
   @ViewChildren('customer_banks_tables') customer_banks_tables!: QueryList<CustomerBanksTableComponent>;
  
+  private destroyRef = inject(DestroyRef);
+
   constructor(
     private customersService: CustomersService, 
     private rawMaterialsService: RawMaterialsService,
@@ -201,7 +204,8 @@ export class CustomerEditorComponent extends NavigatedMessageComponent implement
       this.getCustomer(id);
     }
     else {
-      this.usersService.user$.subscribe({ next: (loggedInUser)=> { 
+      // ends with the page (it would otherwise keep loading after leaving it, e.g. when signing out)
+      this.usersService.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (loggedInUser)=> {
         if(loggedInUser && loggedInUser.is_demo_customer){
           this.title_key = 'customers:editor.title_demo';
           this.getDemoCustomerByUserId(loggedInUser.id);
