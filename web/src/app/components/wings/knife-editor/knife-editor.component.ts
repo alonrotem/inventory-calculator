@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { saveAs } from 'file-saver';
-import { faArrowLeft, faEraser, faFolderOpen, faRotateLeft, faSave, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faEraser, faFilePdf, faFolderOpen, faPrint, faRotateLeft, faSave, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { Observable, firstValueFrom, throwError } from 'rxjs';
 import { UnsavedNavigationConfirmationService } from '../../../services/unsaved-navigation-confirmation.service';
@@ -26,6 +26,7 @@ import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { fitOutline } from './bezier-fit';
 import { loadImageFile, loadPdfPage } from './image-source';
 import { PreviewBaby, buildBabyPreview } from './baby-preview';
+import { knifePdf, layoutKnifeSheet, printKnifeSheet } from './knife-print';
 
 type Tool = 'edit' | 'mark' | 'straighten';
 type Drag = { kind: 'node' | 'hIn' | 'hOut'; id: number; undoSaved: boolean } | { kind: 'pan'; last: Vec };
@@ -52,6 +53,8 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
   readonly faEraser = faEraser;
   readonly faArrowLeft = faArrowLeft;
   readonly faSave = faSave;
+  readonly faFilePdf = faFilePdf;
+  readonly faPrint = faPrint;
   readonly faRotateLeft = faRotateLeft;
   readonly faFolderOpen = faFolderOpen;
   readonly faTrashAlt = faTrashAlt;
@@ -847,6 +850,34 @@ export class KnifeEditorComponent implements OnInit, AfterViewInit, OnDestroy, H
     saveAs(new Blob([JSON.stringify(knife, null, 2)], { type: 'application/json' }), name);
     this.status = this.translation.t('knives:editor.status.exported', { name });
     this.dirty = false;
+  }
+
+  /** The knife on an A4 page in real size (title, width and outline only); null (with an error) while incomplete or when it is too big for the page. */
+  private a4Sheet() {
+    const knife = this.getKnife();
+    if (!knife) return null;
+    const title = `${knife.name} - ${this.translation.t('common:units.cm', { value: knife.width_cm })}`;
+    const sheet = layoutKnifeSheet(knife, title);
+    if (!sheet) {
+      this.status = this.translation.t('knives:editor.status.too_big_for_a4');
+      this.toastService.showError(this.status);
+      return null;
+    }
+    return { knife, sheet };
+  }
+
+  /** Saves the knife's outline as a PDF of an A4 page, 1:1. */
+  exportPdf() {
+    const page = this.a4Sheet();
+    if (!page) return;
+    knifePdf(page.sheet).save(page.knife.name.replace(/[\\/:*?"<>|]+/g, '_') + '.pdf');
+  }
+
+  /** Prints the knife's outline on an A4 page, 1:1. */
+  printOutline() {
+    const page = this.a4Sheet();
+    if (!page) return;
+    printKnifeSheet(page.sheet);
   }
 
   // ---------------------------------------------------------------- database

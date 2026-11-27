@@ -23,6 +23,20 @@
                     <div class="small text-body-secondary mt-1">
                         {{ knifeId ? ('knives:editor.saved_as' | t: { id: knifeId }) : ('knives:editor.not_saved' | t) }}
                     </div>
+                    <div class="d-flex gap-1 mt-1">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" [disabled]="busy || nodes.length < 3" (click)="exportPdf()"
+                            [attr.title]="('knives:editor.export_pdf' | t) + ' - ' + ('knives:editor.a4_hint' | t)" [attr.aria-label]="'knives:editor.export_pdf' | t">
+                            <fa-icon [icon]="faFilePdf"></fa-icon>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" [disabled]="busy || nodes.length < 3" (click)="printOutline()"
+                            [attr.title]="('knives:editor.print_outline' | t) + ' - ' + ('knives:editor.a4_hint' | t)" [attr.aria-label]="'knives:editor.print_outline' | t">
+                            <fa-icon [icon]="faPrint"></fa-icon>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success" [disabled]="busy || nodes.length < 3" (click)="saveToDatabase()"
+                            [attr.title]="'knives:editor.save_hint' | t" [attr.aria-label]="'knives:editor.save_hint' | t">
+                            <fa-icon [icon]="faSave"></fa-icon>
+                        </button>
+                    </div>
                     <div class="d-flex gap-2 mt-2">
                         <button class="btn btn-sm btn-outline-primary flex-grow-1" [class.active]="showDbList" [disabled]="busy" (click)="toggleDbList()">
                             <fa-icon [icon]="faFolderOpen"></fa-icon> {{ 'knives:editor.open_from_db' | t }}
