@@ -633,16 +633,39 @@
       <!-- visible only if wing is selected -->
       <div [hidden]="(this.customerHat.wing == null || this.customerHat.wing.id <= 0)"> 
 
+      <div *ngIf="knife_options.length > 0" class="d-flex flex-row align-items-center measurement-row">
+        <div class="d-flex flex-row align-items-center" style="min-width: 150px;">
+          <span class="icon-knife" style="font-size: 30px; margin-inline-end: 10px;"></span>
+          <label for="knife_picker">{{ 'customers:calc.knife' | t }}</label>
+        </div>
+        <div class="flex-grow-1" style="margin-inline-start: 15px;">
+          <ng-select
+            [items]="knife_options"
+            bindLabel="name"
+            bindValue="id"
+            [placeholder]="'customers:calc.knife_placeholder' | t"
+            [ngModel]="selected_knife_id"
+            (ngModelChange)="knife_picked($event)"
+            name="knife_picker"
+            inputId="knife_picker"
+            [clearable]="false"
+            [searchable]="false">
+            <ng-template ng-label-tmp let-item="item">{{ item.name }} - {{ 'common:units.cm_fixed' | t: { value: item.width_cm } }}</ng-template>
+            <ng-template ng-option-tmp let-item="item">{{ item.name }} - {{ 'common:units.cm_fixed' | t: { value: item.width_cm } }}</ng-template>
+          </ng-select>
+        </div>
+      </div>
+
       <div *ngIf="arr_knives.length > 0" class="d-flex flex-row align-items-center measurement-row">
         <div class="d-flex flex-row align-items-center" style="min-width: 150px;">
           <span class="icon-knife" style="font-size: 30px; margin-inline-end: 10px;"></span>
-          <label for="tempB">{{ 'customers:calc.knife' | t }}</label>
+          <label for="tempB">{{ 'customers:calc.knife_width' | t }}</label>
         </div>
         <div class="flex-grow-1" style="margin-inline-start: 15px;">
 
         <ng-select
           #knife_selector
-          [placeholder]="'customers:calc.knife_placeholder' | t"
+          [placeholder]="'customers:calc.knife_width_placeholder' | t"
           [ngModel]="customerHat.wing.knife"
           (ngModelChange)="knife_changed()"
           name="knife_selector"

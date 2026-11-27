@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { ListParams, WingsList, WingsListItem } from '../../../../types';
 import { PaginatorComponent } from '../../common/paginator/paginator.component';
-import { faArrowsRotate, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faArrowsRotate, faPen, faSave, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { WingsService } from '../../../services/wings.service';
 import { KnivesService } from '../../../services/knives.service';
 import { knifeSvgOutline } from '../knife-editor/knife-render';
@@ -17,12 +17,14 @@ import { PageLoadingComponent } from "../../common/page-loading/page-loading.com
 import { Observable } from 'rxjs';
 import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { loadListSort, saveListSort } from '../../../utils/list-sort-storage';
+import { PromptDialogComponent } from '../../common/prompt-dialog/prompt-dialog.component';
+import { TranslationService } from '../../../i18n/translation.service';
 
 @Component({
   selector: 'app-wings-table',
   standalone: true,
   imports: [TranslatePipe, DateStrPipe, RouterModule, NgFor, DecimalPipe, FaIconComponent, FontAwesomeModule, 
-    PaginatorComponent, PaginatorComponent, PageLoadingComponent, NgIf],
+    PaginatorComponent, PaginatorComponent, PageLoadingComponent, NgIf, PromptDialogComponent],
   templateUrl: './wings-table.component.html',
   styleUrl: './wings-table.component.scss'
 })
@@ -33,6 +35,10 @@ export class WingsTableComponent extends NavigatedMessageComponent implements On
   wingsList: WingsListItem[] = [];
   @ViewChild("paginator") paginator!: PaginatorComponent;
   faArrowsRotate: IconDefinition = faArrowsRotate;
+  faPen: IconDefinition = faPen;
+  faSave: IconDefinition = faSave;
+  @ViewChild('rename_prompt') rename_prompt!: PromptDialogComponent;
+  private renamedWing: WingsListItem | null = null;
   loading: boolean = true;
   totalRecords: number = 0;
   totalbabies: number = 0;
@@ -46,6 +52,7 @@ export class WingsTableComponent extends NavigatedMessageComponent implements On
     private wingsService: WingsService, 
     private knivesService: KnivesService,
     private settingsService: SettingsService,
+    private translation: TranslationService,
     router: Router, 
     stateService: StateService,
     toastService: ToastService,
@@ -69,11 +76,12 @@ export class WingsTableComponent extends NavigatedMessageComponent implements On
   // sorting and filtering (by the server, before paging)
   // the sort the list was left with is kept, so that it opens the same way next time
   private static readonly SORT_KEY = 'wings';
-  private static readonly SORT_COLUMNS = ['name', 'knife', 'Left', 'Right', 'Top', 'Crown'];
+  private static readonly SORT_COLUMNS = ['name', 'customer_code', 'knife', 'Left', 'Right', 'Top', 'Crown'];
   sortColumn?: string = loadListSort(WingsTableComponent.SORT_KEY, WingsTableComponent.SORT_COLUMNS)?.column;
   sortDirection: 'asc' | 'desc' = loadListSort(WingsTableComponent.SORT_KEY, WingsTableComponent.SORT_COLUMNS)?.direction ?? 'asc';
   filterColumn: string = '';        // '' : all columns
   filterText: string = '';
+  assignedOnly: boolean = false;    // only the wings assigned to a customer
   private filterTimer: ReturnType<typeof setTimeout> | undefined;
 
   get filterActive(): boolean {
@@ -96,8 +104,8 @@ export class WingsTableComponent extends NavigatedMessageComponent implements On
       }
     }
     const wlist: Observable<WingsList> = (this.customerId === null) ?
-      this.wingsService.getWings(list):
-      this.wingsService.getWings_for_customer(this.customerId, this.showOnlyCustomerWings, list);
+      this.wingsService.getWingsFiltered(list, this.assignedOnly):
+      this.wingsService.getWings_for_customer(this.customerId, this.showOnlyCustomerWings || this.assignedOnly, list);
 
     wlist.subscribe(
       {
@@ -156,6 +164,41 @@ export class WingsTableComponent extends NavigatedMessageComponent implements On
     if (this.filterActive) {
       this.getWings(1);
     }
+  }
+
+  assignedOnlyChanged(checked: boolean) {
+    this.assignedOnly = checked;
+    this.getWings(1);
+  }
+
+  /** The pencil next to a wing's name: asks for the new name, which is saved right away. */
+  rename(event: Event, wing: WingsListItem) {
+    event.stopPropagation();    // not a click on the row (which opens the wing)
+    this.renamedWing = wing;
+    this.rename_prompt.modalValue = wing.name;
+    this.rename_prompt.open();
+  }
+
+  rename_confirmed(new_name: string) {
+    const listed = this.renamedWing;
+    const name = (new_name ?? '').trim();
+    this.renamedWing = null;
+    if (!listed || !name || name === listed.name) {
+      return;
+    }
+    this.wingsService.getWing(listed.id).subscribe({
+      next: (wing) => {
+        wing.name = name;
+        this.wingsService.saveWing(wing).subscribe({
+          next: (response) => {
+            this.toastService.showSuccess(response?.message ?? this.translation.t('wings:list.renamed'));
+            this.getWings(this.current_page);
+          },
+          error: (error) => this.toastService.showError(error.error?.message ?? this.translation.t('wings:list.rename_failed'))
+        });
+      },
+      error: (error) => this.toastService.showError(error.error?.message ?? this.translation.t('wings:list.rename_failed'))
+    });
   }
 
   clearFilter() {

@@ -408,6 +408,8 @@
     "measurements": "Measurements:",
     "knife": "Knife:",
     "knife_placeholder": "Hat knife",
+    "knife_width": "Knife width:",
+    "knife_width_placeholder": "Knife width",
     "total_height": "Total height:",
     "total_height_placeholder": "Total height",
     "kippa": "Kippa size:",

@@ -49,6 +49,11 @@
         </div>
 
         <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="knife_allow_for_demo" name="allow_for_demo_customers" [(ngModel)]="allowForDemo">
+            <label class="form-check-label" for="knife_allow_for_demo">{{ 'knives:details.allow_for_demo_customers' | t }}</label>
+        </div>
+
+        <div class="form-check mb-2">
             <input class="form-check-input" type="checkbox" id="knife_show_babies" [ngModelOptions]="{ standalone: true }"
                 [(ngModel)]="showBabies" (ngModelChange)="draw()">
             <label class="form-check-label" for="knife_show_babies">{{ 'knives:details.preview_babies' | t }}</label>

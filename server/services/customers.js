@@ -9,7 +9,7 @@ const { buildListQuery } = require('./list-query');
 
 async function getSingle(id, currentUserId){
 
-  if(!canUserAccessThisCustomer(id, currentUserId, "R")){
+  if(!await canUserAccessThisCustomer(id, currentUserId, "R")){
     throw i18n.translatable_error(403, 'server:customers.no_view');
   }
 
@@ -905,7 +905,7 @@ async function sync_customer_banks(customer, active_connection){
 
 async function remove(id, currentUserId, active_connection=null){
 
-  if(!canUserAccessThisCustomer(id, currentUserId, "D")){
+  if(!await canUserAccessThisCustomer(id, currentUserId, "D")){
     throw i18n.translatable_error(403, 'server:customers.no_delete');    
   }
 

@@ -1,11 +1,18 @@
 {
   "list": {
     "loading": "טוען כנפיים",
+    "rename": "שינוי שם",
+    "rename_title": "שינוי שם כנף",
+    "rename_text": "שם חדש:",
+    "renamed": "שם הכנף שונה",
+    "rename_failed": "שינוי שם הכנף נכשל",
+    "assigned_only": "רק כנפיים המשויכות ללקוח",
     "new": "+ כנף",
     "total_one": "סה״כ: כנף {{count, number}}",
     "total_two": "סה״כ: {{count, number}} כנפיים",
     "total_other": "סה״כ: {{count, number}} כנפיים",
     "col_name": "שם",
+    "col_customer_code": "קוד לקוח",
     "col_knife": "סכין",
     "col_knife_width": "רוחב הסכין",
     "col_babies": "בייביז",

@@ -32,6 +32,14 @@ export class WingsService {
     });
   };
 
+  /** The list of wings, only the ones assigned to some customer when `assignedOnly`. */
+  getWingsFiltered = (params: ListParams, assignedOnly: boolean): Observable<WingsList> => {
+    return this.apiService.get(`${environment.serverUrl}/wings/`, {
+      params: { ...params, assigned_only: assignedOnly ? true : undefined },
+      responseType: 'json'
+    });
+  };
+
   // sorting and filtering (see ListParams) can be asked for here too; the customer's wings are all returned, not paged
   getWings_for_customer = (customerID: number, customerWingsOnly: boolean=false, list: Partial<ListParams> = {}): Observable<WingsList> => {
     return this.apiService.get(`${environment.serverUrl}/wings/customer/${customerID}`, {

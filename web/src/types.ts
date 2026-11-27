@@ -153,9 +153,12 @@ export interface WingsListItem {
     Top: number;
     Right: number;
     Crown: number;
+    crown_longest: number | null;   // the length of the longest crown baby
+    top_length: number | null;      // the length of the top baby
     is_customer_wing: boolean;
     customer_id: number;
     customer_name: string;
+    customer_code: string | null;   // the code(s) of the customer(s) the wing is assigned to
 }
 
 export interface WingsList {
@@ -299,6 +302,7 @@ export class Point {
     id: number;
     name: string;
     width_cm: number;       // from L1 to the Crown
+    allow_for_demo_customers?: boolean | number;   // demo customers can pick this knife (the server answers 0/1)
     data: {
         size_cm: {
             width: number;
@@ -343,6 +347,7 @@ export class Point {
     id: number;
     name: string;
     width_cm: number;
+    allow_for_demo_customers?: boolean | number;
     data?: Knife['data'];     // only when requested (with_shape)
   }
 

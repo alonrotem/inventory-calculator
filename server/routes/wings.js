@@ -9,7 +9,7 @@ router.get('/',
   async function(req, res, next) {
   logger.info(`get /wings/ page=${req.query.page}, perPage=${req.query.perPage}, sort=${req.query.sort_column} ${req.query.sort_direction}, filter=${req.query.filter_column} ${req.query.filter_expression}`);
   try {
-    const response = await wings.getMultiple(req.query.page, req.query.perPage, undefined, false, req.query);
+    const response = await wings.getMultiple(req.query.page, req.query.perPage, undefined, req.query.assigned_only === 'true', req.query);
     logger.debug(`RESPONSE: ${JSON.stringify(response)}`);
     res.json(response);
   } 

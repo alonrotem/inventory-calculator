@@ -1,10 +1,17 @@
 {
   "list": {
     "loading": "לאָדט פֿליגל",
+    "rename": "אומבענען",
+    "rename_title": "אומבענען דעם פֿליגל",
+    "rename_text": "נייער נאָמען:",
+    "renamed": "דער פֿליגל איז אומבענענט געוואָרן",
+    "rename_failed": "נישט געקענט אומבענען דעם פֿליגל",
+    "assigned_only": "נאָר פֿליגל וואָס געהערן צו אַ קונה",
     "new": "+ פֿליגל",
     "total_one": "סך הכל: {{count, number}} פֿליגל",
     "total_other": "סך הכל: {{count, number}} פֿליגל",
     "col_name": "נאָמען",
+    "col_customer_code": "קונה־קאָד",
     "col_knife": "מעסער",
     "col_knife_width": "ברייט פֿון מעסער",
     "col_babies": "בייביז",

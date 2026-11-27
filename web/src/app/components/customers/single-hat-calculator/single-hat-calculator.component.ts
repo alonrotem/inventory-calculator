@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, HostListener, Input, OnIni
 import { FormsModule } from '@angular/forms';
 import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 import { WingsService } from '../../../services/wings.service';
-import { Bank_Allocation_Type, Customer, Customer_Bank_Baby_Allocation, CustomerHat, RawMaterialBasicDetails, Status, Wing, WingBaby, WingsListItem } from '../../../../types';
+import { Bank_Allocation_Type, Customer, Customer_Bank_Baby_Allocation, CustomerHat, KnifeListItem, RawMaterialBasicDetails, Status, Wing, WingBaby, WingsListItem } from '../../../../types';
 import { DecimalPipe, formatDate, JsonPipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { WingDiagramComponent } from '../../wings/wing-diagram/wing-diagram.component';
 import { WingBabyEdit, applyBabyEdit } from '../../wings/wing-diagram/wing-baby-edit';
@@ -188,7 +188,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   max_knife:number = 12.5;
   knife_steps: number = 0.5;
 
-  // the knives the user can pick from: the customer's knives (name is empty for the demo customer's generated lengths)
+  // the knife widths the user can pick from
   arr_knives: {cm: number, inches: number, name?: string}[] = [];
   /*
   arr_knives: number[] = Array(
@@ -198,6 +198,10 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
   */
 
   wing_knife: number = 0;
+
+  // the knives the wing can have: the customer's knives (a demo customer: the knives allowed for demo customers)
+  knife_options: {id: number, name: string, width_cm: number}[] = [];
+  selected_knife_id: number | null = null;
   
   min_wing_total_height:number = 15;
   max_wing_total_height:number = 30;
@@ -433,26 +437,39 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     {
       next: (customer: Customer) => {
 
-        if(customer.is_demo_customer) {
-          this.arr_knives = Array((this.max_knife - this.min_knife) * ( 1/this.knife_steps) + 1)
+        // the widths to pick from: the full range, for every customer (independent of the customer's knives)
+        this.arr_knives = Array((this.max_knife - this.min_knife) * ( 1/this.knife_steps) + 1)
             .fill(this.min_knife).map((_,i) => {
               return {
                 cm: ((_ + i * this.knife_steps) ),
                 inches: ((_ + i * this.knife_steps) * this.cm_to_inch),
               }
             }
-          );
+        );
+
+        if(customer.is_demo_customer) {
+          // the knives the demo customers may pick
+          this.knivesService.getKnives({ page: 0, perPage: 0 }).subscribe({
+            next: (knives) => {
+              this.knife_options = knives.data
+                .filter(k => !!k.allow_for_demo_customers)
+                .map(k => ({ id: k.id, name: k.name, width_cm: k.width_cm }));
+              this.sync_knife_selector();
+            },
+            error: () => { this.knife_options = []; }
+          });
         }
         else {
           // the customer holds only the id and name of its knives, the width comes from the knives list
           this.knivesService.getKnives({ page: 0, perPage: 0 }).subscribe({
             next: (knives) => {
-              this.arr_knives = customer.knives
-                .map(customer_knife => ({ name: customer_knife.name, cm: knives.data.find(k => k.id == customer_knife.id)?.width_cm }))
-                .filter((k): k is { name: string, cm: number } => k.cm !== undefined)
-                .map(k => ({ ...k, inches: k.cm * this.cm_to_inch }));
+              this.knife_options = customer.knives
+                .map(customer_knife => knives.data.find(k => k.id == customer_knife.id))
+                .filter((k): k is KnifeListItem => !!k)
+                .map(k => ({ id: k.id, name: k.name, width_cm: k.width_cm }));
+              this.sync_knife_selector();
             },
-            error: () => { this.arr_knives = []; }
+            error: () => { this.knife_options = []; }
           });
         }
 
@@ -793,6 +810,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
         this.crown_width_original = w.crown_width;
         this.is_wing_customized = false;
         this.customerHat.original_wing_name = this.selected_wing_name;
+        this.sync_knife_selector();
 
         this.diagram.setColors(this.globalsService.currentTheme());
 
@@ -855,6 +873,7 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
     this.crown_width_original = wing.crown_width;
     this.is_wing_customized = false;
     this.customerHat.original_wing_name = this.selected_wing_name;
+    this.sync_knife_selector();
     if(this.advisor){
       this.advisor.wing = wing;
     }
@@ -893,7 +912,30 @@ export class SingleHatCalculatorComponent extends NavigatedMessageComponent impl
       id: 0, name: '', knife: 0, allow_shortening_babies_in_pairs: false,
       crown_width: 0, split_l1: 1, angled_crown: false, babies: [], customers: []
     };
+    this.selected_knife_id = null;
     this.update_table_instructions();
+  }
+
+  /** The knife selector shows the wing's knife (the width is the wing's own, separate value). Called when a wing loads and when the knives load. */
+  private sync_knife_selector() {
+    const wing = this.customerHat.wing;
+    this.selected_knife_id = wing?.knife_id ?? null;
+    // a demo customer starts with the first knife, and its width
+    if(wing && this.customer.is_demo_customer && wing.id == SingleHatCalculatorComponent.DEMO_WING_ID && !wing.knife_id && this.knife_options.length > 0){
+      this.knife_picked(this.knife_options[0].id);
+    }
+  }
+
+  /** A knife was picked: the wing gets its id and, as a starting point, the knife's width (which can then be changed in the width selector). */
+  knife_picked(knife_id: number | null) {
+    const option = this.knife_options.find(k => k.id == knife_id);
+    if(!option || !this.customerHat.wing){
+      return;
+    }
+    this.selected_knife_id = option.id;
+    this.customerHat.wing.knife_id = option.id;
+    this.customerHat.wing.knife = option.width_cm;
+    this.recalculate_hat_size();
   }
 
   wall_material_changed(material: RawMaterialBasicDetails){

@@ -7,6 +7,17 @@
       [hidden]="!loading" 
       [stretch_height]="true" />
 
+<app-prompt-dialog
+  #rename_prompt
+  [modalTitle]="'wings:list.rename_title' | t"
+  [modalText]="'wings:list.rename_text' | t"
+  [btnYesClass]="'btn-success'"
+  [btnYesText]="'common:actions.save' | t"
+  [btnYesIcon]="faSave"
+  [btnNoText]="'common:actions.cancel' | t"
+  (confirm)="rename_confirmed($event)"
+  />
+
 <div [hidden]="loading">
   <a id="btnNewRaw" class="btn btn-primary" routerLink="/templates/wings/editor" [queryParams]="{ c_id: customerId }">{{ 'wings:list.new' | t }}</a>
 
@@ -14,10 +25,11 @@
 
 
   <!-- filter: by one column, or by all of them -->
-  <div class="wings_filter d-flex align-items-center gap-2 mb-2" [hidden]="loading || (this.wingsList.length <= 0 && !filterActive)">
+  <div class="wings_filter d-flex align-items-center gap-2 mb-2" [hidden]="loading || (this.wingsList.length <= 0 && !filterActive && !assignedOnly)">
     <select class="form-select form-select-sm wings_filter_column" [value]="filterColumn" (change)="filterColumnChanged($any($event.target).value); filter_text.focus()">
       <option value="">{{ 'wings:list.filter_all' | t }}</option>
       <option value="name">{{ 'wings:list.col_name' | t }}</option>
+      <option value="customer_code">{{ 'wings:list.col_customer_code' | t }}</option>
       <option value="knife">{{ 'wings:list.col_knife' | t }}</option>
       <option value="knife_width">{{ 'wings:list.col_knife_width' | t }}</option>
       <option value="Left">{{ 'wings:editor.left_babies' | t }}</option>
@@ -29,6 +41,10 @@
     @if (filterActive) {
       <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearFilter()" [attr.title]="'wings:list.filter_clear' | t">✕</button>
     }
+    <div class="form-check ms-2 mb-0 text-nowrap">
+      <input class="form-check-input" type="checkbox" id="wings_assigned_only" [checked]="assignedOnly" (change)="assignedOnlyChanged($any($event.target).checked)">
+      <label class="form-check-label" for="wings_assigned_only">{{ 'wings:list.assigned_only' | t }}</label>
+    </div>
   </div>
 
   <div [hidden]="loading || this.wingsList.length == 0">
@@ -37,6 +53,7 @@
     <thead>
       <tr>
         <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('name')" (click)="sortBy('name')">{{ 'wings:list.col_name' | t }} {{ sortIndicator('name') }}</th>
+        <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('customer_code')" (click)="sortBy('customer_code')">{{ 'wings:list.col_customer_code' | t }} {{ sortIndicator('customer_code') }}</th>
         <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('knife')" (click)="sortBy('knife')">{{ 'wings:list.col_knife' | t }} {{ sortIndicator('knife') }}</th>
         <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('Left')" (click)="sortBy('Left')" [attr.title]="('wings:list.col_babies' | t) + ': ' + ('wings:editor.left_babies' | t)"><span class="icon-feather-wing"></span> L {{ sortIndicator('Left') }}</th>
         <th scope="col" class="sortable" [attr.aria-sort]="ariaSort('Right')" (click)="sortBy('Right')" [attr.title]="('wings:list.col_babies' | t) + ': ' + ('wings:editor.right_babies' | t)"><span class="icon-feather-wing-r"></span> R {{ sortIndicator('Right') }}</th>
@@ -49,7 +66,10 @@
         *ngFor="let wing of this.wingsList" 
         routerLink="/templates/wings/editor" 
         [queryParams]="{ id: wing.id, c_id: customerId }" role="button">
-        <td class="text-nowrap {{wing.is_customer_wing?'text-primary':''}}">{{ wing.name }}{{ wing.customer_name ? ' ('+ wing.customer_name +')' : '' }}</td>
+        <td class="text-nowrap {{wing.is_customer_wing?'text-primary':''}}">{{ wing.name }}{{ wing.customer_name ? ' ('+ wing.customer_name +')' : '' }}
+          <button type="button" class="btn btn-sm btn-link p-0 ms-1 wing_rename" (click)="rename($event, wing)" [attr.title]="'wings:list.rename' | t" [attr.aria-label]="'wings:list.rename' | t"><fa-icon [icon]="faPen" size="xs"></fa-icon></button>
+        </td>
+        <td class="text-nowrap">{{ wing.customer_code }}</td>
         <td>
           <div class="d-flex align-items-center gap-2">
             @if (thumbnails[wing.knife_id ?? 0]; as thumbnail) {
@@ -62,8 +82,8 @@
         </td>
         <td><span class="icon-feather-wing"></span> L ({{ wing.Left }})</td>
         <td><span class="icon-feather-wing-r"></span> R ({{ wing.Right }})</td>
-        <td><span class="icon-top"></span> T ({{ wing.Top }})</td>
-        <td><span class="icon-crown"></span> C ({{ wing.Crown }})</td>
+        <td><span class="icon-top"></span> T {{ wing.top_length | number:'1.1-1' }}</td>
+        <td><span class="icon-crown"></span> C {{ wing.crown_longest | number:'1.1-1' }} ({{ wing.Crown }})</td>
       </tr>
     </tbody>
   </table>
@@ -71,9 +91,9 @@
   <app-paginator #paginator [pages]=4  (onPageChange)="pageChange($event)" />
 </div>
 
-  <div [hidden]="loading || this.wingsList.length > 0 || !filterActive" class="text-center my-4">{{ 'wings:list.no_matches' | t }}</div>
+  <div [hidden]="loading || this.wingsList.length > 0 || (!filterActive && !assignedOnly)" class="text-center my-4">{{ 'wings:list.no_matches' | t }}</div>
 
-  <div [hidden]="loading || this.wingsList.length > 0 || filterActive" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
+  <div [hidden]="loading || this.wingsList.length > 0 || filterActive || assignedOnly" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; text-align: center;margin: 50px 0;">
     {{ 'wings:list.empty' | t }}<br/>
 {{ 'wings:list.empty_hint' | t }}
   </div>

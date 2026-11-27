@@ -1,10 +1,17 @@
 {
   "list": {
     "loading": "Loading wings",
+    "rename": "Rename",
+    "rename_title": "Rename wing",
+    "rename_text": "New name:",
+    "renamed": "Wing renamed",
+    "rename_failed": "Failed to rename the wing",
+    "assigned_only": "Only wings assigned to a customer",
     "new": "+ Wing",
     "total_one": "Total: {{count, number}} wing",
     "total_other": "Total: {{count, number}} wings",
     "col_name": "Name",
+    "col_customer_code": "Customer code",
     "col_knife": "Knife",
     "col_knife_width": "Knife width",
     "col_babies": "Babies",

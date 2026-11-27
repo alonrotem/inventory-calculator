@@ -11,7 +11,7 @@ const default_t = (key, params) => i18n.t(i18n.default_language(), key, params);
 
 async function getSingle(id){
   const rows = await db.query(
-    `SELECT id, name, width_cm, data, created_at, updated_at, created_by, updated_by
+    `SELECT id, name, width_cm, allow_for_demo_customers, data, created_at, updated_at, created_by, updated_by
     FROM knives WHERE id=(?)`,
     [id]
   );
@@ -36,7 +36,7 @@ async function getMultiple(page = 1, perPage, with_shape = false, list = {}){
   }
   const { where, params, orderBy } = buildListQuery(list, LIST_COLUMNS, 'name');
   const rows = await db.query(
-    `SELECT id, name, width_cm${with_shape? ', data' : ''} FROM knives ${where} ${orderBy} ${subset}`,
+    `SELECT id, name, width_cm, allow_for_demo_customers${with_shape? ', data' : ''} FROM knives ${where} ${orderBy} ${subset}`,
     params
   );
   const total = await db.query(
@@ -67,10 +67,12 @@ async function save(knife, currentUserId, t = default_t){
   if(!knife.data || !Array.isArray(knife.data.nodes) || knife.data.nodes.length < 3){
     throw i18n.translatable_error(400, 'knives:server.outline_required');
   }
+  // undefined (e.g. saved by the knife editor, which doesn't know it): an existing knife keeps its value
+  const allow_for_demo_customers = (knife.allow_for_demo_customers === undefined)? null : (knife.allow_for_demo_customers ? 1 : 0);
   const isNew = !(knife.id > 0);
 
   // name and width have their own columns; they (and any id/version) are not stored inside the JSON
-  const { name: _name, width_cm: _width_cm, id: _id, version: _version, ...data } = knife.data;
+  const { name: _name, width_cm: _width_cm, allow_for_demo_customers: _allow, id: _id, version: _version, ...data } = knife.data;
 
   const same_name = helper.emptyOrSingle(await db.query(
     `SELECT id FROM knives WHERE name=(?) AND id<>(?)`,
@@ -84,15 +86,15 @@ async function save(knife, currentUserId, t = default_t){
   try {
     if(isNew){
       const result = await db.query(
-        `INSERT INTO knives (name, width_cm, data, created_by, updated_by) VALUES ((?), (?), (?), (?), (?))`,
-        [name, width_cm, JSON.stringify(data), currentUserId, currentUserId]
+        `INSERT INTO knives (name, width_cm, allow_for_demo_customers, data, created_by, updated_by) VALUES ((?), (?), (?), (?), (?), (?))`,
+        [name, width_cm, allow_for_demo_customers ?? 0, JSON.stringify(data), currentUserId, currentUserId]
       );
       knife_id = result.insertId;
     }
     else {
       const result = await db.query(
-        `UPDATE knives SET name=(?), width_cm=(?), data=(?), updated_by=(?) WHERE id=(?)`,
-        [name, width_cm, JSON.stringify(data), currentUserId, knife.id]
+        `UPDATE knives SET name=(?), width_cm=(?), allow_for_demo_customers=COALESCE((?), allow_for_demo_customers), data=(?), updated_by=(?) WHERE id=(?)`,
+        [name, width_cm, allow_for_demo_customers, JSON.stringify(data), currentUserId, knife.id]
       );
       if(!result.affectedRows){
         throw i18n.translatable_error(404, 'knives:server.not_found', { id: knife.id });

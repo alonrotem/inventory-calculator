@@ -43,6 +43,7 @@ export class KnifeDetailsComponent implements OnInit, AfterViewInit, OnDestroy, 
 
   knife: Knife | null = null;
   name = '';
+  allowForDemo = false;
   showBabies = false;
   loading = true;
   saving = false;
@@ -93,6 +94,7 @@ export class KnifeDetailsComponent implements OnInit, AfterViewInit, OnDestroy, 
       }
       this.knife = knife;
       this.name = knife.name;
+      this.allowForDemo = !!knife.allow_for_demo_customers;
     }
     catch (e: any) {
       this.gotoKnivesList(e?.error?.message ?? this.translation.t('knives:details.load_failed'), true);
@@ -125,7 +127,7 @@ export class KnifeDetailsComponent implements OnInit, AfterViewInit, OnDestroy, 
   }
 
   private editedKnife(): Knife {
-    return { ...this.knife!, name: this.name.trim() };
+    return { ...this.knife!, name: this.name.trim(), allow_for_demo_customers: this.allowForDemo };
   }
 
   save(navigate_after_save: boolean = true) {
@@ -148,6 +150,7 @@ export class KnifeDetailsComponent implements OnInit, AfterViewInit, OnDestroy, 
         else {
           this.knife = data['knife'];
           this.name = data['knife'].name;
+          this.allowForDemo = !!data['knife'].allow_for_demo_customers;
           this.toastService.showSuccess(data['message']);
         }
       },

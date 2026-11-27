@@ -58,11 +58,12 @@ async function getSingleWingByName(name){
 const LIST_COLUMNS = {
   name: { sql: 'w.name', type: 'text' },
   customer_name: { sql: 'customer_name', type: 'text' },
+  customer_code: { sql: 'customer_code', type: 'text' },
   knife: { sql: 'knife_name', type: 'text' },
   knife_width: { sql: 'knife_width', type: 'number' },
   Left: { sql: '`Left`', type: 'number' },
   Right: { sql: '`Right`', type: 'number' },
-  Top: { sql: '`Top`', type: 'number' },
+  Top: { sql: '`top_length`', type: 'number' },     // the length of the top baby
   Crown: { sql: '`Crown`', type: 'number' }
 };
 
@@ -84,6 +85,10 @@ async function getMultiple(page = 1, perPage, customer_id, customer_wings_only=f
     }
     customer_filter += `and (w.knife_id in (select knife from customer_knives where customer_id=${customer_id})) `;
   }
+  else if(customer_wings_only) {
+    // all wings, but only the ones assigned to some customer
+    customer_filter = `and (wc.customer_id is not null) `;
+  }
 
   const { where: having, params, orderBy } = buildListQuery(list, LIST_COLUMNS, 'w.name', 'HAVING');
   const wings_select = `SELECT
@@ -93,6 +98,7 @@ async function getMultiple(page = 1, perPage, customer_id, customer_wings_only=f
         w.split_l1, crown_width,
         GROUP_CONCAT(DISTINCT c.id) AS customer_id,
         GROUP_CONCAT(DISTINCT c.name ORDER BY c.name SEPARATOR ', ') AS customer_name,
+        GROUP_CONCAT(DISTINCT c.customer_code ORDER BY c.customer_code SEPARATOR ', ') AS customer_code,
         (SELECT COUNT(*) FROM wings_babies wb
             WHERE wb.parent_wing_id = w.id AND wb.position LIKE 'L%') AS 'Left',
         (SELECT COUNT(*) FROM wings_babies wb
@@ -100,7 +106,11 @@ async function getMultiple(page = 1, perPage, customer_id, customer_wings_only=f
         (SELECT COUNT(*) FROM wings_babies wb
             WHERE wb.parent_wing_id = w.id AND wb.position LIKE 'T%') AS 'Top',
         (SELECT COUNT(*) FROM wings_babies wb
-            WHERE wb.parent_wing_id = w.id AND wb.position LIKE 'C%') AS 'Crown'
+            WHERE wb.parent_wing_id = w.id AND wb.position LIKE 'C%') AS 'Crown',
+        (SELECT MAX(wb.length) FROM wings_babies wb
+            WHERE wb.parent_wing_id = w.id AND wb.position LIKE 'C%') AS crown_longest,
+        (SELECT MAX(wb.length) FROM wings_babies wb
+            WHERE wb.parent_wing_id = w.id AND wb.position LIKE 'T%') AS top_length
     FROM wings w
     LEFT JOIN wings_customers wc ON wc.wing_id = w.id
     LEFT JOIN customers c ON c.id = wc.customer_id
